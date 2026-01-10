@@ -3,11 +3,27 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { json } from 'express';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import compression from 'compression';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true, // Enable raw body for webhook signature verification
+    // bodyParser: true, // Optional
+  });
 
   const configService = app.get(ConfigService);
+
+  // Security: Helmet
+  app.use(helmet());
+
+  // Security: Cookie parser (for refresh tokens)
+  app.use(cookieParser());
+
+  // Performance: Compression
+  app.use(compression());
 
   // Global prefix
   const apiPrefix = configService.get('app.apiPrefix');
@@ -18,7 +34,32 @@ async function bootstrap() {
     // origin: configService.get('frontend.url'),
     origin: '*',
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
+
+  // Configure JSON parser with raw body for webhooks
+  app.use(
+    json({
+      verify: (req: any, res, buf) => {
+        // Store raw body for webhook signature verification
+        if (req.url.includes('/webhooks')) {
+          req.rawBody = buf;
+        }
+      },
+    }),
+  );
+
+  // Force HTTPS
+  if (configService.get('app.nodeEnv') === 'production') {
+    app.use((req, res, next) => {
+      if (req.header('x-forwarded-proto') !== 'https') {
+        res.redirect(`https://${req.header('host')}${req.url}`);
+      } else {
+        next();
+      }
+    });
+  }
 
   // Global validation pipe
   app.useGlobalPipes(
@@ -46,7 +87,7 @@ async function bootstrap() {
         description: 'Enter JWT token',
         in: 'header',
       },
-      'JWT-auth', // This name here is important for matching up with @ApiBearerAuth() in your controller
+      'JWT-auth', // This name here is important for matching up with @ApiBearerAuth() in the controller
     )
     .build();
   const document = SwaggerModule.createDocument(app, config);
@@ -55,7 +96,12 @@ async function bootstrap() {
   const port = configService.get('app.port');
   await app.listen(port);
 
-  console.log(`PayPips API running on http://localhost:${port}/${apiPrefix}`);
+  console.log(
+    `💰️ PayPips API running on http://localhost:${port}/${apiPrefix}`,
+  );
+  console.log(
+    `📡 Webhook endpoint: http://localhost:${port}/${apiPrefix}/webhooks/paystack`,
+  );
 }
 
 bootstrap();

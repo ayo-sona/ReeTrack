@@ -5,3 +5,4 @@ export { Plan } from './plan.entity';
 export { Subscription } from './subscription.entity';
 export { Invoice } from './invoice.entity';
 export { Payment } from './payment.entity';
+// export { RefreshToken } from './refresh-token.entity';

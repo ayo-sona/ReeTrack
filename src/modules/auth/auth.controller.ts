@@ -6,11 +6,14 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Req,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from '../../common/dto/register.dto';
 import { LoginDto } from '../../common/dto/login.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RefreshJwtAuthGuard } from '../../common/guards/refresh-jwt.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import {
   ApiTags,
@@ -18,6 +21,9 @@ import {
   ApiOperation,
   ApiResponse,
 } from '@nestjs/swagger';
+import type { Request, Response } from 'express';
+import { Throttle } from '@nestjs/throttler';
+import { SkipThrottle } from '../../common/decorators/throttle-skip.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -25,6 +31,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 requests per minute
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register a new user and organization' })
   @ApiResponse({
@@ -53,11 +60,31 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 409, description: 'Email already exists' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.register(registerDto);
+    const refreshToken = result.data.refresh_token;
+    if (refreshToken) {
+      response.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+      });
+    }
+
+    // Create a new object without refresh_token
+    const { refresh_token, ...data } = result.data;
+    return {
+      ...result,
+      data,
+    };
   }
 
   @Post('login')
+  @Throttle({ short: { limit: 5, ttl: 60000 } }) // 5 requests per minute
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({
@@ -84,8 +111,101 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  async login(
+    @Body() loginDto: LoginDto,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const ipAddress = request.ip;
+    const userAgent = request.headers['user-agent'];
+
+    const result = await this.authService.login(loginDto, ipAddress, userAgent);
+    const refreshToken = result.data.refresh_token;
+
+    // Set refresh token in HTTP-only cookie
+    if (refreshToken) {
+      response.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+      });
+    }
+
+    // Create a new object without refresh_token
+    const { refresh_token, ...data } = result.data;
+    return {
+      ...result,
+      data,
+    };
+  }
+
+  @Post('refresh')
+  @Throttle({ short: { limit: 10, ttl: 60000 } }) // 10 requests per minute
+  @UseGuards(RefreshJwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async refresh(
+    @CurrentUser() user: any,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const oldRefreshToken = request.cookies.refreshToken;
+    const result = await this.authService.refreshTokens(
+      user.id,
+      oldRefreshToken,
+    );
+
+    const refreshToken = result.data.refresh_token;
+    // Set new refresh token in cookie
+    if (refreshToken) {
+      response.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+    }
+
+    // Create a new object without refresh_token
+    const { refresh_token, ...data } = result.data;
+    return {
+      ...result,
+      data,
+    };
+  }
+
+  @Post('logout')
+  @SkipThrottle() // No rate limit for logout
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async logout(
+    @CurrentUser() user: any,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const refreshToken = request.cookies.refreshToken;
+    await this.authService.logout(user.id, refreshToken);
+
+    // Clear refresh token cookie
+    response.clearCookie('refreshToken');
+
+    return { message: 'Logged out successfully' };
+  }
+
+  @Post('logout-all')
+  @SkipThrottle()
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async logoutAll(
+    @CurrentUser() user: any,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    await this.authService.logoutAllDevices(user.id);
+
+    // Clear refresh token cookie
+    response.clearCookie('refreshToken');
+
+    return { message: 'Logged out from all devices' };
   }
 
   @Get('profile')

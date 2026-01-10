@@ -23,7 +23,9 @@ export default () => ({
 
   jwt: {
     secret: process.env.JWT_SECRET,
-    expiresIn: process.env.JWT_EXPIRATION || '7d',
+    expiresIn: process.env.JWT_EXPIRATION || '900s',
+    refreshSecret: process.env.JWT_REFRESH_SECRET,
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRATION || '1d',
   },
 
   paystack: {
@@ -42,6 +44,11 @@ export default () => ({
     port: parseInt(process.env.SMTP_PORT as string, 10) || 587,
     user: process.env.SMTP_USER,
     password: process.env.SMTP_PASSWORD,
+  },
+
+  termii: {
+    apiKey: process.env.TERMII_API_KEY,
+    senderId: process.env.TERMII_SENDER_ID || 'PayPips',
   },
 
   frontend: {
