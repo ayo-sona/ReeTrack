@@ -21,7 +21,7 @@ export class NotificationsService {
   async sendPaymentSuccessNotification(data: {
     email: string;
     phone?: string;
-    customerName: string;
+    memberName: string;
     amount: number;
     currency: string;
     reference: string;
@@ -51,7 +51,7 @@ export class NotificationsService {
   async sendPaymentFailedNotification(data: {
     email: string;
     phone?: string;
-    customerName: string;
+    memberName: string;
     amount: number;
     currency: string;
     failureReason: string;
@@ -79,7 +79,7 @@ export class NotificationsService {
   async sendSubscriptionCreatedNotification(data: {
     email: string;
     phone?: string;
-    customerName: string;
+    memberName: string;
     planName: string;
     amount: number;
     currency: string;
@@ -102,7 +102,7 @@ export class NotificationsService {
   async sendSubscriptionExpiringNotification(data: {
     email: string;
     phone?: string;
-    customerName: string;
+    memberName: string;
     planName: string;
     expiryDate: Date;
     daysLeft: number;
@@ -129,7 +129,7 @@ export class NotificationsService {
   async sendSubscriptionExpiredNotification(data: {
     email: string;
     phone?: string;
-    customerName: string;
+    memberName: string;
     planName: string;
     reactivateUrl: string;
   }) {
@@ -153,7 +153,7 @@ export class NotificationsService {
 
   async sendInvoiceCreatedNotification(data: {
     email: string;
-    customerName: string;
+    memberName: string;
     invoiceNumber: string;
     amount: number;
     currency: string;
@@ -174,7 +174,7 @@ export class NotificationsService {
   async sendInvoiceOverdueNotification(data: {
     email: string;
     phone?: string;
-    customerName: string;
+    memberName: string;
     invoiceNumber: string;
     amount: number;
     currency: string;

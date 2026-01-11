@@ -8,7 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Organization } from './organization.entity';
-import { Customer } from './customer.entity';
+import { Member } from './member.entity';
 import { Invoice } from './invoice.entity';
 
 @Entity('payments')
@@ -23,7 +23,7 @@ export class Payment {
   invoice_id: string;
 
   @Column({ type: 'uuid' })
-  customer_id: string;
+  member_id: string;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   amount: number;
@@ -59,7 +59,7 @@ export class Payment {
   @JoinColumn({ name: 'invoice_id' })
   invoice: Invoice;
 
-  @ManyToOne(() => Customer, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'customer_id' })
-  customer: Customer;
+  @ManyToOne(() => Member, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'member_id' })
+  member: Member;
 }

@@ -25,12 +25,12 @@ export interface PaystackVerifyResponse {
     currency: string;
     ip_address: string;
     metadata: any;
-    customer: {
+    member: {
       id: number;
       first_name: string;
       last_name: string;
       email: string;
-      customer_code: string;
+      member_code: string;
       phone: string | null;
     };
     authorization: {

@@ -137,7 +137,7 @@ export class OrganizationsController {
       'application/json': {
         example: {
           totalUsers: 10,
-          totalCustomers: 100,
+          totalMembers: 100,
           totalPlans: 4,
           activeSubscriptions: 90,
         },

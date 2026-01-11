@@ -35,7 +35,7 @@ import { ConfigService } from '@nestjs/config';
 import { Subscription } from '../../database/entities/subscription.entity';
 import { Invoice } from '../../database/entities/invoice.entity';
 import { Plan } from '../../database/entities/plan.entity';
-import { Customer } from '../../database/entities/customer.entity';
+import { Member } from '../../database/entities/member.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuthService } from '../auth/auth.service';
 import { generateInvoiceNumber } from '../../common/utils/invoice-number.util';
@@ -51,8 +51,8 @@ export class CronService {
     private invoiceRepository: Repository<Invoice>,
     @InjectRepository(Plan)
     private planRepository: Repository<Plan>,
-    @InjectRepository(Customer)
-    private customerRepository: Repository<Customer>,
+    @InjectRepository(Member)
+    private memberRepository: Repository<Member>,
     private notificationsService: NotificationsService,
     private configService: ConfigService,
     private authService: AuthService,
@@ -71,7 +71,7 @@ export class CronService {
         status: In(['active', 'trialing']),
         current_period_end: LessThan(now),
       },
-      relations: ['customer', 'plan'],
+      relations: ['member', 'plan'],
     });
 
     for (const subscription of expiredSubscriptions) {
@@ -82,9 +82,9 @@ export class CronService {
       // Send notification
       const frontendUrl = this.configService.get('frontend.url');
       await this.notificationsService.sendSubscriptionExpiredNotification({
-        email: subscription.customer.email,
-        phone: subscription.customer.phone,
-        customerName: `${subscription.customer.first_name} ${subscription.customer.last_name}`,
+        email: subscription.member.email,
+        phone: subscription.member.phone,
+        memberName: `${subscription.member.first_name} ${subscription.member.last_name}`,
         planName: subscription.plan.name,
         reactivateUrl: `${frontendUrl}/subscriptions/${subscription.id}/reactivate`,
       });
@@ -109,7 +109,7 @@ export class CronService {
         status: 'trialing',
         trial_end: LessThan(now),
       },
-      relations: ['plan', 'customer', 'organization'],
+      relations: ['plan', 'member', 'organization'],
     });
 
     for (const subscription of trialEndedSubscriptions) {
@@ -120,7 +120,7 @@ export class CronService {
       const invoice = this.invoiceRepository.create({
         organization_id: subscription.organization_id,
         subscription_id: subscription.id,
-        customer_id: subscription.customer_id,
+        member_id: subscription.member_id,
         invoice_number: generateInvoiceNumber(subscription.organization_id),
         amount: subscription.plan.amount,
         currency: subscription.plan.currency,
@@ -137,8 +137,8 @@ export class CronService {
       // Send notification
       const frontendUrl = this.configService.get('frontend.url');
       await this.notificationsService.sendInvoiceCreatedNotification({
-        email: subscription.customer.email,
-        customerName: `${subscription.customer.first_name} ${subscription.customer.last_name}`,
+        email: subscription.member.email,
+        memberName: `${subscription.member.first_name} ${subscription.member.last_name}`,
         invoiceNumber: invoice.invoice_number,
         amount: invoice.amount,
         currency: invoice.currency,
@@ -157,7 +157,7 @@ export class CronService {
   }
 
   // SEND EXPIRY REMINDERS
-  // Notify customers 7 days, 3 days, and 1 day before expiry
+  // Notify members 7 days, 3 days, and 1 day before expiry
   // Runs daily at 9 AM
   @Cron('0 9 * * *') // 9 AM daily
   async sendExpiryReminders() {
@@ -185,14 +185,14 @@ export class CronService {
           status: 'active',
           current_period_end: Between(startOfDay, endOfDay),
         },
-        relations: ['customer', 'plan'],
+        relations: ['member', 'plan'],
       });
 
       for (const subscription of expiringSubscriptions) {
         await this.notificationsService.sendSubscriptionExpiringNotification({
-          email: subscription.customer.email,
-          phone: subscription.customer.phone,
-          customerName: `${subscription.customer.first_name} ${subscription.customer.last_name}`,
+          email: subscription.member.email,
+          phone: subscription.member.phone,
+          memberName: `${subscription.member.first_name} ${subscription.member.last_name}`,
           planName: subscription.plan.name,
           expiryDate: subscription.current_period_end,
           daysLeft: days,
@@ -225,7 +225,7 @@ export class CronService {
         status: In(['pending', 'failed']),
         due_date: LessThan(now),
       },
-      relations: ['customer'],
+      relations: ['member'],
     });
 
     for (const invoice of overdueInvoices) {
@@ -238,9 +238,9 @@ export class CronService {
 
       if (reminderDays.includes(daysOverdue)) {
         await this.notificationsService.sendInvoiceOverdueNotification({
-          email: invoice.customer.email,
-          phone: invoice.customer.phone,
-          customerName: `${invoice.customer.first_name} ${invoice.customer.last_name}`,
+          email: invoice.member.email,
+          phone: invoice.member.phone,
+          memberName: `${invoice.member.first_name} ${invoice.member.last_name}`,
           invoiceNumber: invoice.invoice_number,
           amount: invoice.amount,
           currency: invoice.currency,
@@ -281,7 +281,7 @@ export class CronService {
         status: 'active',
         current_period_end: Between(startOfTomorrow, endOfTomorrow),
       },
-      relations: ['plan', 'customer', 'organization'],
+      relations: ['plan', 'member', 'organization'],
     });
 
     for (const subscription of renewingSubscriptions) {
@@ -301,7 +301,7 @@ export class CronService {
       const invoice = this.invoiceRepository.create({
         organization_id: subscription.organization_id,
         subscription_id: subscription.id,
-        customer_id: subscription.customer_id,
+        member_id: subscription.member_id,
         invoice_number: generateInvoiceNumber(subscription.organization_id),
         amount: subscription.plan.amount,
         currency: subscription.plan.currency,
@@ -322,8 +322,8 @@ export class CronService {
       // Send notification
       const frontendUrl = this.configService.get('frontend.url');
       await this.notificationsService.sendInvoiceCreatedNotification({
-        email: subscription.customer.email,
-        customerName: `${subscription.customer.first_name} ${subscription.customer.last_name}`,
+        email: subscription.member.email,
+        memberName: `${subscription.member.first_name} ${subscription.member.last_name}`,
         invoiceNumber: invoice.invoice_number,
         amount: invoice.amount,
         currency: invoice.currency,

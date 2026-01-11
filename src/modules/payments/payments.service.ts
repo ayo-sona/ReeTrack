@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Payment } from '../../database/entities/payment.entity';
 import { Invoice } from '../../database/entities/invoice.entity';
-import { Customer } from '../../database/entities/customer.entity';
+import { Member } from '../../database/entities/member.entity';
 import { PaystackService } from './paystack.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { InitializePaymentDto } from './dto/initialize-payment.dto';
@@ -24,8 +24,8 @@ export class PaymentsService {
     private paymentRepository: Repository<Payment>,
     @InjectRepository(Invoice)
     private invoiceRepository: Repository<Invoice>,
-    @InjectRepository(Customer)
-    private customerRepository: Repository<Customer>,
+    @InjectRepository(Member)
+    private memberRepository: Repository<Member>,
     private paystackService: PaystackService,
     private configService: ConfigService,
     private notificationsService: NotificationsService,
@@ -41,7 +41,7 @@ export class PaymentsService {
         id: initializePaymentDto.invoiceId,
         organization_id: organizationId,
       },
-      relations: ['customer'],
+      relations: ['member'],
     });
 
     if (!invoice) {
@@ -59,7 +59,7 @@ export class PaymentsService {
     const payment = this.paymentRepository.create({
       organization_id: organizationId,
       invoice_id: invoice.id,
-      customer_id: invoice.customer_id,
+      member_id: invoice.member_id,
       amount: invoice.amount,
       currency: invoice.currency,
       provider: 'paystack',
@@ -78,13 +78,13 @@ export class PaymentsService {
     const callbackUrl = `${this.configService.get('frontend.url')}/payment/callback`;
 
     const paystackResponse = await this.paystackService.initializeTransaction(
-      invoice.customer.email,
+      invoice.member.email,
       amountInKobo,
       reference,
       {
         payment_id: savedPayment.id,
         invoice_id: invoice.id,
-        customer_name: `${invoice.customer.first_name} ${invoice.customer.last_name}`,
+        member_name: `${invoice.member.first_name} ${invoice.member.last_name}`,
         ...initializePaymentDto.metadata,
       },
       callbackUrl,
@@ -116,7 +116,7 @@ export class PaymentsService {
         provider_reference: reference,
         organization_id: organizationId,
       },
-      relations: ['invoice', 'customer'],
+      relations: ['invoice', 'member'],
     });
 
     if (!payment) {
@@ -191,7 +191,7 @@ export class PaymentsService {
 
     const [payments, total] = await this.paymentRepository.findAndCount({
       where: whereCondition,
-      relations: ['customer', 'invoice'],
+      relations: ['member', 'invoice'],
       order: { created_at: 'DESC' },
       skip,
       take: limit,
@@ -209,7 +209,7 @@ export class PaymentsService {
         id: paymentId,
         organization_id: organizationId,
       },
-      relations: ['customer', 'invoice'],
+      relations: ['member', 'invoice'],
     });
 
     if (!payment) {
@@ -222,9 +222,9 @@ export class PaymentsService {
     };
   }
 
-  async getPaymentsByCustomer(
+  async getPaymentsByMember(
     organizationId: string,
-    customerId: string,
+    memberId: string,
     paginationDto: PaginationDto,
   ) {
     const { page = 1, limit = 10 } = paginationDto;
@@ -233,7 +233,7 @@ export class PaymentsService {
     const [payments, total] = await this.paymentRepository.findAndCount({
       where: {
         organization_id: organizationId,
-        customer_id: customerId,
+        member_id: memberId,
       },
       relations: ['invoice'],
       order: { created_at: 'DESC' },
@@ -242,7 +242,7 @@ export class PaymentsService {
     });
 
     return {
-      message: 'Customer payments retrieved successfully',
+      message: 'Member payments retrieved successfully',
       ...paginate(payments, total, page, limit),
     };
   }

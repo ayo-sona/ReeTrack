@@ -5,21 +5,21 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
-import { Customer } from '../../database/entities/customer.entity';
+import { Member } from '../../database/entities/member.entity';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { PaginationDto, paginate } from '../../common/dto/pagination.dto';
 
 @Injectable()
-export class CustomersService {
+export class MembersService {
   constructor(
-    @InjectRepository(Customer)
-    private customerRepository: Repository<Customer>,
+    @InjectRepository(Member)
+    private memberRepository: Repository<Member>,
   ) {}
 
   async create(organizationId: string, createCustomerDto: CreateCustomerDto) {
     // Check if customer already exists in this organization
-    const existing = await this.customerRepository.findOne({
+    const existing = await this.memberRepository.findOne({
       where: {
         organization_id: organizationId,
         email: createCustomerDto.email,
@@ -32,7 +32,7 @@ export class CustomersService {
       );
     }
 
-    const customer = this.customerRepository.create({
+    const customer = this.memberRepository.create({
       organization_id: organizationId,
       email: createCustomerDto.email,
       first_name: createCustomerDto.firstName,
@@ -41,7 +41,7 @@ export class CustomersService {
       metadata: createCustomerDto.metadata || {},
     });
 
-    const saved = await this.customerRepository.save(customer);
+    const saved = await this.memberRepository.save(customer);
 
     return {
       message: 'Customer created successfully',
@@ -64,7 +64,7 @@ export class CustomersService {
       whereCondition.email = ILike(`%${search}%`);
     }
 
-    const [customers, total] = await this.customerRepository.findAndCount({
+    const [members, total] = await this.memberRepository.findAndCount({
       where: whereCondition,
       order: { created_at: 'DESC' },
       skip,
@@ -72,49 +72,49 @@ export class CustomersService {
     });
 
     return {
-      message: 'Customers retrieved successfully',
-      ...paginate(customers, total, page, limit),
+      message: 'Members retrieved successfully',
+      ...paginate(members, total, page, limit),
     };
   }
 
-  async findOne(organizationId: string, customerId: string) {
-    const customer = await this.customerRepository.findOne({
+  async findOne(organizationId: string, memberId: string) {
+    const member = await this.memberRepository.findOne({
       where: {
-        id: customerId,
+        id: memberId,
         organization_id: organizationId,
       },
       relations: ['subscriptions', 'subscriptions.plan'],
     });
 
-    if (!customer) {
-      throw new NotFoundException('Customer not found');
+    if (!member) {
+      throw new NotFoundException('Member not found');
     }
 
     return {
-      message: 'Customer retrieved successfully',
-      data: customer,
+      message: 'Member retrieved successfully',
+      data: member,
     };
   }
 
   async update(
     organizationId: string,
-    customerId: string,
+    memberId: string,
     updateCustomerDto: UpdateCustomerDto,
   ) {
-    const customer = await this.customerRepository.findOne({
+    const member = await this.memberRepository.findOne({
       where: {
-        id: customerId,
+        id: memberId,
         organization_id: organizationId,
       },
     });
 
-    if (!customer) {
-      throw new NotFoundException('Customer not found');
+    if (!member) {
+      throw new NotFoundException('Member not found');
     }
 
     // Check if email is being changed and is unique
-    if (updateCustomerDto.email && updateCustomerDto.email !== customer.email) {
-      const existing = await this.customerRepository.findOne({
+    if (updateCustomerDto.email && updateCustomerDto.email !== member.email) {
+      const existing = await this.memberRepository.findOne({
         where: {
           organization_id: organizationId,
           email: updateCustomerDto.email,
@@ -122,102 +122,102 @@ export class CustomersService {
       });
 
       if (existing) {
-        throw new ConflictException('Email already in use by another customer');
+        throw new ConflictException('Email already in use by another member');
       }
     }
 
     // Update fields
-    if (updateCustomerDto.email) customer.email = updateCustomerDto.email;
+    if (updateCustomerDto.email) member.email = updateCustomerDto.email;
     if (updateCustomerDto.firstName)
-      customer.first_name = updateCustomerDto.firstName;
+      member.first_name = updateCustomerDto.firstName;
     if (updateCustomerDto.lastName)
-      customer.last_name = updateCustomerDto.lastName;
+      member.last_name = updateCustomerDto.lastName;
     if (updateCustomerDto.phone !== undefined)
-      customer.phone = updateCustomerDto.phone;
+      member.phone = updateCustomerDto.phone;
     if (updateCustomerDto.metadata) {
-      customer.metadata = {
-        ...customer.metadata,
+      member.metadata = {
+        ...member.metadata,
         ...updateCustomerDto.metadata,
       };
     }
 
-    const updated = await this.customerRepository.save(customer);
+    const updated = await this.memberRepository.save(member);
 
     return {
-      message: 'Customer updated successfully',
+      message: 'Member updated successfully',
       data: updated,
     };
   }
 
-  async delete(organizationId: string, customerId: string) {
-    const customer = await this.customerRepository.findOne({
+  async delete(organizationId: string, memberId: string) {
+    const member = await this.memberRepository.findOne({
       where: {
-        id: customerId,
+        id: memberId,
         organization_id: organizationId,
       },
       relations: ['subscriptions'],
     });
 
-    if (!customer) {
-      throw new NotFoundException('Customer not found');
+    if (!member) {
+      throw new NotFoundException('Member not found');
     }
 
     // Check for active subscriptions
-    const hasActiveSubscriptions = customer.subscriptions?.some(
+    const hasActiveSubscriptions = member.subscriptions?.some(
       (sub) => sub.status === 'active',
     );
 
     if (hasActiveSubscriptions) {
       throw new ConflictException(
-        'Cannot delete customer with active subscriptions',
+        'Cannot delete member with active subscriptions',
       );
     }
 
-    await this.customerRepository.remove(customer);
+    await this.memberRepository.remove(member);
 
     return {
-      message: 'Customer deleted successfully',
+      message: 'Member deleted successfully',
     };
   }
 
-  async getCustomerStats(organizationId: string, customerId: string) {
-    const customer = await this.customerRepository.findOne({
+  async getMemberStats(organizationId: string, memberId: string) {
+    const member = await this.memberRepository.findOne({
       where: {
-        id: customerId,
+        id: memberId,
         organization_id: organizationId,
       },
     });
 
-    if (!customer) {
-      throw new NotFoundException('Customer not found');
+    if (!member) {
+      throw new NotFoundException('Member not found');
     }
 
     // Get subscription stats
     const [subscriptions, invoices, totalPaid] = await Promise.all([
-      this.customerRepository.query(
+      this.memberRepository.query(
         `SELECT COUNT(*) as count, status 
          FROM subscriptions 
-         WHERE customer_id = $1 
+         WHERE member_id = $1 
          GROUP BY status`,
-        [customerId],
+        [memberId],
       ),
-      this.customerRepository.query(
+      this.memberRepository.query(
         `SELECT COUNT(*) as count, status 
          FROM invoices 
-         WHERE customer_id = $1 
+         WHERE member_id = $1 
          GROUP BY status`,
-        [customerId],
+        [memberId],
       ),
-      this.customerRepository.query(
+      this.memberRepository.query(
         `SELECT COALESCE(SUM(amount), 0) as total 
          FROM payments 
-         WHERE customer_id = $1 AND status = 'success'`,
-        [customerId],
+         WHERE member_id = $1 AND status = 'success'`,
+        [memberId],
       ),
     ]);
 
     return {
-      message: 'Customer stats retrieved successfully',
+      message: 'Member stats retrieved successfully',
       data: {
         subscriptions: subscriptions.reduce((acc, curr) => {
           acc[curr.status] = parseInt(curr.count);

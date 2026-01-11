@@ -74,10 +74,10 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('PayPips API')
-    .setDescription('The PayPips API documentation')
+    .setTitle('Renova API')
+    .setDescription('The Renova API documentation')
     .setVersion('1.0')
-    .setContact('PayPips', 'https://paypips.vercel.app', 'keneusih@gmail.com')
+    .setContact('Renova', 'https://paypips.vercel.app', 'keneusih@gmail.com')
     .addBearerAuth(
       {
         type: 'http',
@@ -96,9 +96,7 @@ async function bootstrap() {
   const port = configService.get('app.port');
   await app.listen(port);
 
-  console.log(
-    `💰️ PayPips API running on http://localhost:${port}/${apiPrefix}`,
-  );
+  console.log(`💰️ Renova API running on http://localhost:${port}/${apiPrefix}`);
   console.log(
     `📡 Webhook endpoint: http://localhost:${port}/${apiPrefix}/webhooks/paystack`,
   );

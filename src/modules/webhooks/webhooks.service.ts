@@ -92,7 +92,7 @@ export class WebhooksService {
     // Find payment by reference
     const payment = await this.paymentRepository.findOne({
       where: { provider_reference: data.reference },
-      relations: ['invoice', 'invoice.subscription', 'customer'],
+      relations: ['invoice', 'invoice.subscription', 'member'],
     });
 
     if (!payment) {
@@ -140,11 +140,11 @@ export class WebhooksService {
     }
 
     // Send notification
-    if (payment.customer) {
+    if (payment.member) {
       await this.notificationsService.sendPaymentSuccessNotification({
-        email: payment.customer.email,
-        phone: payment.customer.phone,
-        customerName: `${payment.customer.first_name} ${payment.customer.last_name}`,
+        email: payment.member.email,
+        phone: payment.member.phone,
+        memberName: `${payment.member.first_name} ${payment.member.last_name}`,
         amount: payment.amount,
         currency: payment.currency,
         reference: data.reference,
@@ -161,7 +161,7 @@ export class WebhooksService {
 
     const payment = await this.paymentRepository.findOne({
       where: { provider_reference: data.reference },
-      relations: ['invoice', 'customer'],
+      relations: ['invoice', 'member'],
     });
 
     if (!payment) {
@@ -187,12 +187,12 @@ export class WebhooksService {
     }
 
     // Send notification
-    if (payment.customer && payment.invoice) {
+    if (payment.member && payment.invoice) {
       const frontendUrl = this.configService.get('frontend.url');
       await this.notificationsService.sendPaymentFailedNotification({
-        email: payment.customer.email,
-        phone: payment.customer.phone,
-        customerName: `${payment.customer.first_name} ${payment.customer.last_name}`,
+        email: payment.member.email,
+        phone: payment.member.phone,
+        memberName: `${payment.member.first_name} ${payment.member.last_name}`,
         amount: payment.amount,
         currency: payment.currency,
         failureReason: data.gateway_response || 'Payment declined',

@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan, In } from 'typeorm';
 import { Invoice } from '../../database/entities/invoice.entity';
-import { Customer } from '../../database/entities/customer.entity';
+import { Member } from '../../database/entities/member.entity';
 import { Subscription } from '../../database/entities/subscription.entity';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { PaginationDto, paginate } from '../../common/dto/pagination.dto';
@@ -17,23 +17,23 @@ export class InvoicesService {
   constructor(
     @InjectRepository(Invoice)
     private invoiceRepository: Repository<Invoice>,
-    @InjectRepository(Customer)
-    private customerRepository: Repository<Customer>,
+    @InjectRepository(Member)
+    private memberRepository: Repository<Member>,
     @InjectRepository(Subscription)
     private subscriptionRepository: Repository<Subscription>,
   ) {}
 
   async create(organizationId: string, createInvoiceDto: CreateInvoiceDto) {
     // Verify customer
-    const customer = await this.customerRepository.findOne({
+    const member = await this.memberRepository.findOne({
       where: {
         id: createInvoiceDto.customerId,
         organization_id: organizationId,
       },
     });
 
-    if (!customer) {
-      throw new NotFoundException('Customer not found');
+    if (!member) {
+      throw new NotFoundException('Member not found');
     }
 
     // Verify subscription if provided
@@ -53,7 +53,7 @@ export class InvoicesService {
     // Create invoice
     const invoice = this.invoiceRepository.create({
       organization_id: organizationId,
-      customer_id: createInvoiceDto.customerId,
+      member_id: createInvoiceDto.customerId,
       subscription_id: createInvoiceDto.subscriptionId,
       invoice_number: generateInvoiceNumber(organizationId),
       amount: createInvoiceDto.amount,
@@ -86,7 +86,7 @@ export class InvoicesService {
 
     const [invoices, total] = await this.invoiceRepository.findAndCount({
       where: whereCondition,
-      relations: ['customer', 'subscription', 'payments'],
+      relations: ['member', 'subscription', 'payments'],
       order: { created_at: 'DESC' },
       skip,
       take: limit,
@@ -104,7 +104,7 @@ export class InvoicesService {
         id: invoiceId,
         organization_id: organizationId,
       },
-      relations: ['customer', 'subscription', 'payments'],
+      relations: ['member', 'subscription', 'payments'],
     });
 
     if (!invoice) {
@@ -117,9 +117,9 @@ export class InvoicesService {
     };
   }
 
-  async getCustomerInvoices(
+  async getMemberInvoices(
     organizationId: string,
-    customerId: string,
+    memberId: string,
     paginationDto: PaginationDto,
   ) {
     const { page = 1, limit = 10 } = paginationDto;
@@ -128,7 +128,7 @@ export class InvoicesService {
     const [invoices, total] = await this.invoiceRepository.findAndCount({
       where: {
         organization_id: organizationId,
-        customer_id: customerId,
+        member_id: memberId,
       },
       relations: ['subscription', 'payments'],
       order: { created_at: 'DESC' },
@@ -151,7 +151,7 @@ export class InvoicesService {
         status: In(['pending', 'failed']),
         due_date: LessThan(now),
       },
-      relations: ['customer'],
+      relations: ['member'],
       order: { due_date: 'ASC' },
     });
 

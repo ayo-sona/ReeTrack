@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan, MoreThan } from 'typeorm';
 import { Subscription } from '../../database/entities/subscription.entity';
-import { Customer } from '../../database/entities/customer.entity';
+import { Member } from '../../database/entities/member.entity';
 import { Plan } from '../../database/entities/plan.entity';
 import { Invoice } from '../../database/entities/invoice.entity';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
@@ -19,8 +19,8 @@ export class SubscriptionsService {
   constructor(
     @InjectRepository(Subscription)
     private subscriptionRepository: Repository<Subscription>,
-    @InjectRepository(Customer)
-    private customerRepository: Repository<Customer>,
+    @InjectRepository(Member)
+    private memberRepository: Repository<Member>,
     @InjectRepository(Plan)
     private planRepository: Repository<Plan>,
     @InjectRepository(Invoice)
@@ -31,16 +31,16 @@ export class SubscriptionsService {
     organizationId: string,
     createSubscriptionDto: CreateSubscriptionDto,
   ) {
-    // Verify customer belongs to organization
-    const customer = await this.customerRepository.findOne({
+    // Verify member belongs to organization
+    const member = await this.memberRepository.findOne({
       where: {
-        id: createSubscriptionDto.customerId,
+        id: createSubscriptionDto.memberId,
         organization_id: organizationId,
       },
     });
 
-    if (!customer) {
-      throw new NotFoundException('Customer not found');
+    if (!member) {
+      throw new NotFoundException('Member not found');
     }
 
     // Verify plan belongs to organization and is active
@@ -56,10 +56,10 @@ export class SubscriptionsService {
       throw new NotFoundException('Plan not found or inactive');
     }
 
-    // Check if customer already has an active subscription to this plan
+    // Check if member already has an active subscription to this plan
     const existingSubscription = await this.subscriptionRepository.findOne({
       where: {
-        customer_id: createSubscriptionDto.customerId,
+        member_id: createSubscriptionDto.memberId,
         plan_id: createSubscriptionDto.planId,
         status: 'active',
       },
@@ -67,7 +67,7 @@ export class SubscriptionsService {
 
     if (existingSubscription) {
       throw new BadRequestException(
-        'Customer already has an active subscription to this plan',
+        'Member already has an active subscription to this plan',
       );
     }
 
@@ -86,7 +86,7 @@ export class SubscriptionsService {
     // Create subscription
     const subscription = this.subscriptionRepository.create({
       organization_id: organizationId,
-      customer_id: createSubscriptionDto.customerId,
+      member_id: createSubscriptionDto.memberId,
       plan_id: createSubscriptionDto.planId,
       status: trialEnd ? 'trialing' : 'active',
       current_period_start: now,
@@ -104,7 +104,7 @@ export class SubscriptionsService {
         organizationId,
         savedSubscription,
         plan,
-        customer,
+        member,
       );
     }
 
@@ -112,7 +112,7 @@ export class SubscriptionsService {
       message: 'Subscription created successfully',
       data: await this.subscriptionRepository.findOne({
         where: { id: savedSubscription.id },
-        relations: ['customer', 'plan'],
+        relations: ['member', 'plan'],
       }),
     };
   }
@@ -133,7 +133,7 @@ export class SubscriptionsService {
     const [subscriptions, total] =
       await this.subscriptionRepository.findAndCount({
         where: whereCondition,
-        relations: ['customer', 'plan'],
+        relations: ['member', 'plan'],
         order: { created_at: 'DESC' },
         skip,
         take: limit,
@@ -151,7 +151,7 @@ export class SubscriptionsService {
         id: subscriptionId,
         organization_id: organizationId,
       },
-      relations: ['customer', 'plan', 'invoices'],
+      relations: ['member', 'plan', 'invoices'],
     });
 
     if (!subscription) {
@@ -247,7 +247,7 @@ export class SubscriptionsService {
   async renewSubscription(subscriptionId: string) {
     const subscription = await this.subscriptionRepository.findOne({
       where: { id: subscriptionId },
-      relations: ['plan', 'customer', 'organization'],
+      relations: ['plan', 'member', 'organization'],
     });
 
     if (!subscription) {
@@ -276,7 +276,7 @@ export class SubscriptionsService {
       subscription.organization_id,
       subscription,
       subscription.plan,
-      subscription.customer,
+      subscription.member,
     );
 
     return {
@@ -317,7 +317,7 @@ export class SubscriptionsService {
         status: 'trialing',
         trial_end: LessThan(now),
       },
-      relations: ['plan', 'customer'],
+      relations: ['plan', 'member'],
     });
 
     for (const subscription of trialEndedSubscriptions) {
@@ -329,7 +329,7 @@ export class SubscriptionsService {
         subscription.organization_id,
         subscription,
         subscription.plan,
-        subscription.customer,
+        subscription.member,
       );
     }
 
@@ -343,12 +343,12 @@ export class SubscriptionsService {
     organizationId: string,
     subscription: Subscription,
     plan: Plan,
-    customer: Customer,
+    member: Member,
   ) {
     const invoice = this.invoiceRepository.create({
       organization_id: organizationId,
       subscription_id: subscription.id,
-      customer_id: customer.id,
+      member_id: member.id,
       invoice_number: generateInvoiceNumber(organizationId),
       amount: plan.amount,
       currency: plan.currency,

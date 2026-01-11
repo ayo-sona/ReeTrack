@@ -5,12 +5,12 @@ import { AnalyticsController } from './analytics.controller';
 import { Subscription } from '../../database/entities/subscription.entity';
 import { Invoice } from '../../database/entities/invoice.entity';
 import { Payment } from '../../database/entities/payment.entity';
-import { Customer } from '../../database/entities/customer.entity';
+import { Member } from '../../database/entities/member.entity';
 import { Plan } from '../../database/entities/plan.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Subscription, Invoice, Payment, Customer, Plan]),
+    TypeOrmModule.forFeature([Subscription, Invoice, Payment, Member, Plan]),
   ],
   controllers: [AnalyticsController],
   providers: [AnalyticsService],

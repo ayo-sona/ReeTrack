@@ -81,7 +81,7 @@ export class EmailService {
             <h1>✅ Payment Successful</h1>
           </div>
           <div class="content">
-            <p>Hi ${context.customerName},</p>
+            <p>Hi ${context.memberName},</p>
             <p>Your payment has been processed successfully!</p>
             
             <div class="details">
@@ -123,7 +123,7 @@ export class EmailService {
             <h1>❌ Payment Failed</h1>
           </div>
           <div class="content">
-            <p>Hi ${context.customerName},</p>
+            <p>Hi ${context.memberName},</p>
             <p>We were unable to process your payment.</p>
             
             <div class="details">
@@ -166,7 +166,7 @@ export class EmailService {
             <h1>🎉 Welcome to ${context.planName}!</h1>
           </div>
           <div class="content">
-            <p>Hi ${context.customerName},</p>
+            <p>Hi ${context.memberName},</p>
             <p>Your subscription has been activated successfully!</p>
             
             <div class="details">
@@ -208,7 +208,7 @@ export class EmailService {
             <h1>⚠️ Subscription Expiring Soon</h1>
           </div>
           <div class="content">
-            <p>Hi ${context.customerName},</p>
+            <p>Hi ${context.memberName},</p>
             <p>Your subscription to <strong>${context.planName}</strong> will expire in ${context.daysLeft} days.</p>
             <p><strong>Expiry Date:</strong> ${new Date(context.expiryDate).toLocaleDateString()}</p>
             <p>Renew now to continue enjoying uninterrupted service.</p>
@@ -245,7 +245,7 @@ export class EmailService {
             <h1>Subscription Expired</h1>
           </div>
           <div class="content">
-            <p>Hi ${context.customerName},</p>
+            <p>Hi ${context.memberName},</p>
             <p>Your subscription to <strong>${context.planName}</strong> has expired.</p>
             <p>Reactivate your subscription to regain access.</p>
             <p style="text-align: center; margin: 30px 0;">
@@ -282,7 +282,7 @@ export class EmailService {
             <h1>📄 New Invoice</h1>
           </div>
           <div class="content">
-            <p>Hi ${context.customerName},</p>
+            <p>Hi ${context.memberName},</p>
             <p>A new invoice has been generated for your subscription.</p>
             
             <div class="details">
@@ -325,7 +325,7 @@ export class EmailService {
             <h1>⚠️ Invoice Overdue</h1>
           </div>
           <div class="content">
-            <p>Hi ${context.customerName},</p>
+            <p>Hi ${context.memberName},</p>
             <p>Your invoice is now <strong>${context.daysOverdue} days overdue</strong>.</p>
             
             <div class="details">
@@ -369,7 +369,7 @@ export class EmailService {
           <div class="content">
             <p>Hi ${context.userName},</p>
             <p>Welcome! Your account has been created successfully.</p>
-            <p>You can now start managing your subscriptions and customers.</p>
+            <p>You can now start managing your subscriptions and members.</p>
           </div>
           <div class="footer">
             <p>This is an automated email from PayPips</p>

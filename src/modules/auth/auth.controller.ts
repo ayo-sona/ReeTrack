@@ -144,6 +144,13 @@ export class AuthController {
   @Throttle({ short: { limit: 10, ttl: 60000 } }) // 10 requests per minute
   @UseGuards(RefreshJwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({
+    status: 200,
+    description: 'Access token refreshed successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async refresh(
     @CurrentUser() user: any,
     @Req() request: Request,
@@ -175,9 +182,14 @@ export class AuthController {
   }
 
   @Post('logout')
+  @ApiBearerAuth('JWT-auth')
   @SkipThrottle() // No rate limit for logout
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Logout user' })
+  @ApiResponse({ status: 200, description: 'User logged out successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async logout(
     @CurrentUser() user: any,
     @Req() request: Request,
@@ -193,9 +205,14 @@ export class AuthController {
   }
 
   @Post('logout-all')
+  @ApiBearerAuth('JWT-auth')
   @SkipThrottle()
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Logout user from all devices' })
+  @ApiResponse({ status: 200, description: 'User logged out from all devices' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async logoutAll(
     @CurrentUser() user: any,
     @Res({ passthrough: true }) response: Response,

@@ -6,8 +6,8 @@ export interface MRRData {
 }
 
 export interface ChurnData {
-  churned_customers: number;
-  total_customers: number;
+  churned_members: number;
+  total_members: number;
   churn_rate: number;
   period: string;
 }
@@ -19,18 +19,18 @@ export interface RevenueData {
   average_transaction: number;
 }
 
-export interface CustomerGrowthData {
-  new_customers: number;
-  churned_customers: number;
+export interface MemberGrowthData {
+  new_members: number;
+  churned_members: number;
   net_growth: number;
-  total_customers: number;
+  total_members: number;
 }
 
 export interface RevenueChartData {
   date: string;
   revenue: number;
   subscriptions: number;
-  customers: number;
+  members: number;
 }
 
 export interface PlanPerformanceData {

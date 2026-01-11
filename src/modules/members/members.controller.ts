@@ -9,26 +9,26 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { CustomersService } from './customers.service';
+import { MembersService } from './members.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentOrganization } from '../../common/decorators/organization.decorator';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { Customer } from 'src/database/entities';
+import { Member } from 'src/database/entities';
 
-@Controller('customers')
+@Controller('members')
 @UseGuards(JwtAuthGuard)
-export class CustomersController {
-  constructor(private readonly customersService: CustomersService) {}
+export class MembersController {
+  constructor(private readonly membersService: MembersService) {}
 
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new customer' })
   @ApiResponse({
     status: 201,
     description: 'Customer created successfully',
-    type: Customer,
+    type: Member,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 409, description: 'Email already in use' })
@@ -37,7 +37,7 @@ export class CustomersController {
     @CurrentOrganization() organizationId: string,
     @Body() createCustomerDto: CreateCustomerDto,
   ) {
-    return this.customersService.create(organizationId, createCustomerDto);
+    return this.membersService.create(organizationId, createCustomerDto);
   }
 
   @ApiBearerAuth('JWT-auth')
@@ -45,7 +45,7 @@ export class CustomersController {
   @ApiResponse({
     status: 200,
     description: 'Customers retrieved successfully',
-    type: [Customer],
+    type: [Member],
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get()
@@ -54,7 +54,7 @@ export class CustomersController {
     @Query() paginationDto: PaginationDto,
     @Query('search') search?: string,
   ) {
-    return this.customersService.findAll(organizationId, paginationDto, search);
+    return this.membersService.findAll(organizationId, paginationDto, search);
   }
 
   @ApiBearerAuth('JWT-auth')
@@ -62,7 +62,7 @@ export class CustomersController {
   @ApiResponse({
     status: 200,
     description: 'Customer retrieved successfully',
-    type: Customer,
+    type: Member,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Customer not found' })
@@ -71,7 +71,7 @@ export class CustomersController {
     @CurrentOrganization() organizationId: string,
     @Param('id') id: string,
   ) {
-    return this.customersService.findOne(organizationId, id);
+    return this.membersService.findOne(organizationId, id);
   }
 
   @ApiBearerAuth('JWT-auth')
@@ -87,7 +87,7 @@ export class CustomersController {
     @CurrentOrganization() organizationId: string,
     @Param('id') id: string,
   ) {
-    return this.customersService.getCustomerStats(organizationId, id);
+    return this.membersService.getMemberStats(organizationId, id);
   }
 
   @ApiBearerAuth('JWT-auth')
@@ -95,7 +95,7 @@ export class CustomersController {
   @ApiResponse({
     status: 200,
     description: 'Customer updated successfully',
-    type: Customer,
+    type: Member,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Customer not found' })
@@ -106,7 +106,7 @@ export class CustomersController {
     @Param('id') id: string,
     @Body() updateCustomerDto: UpdateCustomerDto,
   ) {
-    return this.customersService.update(organizationId, id, updateCustomerDto);
+    return this.membersService.update(organizationId, id, updateCustomerDto);
   }
 
   @ApiBearerAuth('JWT-auth')
@@ -120,6 +120,6 @@ export class CustomersController {
     @CurrentOrganization() organizationId: string,
     @Param('id') id: string,
   ) {
-    return this.customersService.delete(organizationId, id);
+    return this.membersService.delete(organizationId, id);
   }
 }

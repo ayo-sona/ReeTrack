@@ -49,7 +49,7 @@ export class RegisterDto {
   @ApiProperty({
     description: 'User password',
     minLength: 8,
-    example: 'password123',
+    example: 'Password123',
   })
   @IsString()
   @MinLength(8)

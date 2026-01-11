@@ -6,14 +6,14 @@ import { CronController } from './cron.controller';
 import { Subscription } from '../../database/entities/subscription.entity';
 import { Invoice } from '../../database/entities/invoice.entity';
 import { Plan } from '../../database/entities/plan.entity';
-import { Customer } from '../../database/entities/customer.entity';
+import { Member } from '../../database/entities/member.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    TypeOrmModule.forFeature([Subscription, Invoice, Plan, Customer]),
+    TypeOrmModule.forFeature([Subscription, Invoice, Plan, Member]),
     NotificationsModule,
     AuthModule,
   ],

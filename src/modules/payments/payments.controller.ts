@@ -13,14 +13,24 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentOrganization } from '../../common/decorators/organization.decorator';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { Throttle } from '@nestjs/throttler';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 @Controller('payments')
+@ApiBearerAuth('JWT-auth')
 @Throttle({ short: { limit: 20, ttl: 60000 } })
 @UseGuards(JwtAuthGuard)
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post('initialize')
+  @ApiOperation({ summary: 'Initialize a payment' })
+  @ApiResponse({ status: 200, description: 'Payment initialized successfully' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   initializePayment(
     @CurrentOrganization() organizationId: string,
     @Body() initializePaymentDto: InitializePaymentDto,
@@ -32,6 +42,9 @@ export class PaymentsController {
   }
 
   @Get('verify/:reference')
+  @ApiOperation({ summary: 'Verify a payment' })
+  @ApiResponse({ status: 200, description: 'Payment verified successfully' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   verifyPayment(
     @CurrentOrganization() organizationId: string,
     @Param('reference') reference: string,
@@ -40,6 +53,9 @@ export class PaymentsController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all payments' })
+  @ApiResponse({ status: 200, description: 'Payments retrieved successfully' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   findAll(
     @CurrentOrganization() organizationId: string,
     @Query() paginationDto: PaginationDto,
@@ -49,24 +65,39 @@ export class PaymentsController {
   }
 
   @Get('stats')
+  @ApiOperation({ summary: 'Get payment stats' })
+  @ApiResponse({
+    status: 200,
+    description: 'Payment stats retrieved successfully',
+  })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   getStats(@CurrentOrganization() organizationId: string) {
     return this.paymentsService.getPaymentStats(organizationId);
   }
 
-  @Get('customer/:customerId')
-  getCustomerPayments(
+  @Get('member/:memberId')
+  @ApiOperation({ summary: 'Get member payments' })
+  @ApiResponse({
+    status: 200,
+    description: 'Member payments retrieved successfully',
+  })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  getMemberPayments(
     @CurrentOrganization() organizationId: string,
-    @Param('customerId') customerId: string,
+    @Param('memberId') memberId: string,
     @Query() paginationDto: PaginationDto,
   ) {
-    return this.paymentsService.getPaymentsByCustomer(
+    return this.paymentsService.getPaymentsByMember(
       organizationId,
-      customerId,
+      memberId,
       paginationDto,
     );
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get a payment by ID' })
+  @ApiResponse({ status: 200, description: 'Payment retrieved successfully' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   findOne(
     @CurrentOrganization() organizationId: string,
     @Param('id') id: string,

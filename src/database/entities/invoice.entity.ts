@@ -9,7 +9,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Organization } from './organization.entity';
-import { Customer } from './customer.entity';
+import { Member } from './member.entity';
 import { Subscription } from './subscription.entity';
 import { Payment } from './payment.entity';
 
@@ -25,7 +25,7 @@ export class Invoice {
   subscription_id: string;
 
   @Column({ type: 'uuid' })
-  customer_id: string;
+  member_id: string;
 
   @Column({ type: 'varchar', length: 50, unique: true })
   invoice_number: string;
@@ -64,9 +64,9 @@ export class Invoice {
   @JoinColumn({ name: 'subscription_id' })
   subscription: Subscription;
 
-  @ManyToOne(() => Customer, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'customer_id' })
-  customer: Customer;
+  @ManyToOne(() => Member, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'member_id' })
+  member: Member;
 
   @OneToMany(() => Payment, (payment) => payment.invoice)
   payments: Payment[];

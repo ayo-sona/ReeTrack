@@ -5,12 +5,12 @@ import { PaymentsController } from './payments.controller';
 import { PaystackService } from './paystack.service';
 import { Payment } from '../../database/entities/payment.entity';
 import { Invoice } from '../../database/entities/invoice.entity';
-import { Customer } from '../../database/entities/customer.entity';
+import { Member } from '../../database/entities/member.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Payment, Invoice, Customer]),
+    TypeOrmModule.forFeature([Payment, Invoice, Member]),
     NotificationsModule,
   ],
   controllers: [PaymentsController],

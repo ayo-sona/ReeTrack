@@ -7,7 +7,7 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { PlansModule } from './modules/plans/plans.module';
-import { CustomersModule } from './modules/customers/customers.module';
+import { MembersModule } from './modules/members/members.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -48,7 +48,7 @@ import { CustomThrottlerGuard } from './common/guards/throttle.guard';
     AuthModule,
     OrganizationsModule,
     PlansModule,
-    CustomersModule,
+    MembersModule,
     SubscriptionsModule,
     PaymentsModule,
     InvoicesModule,

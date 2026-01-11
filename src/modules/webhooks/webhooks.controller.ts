@@ -12,6 +12,7 @@ import {
 import { Request } from 'express';
 import { WebhooksService } from './webhooks.service';
 import { SkipThrottle } from '../../common/decorators/throttle-skip.decorator';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('webhooks')
 @SkipThrottle()
@@ -19,6 +20,9 @@ export class WebhooksController {
   constructor(private readonly webhooksService: WebhooksService) {}
 
   @Post('paystack')
+  @ApiOperation({ summary: 'Handle Paystack webhook' })
+  @ApiResponse({ status: 200, description: 'Webhook processed successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid webhook signature' })
   @HttpCode(HttpStatus.OK)
   async handlePaystackWebhook(
     @Headers('x-paystack-signature') signature: string,

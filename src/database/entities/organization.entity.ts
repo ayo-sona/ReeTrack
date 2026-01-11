@@ -8,7 +8,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { User } from './user.entity';
-import { Customer } from './customer.entity';
+import { Member } from './member.entity';
 import { Plan } from './plan.entity';
 import { Subscription } from './subscription.entity';
 import { ApiProperty } from '@nestjs/swagger';
@@ -78,10 +78,10 @@ export class Organization {
   users: User[];
 
   @ApiProperty({
-    description: 'Customer object',
+    description: 'Member object',
   })
-  @OneToMany(() => Customer, (customer) => customer.organization)
-  customers: Customer[];
+  @OneToMany(() => Member, (member) => member.organization)
+  members: Member[];
 
   @ApiProperty({
     description: 'Plan object',

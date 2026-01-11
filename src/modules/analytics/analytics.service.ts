@@ -4,13 +4,13 @@ import { Repository, Between, LessThan, MoreThan } from 'typeorm';
 import { Subscription } from '../../database/entities/subscription.entity';
 import { Invoice } from '../../database/entities/invoice.entity';
 import { Payment } from '../../database/entities/payment.entity';
-import { Customer } from '../../database/entities/customer.entity';
+import { Member } from '../../database/entities/member.entity';
 import { Plan } from '../../database/entities/plan.entity';
 import {
   MRRData,
   ChurnData,
   RevenueData,
-  CustomerGrowthData,
+  MemberGrowthData,
   RevenueChartData,
   PlanPerformanceData,
 } from './interfaces/analytics.interface';
@@ -27,8 +27,8 @@ export class AnalyticsService {
     private invoiceRepository: Repository<Invoice>,
     @InjectRepository(Payment)
     private paymentRepository: Repository<Payment>,
-    @InjectRepository(Customer)
-    private customerRepository: Repository<Customer>,
+    @InjectRepository(Member)
+    private memberRepository: Repository<Member>,
     @InjectRepository(Plan)
     private planRepository: Repository<Plan>,
   ) {}
@@ -39,21 +39,20 @@ export class AnalyticsService {
   async getOverview(organizationId: string, queryDto: AnalyticsQueryDto) {
     const { startDate, endDate } = this.getDateRange(queryDto);
 
-    const [mrr, revenue, customers, payments, subscriptions] =
-      await Promise.all([
-        this.calculateMRR(organizationId),
-        this.calculateRevenue(organizationId, startDate, endDate),
-        this.getCustomerGrowth(organizationId, startDate, endDate),
-        this.getPaymentStats(organizationId, startDate, endDate),
-        this.getSubscriptionStats(organizationId, startDate, endDate),
-      ]);
+    const [mrr, revenue, members, payments, subscriptions] = await Promise.all([
+      this.calculateMRR(organizationId),
+      this.calculateRevenue(organizationId, startDate, endDate),
+      this.getMemberGrowth(organizationId, startDate, endDate),
+      this.getPaymentStats(organizationId, startDate, endDate),
+      this.getSubscriptionStats(organizationId, startDate, endDate),
+    ]);
 
     return {
       message: 'Analytics overview retrieved successfully',
       data: {
         mrr,
         revenue,
-        customers,
+        members,
         payments,
         subscriptions,
         period: {
@@ -130,8 +129,8 @@ export class AnalyticsService {
   ): Promise<ChurnData> {
     const { startDate, endDate } = this.getDateRange(queryDto);
 
-    // Get customers at start of period
-    const customersAtStart = await this.customerRepository.count({
+    // Get members at start of period
+    const membersAtStart = await this.memberRepository.count({
       where: {
         organization_id: organizationId,
         created_at: LessThan(startDate),
@@ -148,13 +147,11 @@ export class AnalyticsService {
     });
 
     const churnRate =
-      customersAtStart > 0
-        ? (churnedSubscriptions / customersAtStart) * 100
-        : 0;
+      membersAtStart > 0 ? (churnedSubscriptions / membersAtStart) * 100 : 0;
 
     return {
-      churned_customers: churnedSubscriptions,
-      total_customers: customersAtStart,
+      churned_members: churnedSubscriptions,
+      total_members: membersAtStart,
       churn_rate: parseFloat(churnRate.toFixed(2)),
       period: queryDto.period as string,
     };
@@ -233,23 +230,23 @@ export class AnalyticsService {
   }
 
   // ============================================
-  // CUSTOMER GROWTH
+  //  Member GROWTH
   // ============================================
-  async getCustomerGrowth(
+  async getMemberGrowth(
     organizationId: string,
     startDate: Date,
     endDate: Date,
-  ): Promise<CustomerGrowthData> {
-    // New customers in period
-    const newCustomers = await this.customerRepository.count({
+  ): Promise<MemberGrowthData> {
+    // New members in period
+    const newMembers = await this.memberRepository.count({
       where: {
         organization_id: organizationId,
         created_at: Between(startDate, endDate),
       },
     });
 
-    // Churned customers (canceled subscriptions)
-    const churnedCustomers = await this.subscriptionRepository.count({
+    // Churned members (canceled subscriptions)
+    const churnedMembers = await this.subscriptionRepository.count({
       where: {
         organization_id: organizationId,
         status: 'canceled',
@@ -257,16 +254,16 @@ export class AnalyticsService {
       },
     });
 
-    // Total customers
-    const totalCustomers = await this.customerRepository.count({
+    // Total members
+    const totalMembers = await this.memberRepository.count({
       where: { organization_id: organizationId },
     });
 
     return {
-      new_customers: newCustomers,
-      churned_customers: churnedCustomers,
-      net_growth: newCustomers - churnedCustomers,
-      total_customers: totalCustomers,
+      new_members: newMembers,
+      churned_members: churnedMembers,
+      net_growth: newMembers - churnedMembers,
+      total_members: totalMembers,
     };
   }
 
@@ -390,7 +387,7 @@ export class AnalyticsService {
       const nextDate = new Date(date);
       nextDate.setDate(nextDate.getDate() + 1);
 
-      const [revenue, subscriptions, customers] = await Promise.all([
+      const [revenue, subscriptions, members] = await Promise.all([
         this.paymentRepository
           .createQueryBuilder('payment')
           .select('COALESCE(SUM(amount), 0)', 'total')
@@ -405,7 +402,7 @@ export class AnalyticsService {
             created_at: Between(date, nextDate),
           },
         }),
-        this.customerRepository.count({
+        this.memberRepository.count({
           where: {
             organization_id: organizationId,
             created_at: Between(date, nextDate),
@@ -417,7 +414,7 @@ export class AnalyticsService {
         date: date.toISOString().split('T')[0],
         revenue: parseFloat(revenue.total),
         subscriptions,
-        customers,
+        members,
       });
     }
 
@@ -473,34 +470,34 @@ export class AnalyticsService {
   }
 
   // ============================================
-  // TOP CUSTOMERS
+  // TOP Members
   // ============================================
-  async getTopCustomers(organizationId: string, limit: number = 10) {
-    const topCustomers = await this.paymentRepository
+  async getTopMembers(organizationId: string, limit: number = 10) {
+    const topMembers = await this.paymentRepository
       .createQueryBuilder('payment')
-      .select('payment.customer_id', 'customer_id')
-      .addSelect('customer.first_name', 'first_name')
-      .addSelect('customer.last_name', 'last_name')
-      .addSelect('customer.email', 'email')
+      .select('payment.member_id', 'member_id')
+      .addSelect('member.first_name', 'first_name')
+      .addSelect('member.last_name', 'last_name')
+      .addSelect('member.email', 'email')
       .addSelect('COALESCE(SUM(payment.amount), 0)', 'total_spent')
       .addSelect('COUNT(payment.id)', 'payment_count')
-      .innerJoin('payment.customer', 'customer')
+      .innerJoin('payment.member', 'member')
       .where('payment.organization_id = :orgId', { orgId: organizationId })
       .andWhere('payment.status = :status', { status: 'success' })
-      .groupBy('payment.customer_id')
-      .addGroupBy('customer.first_name')
-      .addGroupBy('customer.last_name')
-      .addGroupBy('customer.email')
+      .groupBy('payment.member_id')
+      .addGroupBy('member.first_name')
+      .addGroupBy('member.last_name')
+      .addGroupBy('member.email')
       .orderBy('total_spent', 'DESC')
       .limit(limit)
       .getRawMany();
 
-    return topCustomers.map((customer) => ({
-      customer_id: customer.customer_id,
-      name: `${customer.first_name} ${customer.last_name}`,
-      email: customer.email,
-      total_spent: parseFloat(customer.total_spent),
-      payment_count: parseInt(customer.payment_count),
+    return topMembers.map((member) => ({
+      member_id: member.member_id,
+      name: `${member.first_name} ${member.last_name}`,
+      email: member.email,
+      total_spent: parseFloat(member.total_spent),
+      payment_count: parseInt(member.payment_count),
     }));
   }
 

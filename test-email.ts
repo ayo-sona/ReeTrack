@@ -10,7 +10,7 @@ async function testEmail() {
     subject: 'Test Email',
     template: 'payment_success',
     context: {
-      customerName: 'John Doe',
+      memberName: 'John Doe',
       amount: 15000,
       currency: 'NGN',
       reference: 'TEST-REF-123',

@@ -9,7 +9,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Organization } from './organization.entity';
-import { Customer } from './customer.entity';
+import { Member } from './member.entity';
 import { Plan } from './plan.entity';
 import { Invoice } from './invoice.entity';
 import { ApiProperty } from '@nestjs/swagger';
@@ -36,7 +36,7 @@ export class Subscription {
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @Column({ type: 'uuid' })
-  customer_id: string;
+  member_id: string;
 
   @ApiProperty({
     type: 'string',
@@ -123,11 +123,11 @@ export class Subscription {
   @JoinColumn({ name: 'organization_id' })
   organization: Organization;
 
-  @ManyToOne(() => Customer, (customer) => customer.subscriptions, {
+  @ManyToOne(() => Member, (member) => member.subscriptions, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'customer_id' })
-  customer: Customer;
+  @JoinColumn({ name: 'member_id' })
+  member: Member;
 
   @ManyToOne(() => Plan, (plan) => plan.subscriptions)
   @JoinColumn({ name: 'plan_id' })

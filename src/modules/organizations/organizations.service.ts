@@ -188,13 +188,13 @@ export class OrganizationsService {
 
   async getOrganizationStats(organizationId: string) {
     // Get basic stats
-    const [totalUsers, totalCustomers, totalPlans, activeSubscriptions] =
+    const [totalUsers, totalMembers, totalPlans, activeSubscriptions] =
       await Promise.all([
         this.userRepository.count({
           where: { organization_id: organizationId, is_active: true },
         }),
         this.userRepository.query(
-          'SELECT COUNT(*) as count FROM customers WHERE organization_id = $1',
+          'SELECT COUNT(*) as count FROM members WHERE organization_id = $1',
           [organizationId],
         ),
         this.userRepository.query(
@@ -211,7 +211,7 @@ export class OrganizationsService {
       message: 'Organization stats retrieved successfully',
       data: {
         totalUsers,
-        totalCustomers: parseInt(totalCustomers[0].count),
+        totalMembers: parseInt(totalMembers[0].count),
         totalPlans: parseInt(totalPlans[0].count),
         activeSubscriptions: parseInt(activeSubscriptions[0].count),
       },
