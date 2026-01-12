@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to dashboard immediately
-    router.push('/enterprise/dashboard');
+    // Redirect to auth immediately
+    router.push("/auth");
   }, [router]);
 
   return (
