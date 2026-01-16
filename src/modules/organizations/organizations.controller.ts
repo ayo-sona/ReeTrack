@@ -17,7 +17,6 @@ import { Organization } from '../../database/entities/organization.entity';
 import { User } from '../../database/entities/user.entity';
 
 @Controller('organizations')
-@UseGuards(JwtAuthGuard)
 export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}
 
@@ -34,6 +33,7 @@ export class OrganizationsController {
     return this.organizationsService.getOrganization(slug);
   }
 
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiResponse({
     status: 200,
@@ -43,17 +43,18 @@ export class OrganizationsController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Organization not found' })
   @ApiOperation({ summary: 'Select organization' })
-  @Get('/:id')
+  @Get('/select/:id')
   async selectOrganization(
     @Param('id') organizationId: string,
     @CurrentUser() user: User,
   ) {
     return this.organizationsService.selectOrganization(
-      organizationId,
       user.id,
+      organizationId,
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiResponse({
     status: 200,
@@ -78,6 +79,7 @@ export class OrganizationsController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiResponse({
     status: 200,
@@ -91,6 +93,7 @@ export class OrganizationsController {
     return this.organizationsService.getStaffMembers(organizationId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiResponse({
     status: 200,
@@ -113,6 +116,7 @@ export class OrganizationsController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiResponse({
     status: 200,

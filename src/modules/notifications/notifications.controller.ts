@@ -60,10 +60,10 @@ export class NotificationsController {
     schema: {
       type: 'object',
       properties: {
-        to: { type: 'string', example: 'user@example.com' },
+        to: { type: 'string', example: 'ayomideogunsona13@gmail.com' },
         context: {
           type: 'object',
-          example: { userName: 'John Doe', organizationName: 'Willow' },
+          example: { userName: 'Ayo Sona', organizationName: 'Willow' },
         },
       },
     },

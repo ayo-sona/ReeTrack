@@ -32,6 +32,7 @@ export class OrganizationsService {
   ) {}
 
   async getOrganization(slug: string) {
+    console.log('slug', slug);
     const organization = await this.organizationRepository.findOne({
       where: { slug },
     });
@@ -52,6 +53,11 @@ export class OrganizationsService {
     ipAddress?: string,
     userAgent?: string,
   ) {
+    // console.log('Selecting organization', {
+    //   userId,
+    //   organizationId,
+    //   timestamp: new Date().toISOString(),
+    // });
     const orgUser = await this.organizationUserRepository.findOne({
       where: { user_id: userId, organization_id: organizationId },
       relations: ['organization', 'user'],
