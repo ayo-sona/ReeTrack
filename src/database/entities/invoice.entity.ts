@@ -14,6 +14,7 @@ import { Payment } from './payment.entity';
 import { MemberSubscription } from './member-subscription.entity';
 import { IsEnum } from 'class-validator';
 import { PaymentProvider } from './payment.entity';
+import { OrganizationSubscription } from './organization-subscription.entity';
 
 export enum InvoiceStatus {
   PENDING = 'pending',
@@ -38,6 +39,9 @@ export class Invoice {
   @Column({ type: 'uuid', nullable: true })
   member_subscription_id: string;
 
+  @Column({ type: 'uuid', nullable: true })
+  organization_subscription_id: string;
+  
   @Column({ type: 'uuid' })
   issuer_org_id: string;
 
@@ -103,4 +107,15 @@ export class Invoice {
   )
   @JoinColumn({ name: 'member_subscription_id' })
   member_subscription: MemberSubscription;
+
+  @ManyToOne(
+    () => OrganizationSubscription,
+    (organization_subscription) => organization_subscription.invoices,
+    {
+      onDelete: 'SET NULL',
+      nullable: true,
+    },
+  )
+  @JoinColumn({ name: 'organization_subscription_id' })
+  organization_subscription: OrganizationSubscription;
 }

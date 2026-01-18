@@ -12,6 +12,7 @@ import { PaginationDto, paginate } from '../../common/dto/pagination.dto';
 import { generateInvoiceNumber } from '../../common/utils/invoice-number.util';
 import { MemberSubscription } from '../../database/entities/member-subscription.entity';
 import { InvoiceStatus } from '../../database/entities/invoice.entity';
+import { InvoiceBilledType } from '../../database/entities/invoice.entity';
 
 @Injectable()
 export class InvoicesService {
@@ -62,6 +63,7 @@ export class InvoicesService {
     const invoice = this.invoiceRepository.create({
       issuer_org_id: organizationId,
       billed_user_id: createInvoiceDto.billedUserId,
+      billed_type: InvoiceBilledType.USER,
       member_subscription_id: createInvoiceDto.subscriptionId,
       invoice_number: generateInvoiceNumber(organizationId),
       amount: createInvoiceDto.amount,
@@ -94,7 +96,7 @@ export class InvoicesService {
 
     const [invoices, total] = await this.invoiceRepository.findAndCount({
       where: whereCondition,
-      relations: ['users', 'member_subscriptions', 'payments'],
+      relations: ['billed_user', 'member_subscription', 'payments'],
       order: { created_at: 'DESC' },
       skip,
       take: limit,
@@ -112,7 +114,7 @@ export class InvoicesService {
         id: invoiceId,
         issuer_org_id: organizationId,
       },
-      relations: ['users', 'member_subscriptions', 'payments'],
+      relations: ['billed_user', 'member_subscription', 'payments'],
     });
 
     if (!invoice) {
@@ -138,7 +140,7 @@ export class InvoicesService {
         issuer_org_id: organizationId,
         member_subscription_id: subscriptionId,
       },
-      relations: ['member_subscriptions', 'payments'],
+      relations: ['member_subscription', 'payments'],
       order: { created_at: 'DESC' },
       skip,
       take: limit,
@@ -156,10 +158,10 @@ export class InvoicesService {
     const invoices = await this.invoiceRepository.find({
       where: {
         issuer_org_id: organizationId,
-        status: In(['pending', 'overdue']),
+        status: In([InvoiceStatus.PENDING, InvoiceStatus.FAILED]),
         due_date: LessThan(now),
       },
-      relations: ['users'],
+      relations: ['billed_user'],
       order: { due_date: 'ASC' },
     });
 

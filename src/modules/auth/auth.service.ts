@@ -379,6 +379,8 @@ export class AuthService {
     // Generate tokens
     const { accessToken, refreshToken } = await this.generateTokens(
       user,
+      null,
+      null,
       ipAddress,
       userAgent,
     );
@@ -441,6 +443,8 @@ export class AuthService {
     // Generate new tokens
     const { accessToken, refreshToken } = await this.generateTokens(
       user,
+      null,
+      null,
       storedToken.ip_address,
       storedToken.user_agent,
     );
@@ -559,12 +563,16 @@ export class AuthService {
 
   async generateTokens(
     user: User,
+    organizationId?: String | null,
+    organizationUserRole?: string | null,
     ipAddress?: string | null,
     userAgent?: string | null,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const payload = {
       sub: user.id,
       email: user.email,
+      currentOrganization: organizationId,
+      role: organizationUserRole,
     };
 
     // Generate access token (15 minutes)
@@ -572,6 +580,9 @@ export class AuthService {
       secret: this.configService.get('jwt.secret'),
       expiresIn: '15m',
     });
+
+    // const decoded = this.jwtService.decode(accessToken);
+    // console.log('Decoded Token:', decoded);
 
     // Generate refresh token (1 day)
     const refreshTokenString = crypto.randomBytes(64).toString('hex');

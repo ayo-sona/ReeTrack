@@ -13,7 +13,23 @@ import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentOrganization } from '../../common/decorators/organization.decorator';
 import { PaginationDto } from '../../common/dto/pagination.dto';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiPropertyOptional,
+  ApiResponse,
+} from '@nestjs/swagger';
+import { IsOptional, IsString } from 'class-validator';
+
+class StatusDto {
+  @ApiPropertyOptional({
+    description: 'Invoice status',
+    enum: ['pending', 'paid', 'cancelled', 'failed'],
+  })
+  @IsString()
+  @IsOptional()
+  status?: string;
+}
 
 @Controller('invoices')
 @ApiBearerAuth('JWT-auth')
@@ -44,18 +60,24 @@ export class InvoicesController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   findAll(
     @CurrentOrganization() organizationId: string,
-    @Query() paginationDto: PaginationDto,
-    @Query('status') status?: string,
+    // @Query() paginationDto: PaginationDto,
+    @Query()
+    paginationDto: {
+      page?: number;
+      limit?: number;
+    },
+    @Query() statusDto: StatusDto,
   ) {
+    console.log('status', statusDto.status);
     return this.invoicesService.findAllMemberInvoices(
       organizationId,
       paginationDto,
-      status,
+      statusDto.status,
     );
   }
 
-  @Get('member/stats')
-  @ApiOperation({ summary: 'Get member invoice stats' })
+  @Get('member/all/stats')
+  @ApiOperation({ summary: 'Get all members invoice stats' })
   @ApiResponse({ status: 200, description: 'Member invoice stats' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Not found' })
@@ -64,9 +86,9 @@ export class InvoicesController {
     return this.invoicesService.getMembersInvoiceStats(organizationId);
   }
 
-  @Get('member/overdue')
-  @ApiOperation({ summary: 'Get overdue invoices' })
-  @ApiResponse({ status: 200, description: 'List of overdue invoices' })
+  @Get('member/all/overdue')
+  @ApiOperation({ summary: 'Get all overdue member invoices' })
+  @ApiResponse({ status: 200, description: 'List of overdue member invoices' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Not found' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
@@ -74,13 +96,16 @@ export class InvoicesController {
     return this.invoicesService.getOverdueMemberInvoices(organizationId);
   }
 
-  @Get('member/:subscriptionId')
-  @ApiOperation({ summary: 'Get member invoices' })
-  @ApiResponse({ status: 200, description: 'List of member invoices' })
+  @Get('member/subscription/:subscriptionId')
+  @ApiOperation({ summary: 'Get member subscription invoices' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of member subscription invoices',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Not found' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  getMemberInvoices(
+  getMemberSubscriptionInvoices(
     @CurrentOrganization() organizationId: string,
     @Param('subscriptionId') subscriptionId: string,
     @Query() paginationDto: PaginationDto,

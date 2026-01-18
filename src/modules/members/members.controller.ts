@@ -15,6 +15,14 @@ import { CurrentOrganization } from '../../common/decorators/organization.decora
 // import { PaginationDto } from '../../common/dto/pagination.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Member } from '../../database/entities/member.entity';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional } from 'class-validator';
+
+class SearchDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  search?: string;
+}
 
 @Controller('members')
 @UseGuards(JwtAuthGuard)
@@ -32,9 +40,9 @@ export class MembersController {
   @Get()
   findAll(
     @CurrentOrganization() organizationId: string,
-    @Query('search') search?: string,
+    @Query() searchDto: SearchDto,
   ) {
-    return this.membersService.findAll(organizationId, search);
+    return this.membersService.findAll(organizationId, searchDto.search);
   }
 
   @ApiBearerAuth('JWT-auth')

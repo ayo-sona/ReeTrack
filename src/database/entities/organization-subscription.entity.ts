@@ -7,9 +7,11 @@ import {
   OneToOne,
   JoinColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import { Organization } from './organization.entity';
 import { OrganizationPlan } from './organization_plan.entity';
+import { Invoice } from './invoice.entity';
 
 @Entity('organization_subscriptions')
 export class OrganizationSubscription {
@@ -61,4 +63,7 @@ export class OrganizationSubscription {
   @ManyToOne(() => OrganizationPlan)
   @JoinColumn({ name: 'plan_id' })
   plan: OrganizationPlan;
+
+  @OneToMany(() => Invoice, (invoice) => invoice.organization_subscription)
+  invoices: Invoice[];
 }

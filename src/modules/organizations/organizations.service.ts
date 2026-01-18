@@ -63,7 +63,13 @@ export class OrganizationsService {
     }
 
     // Generate new tokens for this organization
-    return this.authService.generateTokens(orgUser.user, ipAddress, userAgent);
+    return this.authService.generateTokens(
+      orgUser.user,
+      orgUser.organization_id,
+      orgUser.role,
+      ipAddress,
+      userAgent,
+    );
   }
 
   async updateOrganization(

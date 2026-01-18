@@ -59,8 +59,8 @@ export class RefreshJwtStrategy extends PassportStrategy(
     return {
       id: payload.sub,
       email: payload.email,
-      organization_id: payload.organization_id,
-      role: payload.role,
+      currentOrganization: payload?.currentOrganization,
+      role: payload?.role,
     };
   }
 }

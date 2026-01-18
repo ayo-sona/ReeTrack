@@ -153,13 +153,13 @@ export class MembersService {
          FROM invoices
          WHERE billed_user_id = $1
          GROUP BY status`,
-        [memberId],
+        [member.user_id],
       ),
       this.memberRepository.query(
         `SELECT COALESCE(SUM(amount), 0) as total
          FROM payments
          WHERE payer_user_id = $1 AND status = 'success'`,
-        [memberId],
+        [member.user_id],
       ),
     ]);
 

@@ -19,7 +19,7 @@ import { PaginationDto } from '../../common/dto/pagination.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { MemberPlan } from 'src/database/entities';
 
-@Controller('plans')
+@Controller('member-plans')
 @UseGuards(JwtAuthGuard)
 export class PlansController {
   constructor(private readonly plansService: PlansService) {}
@@ -73,7 +73,7 @@ export class PlansController {
   @ApiResponse({
     status: 200,
     description: 'Active plans retrieved successfully',
-    type: MemberPlan['string'],
+    type: MemberPlan,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @Get('active')

@@ -137,8 +137,9 @@ export class OrganizationsController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiOperation({ summary: 'Get organization stats' })
-  @Get('stats')
+  @Get('/me/stats')
   async getStats(@CurrentOrganization() organizationId: string) {
+    console.log('organizationId', organizationId);
     return this.organizationsService.getOrganizationStats(organizationId);
   }
 }
