@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/features/notifications/useToast";
 import apiClient from "@/lib/apiClient";
-import { setCurrentOrganizationId } from "@/utils/organisationUtils";
+import { setCookie } from "cookies-next";
 
 interface Organization {
   id: string;
@@ -52,48 +52,13 @@ export default function OrganizationSelectPage() {
   useEffect(() => {
     const fetchOrganizations = async () => {  // ← INSIDE useEffect
       try {
-        console.log('🔍 Step 1: Fetching user profile...');
-        
-        const profileResponse = await apiClient.get('/auth/profile');
-        console.log('✅ Step 2: Profile Response:', profileResponse);
-        console.log('📦 Step 3: Profile Data:', profileResponse.data);
-        
-        const userData = profileResponse.data.data;
-        console.log('👤 Step 4: User Data:', userData);
-        console.log('🏢 Step 5: Organization:', userData.organization);
-        console.log('👔 Step 6: User Role:', userData.role);
-        
-        if (userData.organization) {
-          console.log('✅ Step 7: Organization exists, fetching stats...');
-          
-          const statsResponse = await apiClient.get('/organizations/stats');
-          console.log('📊 Step 8: Stats Response:', statsResponse);
-          console.log('📈 Step 9: Stats Data:', statsResponse.data);
-          
-          const stats = statsResponse.data.data;
-          console.log('🔢 Step 10: Total Members:', stats.totalMembers);
-          
-          const orgWithRole = {
-            ...userData.organization,
-            role: userData.role === 'admin' ? 'Owner' : userData.role === 'staff' ? 'Admin' : 'Member',
-            memberCount: stats.totalMembers || 0,
-          };
-          
-          console.log('🎯 Step 11: Final Organization:', orgWithRole);
-          
-          setOrganizations([orgWithRole]);
-          console.log('✅ Step 12: Organizations set!');
-        } else {
-          console.warn('⚠️ No organization found in userData');
-          console.log('Available keys in userData:', Object.keys(userData));
+        const organizations = localStorage.getItem("organizations");
+        if (organizations) {
+          setOrganizations(JSON.parse(organizations));
+          setLoading(false);
+          return;
         }
-        
-        setLoading(false);
-        console.log('✅ Loading complete!');
-      } catch (error: any) {
-        console.error('❌ ERROR:', error);
-        console.error('📦 Error Response:', error.response?.data);
-        console.error('🔢 Status Code:', error.response?.status);
+      } catch (error) {
         addToast("error", "Error", "Failed to load organizations");
         setLoading(false);
       }
@@ -106,14 +71,20 @@ export default function OrganizationSelectPage() {
     setSelectedOrg(orgId);
 
     try {
-      // Call API to select organization context
-      await apiClient.get(`/organizations/select/${orgId}`);
-      
-      // Store selected org ID
-      setCurrentOrganizationId(orgId);
+      // Store selected organization ID
+      localStorage.setItem("selectedOrganizationId", orgId);
 
-      addToast("success", "Success", "Switched organization successfully");
-      router.push("/enterprise/dashboard");
+      // API call to switch organization context
+      const response = await apiClient.get(`/organizations/select/${orgId}`);
+      console.log(response.data);
+      if (response.data?.data?.accessToken) {
+        // localStorage.setItem("access_token", response.data.data.access_token);
+        setCookie("access_token", response.data.data.accessToken, {
+          maxAge: 60 * 60, // 1 hour
+        });
+        addToast("success", "Success", "Switched organization successfully");
+        router.push("/enterprise/dashboard");
+      }
     } catch (error) {
       console.error('Failed to switch organization:', error);
       addToast("error", "Error", "Failed to switch organization");
@@ -122,7 +93,7 @@ export default function OrganizationSelectPage() {
   };
 
   const filteredOrgs = organizations.filter((org) =>
-    org.name.toLowerCase().includes(searchQuery.toLowerCase())
+    org.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const getRoleColor = (role: string) => {
@@ -135,18 +106,6 @@ export default function OrganizationSelectPage() {
         return "secondary";
       default:
         return "default";
-    }
-  };
-
-  const getPlanColor = (plan: string) => {
-    if (!plan) return "default";
-    switch (plan.toLowerCase()) {
-      case "pro":
-        return "secondary";
-      case "enterprise":
-        return "primary";
-      default:
-        return "success";
     }
   };
 
@@ -202,14 +161,14 @@ export default function OrganizationSelectPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredOrgs.map((org) => (
-              <div key={org.id}>
+              <div key={org.id} className="bg-gray-500">
                 <Card
                   isPressable
                   isHoverable
                   className={`w-full transition-all ${
                     selectedOrg === org.id ? "ring-2 ring-primary" : ""
                   }`}
-                  shadow="sm"
+                  shadow="lg"
                   radius="lg"
                 >
                   <CardHeader className="flex gap-3 pb-3">
@@ -234,33 +193,9 @@ export default function OrganizationSelectPage() {
                         >
                           {org.role}
                         </Chip>
-                        {org.subscription_plan && (
-                          <Chip
-                            size="sm"
-                            color={getPlanColor(org.subscription_plan)}
-                            variant="flat"
-                          >
-                            {org.subscription_plan}
-                          </Chip>
-                        )}
                       </div>
                     </div>
                   </CardHeader>
-
-                  <Divider />
-
-                  <CardBody className="py-4">
-                    <div className="space-y-2 text-small">
-                      <div className="flex items-center gap-2 text-default-600">
-                        <Users size={16} className="text-default-400" />
-                        <span className="font-medium">{org.memberCount}</span>
-                        <span>members</span>
-                      </div>
-                      <p className="text-tiny text-default-500">
-                        {org.email}
-                      </p>
-                    </div>
-                  </CardBody>
                 </Card>
 
                 <Divider />
@@ -302,7 +237,7 @@ export default function OrganizationSelectPage() {
                       Create New Organization
                     </h3>
                     <p className="text-small text-default-500">
-                      Start a new organization and invite team members
+                      Start a new organization and register members
                     </p>
                   </div>
                 </CardBody>
@@ -351,7 +286,7 @@ export default function OrganizationSelectPage() {
             Need help or looking for a different organization?{" "}
             <Button
               variant="light"
-              color="primary"
+              color="default"
               size="sm"
               className="p-0 h-auto min-w-0"
             >
