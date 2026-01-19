@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { cn } from '../../lib/utils';
+import { cn } from '../../lib/utils.ts';
 
 interface ModalProps {
   isOpen: boolean;

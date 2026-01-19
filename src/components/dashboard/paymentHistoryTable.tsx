@@ -7,7 +7,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Payment } from '../../types/payment';
 import { formatCurrency } from '../../lib/formatters';
-import { formatDate } from '../../lib/utils';
+import { formatDate } from '../../lib/utils.ts';
 
 interface PaymentHistoryTableProps {
   payments: Payment[];
