@@ -4,7 +4,7 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from "axios";
-import { getCookie, setCookie } from "cookies-next";
+import { deleteCookie, getCookie, setCookie } from "cookies-next";
 
 // Extend AxiosRequestConfig to include _retry flag
 interface RetryConfig extends InternalAxiosRequestConfig {
@@ -125,6 +125,13 @@ apiClient.interceptors.response.use(
         processQueue(new Error("Token refresh failed")); // Reject all waiting requests
 
         if (typeof window !== "undefined") {
+          // Clear local storage items
+          localStorage.removeItem("selectedOrganizationId");
+          localStorage.removeItem("organizations");
+
+          // Delete any cookie
+          deleteCookie("access_token");
+
           // Redirect to login
           window.location.href = "/auth/login";
         }
