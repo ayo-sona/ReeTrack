@@ -7,6 +7,7 @@ import {
   Param,
   UseGuards,
   Ip,
+  Res,
 } from '@nestjs/common';
 import { OrganizationsService } from './organizations.service';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
@@ -16,10 +17,15 @@ import { CurrentOrganization } from '../../common/decorators/organization.decora
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Organization } from '../../database/entities/organization.entity';
 import { User } from '../../database/entities/user.entity';
+import type { Request, Response } from 'express';
+import { AuthService } from '../auth/auth.service';
 
 @Controller('organizations')
 export class OrganizationsController {
-  constructor(private readonly organizationsService: OrganizationsService) {}
+  constructor(
+    private readonly organizationsService: OrganizationsService,
+    private readonly authService: AuthService,
+  ) {}
 
   @ApiResponse({
     status: 200,
@@ -48,13 +54,14 @@ export class OrganizationsController {
   async selectOrganization(
     @Param('organizationId') organizationId: string,
     @CurrentUser() user: User,
-    @Ip() ipAddress: string,
+    @Res({ passthrough: true }) response: Response,
   ) {
-    return this.organizationsService.selectOrganization(
+    const tokens = await this.organizationsService.selectOrganization(
       user.id,
       organizationId,
-      ipAddress,
     );
+    this.authService.setAuthCookies(response, tokens);
+    return tokens;
   }
 
   @UseGuards(JwtAuthGuard)

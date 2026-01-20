@@ -8,6 +8,8 @@ import {
   HttpStatus,
   Req,
   Res,
+  Param,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from '../../common/dto/register.dto';
@@ -20,6 +22,13 @@ import type { Request, Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { SkipThrottle } from '../../common/decorators/throttle-skip.decorator';
 import { MemberRegisterDto } from 'src/common/dto/member-register.dto';
+
+type RequestUser = {
+  id: string;
+  email: string;
+  role: string;
+  currentOrganization: string;
+};
 
 @Controller('auth')
 export class AuthController {
@@ -61,14 +70,13 @@ export class AuthController {
   ) {
     const result = await this.authService.registerOrganization(registerDto);
     const refreshToken = result.data.refresh_token;
-    if (refreshToken) {
-      response.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000, // 1 day
-      });
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
     }
+    // Set refresh token in HTTP-only cookie
+    this.authService.setAuthCookies(response, {
+      refreshToken,
+    });
 
     // Create a new object without refresh_token
     const { refresh_token, ...data } = result.data;
@@ -114,14 +122,13 @@ export class AuthController {
   ) {
     const result = await this.authService.registerMember(registerDto);
     const refreshToken = result.data.refresh_token;
-    if (refreshToken) {
-      response.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000, // 1 day
-      });
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
     }
+    // Set refresh token in HTTP-only cookie
+    this.authService.setAuthCookies(response, {
+      refreshToken,
+    });
 
     // Create a new object without refresh_token
     const { refresh_token, ...data } = result.data;
@@ -169,16 +176,13 @@ export class AuthController {
 
     const result = await this.authService.login(loginDto, ipAddress, userAgent);
     const refreshToken = result.data.refresh_token;
-
-    // Set refresh token in HTTP-only cookie
-    if (refreshToken) {
-      response.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000, // 1 day
-      });
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
     }
+    // Set refresh token in HTTP-only cookie
+    this.authService.setAuthCookies(response, {
+      refreshToken,
+    });
 
     // Create a new object without refresh_token
     const { refresh_token, ...data } = result.data;
@@ -200,26 +204,35 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async refresh(
-    @CurrentUser() user: any,
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const oldRefreshToken = request.cookies.refreshToken;
+    const oldRefreshToken = request.cookies?.refresh_token;
+    const user = request?.user as RequestUser;
+    console.log('refreshToken, user', oldRefreshToken, user);
+    // console.log('Request:', request);
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    if (!oldRefreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
+
     const result = await this.authService.refreshTokens(
       user.id,
       oldRefreshToken,
+      user.role ?? null,
+      user.currentOrganization ?? null,
     );
 
-    const refreshToken = result.data.refresh_token;
-    // Set new refresh token in cookie
-    if (refreshToken) {
-      response.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000,
-      });
-    }
+    const { access_token: accessToken, refresh_token: newRefreshToken } =
+      result.data;
+
+    this.authService.setAuthCookies(response, {
+      refreshToken: newRefreshToken,
+    });
 
     // Create a new object without refresh_token
     const { refresh_token, ...data } = result.data;

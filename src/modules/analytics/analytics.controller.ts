@@ -52,6 +52,7 @@ export class AnalyticsController {
     @Param('organizationId') organizationId: string,
     @Query() queryDto: AnalyticsQueryDto,
   ) {
+    console.log(queryDto);
     return this.analyticsService.getRevenueChart(organizationId, queryDto);
   }
 

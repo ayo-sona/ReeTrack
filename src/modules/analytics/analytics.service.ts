@@ -569,28 +569,29 @@ export class AnalyticsService {
     ) {
       startDate = new Date(queryDto.startDate);
       endDate = new Date(queryDto.endDate);
+      return { startDate, endDate };
     } else {
       switch (queryDto.period) {
         case TimePeriod.TODAY:
-          startDate = new Date(now);
+          startDate = now;
           startDate.setHours(0, 0, 0, 0);
           break;
         case TimePeriod.WEEK:
-          startDate = new Date(now);
-          startDate.setDate(now.getDate() - 7);
+          startDate = now;
+          startDate.setDate(startDate.getDate() - 7);
           break;
         case TimePeriod.QUARTER:
-          startDate = new Date(now);
-          startDate.setMonth(now.getMonth() - 3);
+          startDate = now;
+          startDate.setMonth(startDate.getMonth() - 3);
           break;
         case TimePeriod.YEAR:
-          startDate = new Date(now);
-          startDate.setFullYear(now.getFullYear() - 1);
+          startDate = now;
+          startDate.setFullYear(startDate.getFullYear() - 1);
           break;
         case TimePeriod.MONTH:
         default:
-          startDate = new Date(now);
-          startDate.setMonth(now.getMonth() - 1);
+          startDate = now;
+          startDate.setMonth(startDate.getMonth() - 1);
           break;
       }
     }

@@ -229,7 +229,7 @@ export class CronService {
         status: In(['pending', 'overdue']),
         due_date: LessThan(now),
       },
-      relations: ['users'],
+      relations: ['billed_user'],
     });
 
     for (const invoice of overdueInvoices) {

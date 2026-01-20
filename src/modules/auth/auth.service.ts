@@ -23,6 +23,7 @@ import { OrganizationUser } from 'src/database/entities/organization-user.entity
 import { OrgRole } from 'src/database/entities/organization-user.entity';
 import { OrganizationInvite } from 'src/database/entities/organization-invite.entity';
 import { StaffRegisterDto } from 'src/common/dto/staff-register.dto';
+import type { Request, Response } from 'express';
 
 interface AuthResponse {
   message: string;
@@ -409,7 +410,31 @@ export class AuthService {
     };
   }
 
-  async refreshTokens(userId: string, oldRefreshToken: string) {
+  setAuthCookies(response: Response, tokens: { refreshToken: string }) {
+    // Access token cookie (short-lived)
+    // response.cookie('access_token', tokens.accessToken, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === 'production',
+    //   sameSite: 'lax',
+    //   maxAge: 15 * 60 * 1000, // 15 minutes
+    //   path: '/',
+    // });
+    // Refresh token cookie (longer-lived)
+    response.cookie('refresh_token', tokens.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/api/v1/auth/refresh', // Only sent to refresh endpoint
+    });
+  }
+
+  async refreshTokens(
+    userId: string,
+    oldRefreshToken: string,
+    role: string | null,
+    currentOrganizationId: string | null,
+  ) {
     const storedToken = await this.refreshTokenRepository.findOne({
       where: { token: oldRefreshToken, is_revoked: false },
     });
@@ -443,8 +468,8 @@ export class AuthService {
     // Generate new tokens
     const { accessToken, refreshToken } = await this.generateTokens(
       user,
-      null,
-      null,
+      currentOrganizationId,
+      role,
       storedToken.ip_address,
       storedToken.user_agent,
     );
