@@ -7,7 +7,7 @@ import { Button } from '../../components/ui/Button';
 import { Subscription } from '../../types/subscription';
 import { PRICING_PLANS } from '../../lib/constants';
 import { formatCurrency } from '../../lib/formatters';
-import { formatDate } from '../../lib/utils';
+import { formatDate } from '../../lib/utils.ts';
 
 interface SubscriptionCardProps {
   subscription: Subscription;

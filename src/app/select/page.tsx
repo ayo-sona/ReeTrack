@@ -13,12 +13,6 @@ import {
   Skeleton,
   Avatar,
   Divider,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  useDisclosure,
 } from "@heroui/react";
 import {
   Building2,
@@ -35,24 +29,31 @@ import { setCookie } from "cookies-next";
 interface Organization {
   id: string;
   name: string;
+  email: string;
+  slug?: string;
+  subscription_plan?: string;
+  trial_ends_at?: string;
+  created_at: string;
+}
+
+interface OrganizationWithRole extends Organization {
   role: string;
-  logo?: string;
   memberCount: number;
-  plan: string;
-  lastActive?: string;
 }
 
 export default function OrganizationSelectPage() {
   const router = useRouter();
   const { addToast } = useToast();
-  // const { isOpen, onOpen, onClose } = useDisclosure();
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [organizations, setOrganizations] = useState<OrganizationWithRole[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const fetchOrganizations = async () => {
+      // ← INSIDE useEffect
       try {
         const organizations = localStorage.getItem("organizations");
         if (organizations) {
@@ -80,14 +81,12 @@ export default function OrganizationSelectPage() {
       const response = await apiClient.get(`/organizations/select/${orgId}`);
       console.log(response.data);
       if (response.data?.data?.accessToken) {
-        // localStorage.setItem("access_token", response.data.data.access_token);
-        setCookie("access_token", response.data.data.accessToken, {
-          maxAge: 60 * 60, // 1 hour
-        });
-        addToast("success", "Success", "Switched organization successfully");
+        setCookie("access_token", response.data.data.accessToken);
         router.push("/enterprise/dashboard");
+        // addToast("success", "Success", "Switched organization successfully");
       }
     } catch (error) {
+      console.error("Failed to switch organization:", error);
       addToast("error", "Error", "Failed to switch organization");
       setSelectedOrg(null);
     }
@@ -249,6 +248,7 @@ export default function OrganizationSelectPage() {
                 size="lg"
                 startContent={<Plus size={18} />}
                 className="mt-2"
+                onPress={() => router.push("/auth/org/register")}
               >
                 Get Started
               </Button>
@@ -272,7 +272,7 @@ export default function OrganizationSelectPage() {
             </p>
             <Button
               color="primary"
-              onPress={() => router.push("/auth/register")}
+              onPress={() => router.push("/auth/org/register")}
               startContent={<Plus />}
             >
               Create Organization

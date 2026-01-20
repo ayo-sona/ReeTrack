@@ -3,7 +3,7 @@ import {
   Toast as ToastType,
   useToast,
 } from "../../features/notifications/useToast";
-import { cn } from "../../lib/utils";
+import { cn } from "../../lib/utils.ts";
 
 export function ToastContainer() {
   const { toasts, removeToast } = useToast();
