@@ -45,10 +45,17 @@ export interface AnalyticsOverview {
 }
 
 export const analyticsApi = {
-  // Get overview - requires organizationId
-  getOverview: async (organizationId: string, params?: { period?: string; startDate?: string; endDate?: string }): Promise<AnalyticsOverview> => {
+  // Get overview - requires organizationId and date range
+  getOverview: async (
+    organizationId: string, 
+    params: { 
+      period?: string; 
+      startDate: string;  // REQUIRED
+      endDate: string;    // REQUIRED
+    }
+  ): Promise<AnalyticsOverview> => {
     const response = await apiClient.get(`/analytics/overview/${organizationId}`, { params });
-    return response.data.data; // Extract from wrapper
+    return response.data.data;
   },
 
   // Get MRR (Monthly Recurring Revenue)
@@ -57,14 +64,28 @@ export const analyticsApi = {
     return response.data.data;
   },
 
-  // Get churn rate
-  getChurn: async (organizationId: string, params?: { period?: string; startDate?: string; endDate?: string }) => {
+  // Get churn rate - requires date range
+  getChurn: async (
+    organizationId: string, 
+    params: { 
+      period?: string; 
+      startDate: string;  // REQUIRED
+      endDate: string;    // REQUIRED
+    }
+  ) => {
     const response = await apiClient.get(`/analytics/churn/${organizationId}`, { params });
     return response.data.data;
   },
 
-  // Get revenue chart data
-  getRevenueChart: async (organizationId: string, params?: { period?: string; startDate?: string; endDate?: string }) => {
+  // Get revenue chart data - requires date range
+  getRevenueChart: async (
+    organizationId: string, 
+    params: { 
+      period?: string; 
+      startDate: string;  // REQUIRED
+      endDate: string;    // REQUIRED
+    }
+  ) => {
     const response = await apiClient.get(`/analytics/revenue-chart/${organizationId}`, { params });
     return response.data.data;
   },

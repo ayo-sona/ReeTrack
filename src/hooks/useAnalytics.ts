@@ -2,13 +2,33 @@ import { useQuery } from '@tanstack/react-query';
 import { analyticsApi, AnalyticsOverview } from '../lib/api/analyticsApi';
 import { getCurrentOrganizationId } from '../utils/organisationUtils';
 
+// Helper to get default date range (last 30 days)
+const getDefaultDateRange = () => {
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 30);
+  
+  return {
+    startDate: startDate.toISOString().split('T')[0], // Format: YYYY-MM-DD
+    endDate: endDate.toISOString().split('T')[0]
+  };
+};
+
 // Get analytics overview
 export const useAnalyticsOverview = (params?: { period?: string; startDate?: string; endDate?: string }) => {
   const organizationId = getCurrentOrganizationId();
   
+  // Merge with default dates if not provided
+  const defaultDates = getDefaultDateRange();
+  const finalParams = {
+    startDate: defaultDates.startDate,
+    endDate: defaultDates.endDate,
+    ...params // User provided params override defaults
+  };
+  
   return useQuery<AnalyticsOverview, Error>({
-    queryKey: ['analytics', 'overview', organizationId, params],
-    queryFn: () => analyticsApi.getOverview(organizationId, params),
+    queryKey: ['analytics', 'overview', organizationId, finalParams],
+    queryFn: () => analyticsApi.getOverview(organizationId, finalParams),
     retry: false,
   });
 };
@@ -28,9 +48,17 @@ export const useMRR = () => {
 export const useChurn = (params?: { period?: string; startDate?: string; endDate?: string }) => {
   const organizationId = getCurrentOrganizationId();
   
+  // Merge with default dates if not provided
+  const defaultDates = getDefaultDateRange();
+  const finalParams = {
+    startDate: defaultDates.startDate,
+    endDate: defaultDates.endDate,
+    ...params
+  };
+  
   return useQuery({
-    queryKey: ['analytics', 'churn', organizationId, params],
-    queryFn: () => analyticsApi.getChurn(organizationId, params),
+    queryKey: ['analytics', 'churn', organizationId, finalParams],
+    queryFn: () => analyticsApi.getChurn(organizationId, finalParams),
     retry: false,
   });
 };
@@ -39,9 +67,17 @@ export const useChurn = (params?: { period?: string; startDate?: string; endDate
 export const useRevenueChart = (params?: { period?: string; startDate?: string; endDate?: string }) => {
   const organizationId = getCurrentOrganizationId();
   
+  // Merge with default dates if not provided
+  const defaultDates = getDefaultDateRange();
+  const finalParams = {
+    startDate: defaultDates.startDate,
+    endDate: defaultDates.endDate,
+    ...params
+  };
+  
   return useQuery({
-    queryKey: ['analytics', 'revenue-chart', organizationId, params],
-    queryFn: () => analyticsApi.getRevenueChart(organizationId, params),
+    queryKey: ['analytics', 'revenue-chart', organizationId, finalParams],
+    queryFn: () => analyticsApi.getRevenueChart(organizationId, finalParams),
     retry: false,
   });
 };
