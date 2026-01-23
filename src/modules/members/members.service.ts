@@ -54,7 +54,7 @@ export class MembersService {
           organization_id: organizationId,
         },
       },
-      relations: ['user', 'subscriptions'],
+      relations: ['user', 'subscriptions', 'subscriptions.plan'],
     });
 
     if (!member) {
