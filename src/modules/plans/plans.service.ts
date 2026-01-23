@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MemberPlan } from '../../database/entities/member-plan.entity';
+import { Member, MemberSubscription } from 'src/database/entities';
 import { CreatePlanDto } from './dto/create-plan.dto';
 import { UpdatePlanDto } from './dto/update-plan.dto';
 import { PaginationDto, paginate } from '../../common/dto/pagination.dto';
@@ -15,6 +16,12 @@ export class PlansService {
   constructor(
     @InjectRepository(MemberPlan)
     private memberPlanRepository: Repository<MemberPlan>,
+
+    @InjectRepository(MemberSubscription)
+    private memberSubscriptionRepository: Repository<MemberSubscription>,
+
+    @InjectRepository(Member)
+    private memberRepository: Repository<Member>,
   ) {}
 
   async createMemberPlan(organizationId: string, createPlanDto: CreatePlanDto) {
@@ -208,6 +215,73 @@ export class PlansService {
 
     return {
       message: 'Plan deleted successfully',
+    };
+  }
+
+  async getPlanStats(organizationId: string) {
+    // Get all plans for the organization
+    const plans = await this.memberPlanRepository.find({
+      where: { organization_id: organizationId },
+    });
+
+    // Get subscription counts for each plan
+    const planStats = await Promise.all(
+      plans.map(async (plan) => {
+        const subscriptionCount = await this.memberSubscriptionRepository.count(
+          {
+            where: {
+              plan_id: plan.id,
+              status: 'active', // Only count active subscriptions
+            },
+            relations: ['member'],
+          },
+        );
+
+        const revenue = await this.memberSubscriptionRepository
+          .createQueryBuilder('subscription')
+          .leftJoin('subscription.plan', 'plan')
+          .select('SUM(plan.price)', 'total')
+          .where('subscription.plan_id = :planId', { planId: plan.id })
+          .andWhere('subscription.status = :status', { status: 'active' })
+          .getRawOne();
+
+        return {
+          planId: plan.id,
+          planName: plan.name,
+          subscriptionCount,
+          totalRevenue: revenue?.total || 0,
+        };
+      }),
+    );
+
+    // Get total members in the organization
+    const totalMembers = await this.memberRepository.count({
+      where: {
+        organization_user: {
+          organization_id: organizationId,
+        },
+      },
+    });
+
+    return {
+      totalPlans: plans.length,
+      totalMembers,
+      plans: planStats,
+      summary: {
+        totalActiveSubscriptions: planStats.reduce(
+          (sum, plan) => sum + plan.subscriptionCount,
+          0,
+        ),
+        subscriptionRate:
+          totalMembers > 0
+            ? (planStats.reduce(
+                (sum, plan) => sum + plan.subscriptionCount,
+                0,
+              ) /
+                totalMembers) *
+              100
+            : 0,
+      },
     };
   }
 }

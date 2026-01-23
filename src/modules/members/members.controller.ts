@@ -55,12 +55,12 @@ export class MembersController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Member not found' })
-  @Get('/me')
+  @Get('/:memberId')
   findOne(
-    @CurrentUser() user: any,
     @CurrentOrganization() organizationId: string,
+    @Param('memberId') memberId: string,
   ) {
-    return this.membersService.findOne(organizationId, user.id);
+    return this.membersService.findOne(organizationId, memberId);
   }
 
   @ApiBearerAuth('JWT-auth')
@@ -71,12 +71,12 @@ export class MembersController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Member not found' })
-  @Get('stats')
+  @Get('/:memberId/stats')
   getStats(
     @CurrentOrganization() organizationId: string,
-    @CurrentUser() user: any,
+    @Param('memberId') memberId: string,
   ) {
-    return this.membersService.getMemberStats(organizationId, user.id);
+    return this.membersService.getMemberStats(organizationId, memberId);
   }
 
   @ApiBearerAuth('JWT-auth')
@@ -89,13 +89,17 @@ export class MembersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Member not found' })
   @ApiResponse({ status: 409, description: 'Email already in use' })
-  @Put()
+  @Put('/:memberId')
   update(
     @CurrentOrganization() organizationId: string,
-    @CurrentUser() user: any,
+    @Param('memberId') memberId: string,
     @Body() UpdateMemberDto: UpdateMemberDto,
   ) {
-    return this.membersService.update(organizationId, user.id, UpdateMemberDto);
+    return this.membersService.update(
+      organizationId,
+      memberId,
+      UpdateMemberDto,
+    );
   }
 
   @ApiBearerAuth('JWT-auth')
@@ -104,11 +108,11 @@ export class MembersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Member not found' })
   @ApiResponse({ status: 409, description: 'Member has active subscription' })
-  @Delete()
+  @Delete('/:memberId')
   delete(
     @CurrentOrganization() organizationId: string,
-    @CurrentUser() user: any,
+    @Param('memberId') memberId: string,
   ) {
-    return this.membersService.delete(organizationId, user.id);
+    return this.membersService.delete(organizationId, memberId);
   }
 }

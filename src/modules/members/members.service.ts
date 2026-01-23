@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike } from 'typeorm';
+import { Repository, ILike, Brackets } from 'typeorm';
 import { Member } from '../../database/entities/member.entity';
 import { OrganizationUser } from '../../database/entities/organization-user.entity';
 import { UpdateMemberDto } from './dto/update-member.dto';
@@ -20,45 +20,41 @@ export class MembersService {
   ) {}
 
   async findAll(organizationId: string, search?: string): Promise<Member[]> {
-    // First get all org user IDs for this organization
-    const orgUsers = await this.orgUserRepository.find({
-      where: { organization_id: organizationId },
-      select: ['id'],
-    });
-
-    const orgUserIds = orgUsers.map((ou) => ou.id);
-
-    if (orgUserIds.length === 0) {
-      return [];
-    }
-
-    const query = this.memberRepository
+    const queryBuilder = this.memberRepository
       .createQueryBuilder('member')
-      .where('member.organization_user_id IN (:...orgUserIds)', { orgUserIds })
-      .leftJoinAndSelect('member.organization_user', 'organization_user')
-      .leftJoinAndSelect('organization_user.user', 'user');
+      .leftJoinAndSelect('member.user', 'user')
+      .leftJoinAndSelect('member.subscriptions', 'subscriptions')
+      .leftJoinAndSelect('subscriptions.plan', 'plan')
+      .leftJoin('member.organization_user', 'organization_user')
+      .where('organization_user.organization_id = :organizationId', {
+        organizationId,
+      });
 
     if (search) {
-      query.andWhere(
-        '(member.emergency_contact_name ILIKE :search OR user.email ILIKE :search OR user.first_name ILIKE :search OR user.last_name ILIKE :search)',
-        {
-          search: `%${search}%`,
-        },
+      queryBuilder.andWhere(
+        new Brackets((qb) => {
+          qb.where('member.emergency_contact_name ILIKE :search', {
+            search: `%${search}%`,
+          })
+            .orWhere('user.email ILIKE :search', { search: `%${search}%` })
+            .orWhere('user.first_name ILIKE :search', { search: `%${search}%` })
+            .orWhere('user.last_name ILIKE :search', { search: `%${search}%` });
+        }),
       );
     }
 
-    return query.getMany();
+    return queryBuilder.getMany();
   }
 
-  async findOne(organizationId: string, userId: string): Promise<Member> {
+  async findOne(organizationId: string, memberId: string): Promise<Member> {
     const member = await this.memberRepository.findOne({
       where: {
-        user_id: userId,
+        id: memberId,
         organization_user: {
           organization_id: organizationId,
         },
       },
-      relations: ['organization_user', 'organization_user.user'],
+      relations: ['user', 'subscriptions'],
     });
 
     if (!member) {
@@ -69,10 +65,10 @@ export class MembersService {
 
   async update(
     organizationId: string,
-    userId: string,
+    memberId: string,
     updateDto: UpdateMemberDto,
   ): Promise<Member> {
-    const member = await this.findOne(organizationId, userId);
+    const member = await this.findOne(organizationId, memberId);
 
     // Only update allowed fields
     const updated = this.memberRepository.merge(member, {
@@ -87,10 +83,10 @@ export class MembersService {
     return this.memberRepository.save(updated);
   }
 
-  async delete(organizationId: string, userId: string) {
+  async delete(organizationId: string, memberId: string) {
     const member = await this.memberRepository.findOne({
       where: {
-        user_id: userId,
+        id: memberId,
         organization_user: {
           organization_id: organizationId,
         },
@@ -120,15 +116,15 @@ export class MembersService {
     };
   }
 
-  async getMemberStats(organizationId: string, userId: string) {
+  async getMemberStats(organizationId: string, memberId: string) {
     const member = await this.memberRepository.findOne({
       where: {
-        user_id: userId,
+        id: memberId,
         organization_user: {
           organization_id: organizationId,
         },
       },
-      relations: ['organization_user'],
+      relations: ['user'],
     });
 
     if (!member) {

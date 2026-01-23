@@ -16,13 +16,70 @@ import { UpdatePlanDto } from './dto/update-plan.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentOrganization } from '../../common/decorators/organization.decorator';
 import { PaginationDto } from '../../common/dto/pagination.dto';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiProperty,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { MemberPlan } from 'src/database/entities';
+
+class PlanStatisticsResponse {
+  @ApiProperty({ description: 'Total number of plans' })
+  totalPlans: number;
+
+  @ApiProperty({ description: 'Total number of members in the organization' })
+  totalMembers: number;
+
+  @ApiProperty({
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        planId: { type: 'string' },
+        planName: { type: 'string' },
+        subscriptionCount: { type: 'number' },
+        totalRevenue: { type: 'number' },
+      },
+    },
+  })
+  plans: Array<{
+    planId: string;
+    planName: string;
+    subscriptionCount: number;
+    totalRevenue: number;
+  }>;
+
+  @ApiProperty({
+    type: 'object',
+    properties: {
+      totalActiveSubscriptions: { type: 'number' },
+      subscriptionRate: { type: 'number' },
+    },
+  })
+  summary: {
+    totalActiveSubscriptions: number;
+    subscriptionRate: number;
+  };
+}
 
 @Controller('member-plans')
 @UseGuards(JwtAuthGuard)
 export class PlansController {
   constructor(private readonly plansService: PlansService) {}
+
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get plan statistics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Plan statistics retrieved successfully',
+    type: PlanStatisticsResponse,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @Get('stats')
+  getPlanStatistics(@CurrentOrganization() organizationId: string) {
+    return this.plansService.getPlanStats(organizationId);
+  }
 
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new plan' })
