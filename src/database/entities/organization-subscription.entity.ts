@@ -32,6 +32,9 @@ export class OrganizationSubscription {
   })
   status: SubscriptionStatus;
 
+  @Column({ type: 'boolean', default: true })
+  auto_renew: boolean;
+
   @Column({ type: 'timestamp with time zone' })
   started_at: Date;
 

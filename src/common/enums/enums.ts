@@ -25,7 +25,7 @@ export enum StripePaymentIntentStatus {
 
 export enum PaymentProvider {
   PAYSTACK = 'paystack',
-  STRIPE = 'stripe',
+  KORA = 'kora',
 }
 
 export enum PaymentPayerType {
@@ -59,4 +59,12 @@ export enum InvoiceStatus {
 export enum InvoiceBilledType {
   ORGANIZATION = 'organization',
   USER = 'user',
+}
+
+export enum TimePeriod {
+  WEEK = 'week',
+  MONTH = 'month',
+  QUARTER = 'quarter',
+  YEAR = 'year',
+  CUSTOM = 'custom',
 }

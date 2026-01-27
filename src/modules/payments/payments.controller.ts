@@ -15,6 +15,19 @@ import { PaginationDto } from '../../common/dto/pagination.dto';
 import { Throttle } from '@nestjs/throttler';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { IsEnum, IsOptional } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { PaymentStatus } from 'src/common/enums/enums';
+
+class PaymentStatusDto extends PaginationDto {
+  @ApiPropertyOptional({
+    description: 'Payment status',
+    example: PaymentStatus.SUCCESS,
+  })
+  @IsOptional()
+  @IsEnum(PaymentStatus)
+  status?: PaymentStatus;
+}
 
 @Controller('payments')
 @ApiBearerAuth('JWT-auth')
@@ -56,10 +69,13 @@ export class PaymentsController {
   @ApiResponse({ status: 500, description: 'Internal server error' })
   findAll(
     @CurrentOrganization() organizationId: string,
-    @Query() paginationDto: PaginationDto,
-    @Query('status') status?: string,
+    @Query() paginationDto: PaymentStatusDto,
   ) {
-    return this.paymentsService.findAll(organizationId, paginationDto, status);
+    return this.paymentsService.findAll(
+      organizationId,
+      paginationDto,
+      paginationDto.status,
+    );
   }
 
   @Get('stats')

@@ -19,7 +19,8 @@ import {
   RevenueChartData,
   PlanPerformanceData,
 } from './interfaces/analytics.interface';
-import { AnalyticsQueryDto, TimePeriod } from './dto/analytics-query.dto';
+import { AnalyticsQueryDto } from './dto/analytics-query.dto';
+import { TimePeriod } from 'src/common/enums/enums';
 import { differenceInDays, parseISO } from 'date-fns';
 
 @Injectable()
@@ -565,10 +566,6 @@ export class AnalyticsService {
       return { startDate, endDate };
     } else {
       switch (queryDto.period) {
-        case TimePeriod.TODAY:
-          startDate = new Date(now);
-          startDate.setHours(0, 0, 0, 0);
-          break;
         case TimePeriod.WEEK:
           startDate = new Date(now);
           startDate.setDate(now.getDate() - 7);

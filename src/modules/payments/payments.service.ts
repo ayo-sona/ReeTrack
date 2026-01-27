@@ -334,7 +334,11 @@ export class PaymentsService {
 
     const [payments, total] = await this.paymentRepository.findAndCount({
       where: whereCondition,
-      relations: ['payer_user', 'invoice'],
+      relations: [
+        'payer_user',
+        'invoice.member_subscription.plan',
+        'invoice.organization_subscription.plan',
+      ],
       order: { created_at: 'DESC' },
       skip,
       take: limit,
@@ -352,7 +356,11 @@ export class PaymentsService {
         id: paymentId,
         payer_org_id: organizationId,
       },
-      relations: ['payer_user', 'invoice'],
+      relations: [
+        'payer_user',
+        'invoice.member_subscription.plan',
+        'invoice.organization_subscription.plan',
+      ],
     });
 
     if (!payment) {
@@ -378,7 +386,10 @@ export class PaymentsService {
         payer_org_id: organizationId,
         payer_user_id: userId,
       },
-      relations: ['invoice'],
+      relations: [
+        'invoice.member_subscription.plan',
+        'invoice.organization_subscription.plan',
+      ],
       order: { created_at: 'DESC' },
       skip,
       take: limit,
@@ -391,27 +402,54 @@ export class PaymentsService {
   }
 
   async getMemberPaymentStats(organizationId: string) {
-    const [totalPayments, successfulPayments, failedPayments, totalRevenue] =
-      await Promise.all([
-        this.paymentRepository.count({
-          where: { payer_org_id: organizationId },
-        }),
-        this.paymentRepository.count({
-          where: {
-            payer_org_id: organizationId,
-            status: PaymentStatus.SUCCESS,
-          },
-        }),
-        this.paymentRepository.count({
-          where: { payer_org_id: organizationId, status: PaymentStatus.FAILED },
-        }),
-        this.paymentRepository.query(
-          `SELECT COALESCE(SUM(amount), 0) as total
+    const [
+      totalPayments,
+      successfulPayments,
+      failedPayments,
+      pendingPayments,
+      totalRevenue,
+      totalExpenses,
+    ] = await Promise.all([
+      this.paymentRepository.count({
+        where: {
+          payer_org_id: organizationId,
+          payer_type: PaymentPayerType.USER,
+        },
+      }),
+      this.paymentRepository.count({
+        where: {
+          payer_org_id: organizationId,
+          status: PaymentStatus.SUCCESS,
+          payer_type: PaymentPayerType.USER,
+        },
+      }),
+      this.paymentRepository.count({
+        where: {
+          payer_org_id: organizationId,
+          status: PaymentStatus.FAILED,
+          payer_type: PaymentPayerType.USER,
+        },
+      }),
+      this.paymentRepository.count({
+        where: {
+          payer_org_id: organizationId,
+          status: PaymentStatus.PENDING,
+          payer_type: PaymentPayerType.USER,
+        },
+      }),
+      this.paymentRepository.query(
+        `SELECT COALESCE(SUM(amount), 0) as total
            FROM payments
-           WHERE payer_org_id = $1 AND status = $2`,
-          [organizationId, PaymentStatus.SUCCESS],
-        ),
-      ]);
+           WHERE payer_org_id = $1 AND status = $2 AND payer_type = $3`,
+        [organizationId, PaymentStatus.SUCCESS, PaymentPayerType.USER],
+      ),
+      this.paymentRepository.query(
+        `SELECT COALESCE(SUM(amount), 0) as total
+           FROM payments
+           WHERE payer_org_id = $1 AND status = $2 AND payer_type = $3`,
+        [organizationId, PaymentStatus.SUCCESS, PaymentPayerType.ORGANIZATION],
+      ),
+    ]);
 
     return {
       message: 'Payment stats retrieved successfully',
@@ -419,8 +457,9 @@ export class PaymentsService {
         total_payments: totalPayments,
         successful_payments: successfulPayments,
         failed_payments: failedPayments,
-        pending_payments: totalPayments - successfulPayments - failedPayments,
+        pending_payments: pendingPayments,
         total_revenue: parseFloat(totalRevenue[0].total),
+        total_expenses: parseFloat(totalExpenses[0].total),
         success_rate:
           totalPayments > 0
             ? ((successfulPayments / totalPayments) * 100).toFixed(2)

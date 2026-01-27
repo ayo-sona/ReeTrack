@@ -1,26 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 // import { Type } from 'class-transformer';
-import {
-  IsOptional,
-  IsDateString,
-  IsEnum,
-  // IsDate,
-  // IsString,
-} from 'class-validator';
-
-export enum TimePeriod {
-  TODAY = 'today',
-  WEEK = 'week',
-  MONTH = 'month',
-  QUARTER = 'quarter',
-  YEAR = 'year',
-  CUSTOM = 'custom',
-}
+import { IsOptional, IsDateString, IsEnum } from 'class-validator';
+import { TimePeriod } from 'src/common/enums/enums';
 
 export class AnalyticsQueryDto {
   @ApiProperty({
     description: 'Time period',
-    // example: TimePeriod.CUSTOM,
+    example: TimePeriod.CUSTOM,
   })
   @IsEnum(TimePeriod)
   period: TimePeriod = TimePeriod.CUSTOM;
