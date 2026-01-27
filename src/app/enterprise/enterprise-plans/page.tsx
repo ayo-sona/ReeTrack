@@ -157,7 +157,7 @@ export default function EnterprisePlansPage() {
       selectedPlan?.name,
     );
     // You can add your payment processing logic here
-    await handleSubscribe();
+    // await handleSubscribe();
     onClose();
   };
 

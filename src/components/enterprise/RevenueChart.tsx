@@ -1,9 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useRevenueChart } from '../../hooks/useAnalytics';
-import clsx from 'clsx';
+import { useState } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { useRevenueChart } from "../../hooks/useAnalytics";
+import clsx from "clsx";
 
 type PeriodOption = {
   value: string;
@@ -11,35 +20,37 @@ type PeriodOption = {
 };
 
 const PERIOD_OPTIONS: PeriodOption[] = [
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'quarterly', label: 'Quarterly' },
-  { value: 'custom', label: 'Custom' },
+  { value: "week", label: "Weekly" },
+  { value: "month", label: "Monthly" },
+  { value: "quarter", label: "Quarterly" },
+  { value: "custom", label: "Custom" },
 ];
 
 export function RevenueChart() {
-  const [selectedPeriod, setSelectedPeriod] = useState('monthly');
+  const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
   // Build params object
-  const params = selectedPeriod === 'custom' && startDate && endDate
-    ? { period: 'custom', startDate, endDate }
-    : { period: selectedPeriod };
-  
+  const params =
+    selectedPeriod === "custom" && startDate && endDate
+      ? { period: "custom", startDate, endDate }
+      : { period: selectedPeriod };
+
   const { data: chartData, isLoading, error } = useRevenueChart(params);
+  console.log("chart data", chartData);
 
   const handlePeriodChange = (period: string) => {
     setSelectedPeriod(period);
-    if (period === 'custom') {
+    if (period === "custom") {
       setShowDatePicker(true);
       // Set default dates (last 30 days)
       const end = new Date();
       const start = new Date();
       start.setDate(start.getDate() - 30);
-      setStartDate(start.toISOString().split('T')[0]);
-      setEndDate(end.toISOString().split('T')[0]);
+      setStartDate(start.toISOString().split("T")[0]);
+      setEndDate(end.toISOString().split("T")[0]);
     } else {
       setShowDatePicker(false);
     }
@@ -66,7 +77,7 @@ export function RevenueChart() {
                 Revenue from successful payments
               </p>
             </div>
-            
+
             {/* Period selector */}
             <div>
               <div className="inline-flex items-center rounded-lg bg-gray-100 dark:bg-gray-700 p-1 gap-1">
@@ -75,17 +86,17 @@ export function RevenueChart() {
                     key={option.value}
                     onClick={() => handlePeriodChange(option.value)}
                     className={clsx(
-                      'px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200',
+                      "px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200",
                       selectedPeriod === option.value
-                        ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
+                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
                     )}
                   >
                     {option.label}
                   </button>
                 ))}
               </div>
-              
+
               {/* Date picker for custom range */}
               {showDatePicker && (
                 <div className="mt-3 flex gap-2 items-center text-sm">
@@ -108,14 +119,19 @@ export function RevenueChart() {
           </div>
         </div>
         <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
-          {error ? 'Unable to load revenue data' : 'No revenue data available for this period'}
+          {error
+            ? "Unable to load revenue data"
+            : "No revenue data available for this period"}
         </div>
       </div>
     );
   }
 
   // UI-only: Calculate summary stats
-  const totalRevenue = chartData.reduce((sum: number, d: { revenue?: number }) => sum + (d.revenue || 0), 0);
+  const totalRevenue = chartData.reduce(
+    (sum: number, d: { revenue?: number }) => sum + (d.revenue || 0),
+    0,
+  );
   const avgRevenue = chartData.length > 0 ? totalRevenue / chartData.length : 0;
 
   return (
@@ -131,7 +147,7 @@ export function RevenueChart() {
               Revenue from successful payments
             </p>
           </div>
-          
+
           {/* Period selector */}
           <div>
             <div className="inline-flex items-center rounded-lg bg-gray-100 dark:bg-gray-700 p-1 gap-1">
@@ -140,17 +156,17 @@ export function RevenueChart() {
                   key={option.value}
                   onClick={() => handlePeriodChange(option.value)}
                   className={clsx(
-                    'px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 whitespace-nowrap',
+                    "px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200 whitespace-nowrap",
                     selectedPeriod === option.value
-                      ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                      ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
                   )}
                 >
                   {option.label}
                 </button>
               ))}
             </div>
-            
+
             {/* Date picker for custom range */}
             {showDatePicker && (
               <div className="mt-3 flex gap-2 items-center text-sm">
@@ -175,30 +191,38 @@ export function RevenueChart() {
 
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-gray-300 dark:stroke-gray-700" />
-          <XAxis 
-            dataKey="month" 
-            className="text-gray-600 dark:text-gray-400"
-            tick={{ fill: 'currentColor' }}
+          <CartesianGrid
+            strokeDasharray="3 3"
+            className="stroke-gray-300 dark:stroke-gray-700"
           />
-          <YAxis 
+          <XAxis
+            dataKey="month"
             className="text-gray-600 dark:text-gray-400"
-            tick={{ fill: 'currentColor' }}
+            tick={{ fill: "currentColor" }}
+          />
+          <YAxis
+            className="text-gray-600 dark:text-gray-400"
+            tick={{ fill: "currentColor" }}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: 'rgb(31, 41, 55)',
-              border: '1px solid rgb(75, 85, 99)',
-              borderRadius: '0.5rem',
-              color: 'white',
+              backgroundColor: "rgb(31, 41, 55)",
+              border: "1px solid rgb(75, 85, 99)",
+              borderRadius: "0.5rem",
+              color: "white",
             }}
             formatter={(value: number | undefined) => {
               const num = value ?? 0;
-              return [`₦${num.toLocaleString()}`, 'Revenue'];
+              return [`₦${num.toLocaleString()}`, "Revenue"];
             }}
           />
           <Legend />
-          <Bar dataKey="revenue" fill="#10b981" name="Revenue (₦)" radius={[8, 8, 0, 0]} />
+          <Bar
+            dataKey="revenue"
+            fill="#10b981"
+            name="Revenue (₦)"
+            radius={[8, 8, 0, 0]}
+          />
         </BarChart>
       </ResponsiveContainer>
 
