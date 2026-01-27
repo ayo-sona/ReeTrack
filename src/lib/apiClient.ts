@@ -39,7 +39,7 @@ const apiClient: AxiosInstance = axios.create({
     "Content-Type": "application/json",
   },
   withCredentials: true, // This sends httpOnly cookies automatically
-  timeout: 30000,
+  // timeout: 30000,
 });
 
 /**
