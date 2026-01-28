@@ -51,7 +51,7 @@ export class MemberPlan {
   @Column({ type: 'int', default: 1 })
   interval_count: number;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'text', array: true })
   features: string[];
 
   @Column({ type: 'boolean', default: true })

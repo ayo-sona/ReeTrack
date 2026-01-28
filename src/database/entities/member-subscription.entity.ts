@@ -28,8 +28,12 @@ export class MemberSubscription {
   @Column({ type: 'uuid' })
   organization_id: string;
 
-  @Column({ type: 'text', default: SubscriptionStatus.ACTIVE })
-  status: string;
+  @Column({
+    type: 'enum',
+    enum: SubscriptionStatus,
+    default: SubscriptionStatus.ACTIVE,
+  })
+  status: SubscriptionStatus;
 
   @Column({ type: 'timestamp with time zone' })
   started_at: Date;

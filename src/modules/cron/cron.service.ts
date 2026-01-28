@@ -86,14 +86,14 @@ export class CronService {
 
     const expiredSubscriptions = await this.memberSubscriptionRepository.find({
       where: {
-        status: In(['active', 'trialing']),
+        status: In([SubscriptionStatus.ACTIVE]),
         expires_at: LessThan(now),
       },
       relations: ['member', 'plan'],
     });
 
     for (const subscription of expiredSubscriptions) {
-      subscription.status = 'expired';
+      subscription.status = SubscriptionStatus.EXPIRED;
       await this.memberSubscriptionRepository.save(subscription);
 
       // Send notification
@@ -139,10 +139,10 @@ export class CronService {
       const expiringSubscriptions =
         await this.memberSubscriptionRepository.find({
           where: {
-            status: 'active',
+            status: SubscriptionStatus.ACTIVE,
             expires_at: Between(startOfDay, endOfDay),
           },
-          relations: ['members', 'plan'],
+          relations: ['member', 'plan'],
         });
 
       for (const subscription of expiringSubscriptions) {
@@ -235,7 +235,7 @@ export class CronService {
 
     const renewingSubscriptions = await this.memberSubscriptionRepository.find({
       where: {
-        status: 'active',
+        status: SubscriptionStatus.ACTIVE,
         expires_at: Between(startOfTomorrow, endOfTomorrow),
       },
       relations: ['member_plans', 'members', 'organizations'],
@@ -341,23 +341,25 @@ export class CronService {
       expiredSubscriptions,
       totalRevenue,
     ] = await Promise.all([
-      this.memberSubscriptionRepository.count({ where: { status: 'active' } }),
+      this.memberSubscriptionRepository.count({
+        where: { status: SubscriptionStatus.ACTIVE },
+      }),
       this.memberSubscriptionRepository.count({
         where: {
-          status: 'active',
+          status: SubscriptionStatus.ACTIVE,
           created_at: Between(today, tomorrow),
         },
       }),
       this.memberSubscriptionRepository.count({
         where: {
-          status: 'expired',
+          status: SubscriptionStatus.EXPIRED,
           expires_at: Between(today, tomorrow),
         },
       }),
       this.invoiceRepository
         .createQueryBuilder('invoice')
         .select('COALESCE(SUM(amount), 0)', 'total')
-        .where('status = :status', { status: 'paid' })
+        .where('status = :status', { status: InvoiceStatus.PAID })
         .andWhere('paid_at >= :start', { start: today })
         .andWhere('paid_at < :end', { end: tomorrow })
         .getRawOne(),

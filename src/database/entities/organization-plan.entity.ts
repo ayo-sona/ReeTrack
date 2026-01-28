@@ -6,10 +6,12 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Organization } from './organization.entity';
 import { PlanInterval } from 'src/common/enums/enums';
+import { OrganizationSubscription } from './organization-subscription.entity';
 
 @Entity('organization_plans')
 export class OrganizationPlan {
@@ -69,18 +71,11 @@ export class OrganizationPlan {
   @Column({ type: 'int', default: 1 })
   interval_count: number;
 
-  // @ApiProperty({
-  //   description: 'Plan trial period days',
-  //   example: 14,
-  // })
-  // @Column({ type: 'int', default: 0 })
-  // trial_period_days: number;
-
   @ApiProperty({
     description: 'Plan features',
     example: ['Chilling in the lounge', 'Beverages'],
   })
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'text', array: true })
   features: string[];
 
   @ApiProperty({
@@ -109,4 +104,7 @@ export class OrganizationPlan {
   })
   @JoinColumn({ name: 'organization_id' })
   organization: Organization;
+
+  @OneToMany(() => OrganizationSubscription, (sub) => sub.plan)
+  subscriptions: OrganizationSubscription[];
 }

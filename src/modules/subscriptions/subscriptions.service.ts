@@ -107,7 +107,7 @@ export class SubscriptionsService {
         where: {
           member_id: createSubscriptionDto.memberId,
           plan_id: createSubscriptionDto.planId,
-          status: 'active',
+          status: SubscriptionStatus.ACTIVE,
         },
       });
 
@@ -129,7 +129,7 @@ export class SubscriptionsService {
     const subscription = this.memberSubscriptionRepository.create({
       member_id: createSubscriptionDto.memberId,
       plan_id: createSubscriptionDto.planId,
-      status: 'active',
+      status: SubscriptionStatus.ACTIVE,
       started_at: now,
       expires_at: periodEnd,
       metadata: createSubscriptionDto.metadata || {},
@@ -237,11 +237,11 @@ export class SubscriptionsService {
     // If canceling an active subscription
     else if (
       updateDto.status === 'canceled' &&
-      subscription.status === 'active'
+      subscription.status === SubscriptionStatus.ACTIVE
     ) {
       subscription.canceled_at = new Date();
     }
-    subscription.status = updateDto.status as string;
+    subscription.status = updateDto.status as SubscriptionStatus;
     subscription.metadata = updateDto.metadata || subscription.metadata;
     const updated = await this.memberSubscriptionRepository.save(subscription);
 
@@ -292,7 +292,7 @@ export class SubscriptionsService {
           member_id: currentSubscription.member_id,
           plan_id: newPlan.id,
           organization_id: organizationId,
-          status: 'active',
+          status: SubscriptionStatus.ACTIVE,
           started_at: new Date(),
           expires_at: addMonths(new Date(), newPlan.interval_count),
           auto_renew: currentSubscription.auto_renew,
@@ -309,7 +309,7 @@ export class SubscriptionsService {
           await transactionalEntityManager.save(newSubscription);
 
         // Cancel the old subscription
-        currentSubscription.status = 'canceled';
+        currentSubscription.status = SubscriptionStatus.CANCELED;
         currentSubscription.canceled_at = new Date();
         currentSubscription.metadata = {
           ...currentSubscription.metadata,
@@ -345,8 +345,8 @@ export class SubscriptionsService {
     }
 
     if (
-      subscription.status === 'canceled' ||
-      subscription.status === 'expired'
+      subscription.status === SubscriptionStatus.CANCELED ||
+      subscription.status === SubscriptionStatus.EXPIRED
     ) {
       throw new BadRequestException('Subscription already canceled or expired');
     }
@@ -474,13 +474,13 @@ export class SubscriptionsService {
 
     const expiredSubscriptions = await this.memberSubscriptionRepository.find({
       where: {
-        status: 'active',
+        status: SubscriptionStatus.ACTIVE,
         expires_at: LessThan(now),
       },
     });
 
     for (const subscription of expiredSubscriptions) {
-      subscription.status = 'expired';
+      subscription.status = SubscriptionStatus.EXPIRED;
       await this.memberSubscriptionRepository.save(subscription);
     }
 
