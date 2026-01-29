@@ -21,16 +21,11 @@ export default function EnterpriseDashboardPage() {
 
   const verifyPayment = async (ref: string) => {
     try {
-      const { data } = await apiClient.get(`/payments/verify/${ref}`);
+      const { data } = await apiClient.get(`/payments/paystack/verify/${ref}`);
 
       if (data.data.status === "success") {
         // Show success message
         alert("Payment successful! Your subscription is now active.");
-
-        // Update organization subscription status
-        await apiClient.patch(`/subscriptions/organizations/status`, {
-          status: "active",
-        });
       }
     } catch (error) {
       console.error("Verification error:", error);

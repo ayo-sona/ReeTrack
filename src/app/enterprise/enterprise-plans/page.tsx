@@ -95,32 +95,38 @@ export default function EnterprisePlansPage() {
       selectedPlan?.name,
     );
     // You can add your payment processing logic here
-    // await handleSubscribe();
+    if (method === "paystack") {
+      await handleSubscribe();
+    }
     onClose();
   };
 
   const handleSubscribe = async () => {
     setLoading(true);
+    console.log(selectedPlan?.id);
 
     try {
       // 1. Create subscription in your system
       const {
-        data: { invoice },
+        data: {
+          data: { invoice },
+        },
       } = await apiClient.post("/subscriptions/organizations", {
         planId: selectedPlan?.id,
       });
+      // console.log(invoice);
 
       // 2. Initialize Paystack payment
-      const { data: payment } = await apiClient.post(
-        "/payments/organization/initialize",
-        {
-          invoiceId: invoice.id,
-        },
-      );
+      const {
+        data: { data: paymentData },
+      } = await apiClient.post("/payments/paystack/organization/initialize", {
+        invoiceId: invoice?.id,
+      });
+      console.log(paymentData);
 
-      // 3. Redirect to Paystack
+      // // 3. Redirect to Paystack
       if (!paystack) return;
-      paystack.resumeTransaction(payment.access_code);
+      paystack.resumeTransaction(paymentData.access_code);
       //   window.location.href = payment.authorization_url;
     } catch (error) {
       console.error("Subscription error:", error);
