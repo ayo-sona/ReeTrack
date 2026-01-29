@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Modal } from '../../components/ui/Modal';
-import { Button } from '../../components/ui/button';
+import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { PlanId, BillingCycle, PlanFeature } from '../../types/subscription';
 import { PRICING_PLANS, ANNUAL_DISCOUNT } from '../../lib/constants';
