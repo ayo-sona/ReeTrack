@@ -11,6 +11,7 @@ import { Invoice } from '../../database/entities/invoice.entity';
 import {
   InvoiceBilledType,
   InvoiceStatus,
+  PaymentProvider,
   SubscriptionStatus,
 } from 'src/common/enums/enums';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
@@ -73,6 +74,7 @@ export class SubscriptionsService {
   async createMemberSubscription(
     organizationId: string,
     createSubscriptionDto: CreateSubscriptionDto,
+    userId: string,
   ) {
     // Verify member belongs to organization
     const member = await this.memberRepository.findOne({
@@ -490,7 +492,11 @@ export class SubscriptionsService {
     };
   }
 
-  async createOrgSubscription(organizationId: string, planId: string) {
+  async createOrgSubscription(
+    organizationId: string,
+    planId: string,
+    userId: string,
+  ) {
     // 1. Verify organization exists
     const organization = await this.organizationRepository.findOne({
       where: { id: organizationId },
@@ -550,9 +556,11 @@ export class SubscriptionsService {
     // 7. Create initial invoice
     const invoice = this.invoiceRepository.create({
       issuer_org_id: organizationId,
-      organization_subscription_id: subscription.id,
+      organization_subscription_id: savedSubscription.id,
       invoice_number: `INV-${Date.now()}-${organizationId.substring(0, 8)}`,
       billed_type: InvoiceBilledType.ORGANIZATION,
+      billed_user_id: userId,
+      payment_provider: PaymentProvider.PAYSTACK,
       amount: plan.price,
       currency: plan.currency,
       status: InvoiceStatus.PENDING,
@@ -566,16 +574,16 @@ export class SubscriptionsService {
     await this.invoiceRepository.save(invoice);
 
     // 9. Send confirmation email
-    await this.notificationsService.sendSubscriptionCreatedNotification({
-      email: organization.email,
-      memberName: organization.name,
-      planName: plan.name,
-      amount: plan.price,
-      currency: plan.currency,
-      interval: plan.interval,
-      startDate: now,
-      nextBilling: expiresAt,
-    });
+    // await this.notificationsService.sendSubscriptionCreatedNotification({
+    //   email: organization.email,
+    //   memberName: organization.name,
+    //   planName: plan.name,
+    //   amount: plan.price,
+    //   currency: plan.currency,
+    //   interval: plan.interval,
+    //   startDate: now,
+    //   nextBilling: expiresAt,
+    // });
 
     return {
       message: 'Enterprise subscription created successfully',
@@ -720,6 +728,7 @@ export class SubscriptionsService {
       billed_user_id: member.user.id,
       billed_type: InvoiceBilledType.USER,
       invoice_number: generateInvoiceNumber(organizationId),
+      payment_provider: PaymentProvider.PAYSTACK,
       amount: subscription.plan.price,
       currency: subscription.plan.currency,
       status: InvoiceStatus.PENDING,

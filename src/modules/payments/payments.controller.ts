@@ -36,7 +36,7 @@ class PaymentStatusDto extends PaginationDto {
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
-  @Post('initialize')
+  @Post('/paystack/initialize')
   @ApiOperation({ summary: 'Initialize a payment' })
   @ApiResponse({ status: 200, description: 'Payment initialized successfully' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
@@ -48,11 +48,25 @@ export class PaymentsController {
     return this.paymentsService.initializePayment(
       organizationId,
       initializePaymentDto,
-      user.id,
     );
   }
 
-  @Get('verify/:reference')
+  @Post('/paystack/organization/initialize')
+  @ApiOperation({ summary: 'Initialize a payment' })
+  @ApiResponse({ status: 200, description: 'Payment initialized successfully' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  initializeOrganizationPayment(
+    @CurrentUser() user: any,
+    @CurrentOrganization() organizationId: string,
+    @Body() initializePaymentDto: InitializePaymentDto,
+  ) {
+    return this.paymentsService.initializeOrganizationPayment(
+      organizationId,
+      initializePaymentDto,
+    );
+  }
+
+  @Get('/paystack/verify/:reference')
   @ApiOperation({ summary: 'Verify a payment' })
   @ApiResponse({ status: 200, description: 'Payment verified successfully' })
   @ApiResponse({ status: 500, description: 'Internal server error' })

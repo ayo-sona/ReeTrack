@@ -7,7 +7,11 @@ import { Payment } from '../../database/entities/payment.entity';
 import { Invoice } from '../../database/entities/invoice.entity';
 import { Member } from '../../database/entities/member.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
-import { MemberSubscription, OrganizationUser } from 'src/database/entities';
+import {
+  MemberSubscription,
+  OrganizationSubscription,
+  OrganizationUser,
+} from 'src/database/entities';
 
 @Module({
   imports: [
@@ -17,6 +21,7 @@ import { MemberSubscription, OrganizationUser } from 'src/database/entities';
       Member,
       OrganizationUser,
       MemberSubscription,
+      OrganizationSubscription,
     ]),
     NotificationsModule,
   ],

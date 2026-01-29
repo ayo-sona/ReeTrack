@@ -46,11 +46,13 @@ export class SubscriptionsController {
   @Post('/members')
   create(
     @CurrentOrganization() organizationId: string,
+    @CurrentUser() user: any,
     @Body() createSubscriptionDto: CreateSubscriptionDto,
   ) {
     return this.subscriptionsService.createMemberSubscription(
       organizationId,
       createSubscriptionDto,
+      user.id,
     );
   }
 
@@ -204,11 +206,13 @@ export class SubscriptionsController {
   @Post('organizations')
   createOrgSubscription(
     @CurrentOrganization() organizationId: string,
+        @CurrentUser() user: any,
     @Body() createOrgSubscriptionDto: CreateOrgSubscriptionDto,
   ) {
     return this.subscriptionsService.createOrgSubscription(
       organizationId,
       createOrgSubscriptionDto.planId,
+      user.id,
     );
   }
 

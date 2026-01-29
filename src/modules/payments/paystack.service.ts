@@ -39,7 +39,7 @@ export class PaystackService {
           amount, // Paystack expects amount in kobo (NGN x 100)
           reference,
           metadata,
-          callback_url: callbackUrl,
+          // callback_url: callbackUrl,
           channels: ['card'], // Only allow cards for recurring billing
         },
       );

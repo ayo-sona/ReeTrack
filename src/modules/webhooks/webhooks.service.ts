@@ -117,7 +117,11 @@ export class WebhooksService {
     // Find payment by reference
     const payment = await this.paymentRepository.findOne({
       where: { provider_reference: data.reference },
-      relations: ['invoice', 'invoice.member_subscription', 'payer_user'],
+      relations: [
+        'invoice.member_subscription',
+        'invoice.organization_subscription',
+        'payer_user',
+      ],
     });
 
     if (!payment) {
@@ -174,11 +178,14 @@ export class WebhooksService {
       payment.invoice.provider_reference = data.reference;
       await this.invoiceRepository.save(payment.invoice);
 
-      // If invoice is linked to a subscription, ensure it's active
+      // If invoice is linked to a member subscription, ensure it's active
       if (payment.invoice.member_subscription) {
         const subscription = payment.invoice.member_subscription;
 
-        if (subscription.status === SubscriptionStatus.EXPIRED) {
+        if (
+          subscription.status === SubscriptionStatus.EXPIRED ||
+          subscription.status === SubscriptionStatus.PENDING
+        ) {
           subscription.status = SubscriptionStatus.ACTIVE;
           await this.memberSubscriptionRepository.save(subscription);
           await this.handleSubscriptionRenewal(
@@ -186,6 +193,25 @@ export class WebhooksService {
           );
           this.logger.log(
             `Subscription ${subscription.id} reactivated after payment`,
+          );
+        }
+      }
+
+      // If invoice is linked to an organization subscription, ensure it's active
+      if (payment.invoice.organization_subscription) {
+        const subscription = payment.invoice.organization_subscription;
+
+        if (
+          subscription.status === SubscriptionStatus.EXPIRED ||
+          subscription.status === SubscriptionStatus.PENDING
+        ) {
+          subscription.status = SubscriptionStatus.ACTIVE;
+          await this.organizationSubscriptionRepository.save(subscription);
+          await this.handleOrganizationSubscriptionRenewal(
+            payment.invoice.organization_subscription,
+          );
+          this.logger.log(
+            `Organization subscription ${subscription.id} reactivated after payment`,
           );
         }
       }
@@ -209,7 +235,7 @@ export class WebhooksService {
   }
 
   /**
-   * Handle subscription renewal after successful payment
+   * Handle member subscription renewal after successful payment
    */
   private async handleSubscriptionRenewal(subscription: MemberSubscription) {
     if (!subscription) return;
@@ -239,6 +265,44 @@ export class WebhooksService {
       sub.expires_at = periodEnd;
 
       await this.memberSubscriptionRepository.save(sub);
+
+      this.logger.log(`Subscription ${sub.id} renewed and extended`);
+    }
+  }
+
+  /**
+   * Handle organization subscription renewal after successful payment
+   */
+  private async handleOrganizationSubscriptionRenewal(
+    subscription: OrganizationSubscription,
+  ) {
+    if (!subscription) return;
+
+    const sub = await this.organizationSubscriptionRepository.findOne({
+      where: { id: subscription.id },
+      relations: ['plan'],
+    });
+
+    if (!sub) return;
+
+    // Reactivate if expired
+    if (sub.status === SubscriptionStatus.EXPIRED) {
+      sub.status = SubscriptionStatus.ACTIVE;
+
+      // Extend subscription period
+      const now = new Date();
+      const plan = sub.plan;
+
+      const periodEnd = this.calculatePeriodEnd(
+        now,
+        plan.interval,
+        plan.interval_count,
+      );
+
+      sub.started_at = new Date(now);
+      sub.expires_at = periodEnd;
+
+      await this.organizationSubscriptionRepository.save(sub);
 
       this.logger.log(`Subscription ${sub.id} renewed and extended`);
     }

@@ -13,6 +13,7 @@ import {
   PaymentStatus,
   InvoiceStatus,
   PaymentPayerType,
+  SubscriptionStatus,
 } from 'src/common/enums/enums';
 import { Invoice } from '../../database/entities/invoice.entity';
 import { Member } from '../../database/entities/member.entity';
@@ -20,7 +21,11 @@ import { PaystackService } from './paystack.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { InitializePaymentDto } from './dto/initialize-payment.dto';
 import { PaginationDto, paginate } from '../../common/dto/pagination.dto';
-import { MemberSubscription, OrganizationUser } from 'src/database/entities';
+import {
+  MemberSubscription,
+  OrganizationSubscription,
+  OrganizationUser,
+} from 'src/database/entities';
 
 @Injectable()
 export class PaymentsService {
@@ -42,6 +47,9 @@ export class PaymentsService {
     @InjectRepository(MemberSubscription)
     private memberSubscriptionRepository: Repository<MemberSubscription>,
 
+    @InjectRepository(OrganizationSubscription)
+    private organizationSubscriptionRepository: Repository<OrganizationSubscription>,
+
     private paystackService: PaystackService,
     private configService: ConfigService,
     private notificationsService: NotificationsService,
@@ -50,7 +58,6 @@ export class PaymentsService {
   async initializePayment(
     organizationId: string,
     initializePaymentDto: InitializePaymentDto,
-    userId: string,
   ) {
     // Get invoice
     const invoice = await this.invoiceRepository.findOne({
@@ -58,7 +65,7 @@ export class PaymentsService {
         id: initializePaymentDto.invoiceId,
         issuer_org_id: organizationId,
       },
-      relations: ['users'],
+      relations: ['billed_user'],
     });
 
     if (!invoice) {
@@ -77,6 +84,7 @@ export class PaymentsService {
       payer_org_id: organizationId,
       invoice_id: invoice.id,
       payer_user_id: invoice.billed_user_id,
+      payer_type: PaymentPayerType.USER,
       amount: invoice.amount,
       currency: invoice.currency,
       provider: PaymentProvider.PAYSTACK,
@@ -92,7 +100,88 @@ export class PaymentsService {
 
     // Initialize Paystack transaction
     const amountInKobo = this.paystackService.convertToKobo(invoice.amount);
-    const callbackUrl = `${this.configService.get('frontend.url')}/dashboard`;
+    const callbackUrl = `${this.configService.get('frontend.url')}/enterprise/dashboard`;
+    console.log('callbackUrl', callbackUrl);
+
+    const paystackResponse = await this.paystackService.initializeTransaction(
+      invoice.billed_user.email,
+      amountInKobo,
+      reference,
+      {
+        payment_id: savedPayment.id,
+        payer_name: `${invoice.billed_user.first_name} ${invoice.billed_user.last_name}`,
+        ...initializePaymentDto.metadata,
+      },
+      callbackUrl,
+    );
+
+    if (!paystackResponse.status) {
+      throw new BadRequestException(
+        'Failed to initialize payment with Paystack',
+      );
+    }
+
+    return {
+      message: 'Payment initialized successfully',
+      data: {
+        payment_id: savedPayment.id,
+        authorization_url: paystackResponse.data.authorization_url,
+        access_code: paystackResponse.data.access_code,
+        reference: paystackResponse.data.reference,
+        amount: invoice.amount,
+        currency: invoice.currency,
+      },
+    };
+  }
+
+  async initializeOrganizationPayment(
+    organizationId: string,
+    initializePaymentDto: InitializePaymentDto,
+  ) {
+    // Get invoice
+    const invoice = await this.invoiceRepository.findOne({
+      where: {
+        id: initializePaymentDto.invoiceId,
+        issuer_org_id: organizationId,
+      },
+      relations: ['billed_user', 'organization_subscription'],
+    });
+
+    if (!invoice) {
+      throw new NotFoundException('Invoice not found');
+    }
+
+    if (invoice.status === InvoiceStatus.PAID) {
+      throw new BadRequestException('Invoice already paid');
+    }
+
+    // Generate unique payment reference
+    const reference = `REE-${Date.now()}-${invoice.id.substring(0, 8)}`;
+
+    // Create payment record
+    const payment = this.paymentRepository.create({
+      payer_org_id: organizationId,
+      invoice_id: invoice.id,
+      payer_user_id: invoice.billed_user_id,
+      payer_type: PaymentPayerType.ORGANIZATION,
+      amount: invoice.amount,
+      currency: invoice.currency,
+      provider: PaymentProvider.PAYSTACK,
+      provider_reference: reference,
+      status: PaymentStatus.PENDING,
+      metadata: {
+        ...initializePaymentDto.metadata,
+        invoice_number: invoice.invoice_number,
+        subscription_id: invoice.organization_subscription.id,
+      },
+    });
+
+    const savedPayment = await this.paymentRepository.save(payment);
+
+    // Initialize Paystack transaction
+    const amountInKobo = this.paystackService.convertToKobo(invoice.amount);
+    const callbackUrl = `${this.configService.get('frontend.url')}/enterprise/dashboard`;
+    console.log('callbackUrl', callbackUrl);
 
     const paystackResponse = await this.paystackService.initializeTransaction(
       invoice.billed_user.email,
@@ -184,6 +273,32 @@ export class PaymentsService {
         payment.invoice.status = InvoiceStatus.PAID;
         payment.invoice.paid_at = new Date();
         await this.invoiceRepository.save(payment.invoice);
+
+        // If invoice is linked to a member subscription, ensure it's active
+        if (payment.invoice.member_subscription) {
+          const subscription = payment.invoice.member_subscription;
+
+          if (subscription.status === SubscriptionStatus.PENDING) {
+            subscription.status = SubscriptionStatus.ACTIVE;
+            await this.memberSubscriptionRepository.save(subscription);
+            this.logger.log(
+              `Subscription ${subscription.id} activated after payment`,
+            );
+          }
+        }
+
+        // If invoice is linked to a organization subscription, ensure it's active
+        if (payment.invoice.organization_subscription) {
+          const subscription = payment.invoice.organization_subscription;
+
+          if (subscription.status === SubscriptionStatus.PENDING) {
+            subscription.status = SubscriptionStatus.ACTIVE;
+            await this.organizationSubscriptionRepository.save(subscription);
+            this.logger.log(
+              `Subscription ${subscription.id} activated after payment`,
+            );
+          }
+        }
       }
     } else {
       payment.status = PaymentStatus.FAILED;
@@ -192,6 +307,34 @@ export class PaymentsService {
         paystack_response: data,
         failure_reason: data.gateway_response,
       };
+
+      // Update invoice status
+      if (payment.invoice) {
+        payment.invoice.status = InvoiceStatus.FAILED;
+        await this.invoiceRepository.save(payment.invoice);
+
+        // If invoice is linked to a member subscription, ensure it's active
+        if (payment.invoice.member_subscription) {
+          const subscription = payment.invoice.member_subscription;
+
+          if (subscription.status === SubscriptionStatus.PENDING) {
+            subscription.status = SubscriptionStatus.FAILED;
+            await this.memberSubscriptionRepository.save(subscription);
+            this.logger.log(`Subscription ${subscription.id} failed`);
+          }
+        }
+
+        // If invoice is linked to a organization subscription, ensure it's active
+        if (payment.invoice.organization_subscription) {
+          const subscription = payment.invoice.organization_subscription;
+
+          if (subscription.status === SubscriptionStatus.PENDING) {
+            subscription.status = SubscriptionStatus.FAILED;
+            await this.organizationSubscriptionRepository.save(subscription);
+            this.logger.log(`Subscription ${subscription.id} failed`);
+          }
+        }
+      }
     }
 
     await this.paymentRepository.save(payment);
