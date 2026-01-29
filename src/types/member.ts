@@ -1,5 +1,5 @@
 import { Currency, PaymentGateway } from './common';
-import { PlanId, BillingCycle } from './subscription';
+import { PlanId } from './subscription';
 
 export type MemberStatus = 'active' | 'inactive' | 'expired';
 export type PaymentMethod = 'card' | 'bank_transfer' | 'ussd' | 'cash';
@@ -16,7 +16,7 @@ export interface Member {
   emergency_contact_name: string;
   emergency_contact_phone: string;
   medical_notes: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
   organization_user: {

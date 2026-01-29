@@ -13,12 +13,6 @@ export default function EnterpriseDashboardPage() {
   const searchParams = useSearchParams();
   const reference = searchParams.get("reference");
 
-  useEffect(() => {
-    if (reference) {
-      verifyPayment(reference);
-    }
-  }, [reference]);
-
   const verifyPayment = async (ref: string) => {
     try {
       const { data } = await apiClient.get(`/payments/paystack/verify/${ref}`);
@@ -31,6 +25,12 @@ export default function EnterpriseDashboardPage() {
       console.error("Verification error:", error);
     }
   };
+
+  useEffect(() => {
+    if (reference) {
+      verifyPayment(reference);
+    }
+  }, [reference]);
 
   return (
     <div className="space-y-6">
