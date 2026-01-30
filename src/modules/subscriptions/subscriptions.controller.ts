@@ -206,7 +206,7 @@ export class SubscriptionsController {
   @Post('organizations')
   createOrgSubscription(
     @CurrentOrganization() organizationId: string,
-        @CurrentUser() user: any,
+    @CurrentUser() user: any,
     @Body() createOrgSubscriptionDto: CreateOrgSubscriptionDto,
   ) {
     return this.subscriptionsService.createOrgSubscription(
@@ -269,6 +269,29 @@ export class SubscriptionsController {
     return this.subscriptionsService.changeOrgSubscriptionPlan(
       organizationId,
       changePlanDto,
+    );
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Cancel a organization subscription' })
+  @ApiResponse({
+    status: 200,
+    description: 'Subscription canceled successfully',
+    type: OrganizationSubscription,
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 404, description: 'Subscription not found' })
+  @Patch('/organizations/:subscriptionId/cancel')
+  cancelOrgSubscription(
+    @CurrentUser() user: any,
+    @CurrentOrganization() organizationId: string,
+    @Param('subscriptionId') subscriptionId: string,
+  ) {
+    console.log(subscriptionId);
+    return this.subscriptionsService.cancelOrgSubscription(
+      subscriptionId,
+      user.id,
+      organizationId,
     );
   }
 

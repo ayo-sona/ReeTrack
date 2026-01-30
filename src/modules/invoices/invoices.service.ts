@@ -293,10 +293,7 @@ export class InvoicesService {
         issuer_org_id: organizationId,
         billed_type: InvoiceBilledType.ORGANIZATION,
       },
-      relations: [
-        'organization_subscription',
-        'organization_subscription.plan',
-      ],
+      relations: ['organization_subscription.plan'],
     });
     if (!invoice) {
       throw new NotFoundException('Invoice not found');
@@ -307,8 +304,8 @@ export class InvoicesService {
   /**
    * Get a single organization invoices
    */
-  async getOrganizationInvoices(organizationId: string): Promise<Invoice> {
-    const invoice = await this.invoiceRepository.findOne({
+  async getOrganizationInvoices(organizationId: string): Promise<Invoice[]> {
+    const invoice = await this.invoiceRepository.find({
       where: {
         issuer_org_id: organizationId,
         billed_type: InvoiceBilledType.ORGANIZATION,

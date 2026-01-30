@@ -11,6 +11,7 @@ import { Invoice } from '../../database/entities/invoice.entity';
 import {
   InvoiceBilledType,
   InvoiceStatus,
+  OrgRole,
   PaymentProvider,
   SubscriptionStatus,
 } from 'src/common/enums/enums';
@@ -330,7 +331,7 @@ export class SubscriptionsService {
   }
 
   /**
-   * Cancel subscription - stops recurring billing
+   * Cancel member subscription - stops recurring billing
    */
   async cancelSubscription(
     subscriptionId: string,
@@ -597,16 +598,29 @@ export class SubscriptionsService {
   // Get organization subscription
   async getOrganizationSubscription(organizationId: string) {
     const subscription = await this.organizationSubscriptionRepository.findOne({
-      where: { organization_id: organizationId },
+      where: {
+        organization_id: organizationId,
+        status: SubscriptionStatus.ACTIVE,
+      },
       relations: ['plan'],
       order: { created_at: 'DESC' },
     });
+
     if (!subscription) {
-      throw new NotFoundException(
-        'No subscription found for this organization',
-      );
+      return null;
     }
-    return subscription;
+
+    // Get the organization user separately
+    const orgUser = await this.organizationUserRepository.findOne({
+      where: { organization_id: organizationId, role: OrgRole.ADMIN },
+      select: ['role', 'paystack_card_last4', 'paystack_card_brand'],
+    });
+
+    // Combine the results
+    return {
+      ...subscription,
+      organizationUser: orgUser,
+    };
   }
 
   // Update subscription status
@@ -615,6 +629,7 @@ export class SubscriptionsService {
     updateDto: UpdateOrgSubscriptionStatusDto,
   ) {
     const subscription = await this.getOrganizationSubscription(organizationId);
+    if (!subscription) throw new NotFoundException('Subscription not found');
 
     // Handle status transitions
     if (updateDto.status === SubscriptionStatus.CANCELED) {
@@ -666,24 +681,95 @@ export class SubscriptionsService {
         newPlan.interval_count,
       ),
       metadata: {
-        previous_plan_id: subscription.plan_id,
+        previous_plan_id: subscription!.plan_id,
         change_notes: changePlanDto.notes,
       },
     });
 
     // Cancel the old subscription
-    subscription.status = SubscriptionStatus.CANCELED;
-    subscription.canceled_at = new Date();
+    subscription!.status = SubscriptionStatus.CANCELED;
+    subscription!.canceled_at = new Date();
     await this.organizationSubscriptionRepository.save([
-      subscription,
+      subscription!,
       newSubscription,
     ]);
     return newSubscription;
   }
 
+  /**
+   * Cancel organization subscription - stops recurring billing
+   */
+  async cancelOrgSubscription(
+    subscriptionId: string,
+    userId: string,
+    organizationId: string,
+  ) {
+    const subscription = await this.organizationSubscriptionRepository.findOne({
+      where: { id: subscriptionId, organization_id: organizationId },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
+    }
+
+    if (
+      subscription.status === SubscriptionStatus.CANCELED ||
+      subscription.status === SubscriptionStatus.EXPIRED
+    ) {
+      throw new BadRequestException('Subscription already canceled or expired');
+    }
+
+    // Get organization user
+    const orgUser = await this.organizationUserRepository.findOne({
+      where: {
+        organization_id: organizationId,
+        user_id: userId,
+      },
+      relations: ['user'],
+    });
+
+    if (!orgUser) throw new NotFoundException('User not found');
+
+    // Deactivate Paystack authorization
+    if (orgUser?.paystack_authorization_code) {
+      await this.paystackService.deactivateAuthorization(
+        orgUser.paystack_authorization_code,
+      );
+
+      // Clear authorization from database
+      orgUser.paystack_authorization_code = null;
+      orgUser.paystack_card_last4 = null;
+      orgUser.paystack_card_brand = null;
+      await this.organizationUserRepository.save(orgUser);
+    }
+
+    // Update subscription
+    subscription.auto_renew = false;
+    subscription.status = SubscriptionStatus.CANCELED;
+    subscription.canceled_at = new Date();
+
+    await this.organizationSubscriptionRepository.save(subscription);
+
+    // Send cancellation email
+    // await this.notificationsService.sendSubscriptionCanceledNotification({
+    //   email: orgUser.user.email,
+    //   memberName: `${orgUser.user.first_name} ${orgUser.user.last_name}`,
+    //   subscriptionName: subscription.plan.name,
+    //   expiresAt: subscription.expires_at,
+    // });
+
+    return {
+      message: 'Subscription canceled successfully',
+      data: subscription,
+    };
+  }
+
   // Renew organization subscription
   async renewOrgSubscription(organizationId: string) {
     const subscription = await this.getOrganizationSubscription(organizationId);
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
+    }
 
     if (
       subscription.status === SubscriptionStatus.ACTIVE &&
@@ -767,3 +853,32 @@ export class SubscriptionsService {
     return date;
   }
 }
+
+// async getOrganizationSubscription(organizationId: string) {
+//   const subscription = await this.organizationSubscriptionRepository
+//     .createQueryBuilder('subscription')
+//     .innerJoinAndSelect('subscription.plan', 'plan')
+//     .innerJoin(
+//       'organization_user',
+//       'orgUser',
+//       'orgUser.organization_id = :organizationId',  // Join on the organization_id parameter
+//       { organizationId }  // Pass the parameter here
+//     )
+//     .addSelect([
+//       'orgUser.role',
+//       'orgUser.paystack_card_last4',
+//       'orgUser.paystack_card_brand',
+//     ])
+//     .where('subscription.organization_id = :organizationId', { organizationId })
+//     .andWhere('subscription.status = :status', {
+//       status: SubscriptionStatus.ACTIVE,
+//     })
+//     .orderBy('subscription.created_at', 'DESC')
+//     .getOne();
+
+//   if (!subscription) {
+//     throw new NotFoundException('No subscription found for this organization');
+//   }
+
+//   return subscription;
+// }
