@@ -1,32 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, Button, Chip } from "@heroui/react";
+import { Card, Button, Chip, Spinner } from "@heroui/react";
 import apiClient from "@/lib/apiClient";
+import { useRouter } from "next/navigation";
 
 export default function BillingPage() {
+  const router = useRouter();
   const [subscription, setSubscription] = useState<any>(null);
   const [invoices, setInvoices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
+    setLoading(true);
     const [subRes, invRes] = await Promise.all([
       apiClient.get("/subscriptions/organizations"),
       apiClient.get("/invoices/organization"),
     ]);
-
-    setSubscription(subRes.data.data);
+    // console.log(subRes, invRes);
+    setSubscription(subRes.data.data || null);
     setInvoices(invRes.data.data);
+    setLoading(false);
   };
 
   const handleCancel = async () => {
     if (!confirm("Cancel subscription? You can use it until expiry.")) return;
 
     try {
-      await apiClient.post(`/subscriptions/organizations/cancel`);
+      await apiClient.patch(
+        `/subscriptions/organizations/${subscription.id}/cancel`,
+      );
       alert("Subscription canceled");
       loadData();
     } catch (error) {
@@ -34,22 +41,14 @@ export default function BillingPage() {
     }
   };
 
-  const handleReactivate = async () => {
-    try {
-      await apiClient.post(`/subscriptions/organizations/reactivate`);
-      alert("Subscription reactivated");
-      loadData();
-    } catch (error) {
-      alert("Failed to reactivate");
-    }
-  };
+  if (loading) return <Spinner size="lg" />;
 
   return (
     <div className="container mx-auto py-12">
       {/* Current Subscription */}
       <Card className="mb-6">
-        <h2>Current Subscription</h2>
-        {subscription && (
+        <h1 className="text-2xl font-bold">Current Subscription</h1>
+        {subscription ? (
           <>
             <p className="text-2xl font-bold">{subscription.plan.name}</p>
             <p>
@@ -62,42 +61,38 @@ export default function BillingPage() {
             </Chip>
             <p className="text-sm mt-2">
               {subscription.auto_renew
-                ? `Next billing: ${new Date(subscription.expires_at).toLocaleDateString()}`
-                : `Expires: ${new Date(subscription.expires_at).toLocaleDateString()}`}
+                ? `Next billing: ${new Date(subscription.expires_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`
+                : `Expires: ${new Date(subscription.expires_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`}
             </p>
 
             {/* Saved Card Info */}
-            {subscription.paystack_card_last4 && (
+            {subscription.organizationUser?.paystack_card_last4 && (
               <div className="mt-4">
                 <p className="text-sm">Payment method:</p>
                 <p>
-                  {subscription.paystack_card_brand} ••••{" "}
-                  {subscription.paystack_card_last4}
+                  {subscription.organizationUser?.paystack_card_brand} ••••{" "}
+                  {subscription.organizationUser?.paystack_card_last4}
                 </p>
               </div>
             )}
 
             {/* Actions */}
             <div className="mt-4 flex gap-2">
-              {subscription.auto_renew ? (
-                <Button color="danger" variant="light" onPress={handleCancel}>
-                  Cancel Subscription
-                </Button>
-              ) : (
-                <Button color="primary" onPress={handleReactivate}>
-                  Reactivate
-                </Button>
-              )}
+              <Button color="danger" variant="light" onPress={handleCancel}>
+                Cancel Subscription
+              </Button>
             </div>
           </>
+        ) : (
+          <p>No active subscription found.</p>
         )}
       </Card>
 
       {/* Invoices */}
       <Card>
-        <h3>Billing History</h3>
+        <h1 className="text-2xl font-bold">Billing History</h1>
         <div className="space-y-2">
-          {invoices.map((invoice) => (
+          {invoices.map((invoice: any) => (
             <div
               key={invoice.id}
               className="flex justify-between items-center p-3 border rounded"
@@ -105,7 +100,11 @@ export default function BillingPage() {
               <div>
                 <p className="font-semibold">{invoice.invoice_number}</p>
                 <p className="text-sm text-gray-600">
-                  {new Date(invoice.created_at).toLocaleDateString()}
+                  {new Date(invoice.created_at).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
                 </p>
               </div>
               <div className="text-right">
@@ -122,7 +121,7 @@ export default function BillingPage() {
                   size="sm"
                   color="primary"
                   onPress={() =>
-                    (window.location.href = `/invoices/${invoice.id}/pay`)
+                    router.push(`/enterprise/invoices/${invoice.id}/pay`)
                   }
                 >
                   Pay Now

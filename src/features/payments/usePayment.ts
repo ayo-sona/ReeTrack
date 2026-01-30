@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Payment, PaymentIntent } from '../../types/payment';
-import { paymentAPI } from './paymentApi';
-import { PaymentFactory } from '../../lib/payments/paymentFactory';
-import { useAuth } from '../../features/auth/authContext';
+import { useState, useEffect } from "react";
+import { Payment, PaymentIntent } from "../../types/payment";
+import { paymentAPI } from "./paymentApi";
+import { PaymentFactory } from "../../lib/payments/paymentFactory";
+import { useAuth } from "../../features/auth/authContext";
 
 export function usePayment() {
   const { user } = useAuth();
@@ -17,7 +17,7 @@ export function usePayment() {
       setPayments(data);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load payments');
+      setError(err instanceof Error ? err.message : "Failed to load payments");
     } finally {
       setIsLoading(false);
     }
@@ -28,7 +28,7 @@ export function usePayment() {
   }, []);
 
   const initiatePayment = async (intent: PaymentIntent) => {
-    if (!user) throw new Error('User not authenticated');
+    if (!user) throw new Error("User not authenticated");
 
     try {
       // Create payment intent on backend
@@ -50,12 +50,12 @@ export function usePayment() {
 
       // Verify payment
       const verified = await gateway.verifyPayment(reference);
-      
+
       if (verified) {
         await fetchPayments();
         return { success: true };
       } else {
-        throw new Error('Payment verification failed');
+        throw new Error("Payment verification failed");
       }
     } catch (err) {
       throw err;
@@ -66,7 +66,7 @@ export function usePayment() {
     try {
       const blob = await paymentAPI.downloadInvoice(paymentId);
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `invoice-${paymentId}.pdf`;
       document.body.appendChild(a);
@@ -78,11 +78,11 @@ export function usePayment() {
     }
   };
 
-  const exportHistory = async (format: 'csv' | 'pdf') => {
+  const exportHistory = async (format: "csv" | "pdf") => {
     try {
       const blob = await paymentAPI.exportHistory(format);
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `payment-history.${format}`;
       document.body.appendChild(a);

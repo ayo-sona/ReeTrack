@@ -1,40 +1,57 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Card } from "@heroui/react";
+import { Button, Card, Spinner } from "@heroui/react";
 import apiClient from "@/lib/apiClient";
-import PaystackPop from "@paystack/inline-js";
+import { usePaystack } from "@/hooks/usePaystack";
+import { useParams } from "next/navigation";
 
-export default function PayInvoicePage({ params }: { params: { id: string } }) {
+export default function PayInvoicePage() {
   const [invoice, setInvoice] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+
+  const params = useParams();
+  console.log(params.id);
+  const { paystack } = usePaystack();
 
   useEffect(() => {
     loadInvoice();
   }, []);
 
   const loadInvoice = async () => {
-    const { data } = await apiClient.get(`/invoices/${params.id}`);
-    setInvoice(data.data);
+    setLoading(true);
+    try {
+      const { data } = await apiClient.get(
+        `/invoices/organization/${params?.id}`,
+      );
+      console.log(data.data);
+      setInvoice(data.data);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
   };
 
   const handlePay = async () => {
     setLoading(true);
 
     try {
-      const { data } = await apiClient.post("/payments/initialize", {
-        invoiceId: params.id,
-      });
-      const popup = new PaystackPop();
-      popup.resumeTransaction(data.data.access_code);
-      // window.location.href = data.data.authorization_url;
+      const { data } = await apiClient.post(
+        "/payments/paystack/organization/initialize",
+        {
+          invoiceId: params?.id,
+        },
+      );
+      console.log(data);
+      paystack.resumeTransaction(data.data.access_code);
     } catch (error) {
       alert("Failed to initialize payment");
       setLoading(false);
     }
   };
 
-  if (!invoice) return <div>Loading...</div>;
+  if (loading) return <Spinner size="lg" />;
 
   return (
     <div className="container mx-auto py-12 max-w-md">
@@ -42,15 +59,15 @@ export default function PayInvoicePage({ params }: { params: { id: string } }) {
         <h2>Invoice Payment</h2>
         <div className="my-4">
           <p className="text-sm text-gray-600">Invoice Number</p>
-          <p className="font-semibold">{invoice.invoice_number}</p>
+          <p className="font-semibold">{invoice?.invoice_number}</p>
         </div>
         <div className="my-4">
           <p className="text-sm text-gray-600">Amount Due</p>
-          <p className="text-3xl font-bold">₦{invoice.amount}</p>
+          <p className="text-3xl font-bold">₦{invoice?.amount}</p>
         </div>
         <div className="my-4">
           <p className="text-sm text-gray-600">Description</p>
-          <p>{invoice.description}</p>
+          <p>{invoice?.description}</p>
         </div>
         <Button
           color="primary"
@@ -59,7 +76,7 @@ export default function PayInvoicePage({ params }: { params: { id: string } }) {
           isLoading={loading}
           onPress={handlePay}
         >
-          Pay ₦{invoice.amount}
+          Pay ₦{invoice?.amount}
         </Button>
       </Card>
     </div>
