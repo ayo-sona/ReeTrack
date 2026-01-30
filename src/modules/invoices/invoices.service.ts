@@ -304,7 +304,9 @@ export class InvoicesService {
   /**
    * Get a single organization invoices
    */
-  async getOrganizationInvoices(organizationId: string): Promise<Invoice[]> {
+  async getOrganizationInvoices(
+    organizationId: string,
+  ): Promise<Invoice[] | null> {
     const invoice = await this.invoiceRepository.find({
       where: {
         issuer_org_id: organizationId,
@@ -316,8 +318,9 @@ export class InvoicesService {
       ],
     });
     if (!invoice) {
-      throw new NotFoundException('Invoice not found');
+      return null;
     }
+
     return invoice;
   }
 
