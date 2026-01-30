@@ -27,7 +27,7 @@ const PERIOD_OPTIONS: PeriodOption[] = [
 ];
 
 export function RevenueChart() {
-  const [selectedPeriod, setSelectedPeriod] = useState("month");
+  const [selectedPeriod, setSelectedPeriod] = useState("week");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
