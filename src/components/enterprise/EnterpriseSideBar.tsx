@@ -19,7 +19,7 @@ const navigation = [
   { name: "Dashboard", href: "/enterprise/dashboard", icon: LayoutDashboard },
   { name: "Members", href: "/enterprise/members", icon: Users },
   { name: "Subscription Plans", href: "/enterprise/plans", icon: Package },
-  { name: "Transactions", href: "/enterprise/payments", icon: CreditCard },
+  { name: "Transactions", href: "/enterprise/transactions", icon: CreditCard },
   {
     name: "Enterprise Plans",
     href: "/enterprise/enterprise-plans",
