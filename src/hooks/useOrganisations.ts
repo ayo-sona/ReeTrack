@@ -3,12 +3,12 @@ import { organizationsApi } from '../lib/api/organisationsApi';
 import { getCurrentOrganizationId } from '../utils/organisationUtils';
 
 // Define a proper type for your organization data
-interface Organization {
-  id: string;
-  name: string;
-  slug: string;
-  // Add other organization fields as needed
-}
+// interface Organization {
+//   id: string;
+//   name: string;
+//   slug: string;
+//   // Add other organization fields as needed
+// }
 
 interface UpdateOrganizationData {
   name?: string;

@@ -11,16 +11,16 @@ import type {
 } from "../types/analytics";
 
 // Helper to get default date range (last 30 days)
-const getDefaultDateRange = () => {
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 30);
+// const getDefaultDateRange = () => {
+//   const endDate = new Date();
+//   const startDate = new Date();
+//   startDate.setDate(startDate.getDate() - 30);
   
-  return {
-    startDate: startDate.toISOString().split('T')[0], // Format: YYYY-MM-DD
-    endDate: endDate.toISOString().split('T')[0]
-  };
-};
+//   return {
+//     startDate: startDate.toISOString().split('T')[0], // Format: YYYY-MM-DD
+//     endDate: endDate.toISOString().split('T')[0]
+//   };
+// };
 
 // Get analytics overview
 export const useAnalyticsOverview = (params: {

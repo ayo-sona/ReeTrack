@@ -1,4 +1,4 @@
-import apiClient from '../../lib/apiClient';
+// import apiClient from '../../lib/apiClient';
 import { Subscription } from '../../types/subscription';
 import { PlanId, BillingCycle } from '../../types/subscription';
 
@@ -24,8 +24,9 @@ export const subscriptionAPI = {
         memberCount: 0,
         usage: {
           members: 0,
-          storage: 0,
-          apiCalls: 0,
+          smsUsed: 0,
+          emailsUsed: 0,
+          whatsappUsed: 0,
         },
       };
     } catch (error) {

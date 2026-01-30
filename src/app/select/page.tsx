@@ -6,7 +6,6 @@ import {
   Card,
   CardHeader,
   CardBody,
-  CardFooter,
   Button,
   Input,
   Chip,
@@ -19,7 +18,6 @@ import {
   Plus,
   ArrowRight,
   Search,
-  Users,
   Crown,
 } from "lucide-react";
 import { useToast } from "@/features/notifications/useToast";

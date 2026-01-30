@@ -1,4 +1,4 @@
-import apiClient from '../../lib/apiClient';
+// import apiClient from '../../lib/apiClient';
 import { Notification } from '../../types/notification';
 
 export const notificationAPI = {

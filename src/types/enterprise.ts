@@ -28,7 +28,7 @@ export type PlanVisibility = "public" | "invite_only";
 
 export interface SubscriptionPlan {
   id: string;
-  enterprise_id: string;
+  enterpriseId: string;
   name: string;
   description?: string;
   price: number;
@@ -36,10 +36,10 @@ export interface SubscriptionPlan {
   duration: PlanDuration;
   features: PlanFeature[];
   visibility: PlanVisibility;
-  is_active: boolean;
-  member_count: number;
-  created_at: string;
-  updated_at: string;
+  isActive: boolean;
+  memberCount: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Member Types

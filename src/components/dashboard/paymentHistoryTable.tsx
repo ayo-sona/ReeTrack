@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/Table';
 import { Badge } from '../../components/ui/Badge';
-import { Button } from '../../components/ui/button';
+import { Button } from '../../components/ui/Button';
 import { Payment } from '../../types/payment';
 import { formatCurrency,formatDate  } from '../../lib/formatters';
 

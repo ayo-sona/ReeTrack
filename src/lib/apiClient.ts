@@ -11,15 +11,18 @@ interface RetryConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
+// Define proper type for the queue
+interface QueueItem {
+  resolve: (value?: unknown) => void;
+  reject: (reason?: unknown) => void;
+}
+
 const BASE_URL = "https://paypips.onrender.com/api/v1";
 // const BASE_URL = "http://localhost:4000/api/v1";
 
 // Prevent multiple simultaneous refresh requests
 let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value?: unknown) => void;
-  reject: (reason?: any) => void;
-}> = [];
+let failedQueue: QueueItem[] = [];
 
 const processQueue = (error: Error | null = null) => {
   failedQueue.forEach((prom) => {
@@ -147,6 +150,7 @@ apiClient.interceptors.response.use(
   },
 );
 
+<<<<<<< HEAD
 /**
  * Logout helper
  */
@@ -165,7 +169,10 @@ export async function logout() {
 }
 
 export default apiClient;
+=======
+export default apiClient;
 
+// https://paypips.onrender.com/api/v1/webhooks/paystack
 ///////////////////////////////////////////////
 // import axios from 'axios';
 // import router from './router'; // Assuming you have a router for navigation
@@ -241,3 +248,4 @@ export default apiClient;
 //     return Promise.reject(error);
 //   }
 // );
+>>>>>>> 26fa2c12 (billings)

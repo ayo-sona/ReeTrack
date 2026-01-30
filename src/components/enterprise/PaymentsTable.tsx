@@ -2,7 +2,7 @@
 
 import { Payment } from "../../types/enterprise";
 import Link from "next/link";
-import { CreditCard, Wallet, Smartphone, CheckCircle } from "lucide-react";
+import { CreditCard, CheckCircle } from "lucide-react";
 import clsx from "clsx";
 
 interface PaymentsTableProps {

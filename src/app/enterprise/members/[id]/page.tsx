@@ -15,7 +15,17 @@ import { useMemberById } from "../../../../hooks/useMembers";
 import { useCreateSubscription } from "../../../../hooks/useSubscriptions";
 import { GrantAccessModal } from "../../../../components/enterprise/GrantAccessModal";
 import clsx from "clsx";
-import { toast } from "sonner"; // or your toast library
+import { toast } from "sonner";
+
+// Define the type for grant access data
+interface GrantAccessData {
+  memberId: string;
+  planId: string;
+  duration?: number;
+  durationType?: 'days' | 'months';
+  startDate?: string;
+  // Add other fields as needed based on your API
+}
 
 export default function MemberDetailPage() {
   const params = useParams();
@@ -82,7 +92,7 @@ export default function MemberDetailPage() {
   
   const role = 'MEMBER';
 
-  const handleGrantAccess = async (data: any) => {
+  const handleGrantAccess = async (data: GrantAccessData) => {
     try {
       await createSubscription.mutateAsync(data);
       toast.success('Access granted successfully!');

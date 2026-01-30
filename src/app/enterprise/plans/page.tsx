@@ -37,7 +37,10 @@ export default function PlansPage() {
   const deletePlan = useDeletePlan();
   const togglePlan = useTogglePlan();
 
-  const allPlans = plansResponse?.data ? mapPlansToSubscriptionPlans(plansResponse.data) : [];
+  const allPlans = useMemo(
+    () => plansResponse?.data ? mapPlansToSubscriptionPlans(plansResponse.data) : [],
+    [plansResponse]
+  );
 
   const filteredPlans = useMemo(() => {
     return allPlans.filter((plan) => {
@@ -96,7 +99,7 @@ export default function PlansPage() {
     console.log('✏️ showCreateModal set to true');
   };
 
-  const handleTogglePlanStatus = async (planId: string, currentStatus: boolean) => {
+  const handleTogglePlanStatus = async (planId: string,) => {
     try {
       await togglePlan.mutateAsync(planId);
     } catch (error) {

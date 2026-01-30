@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
-import { Button } from '../../components/ui/button';
+import { Button } from '../../components/ui/Button';
 import { Subscription } from '../../types/subscription';
 import { PRICING_PLANS } from '../../lib/constants';
 import { formatCurrency, formatDate } from '../../lib/formatters';
