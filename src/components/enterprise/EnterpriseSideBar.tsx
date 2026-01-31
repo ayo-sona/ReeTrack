@@ -25,7 +25,7 @@ const navigation = [
     href: "/enterprise/enterprise-plans",
     icon: Archive,
   },
-  { name: "Billings", href: "/enterprise/billing", icon: Receipt },
+  { name: "Billings", href: "/enterprise/billings", icon: Receipt },
   { name: "Reminders", href: "/enterprise/reminders", icon: Send },
   { name: "Reports", href: "/enterprise/reports", icon: FileDown },
   { name: "Settings", href: "/enterprise/settings", icon: Settings },

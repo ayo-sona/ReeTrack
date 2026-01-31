@@ -5,15 +5,55 @@ import { Card, Button, Chip, Spinner } from "@heroui/react";
 import apiClient from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
 
+// Add proper types
+interface Plan {
+  name: string;
+  price: number;
+  interval: string;
+}
+
+interface OrganizationUser {
+  paystack_card_last4?: string;
+  paystack_card_brand?: string;
+}
+
+interface Subscription {
+  id: string;
+  plan: Plan;
+  status: string;
+  expires_at: string;
+  auto_renew: boolean;
+  organizationUser?: OrganizationUser;
+}
+
+interface Invoice {
+  id: string;
+  invoice_number: string;
+  created_at: string;
+  amount: number;
+  status: string;
+}
+
 export default function BillingPage() {
   const router = useRouter();
-  const [subscription, setSubscription] = useState<any>(null);
-  const [invoices, setInvoices] = useState<any[]>([]);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      const [subRes, invRes] = await Promise.all([
+        apiClient.get("/subscriptions/organizations"),
+        apiClient.get("/invoices/organization"),
+      ]);
+      setSubscription(subRes.data.data || null);
+      setInvoices(invRes.data.data);
+      setLoading(false);
+    };
+
     loadData();
-  }, []);
+  }, []); // Empty dependency array - only runs once on mount
 
   const loadData = async () => {
     setLoading(true);
@@ -21,7 +61,6 @@ export default function BillingPage() {
       apiClient.get("/subscriptions/organizations"),
       apiClient.get("/invoices/organization"),
     ]);
-    // console.log(subRes, invRes);
     setSubscription(subRes.data.data || null);
     setInvoices(invRes.data.data);
     setLoading(false);
@@ -32,11 +71,12 @@ export default function BillingPage() {
 
     try {
       await apiClient.patch(
-        `/subscriptions/organizations/${subscription.id}/cancel`,
+        `/subscriptions/organizations/${subscription?.id}/cancel`,
       );
       alert("Subscription canceled");
       loadData();
-    } catch (error) {
+    } catch (err) {
+      console.error('Failed to cancel subscription:', err);
       alert("Failed to cancel");
     }
   };
@@ -92,7 +132,7 @@ export default function BillingPage() {
       <Card>
         <h1 className="text-2xl font-bold">Billing History</h1>
         <div className="space-y-2">
-          {invoices.map((invoice: any) => (
+          {invoices.map((invoice) => (
             <div
               key={invoice.id}
               className="flex justify-between items-center p-3 border rounded"

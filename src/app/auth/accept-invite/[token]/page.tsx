@@ -106,7 +106,7 @@ export default function AcceptInvitationPage() {
       console.error("Accept invitation error:", err);
       setError(
         err.response?.data?.message ||
-          "Failed to accept invitation. Please try again."
+          "Failed to accept invitation. Please try again.",
       );
     } finally {
       setIsSubmitting(false);
@@ -124,43 +124,43 @@ export default function AcceptInvitationPage() {
     );
   }
 
-  // if (error || !invitation?.valid) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-  //       <div className="max-w-md w-full text-center">
-  //         <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-  //           <div className="flex">
-  //             <div className="shrink-0">
-  //               <svg
-  //                 className="h-5 w-5 text-red-500"
-  //                 xmlns="http://www.w3.org/2000/svg"
-  //                 viewBox="0 0 20 20"
-  //                 fill="currentColor"
-  //               >
-  //                 <path
-  //                   fillRule="evenodd"
-  //                   d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-  //                   clipRule="evenodd"
-  //                 />
-  //               </svg>
-  //             </div>
-  //             <div className="ml-3">
-  //               <p className="text-sm text-red-700">
-  //                 {error || "This invitation link is invalid or has expired."}
-  //               </p>
-  //             </div>
-  //           </div>
-  //         </div>
-  //         <Link
-  //           href="/auth/login"
-  //           className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-  //         >
-  //           Return to Login
-  //         </Link>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (error || !invitation?.valid) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="max-w-md w-full text-center">
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <div className="flex">
+              <div className="shrink-0">
+                <svg
+                  className="h-5 w-5 text-red-500"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">
+                  {error || "This invitation link is invalid or has expired."}
+                </p>
+              </div>
+            </div>
+          </div>
+          <Link
+            href="/auth/login"
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Return to Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

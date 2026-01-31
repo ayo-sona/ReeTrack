@@ -12,9 +12,9 @@ export function AnalyticsCards() {
     isLoading: analyticsLoading,
     error: analyticsError,
   } = useAnalyticsOverview({
-    period: "custom",
-    startDate: new Date("2026-01-01").toISOString(),
-    endDate: new Date("2026-01-31").toISOString(),
+    period: "month",
+    // startDate: new Date("2026-01-01").toISOString(),
+    // endDate: new Date("2026-01-31").toISOString(),
   });
   // console.log("analytics", analytics);
   const { data: teamMembers, isLoading: teamLoading } = useTeamMembers();
@@ -93,7 +93,7 @@ export function AnalyticsCards() {
       ],
     },
     {
-      name: "Monthly Revenue",
+      name: "This Month Revenue",
       value: `₦${((analytics.revenue.period_revenue || 0) / 1000).toFixed(1)}K`,
       change: `${analytics.revenue.growth_rate >= 0 ? "+" : ""}${(analytics.revenue.growth_rate || 0).toFixed(1)}% from last period`,
       changeType:
@@ -133,7 +133,7 @@ export function AnalyticsCards() {
     {
       name: "Needs Attention",
       value: inactiveMembers.toString(),
-      change: `${inactiveMembers} inactive`,
+      change: `${inactiveMembers} inactive members`,
       changeType: "warning" as const,
       icon: AlertCircle,
       color: "bg-orange-500",

@@ -1,28 +1,33 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Plus } from 'lucide-react';
-import { PlansGrid } from '../../../components/enterprise/PlansGrid';
-import { CreatePlanModal } from '../../../components/enterprise/CreatePlanModal';
-import { SearchBar } from '../../../components/enterprise/PlanSearchBar';
-import { PlanFilters } from '../../../components/enterprise/PlanFilters';
-import { usePlans, useCreatePlan, useUpdatePlan, useDeletePlan, useTogglePlan } from '../../../hooks/usePlans';
-import { SubscriptionPlan } from '../../../types/enterprise';
-import { mapPlansToSubscriptionPlans } from '../../../utils/planMapper';
+import { useState, useMemo } from "react";
+import { Plus } from "lucide-react";
+import { PlansGrid } from "../../../components/enterprise/PlansGrid";
+import { CreatePlanModal } from "../../../components/enterprise/CreatePlanModal";
+import { SearchBar } from "../../../components/enterprise/PlanSearchBar";
+import { PlanFilters } from "../../../components/enterprise/PlanFilters";
+import {
+  usePlans,
+  useCreatePlan,
+  useUpdatePlan,
+  useDeletePlan,
+  useTogglePlan,
+} from "../../../hooks/usePlans";
+import { SubscriptionPlan } from "../../../types/enterprise";
+import { mapPlansToSubscriptionPlans } from "../../../utils/planMapper";
 
 interface PlanFormData {
   name: string;
   description: string;
   price: string;
   duration: string;
-  visibility: string;
-  features: Array<{ id: string; name: string; included: boolean }>;
+  features: string[];
 }
 
 export default function PlansPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
-  
+
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({
     status: "all" as "all" | "active" | "inactive",
@@ -38,8 +43,11 @@ export default function PlansPage() {
   const togglePlan = useTogglePlan();
 
   const allPlans = useMemo(
-    () => plansResponse?.data ? mapPlansToSubscriptionPlans(plansResponse.data) : [],
-    [plansResponse]
+    () =>
+      plansResponse?.data
+        ? mapPlansToSubscriptionPlans(plansResponse.data)
+        : [],
+    [plansResponse],
   );
 
   const filteredPlans = useMemo(() => {
@@ -73,49 +81,45 @@ export default function PlansPage() {
 
   const stats = {
     total: allPlans.length,
-    active: allPlans.filter(p => p.isActive).length,
+    active: allPlans.filter((p) => p.isActive).length,
     totalMembers: allPlans.reduce((sum, p) => sum + (p.memberCount || 0), 0),
-    avgPrice: allPlans.length > 0 
-      ? allPlans.reduce((sum, p) => sum + p.price, 0) / allPlans.length 
-      : 0,
+    avgPrice:
+      allPlans.length > 0
+        ? allPlans.reduce((sum, p) => sum + p.price, 0) / allPlans.length
+        : 0,
   };
 
   const handleCreatePlan = () => {
-    console.log('➕ Create Plan clicked');
     setEditingPlan(null);
     setShowCreateModal(true);
   };
 
   const handleEditPlan = (plan: SubscriptionPlan) => {
-    console.log('✏️ handleEditPlan called in PlansPage');
-    console.log('✏️ Plan to edit:', plan);
-    console.log('✏️ Plan ID:', plan.id);
-    console.log('✏️ Plan name:', plan.name);
-    
     setEditingPlan(plan);
-    console.log('✏️ editingPlan state set to:', plan);
-    
     setShowCreateModal(true);
-    console.log('✏️ showCreateModal set to true');
   };
 
-  const handleTogglePlanStatus = async (planId: string,) => {
+  const handleTogglePlanStatus = async (planId: string) => {
     try {
       await togglePlan.mutateAsync(planId);
     } catch (error) {
-      console.error('Failed to toggle plan status:', error);
-      alert('Failed to update plan status');
+      console.error("Failed to toggle plan status:", error);
+      alert("Failed to update plan status");
     }
   };
 
   const handleDeletePlan = async (planId: string) => {
-    const plan = allPlans.find(p => p.id === planId);
-    if (confirm(`Are you sure you want to permanently delete "${plan?.name}"? This action cannot be undone.`)) {
+    const plan = allPlans.find((p) => p.id === planId);
+    if (
+      confirm(
+        `Are you sure you want to permanently delete "${plan?.name}"? This action cannot be undone.`,
+      )
+    ) {
       try {
         await deletePlan.mutateAsync(planId);
       } catch (error) {
-        console.error('Failed to delete plan:', error);
-        alert('Failed to delete plan');
+        console.error("Failed to delete plan:", error);
+        alert("Failed to delete plan");
       }
     }
   };
@@ -123,38 +127,42 @@ export default function PlansPage() {
   const handleSavePlan = async (planData: PlanFormData) => {
     try {
       if (editingPlan) {
-        console.log('💾 Updating existing plan:', editingPlan.id);
         await updatePlan.mutateAsync({
           id: editingPlan.id,
           data: {
             name: planData.name,
             description: planData.description,
             amount: parseFloat(planData.price),
-            currency: 'NGN',
-            interval: planData.duration as 'daily' | 'weekly' | 'monthly' | 'yearly',
+            currency: "NGN",
+            interval: planData.duration as
+              | "daily"
+              | "weekly"
+              | "monthly"
+              | "yearly",
             intervalCount: 1,
-            trialPeriodDays: 0,
-            features: planData.features.map(f => f.name),
+            features: planData.features,
           },
         });
       } else {
-        console.log('💾 Creating new plan');
         await createPlan.mutateAsync({
           name: planData.name,
           description: planData.description,
           amount: parseFloat(planData.price),
-          currency: 'NGN',
-          interval: planData.duration as 'daily' | 'weekly' | 'monthly' | 'yearly',
+          currency: "NGN",
+          interval: planData.duration as
+            | "daily"
+            | "weekly"
+            | "monthly"
+            | "yearly",
           intervalCount: 1,
-          trialPeriodDays: 0,
-          features: planData.features.map(f => f.name),
+          features: planData.features,
         });
       }
       setShowCreateModal(false);
       setEditingPlan(null);
     } catch (error) {
-      console.error('Failed to save plan:', error);
-      alert('Failed to save plan');
+      console.error("Failed to save plan:", error);
+      alert("Failed to save plan");
     }
   };
 
@@ -176,7 +184,7 @@ export default function PlansPage() {
           Failed to load plans
         </div>
         <p className="text-gray-600 dark:text-gray-400 mb-4">
-          {error instanceof Error ? error.message : 'Unknown error'}
+          {error instanceof Error ? error.message : "Unknown error"}
         </p>
         <button
           onClick={() => window.location.reload()}
@@ -187,9 +195,6 @@ export default function PlansPage() {
       </div>
     );
   }
-
-  console.log('🔄 PlansPage render - editingPlan:', editingPlan);
-  console.log('🔄 PlansPage render - showCreateModal:', showCreateModal);
 
   return (
     <div className="space-y-6">
@@ -215,40 +220,61 @@ export default function PlansPage() {
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4">
         <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Total Plans</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100" suppressHydrationWarning>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Total Plans
+          </p>
+          <p
+            className="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100"
+            suppressHydrationWarning
+          >
             {stats.total}
           </p>
         </div>
         <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Active Plans</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100" suppressHydrationWarning>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Active Plans
+          </p>
+          <p
+            className="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100"
+            suppressHydrationWarning
+          >
             {stats.active}
           </p>
         </div>
         <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Total Members</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100" suppressHydrationWarning>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Total Members
+          </p>
+          <p
+            className="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100"
+            suppressHydrationWarning
+          >
             {stats.totalMembers}
           </p>
         </div>
         <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">Avg. Price</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100" suppressHydrationWarning>
-            ₦{stats.avgPrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          <p
+            className="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100"
+            suppressHydrationWarning
+          >
+            ₦
+            {stats.avgPrice.toLocaleString(undefined, {
+              maximumFractionDigits: 0,
+            })}
           </p>
         </div>
       </div>
 
       {/* Search Bar */}
-      <SearchBar 
+      <SearchBar
         value={search}
         onChange={setSearch}
         placeholder="Search plans by name..."
       />
 
       {/* Filters */}
-      <PlanFilters 
+      <PlanFilters
         filters={filters}
         onFiltersChange={setFilters}
         filteredCount={filteredPlans.length}
@@ -256,7 +282,7 @@ export default function PlansPage() {
       />
 
       {/* Plans Grid */}
-      <PlansGrid 
+      <PlansGrid
         plans={filteredPlans}
         onEditPlan={handleEditPlan}
         onTogglePlanStatus={handleTogglePlanStatus}
@@ -276,7 +302,6 @@ export default function PlansPage() {
       <CreatePlanModal
         isOpen={showCreateModal}
         onClose={() => {
-          console.log('❌ Modal closed');
           setShowCreateModal(false);
           setEditingPlan(null);
         }}
