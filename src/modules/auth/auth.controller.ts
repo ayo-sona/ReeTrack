@@ -22,6 +22,7 @@ import type { Request, Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { SkipThrottle } from '../../common/decorators/throttle-skip.decorator';
 import { MemberRegisterDto } from 'src/common/dto/member-register.dto';
+import { CurrentOrganization } from 'src/common/decorators/organization.decorator';
 
 type RequestUser = {
   id: string;
@@ -104,11 +105,6 @@ export class AuthController {
             lastName: 'Ackerman',
             role: 'member',
           },
-          organization: {
-            id: '123e4567-e89b-12d3-a456-426614174001',
-            name: 'Life Fitness',
-            email: 'wibble@life.com',
-          },
         },
       },
     },
@@ -136,6 +132,40 @@ export class AuthController {
       ...result,
       data,
     };
+  }
+
+  @Post('custom/register-member')
+  @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 requests per minute
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Register a new member' })
+  @ApiResponse({
+    status: 201,
+    description: 'Member successfully registered',
+    content: {
+      'application/json': {
+        example: {
+          user: {
+            email: 'levi@life.com',
+            firstName: 'Levi',
+            lastName: 'Ackerman',
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 409, description: 'Email already exists' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async customRegisterMember(
+    @CurrentOrganization() organizationId: string,
+    @Body() registerDto: MemberRegisterDto,
+  ) {
+    const result = await this.authService.customRegisterMember(
+      organizationId,
+      registerDto,
+    );
+    return result;
   }
 
   @Post('login')

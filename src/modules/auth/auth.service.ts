@@ -166,7 +166,7 @@ export class AuthService {
   async registerMember(memberRegisterDto: MemberRegisterDto) {
     // Find organization by slug
     const organization = await this.organizationRepository.findOne({
-      where: { slug: memberRegisterDto.organizationSlug.toLowerCase() },
+      where: { slug: memberRegisterDto.organizationSlug!.toLowerCase() },
     });
 
     if (!organization) {
@@ -218,10 +218,10 @@ export class AuthService {
     const savedOrgUser = await this.organizationUserRepository.save(orgUser);
 
     const member = this.memberRepository.create({
+      user_id: user.id,
       organization_user_id: savedOrgUser.id,
       date_of_birth: memberRegisterDto.dateOfBirth,
       address: memberRegisterDto.address,
-      emergency_contact_name: memberRegisterDto.emergencyContactName,
       emergency_contact_phone: memberRegisterDto.emergencyContactPhone,
       medical_notes: memberRegisterDto.medicalNotes,
       check_in_count: memberRegisterDto.checkInCount,
@@ -256,6 +256,96 @@ export class AuthService {
         },
         access_token: accessToken,
         refresh_token: refreshToken,
+      },
+    };
+  }
+
+  async customRegisterMember(
+    organizationId: string,
+    memberRegisterDto: MemberRegisterDto,
+  ) {
+    // Find organization by id
+    const organization = await this.organizationRepository.findOne({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    // Check if user email exists
+    let user = await this.userRepository.findOne({
+      where: { email: memberRegisterDto.email },
+    });
+
+    if (user) {
+      // Check if already member of this org
+      const existingOrgUser = await this.organizationUserRepository.findOne({
+        where: {
+          user_id: user.id,
+          organization_id: organization.id,
+          role: OrgRole.MEMBER,
+        },
+      });
+
+      if (existingOrgUser) {
+        throw new ConflictException('Already a member of this organization');
+      }
+    } else {
+      // Create new user
+      const password_hash = await bcrypt.hash(memberRegisterDto.password, 10);
+
+      user = this.userRepository.create({
+        email: memberRegisterDto.email,
+        password_hash,
+        first_name: memberRegisterDto.firstName,
+        last_name: memberRegisterDto.lastName,
+        phone: memberRegisterDto.phone,
+        status: 'inactive',
+      });
+
+      user = await this.userRepository.save(user);
+    }
+
+    // Create organization_user with MEMBER role
+    const orgUser = this.organizationUserRepository.create({
+      user_id: user.id,
+      organization_id: organization.id,
+      role: OrgRole.MEMBER,
+      status: 'inactive',
+    });
+
+    const savedOrgUser = await this.organizationUserRepository.save(orgUser);
+
+    const member = this.memberRepository.create({
+      user_id: user.id,
+      organization_user_id: savedOrgUser.id,
+      date_of_birth: memberRegisterDto.dateOfBirth,
+      address: memberRegisterDto.address,
+      emergency_contact_phone: memberRegisterDto.emergencyContactPhone,
+      medical_notes: memberRegisterDto.medicalNotes,
+      check_in_count: memberRegisterDto.checkInCount,
+      metadata: {},
+    });
+
+    await this.memberRepository.save(member);
+
+    // Send welcome email
+    await this.notificationsService.sendWelcomeEmail({
+      email: user.email,
+      userName: `${user.first_name} ${user.last_name}`,
+      organizationName: organization.name,
+    });
+
+    return {
+      message: 'Registration sent successfully',
+      data: {
+        customer: {
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          phone: user.phone,
+        },
       },
     };
   }

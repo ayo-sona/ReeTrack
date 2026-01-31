@@ -7,14 +7,15 @@ import {
   IsDate,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class MemberRegisterDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'life-fitness',
   })
+  @IsOptional()
   @IsString()
-  organizationSlug: string;
+  organizationSlug?: string;
 
   @ApiProperty({
     example: 'kenny@life.com',
@@ -55,36 +56,32 @@ export class MemberRegisterDto {
   @IsString()
   address?: string;
 
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  emergencyContactName?: string;
-
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   emergencyContactPhone?: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   medicalNotes?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '2000-01-01',
   })
   @Type(() => Date)
   @IsDate()
-  dateOfBirth: Date;
+  @IsOptional()
+  dateOfBirth?: Date;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 0,
   })
   @IsOptional()
   @IsInt()
   checkInCount?: number;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   metadata?: string;

@@ -19,7 +19,7 @@ export class OrganizationSubscription {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid', unique: true })
+  @Column({ type: 'uuid' })
   organization_id: string;
 
   @Column({ type: 'uuid' })

@@ -43,26 +43,26 @@ export class Member {
     description: 'Member date of birth',
     example: '2023-01-01',
   })
-  @Column({ type: 'date' })
-  date_of_birth: Date;
+  @Column({ type: 'date', nullable: true })
+  date_of_birth?: Date | null;
 
   @Column({ type: 'text', nullable: true })
-  address: string;
+  address?: string;
 
   @Column({ type: 'text', nullable: true })
-  emergency_contact_name: string;
+  emergency_contact_name?: string;
 
   @Column({ type: 'text', nullable: true })
-  emergency_contact_phone: string;
+  emergency_contact_phone?: string;
 
   @Column({ type: 'text', nullable: true })
-  medical_notes: string;
+  medical_notes?: string;
 
   @Column({ type: 'int', default: 0 })
   check_in_count: number;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata: Record<string, any>;
+  metadata?: Record<string, any>;
 
   @ApiProperty({
     description: 'Member created at',
