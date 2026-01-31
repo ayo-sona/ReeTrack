@@ -58,7 +58,7 @@ export function EnterpriseHeader() {
           >
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
+              <span className="absolute top-1 right-3 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-medium text-white">
                 {unreadCount}
               </span>
             )}
@@ -71,7 +71,7 @@ export function EnterpriseHeader() {
         <Button
           onPress={handleLogout}
           variant="light"
-          className="flex cursor-pointer items-center gap-2 rounded-md p-2 text-gray-700 transition-colors hover:bg-gray-100"
+          className="flex cursor-pointer items-center gap-2 rounded-md p-2 transition-colors hover:bg-gray-100"
           title="Logout"
         >
           {loading ? (

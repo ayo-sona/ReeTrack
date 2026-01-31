@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { usePaystack } from "@/hooks/usePaystack";
+import { useRouter } from "next/navigation";
 
 type BillingCycle = "monthly" | "annually";
 
@@ -65,6 +66,7 @@ const includedFeatures = [
 ];
 
 export default function EnterprisePlansPage() {
+  const router = useRouter();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -127,6 +129,7 @@ export default function EnterprisePlansPage() {
       // // 3. Redirect to Paystack
       if (!paystack) return;
       paystack.resumeTransaction(paymentData.access_code);
+      router.refresh();
       //   window.location.href = payment.authorization_url;
     } catch (error) {
       console.error("Subscription error:", error);
@@ -317,15 +320,15 @@ export default function EnterprisePlansPage() {
               <>
                 <ModalHeader className="flex flex-col gap-1">
                   <div className="flex justify-center items-center">
-                    <h3 className="text-lg font-semibold">
+                    <h3 className="text-lg text-black font-semibold">
                       Complete Your Subscription
                     </h3>
                   </div>
                 </ModalHeader>
                 <ModalBody className="flex justify-center py-4">
                   <div className="space-y-4">
-                    <div className="text-center">
-                      <p className="text-foreground-600 mb-2">
+                    <div className="text-center text-black">
+                      <p className="mb-2">
                         You're subscribing to{" "}
                         <span className="font-semibold">
                           {selectedPlan?.name}
@@ -349,7 +352,8 @@ export default function EnterprisePlansPage() {
                       <Button
                         fullWidth
                         size="lg"
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                        variant="bordered"
+                        className="text-blue-600 hover:bg-blue-300 border-2 border-gray-200 hover:border-gray-300"
                         onPress={() => handlePaymentMethodSelect("paystack")}
                         startContent={
                           <Image
@@ -367,7 +371,7 @@ export default function EnterprisePlansPage() {
                         fullWidth
                         size="lg"
                         variant="bordered"
-                        className="border-2 border-gray-200 hover:border-gray-300"
+                        className="text-blue-600 hover:bg-blue-300 border-2 border-gray-200 hover:border-gray-300"
                         onPress={() => handlePaymentMethodSelect("kora")}
                         startContent={
                           <Image
