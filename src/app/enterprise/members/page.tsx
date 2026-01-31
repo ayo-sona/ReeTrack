@@ -6,8 +6,10 @@ import { MemberFilters } from "../../../components/enterprise/MemberFilters";
 import { UserPlus } from "lucide-react";
 import { useMembers } from "../../../hooks/useMembers";
 import { Member } from "../../../types/enterprise";
+import { CreateMemberModal } from "../../../components/enterprise/CreateMemberModal";
 
 export default function MembersPage() {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filters, setFilters] = useState({
     search: "",
     dateFrom: "",
@@ -24,12 +26,12 @@ export default function MembersPage() {
     if (!membersData) {
       return [];
     }
-    
+
     // Handle both { data: [] } and [] formats
     if (Array.isArray(membersData)) {
       return membersData as Member[];
     }
-    
+
     // Handle wrapped response
     const wrappedData = membersData as { data?: Member[] };
     return wrappedData.data || [];
@@ -47,15 +49,17 @@ export default function MembersPage() {
 
       if (filters.dateTo) {
         const joinedDate = new Date(member.created_at);
-        const toDate = new Date(filters.dateTo + 'T23:59:59');
+        const toDate = new Date(filters.dateTo + "T23:59:59");
         if (joinedDate > toDate) return false;
       }
 
       // ⭐ UPDATED: Status filter using direct user.status
       if (filters.status !== "all") {
         const memberStatus = member.user?.status;
-        if (filters.status === "active" && memberStatus !== "active") return false;
-        if (filters.status === "inactive" && memberStatus !== "inactive") return false;
+        if (filters.status === "active" && memberStatus !== "active")
+          return false;
+        if (filters.status === "inactive" && memberStatus !== "inactive")
+          return false;
       }
 
       return true;
@@ -90,15 +94,18 @@ export default function MembersPage() {
             Manage and monitor all member subscriptions
           </p>
         </div>
-        <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+        >
           <UserPlus className="h-4 w-4" />
           Add Member
         </button>
       </div>
 
       {/* Filters with SearchBar */}
-      <MemberFilters 
-        filters={filters} 
+      <MemberFilters
+        filters={filters}
         onFiltersChange={setFilters}
         filteredCount={filteredMembers.length}
         totalCount={members.length}
@@ -106,10 +113,16 @@ export default function MembersPage() {
       />
 
       {/* Members Table */}
-      <MembersTable 
-        members={filteredMembers} 
+      <MembersTable
+        members={filteredMembers}
         isSearching={filters.search.length > 0}
         isLoading={isLoading}
+      />
+
+      {/* Create Member Modal */}
+      <CreateMemberModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
       />
     </div>
   );
