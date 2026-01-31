@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { organizationsApi } from '../lib/api/organisationsApi';
+import { organizationsApi } from '../lib/organizationAPI/organisationsApi';
 import { getCurrentOrganizationId } from '../utils/organisationUtils';
 
 // Define a proper type for your organization data

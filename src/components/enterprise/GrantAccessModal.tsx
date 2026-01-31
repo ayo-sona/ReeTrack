@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { Member } from '../../types/enterprise';
 import { useActivePlans } from '../../hooks/usePlans';
-import { CreateSubscriptionDto } from '../../lib/api/subscriptionsApi';
+import { CreateSubscriptionDto } from '../../lib/organizationAPI/subscriptionsApi';
 
 interface GrantAccessModalProps {
   member: Member;

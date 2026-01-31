@@ -1,4 +1,4 @@
-import { Plan } from '../lib/api/plansApi';
+import { Plan } from '../lib/organizationAPI/plansApi';
 import { SubscriptionPlan } from '../types/enterprise';
 import { Currency } from '../types/common';
 

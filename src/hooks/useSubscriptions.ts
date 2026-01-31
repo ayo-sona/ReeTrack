@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { subscriptionsApi, CreateSubscriptionDto } from '../lib/api/subscriptionsApi';
+import { subscriptionsApi, CreateSubscriptionDto } from '../lib/organizationAPI/subscriptionsApi';
 
 // Get all subscriptions
 export const useSubscriptions = (page: number = 1, limit: number = 10, status?: string) => {

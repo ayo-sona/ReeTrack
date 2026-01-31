@@ -150,26 +150,6 @@ apiClient.interceptors.response.use(
   },
 );
 
-<<<<<<< HEAD
-/**
- * Logout helper
- */
-export async function logout() {
-  try {
-    await apiClient.post("/auth/logout");
-  } catch (error) {
-    console.error("Logout error:", error);
-  } finally {
-    // Clear client-side data
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("selectedOrganizationId");
-      window.location.href = "/auth/login";
-    }
-  }
-}
-
-export default apiClient;
-=======
 export default apiClient;
 
 // https://paypips.onrender.com/api/v1/webhooks/paystack
@@ -248,4 +228,3 @@ export default apiClient;
 //     return Promise.reject(error);
 //   }
 // );
->>>>>>> 26fa2c12 (billings)

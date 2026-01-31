@@ -1,4 +1,4 @@
-import { Payment as ApiPayment } from "../lib/api/paymentsApi";
+import { Payment as ApiPayment } from "../lib/organizationAPI/paymentsApi";
 import { PaymentStatus, Payment as UiPayment } from "../types/enterprise";
 import { PaymentGateway } from "../types/common";
 

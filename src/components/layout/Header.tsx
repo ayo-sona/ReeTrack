@@ -3,7 +3,7 @@
 import React from "react";
 import { useAuth } from "../../features/auth/authContext";
 import { ThemeToggle } from "./ThemeToggle";
-import { NotificationCenter } from "../../components/dashboard/NotificationCenter";
+import { NotificationCenter } from "../member/memberLayout";
 
 export function Header() {
   const { user, logout } = useAuth();
