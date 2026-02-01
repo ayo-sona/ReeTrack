@@ -1,5 +1,5 @@
 import { Payment as ApiPayment } from "../lib/organizationAPI/paymentsApi";
-import { PaymentStatus, Payment as UiPayment } from "../types/enterprise";
+import { PaymentStatus, Payment as UiPayment } from "../types/organization";
 import { PaymentGateway } from "../types/common";
 
 export const mapApiPaymentToUiPayment = (apiPayment: ApiPayment): UiPayment => {

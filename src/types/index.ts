@@ -10,7 +10,7 @@ export type {
     NotificationType,
     NotificationChannel,
     Notification,
-  } from './notification';
+  } from './ping';
   
   export type {
     PaymentStatus,

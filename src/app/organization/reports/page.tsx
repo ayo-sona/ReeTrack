@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { FileDown, FileText, FileSpreadsheet, Table } from 'lucide-react';
-import { ExportFormat, ExportType } from '../../../types/enterprise';
+import { ExportFormat, ExportType } from '../../../types/organization';
 
 export default function ReportsPage() {
   const [exportConfig, setExportConfig] = useState({

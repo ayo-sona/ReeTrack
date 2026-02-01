@@ -1,15 +1,15 @@
 "use client";
 
-import { AnalyticsCards } from "../../../components/enterprise/AnalyticsCards";
-import { MembersGrowthChart } from "../../../components/enterprise/MembersGrowthChart";
-import { RevenueChart } from "../../../components/enterprise/RevenueChart";
-import { PlanDistributionChart } from "../../../components/enterprise/PlanDistributionChart";
-import { RecentMembersTable } from "../../../components/enterprise/RecentMembersTable";
+import { AnalyticsCards } from "../../../components/organization/AnalyticsCards";
+import { MembersGrowthChart } from "../../../components/organization/MembersGrowthChart";
+import { RevenueChart } from "../../../components/organization/RevenueChart";
+import { PlanDistributionChart } from "../../../components/organization/PlanDistributionChart";
+import { RecentMembersTable } from "../../../components/organization/RecentMembersTable";
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 
-export default function EnterpriseDashboardPage() {
+export default function OrganizationDashboardPage() {
   const searchParams = useSearchParams();
   const reference = searchParams.get("reference");
 

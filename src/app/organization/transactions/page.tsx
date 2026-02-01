@@ -9,12 +9,12 @@ import {
   Users,
   AlertCircle,
 } from "lucide-react";
-import { PaymentsTable } from "../../../components/enterprise/PaymentsTable";
-import { PaymentFilters } from "../../../components/enterprise/PaymentFilters";
+import { PaymentsTable } from "../../../components/organization/PaymentsTable";
+import { PaymentFilters } from "../../../components/organization/PaymentFilters";
 import {
   ManualPaymentModal,
   ManualPaymentData,
-} from "../../../components/enterprise/ManualPaymentModal";
+} from "../../../components/organization/ManualPaymentModal";
 import {
   usePayments,
   usePaymentStats,

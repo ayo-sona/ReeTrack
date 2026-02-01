@@ -1,7 +1,7 @@
 import { Currency, PaymentGateway } from "./common";
 
-// Enterprise/Business Types
-export interface Enterprise {
+// organization/Business Types
+export interface Organization {
   id: string;
   name: string;
   email: string;
@@ -28,7 +28,7 @@ export type PlanVisibility = "public" | "invite_only";
 
 export interface SubscriptionPlan {
   id: string;
-  enterpriseId: string;
+  organizationId: string;
   name: string;
   description?: string;
   price: number;
@@ -195,7 +195,7 @@ export interface ExportRequest {
 }
 
 // Analytics Types
-export interface EnterpriseAnalytics {
+export interface OrganizationAnalytics {
   totalMembers: number;
   activeMembers: number;
   inactiveMembers: number;
@@ -239,7 +239,7 @@ export type NotificationType =
   | "subscription_expired"
   | "member_cancelled";
 
-export interface EnterpriseNotification {
+export interface OrganizationNotification {
   id: string;
   type: NotificationType;
   title: string;

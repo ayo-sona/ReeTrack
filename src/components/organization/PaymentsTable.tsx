@@ -1,6 +1,6 @@
 "use client";
 
-import { Payment } from "../../types/enterprise";
+import { Payment } from "../../types/organization";
 import Link from "next/link";
 import { CreditCard, CheckCircle } from "lucide-react";
 import clsx from "clsx";

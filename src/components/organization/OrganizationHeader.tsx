@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { deleteCookie } from "cookies-next/client";
 
-export function EnterpriseHeader() {
+export function OrganizationHeader() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [loading, setLoading] = useState(false);
   const unreadCount = 3;

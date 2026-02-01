@@ -6,17 +6,17 @@ import { Building2, User, Save } from 'lucide-react';
 export default function SettingsPage() {
   const [orgData, setOrgData] = useState({
     name: 'GymFitness Lagos',
-    email: 'Enterprise@gymfitness.ng',
+    email: 'Organization@gymfitness.ng',
     phone: '+234 801 234 5678',
     address: '123 Victoria Island, Lagos, Nigeria',
     website: 'https://gymfitness.ng',
   });
 
   const [profileData, setProfileData] = useState({
-    name: 'Enterprise User',
+    name: 'Organization User',
     email: 'Entrerprise@paypips.com',
     phone: '+234 901 234 5678',
-    role: 'super_Enterprise',
+    role: 'super_Organization',
   });
 
   const handleOrgSubmit = (e: React.FormEvent) => {

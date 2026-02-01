@@ -4,7 +4,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { usePlans } from '../../hooks/usePlans';
 import { useMembers } from '../../hooks/useMembers';
 import { useMemo } from 'react';
-import { Member } from '../../types/enterprise';
+import { Member } from '../../types/organization';
 
 export function PlanDistributionChart() {
   // ⭐ FIXED: Fetch data with correct parameters

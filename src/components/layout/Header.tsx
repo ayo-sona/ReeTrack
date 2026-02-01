@@ -3,7 +3,7 @@
 import React from "react";
 import { useAuth } from "../../features/auth/authContext";
 import { ThemeToggle } from "./ThemeToggle";
-import { NotificationCenter } from "../member/memberLayout";
+// import { NotificationCenter } from "../member/memberLayout";
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -21,7 +21,7 @@ export function Header() {
           {/* Right side */}
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <NotificationCenter />
+            {/* <NotificationCenter /> */}
 
             {/* User menu */}
             <div className="relative">

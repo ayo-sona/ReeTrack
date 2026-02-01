@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { MembersTable } from "../../../components/enterprise/MembersTable";
-import { MemberFilters } from "../../../components/enterprise/MemberFilters";
+import { MembersTable } from "../../../components/organization/MembersTable";
+import { MemberFilters } from "../../../components/organization/MemberFilters";
 import { UserPlus } from "lucide-react";
 import { useMembers } from "../../../hooks/useMembers";
-import { Member } from "../../../types/enterprise";
-import { CreateMemberModal } from "../../../components/enterprise/CreateMemberModal";
+import { Member } from "../../../types/organization";
+import { CreateMemberModal } from "../../../components/organization/CreateMemberModal";
 
 export default function MembersPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);

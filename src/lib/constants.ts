@@ -84,9 +84,9 @@ export const PRICING_PLANS: Record<PlanId, Omit<Plan, 'currency' | 'billingCycle
       prioritySupport: false,
     },
   },
-  enterprise: {
-    id: 'enterprise',
-    name: 'Enterprise',
+  organization: {
+    id: 'organization',
+    name: 'Organization',
     members: 999999,
     price: 0, // Custom pricing
     pricePerMember: 0,
@@ -130,9 +130,9 @@ export const CURRENCY_RATES: Record<Currency, number> = {
 
 export const GATEWAY_BY_COUNTRY: Record<string, PaymentGateway> = {
   NG: 'paystack',
-  US: 'stripe',
-  GB: 'stripe',
-  CA: 'stripe',
+  // US: 'stripe',
+  // GB: 'stripe',
+  // CA: 'stripe',
   // Add more countries as needed
 };
 

@@ -1,6 +1,6 @@
 import type { Currency } from './common';
 
-export type PlanId = 'starter' | 'growth' | 'pro' | 'enterprise';
+export type PlanId = 'starter' | 'growth' | 'pro' | 'organization';
 export type SubscriptionStatus = 
   | 'active' 
   | 'trial' 

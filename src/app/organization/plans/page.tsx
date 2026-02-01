@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Plus } from "lucide-react";
-import { PlansGrid } from "../../../components/enterprise/PlansGrid";
-import { CreatePlanModal } from "../../../components/enterprise/CreatePlanModal";
-import { SearchBar } from "../../../components/enterprise/PlanSearchBar";
-import { PlanFilters } from "../../../components/enterprise/PlanFilters";
+import { Plus, Users, Eye, TrendingUp } from "lucide-react";
+import { PlansGrid } from "../../../components/organization/PlansGrid";
+import { CreatePlanModal } from "../../../components/organization/CreatePlanModal";
+import { PlanMembersModal } from "../../../components/organization/PlansMembersModal";
+import { SearchBar } from "../../../components/organization/PlanSearchBar";
+import { PlanFilters } from "../../../components/organization/PlanFilters";
 import {
   usePlans,
   useCreatePlan,
@@ -13,7 +14,7 @@ import {
   useDeletePlan,
   useTogglePlan,
 } from "../../../hooks/usePlans";
-import { SubscriptionPlan } from "../../../types/enterprise";
+import { SubscriptionPlan } from "../../../types/organization";
 import { mapPlansToSubscriptionPlans } from "../../../utils/planMapper";
 
 interface PlanFormData {
@@ -27,6 +28,7 @@ interface PlanFormData {
 export default function PlansPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
+  const [viewingPlanMembers, setViewingPlanMembers] = useState<SubscriptionPlan | null>(null);
 
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({
@@ -97,6 +99,10 @@ export default function PlansPage() {
   const handleEditPlan = (plan: SubscriptionPlan) => {
     setEditingPlan(plan);
     setShowCreateModal(true);
+  };
+
+  const handleViewMembers = (plan: SubscriptionPlan) => {
+    setViewingPlanMembers(plan);
   };
 
   const handleTogglePlanStatus = async (planId: string) => {
@@ -210,7 +216,7 @@ export default function PlansPage() {
         </div>
         <button
           onClick={handleCreatePlan}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors shadow-sm"
         >
           <Plus className="h-4 w-4" />
           Create Plan
@@ -220,9 +226,12 @@ export default function PlansPage() {
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4">
         <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Total Plans
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Total Plans
+            </p>
+            <TrendingUp className="w-4 h-4 text-blue-600" />
+          </div>
           <p
             className="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100"
             suppressHydrationWarning
@@ -231,9 +240,12 @@ export default function PlansPage() {
           </p>
         </div>
         <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Active Plans
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Active Plans
+            </p>
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          </div>
           <p
             className="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100"
             suppressHydrationWarning
@@ -242,9 +254,12 @@ export default function PlansPage() {
           </p>
         </div>
         <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Total Members
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Total Members
+            </p>
+            <Users className="w-4 h-4 text-purple-600" />
+          </div>
           <p
             className="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100"
             suppressHydrationWarning
@@ -287,6 +302,7 @@ export default function PlansPage() {
         onEditPlan={handleEditPlan}
         onTogglePlanStatus={handleTogglePlanStatus}
         onDeletePlan={handleDeletePlan}
+        onViewMembers={handleViewMembers}
       />
 
       {/* Empty State */}
@@ -307,6 +323,13 @@ export default function PlansPage() {
         }}
         onSave={handleSavePlan}
         editingPlan={editingPlan}
+      />
+
+      {/* View Members Modal */}
+      <PlanMembersModal
+        isOpen={!!viewingPlanMembers}
+        onClose={() => setViewingPlanMembers(null)}
+        plan={viewingPlanMembers}
       />
     </div>
   );

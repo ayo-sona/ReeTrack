@@ -1,6 +1,6 @@
 "use client";
 
-import { Member } from "../../types/enterprise";
+import { Member } from "../../types/organization";
 import Link from "next/link";
 import { Mail, Phone, Calendar, MapPin, Heart, User, SearchX } from "lucide-react";
 import clsx from "clsx";

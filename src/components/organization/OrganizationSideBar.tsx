@@ -12,26 +12,28 @@ import {
   FileDown,
   Settings,
   Receipt,
+  ScanLine
 } from "lucide-react";
 import clsx from "clsx";
 
 const navigation = [
-  { name: "Dashboard", href: "/enterprise/dashboard", icon: LayoutDashboard },
-  { name: "Members", href: "/enterprise/members", icon: Users },
-  { name: "Subscription Plans", href: "/enterprise/plans", icon: Package },
-  { name: "Transactions", href: "/enterprise/transactions", icon: CreditCard },
+  { name: "Dashboard", href: "/organization/dashboard", icon: LayoutDashboard },
+  { name: "Members", href: "/organization/members", icon: Users },
+  { name: "Subscription Plans", href: "/organization/plans", icon: Package },
+  { name: "Transactions", href: "/organization/transactions", icon: CreditCard },
   {
-    name: "Enterprise Plans",
-    href: "/enterprise/enterprise-plans",
+    name: "Organization Plans",
+    href: "/organization/organization-plans",
     icon: Archive,
   },
-  { name: "Billings", href: "/enterprise/billings", icon: Receipt },
-  { name: "Reminders", href: "/enterprise/reminders", icon: Send },
-  { name: "Reports", href: "/enterprise/reports", icon: FileDown },
-  { name: "Settings", href: "/enterprise/settings", icon: Settings },
+  { name: "Billings", href: "/organization/billing", icon: Receipt },
+  { name: "Check-ins", href: "/organization/check-ins", icon: ScanLine },
+  { name: "Ping", href: "/organization/ping", icon: Send },
+  { name: "Reports", href: "/organization/reports", icon: FileDown },
+  { name: "Settings", href: "/organization/settings", icon: Settings },
 ];
 
-export function EnterpriseSidebar() {
+export function OrganizationSidebar() {
   const pathname = usePathname();
 
   return (
@@ -78,7 +80,7 @@ export function EnterpriseSidebar() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-              ReeTrack Enterprise
+              ReeTrack Organization
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
               enterprise@reetrack.com

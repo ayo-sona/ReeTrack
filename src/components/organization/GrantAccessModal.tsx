@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { X, AlertCircle } from 'lucide-react';
-import { Member } from '../../types/enterprise';
+import { Member } from '../../types/organization';
 import { useActivePlans } from '../../hooks/usePlans';
 import { CreateSubscriptionDto } from '../../lib/organizationAPI/subscriptionsApi';
 

@@ -1,5 +1,5 @@
 import apiClient from '../apiClient';
-import { Member } from '../../types/enterprise'; // Import the correct type
+import { Member } from '../../types/organization'; // Import the correct type
 
 export interface UpdateMemberDto {
   date_of_birth?: string;

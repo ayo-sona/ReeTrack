@@ -6,8 +6,19 @@ import apiClient from "@/lib/apiClient";
 import { usePaystack } from "@/hooks/usePaystack";
 import { useParams } from "next/navigation";
 
+// Define the Invoice type based on your API response
+interface Invoice {
+  id: string;
+  invoice_number: string;
+  amount: number;
+  description: string;
+  status: string;
+  created_at: string;
+  due_date: string;
+}
+
 export default function PayInvoicePage() {
-  const [invoice, setInvoice] = useState<any>(null);
+  const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(false);
 
   const params = useParams();
@@ -15,23 +26,25 @@ export default function PayInvoicePage() {
   const { paystack } = usePaystack();
 
   useEffect(() => {
-    loadInvoice();
-  }, []);
+    const loadInvoice = async () => {
+      setLoading(true);
+      try {
+        const { data } = await apiClient.get(
+          `/invoices/organization/${params?.id}`,
+        );
+        console.log(data.data);
+        setInvoice(data.data);
+      } catch (error) {
+        console.error("Failed to load invoice:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const loadInvoice = async () => {
-    setLoading(true);
-    try {
-      const { data } = await apiClient.get(
-        `/invoices/organization/${params?.id}`,
-      );
-      console.log(data.data);
-      setInvoice(data.data);
-      setLoading(false);
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
+    if (params?.id) {
+      loadInvoice();
     }
-  };
+  }, [params?.id]);
 
   const handlePay = async () => {
     setLoading(true);
@@ -46,6 +59,7 @@ export default function PayInvoicePage() {
       console.log(data);
       paystack.resumeTransaction(data.data.access_code);
     } catch (error) {
+      console.error("Payment initialization failed:", error);
       alert("Failed to initialize payment");
       setLoading(false);
     }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
-import { SubscriptionPlan } from "../../types/enterprise";
+import { SubscriptionPlan } from "../../types/organization";
 
 interface PlanFormData {
   name: string;

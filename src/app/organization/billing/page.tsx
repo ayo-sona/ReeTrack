@@ -161,7 +161,7 @@ export default function BillingPage() {
                   size="sm"
                   color="primary"
                   onPress={() =>
-                    router.push(`/enterprise/invoices/${invoice.id}/pay`)
+                    router.push(`/organization/invoices/${invoice.id}/pay`)
                   }
                 >
                   Pay Now

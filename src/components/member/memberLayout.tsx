@@ -35,7 +35,7 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
     { name: 'Dashboard', href: '/member/dashboard', icon: Home },
     { name: 'Wallet', href: '/member/wallet', icon: Wallet },
     { name: 'Subscriptions', href: '/member/subscriptions', icon: CreditCard },
-    { name: 'Check In', href: '/member/check-in', icon: QrCode },
+    { name: 'Check In', href: '/member/check-ins', icon: QrCode },
     { name: 'Payments', href: '/member/payments', icon: CreditCard },
     { name: 'Referrals', href: '/member/referrals', icon: Gift },
   ];

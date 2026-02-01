@@ -74,7 +74,7 @@ export default function OrganizationSelectPage() {
       console.log(response.data);
       if (response.data?.data?.accessToken) {
         setCookie("access_token", response.data.data.accessToken);
-        router.push("/enterprise/dashboard");
+        router.push("/organization/dashboard");
         // addToast("success", "Success", "Switched organization successfully");
       }
     } catch (error) {

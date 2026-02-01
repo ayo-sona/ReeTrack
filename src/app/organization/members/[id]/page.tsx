@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useMemberById } from "../../../../hooks/useMembers";
 import { useCreateSubscription } from "../../../../hooks/useSubscriptions";
-import { GrantAccessModal } from "../../../../components/enterprise/GrantAccessModal";
+import { GrantAccessModal } from "../../../../components/organization/GrantAccessModal";
 import clsx from "clsx";
 import { toast } from "sonner";
 

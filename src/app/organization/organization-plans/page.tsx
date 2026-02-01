@@ -329,7 +329,7 @@ export default function EnterprisePlansPage() {
                   <div className="space-y-4">
                     <div className="text-center text-black">
                       <p className="mb-2">
-                        You're subscribing to{" "}
+                        You&apos;re subscribing to{" "}
                         <span className="font-semibold">
                           {selectedPlan?.name}
                         </span>{" "}
