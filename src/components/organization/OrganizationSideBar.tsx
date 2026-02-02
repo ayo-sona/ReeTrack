@@ -12,7 +12,7 @@ import {
   FileDown,
   Settings,
   Receipt,
-  ScanLine
+  ScanLine,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -20,7 +20,11 @@ const navigation = [
   { name: "Dashboard", href: "/organization/dashboard", icon: LayoutDashboard },
   { name: "Members", href: "/organization/members", icon: Users },
   { name: "Subscription Plans", href: "/organization/plans", icon: Package },
-  { name: "Transactions", href: "/organization/transactions", icon: CreditCard },
+  {
+    name: "Transactions",
+    href: "/organization/transactions",
+    icon: CreditCard,
+  },
   {
     name: "Organization Plans",
     href: "/organization/organization-plans",
@@ -41,7 +45,7 @@ export function OrganizationSidebar() {
       {/* Logo */}
       <div className="flex h-16 items-center px-6 border-b border-gray-200 dark:border-gray-700">
         <h1 className="text-xl font-bold text-blue-600 dark:text-blue-400">
-          ReeTrack Enterprise
+          ReeTrack
         </h1>
       </div>
 

@@ -1,33 +1,33 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Building2, User, Save } from 'lucide-react';
+import { useState } from "react";
+import { Building2, User, Save } from "lucide-react";
 
 export default function SettingsPage() {
   const [orgData, setOrgData] = useState({
-    name: 'GymFitness Lagos',
-    email: 'Organization@gymfitness.ng',
-    phone: '+234 801 234 5678',
-    address: '123 Victoria Island, Lagos, Nigeria',
-    website: 'https://gymfitness.ng',
+    name: "GymFitness Lagos",
+    email: "Organization@gymfitness.ng",
+    phone: "+234 801 234 5678",
+    address: "123 Victoria Island, Lagos, Nigeria",
+    website: "https://gymfitness.ng",
   });
 
   const [profileData, setProfileData] = useState({
-    name: 'Organization User',
-    email: 'Entrerprise@paypips.com',
-    phone: '+234 901 234 5678',
-    role: 'super_Organization',
+    name: "Organization User",
+    email: "Entrerprise@reetrack.com",
+    phone: "+234 901 234 5678",
+    role: "super_Organization",
   });
 
   const handleOrgSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Organization updated:', orgData);
+    console.log("Organization updated:", orgData);
     // TODO: Implement API call
   };
 
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Profile updated:', profileData);
+    console.log("Profile updated:", profileData);
     // TODO: Implement API call
   };
 
@@ -62,66 +62,91 @@ export default function SettingsPage() {
 
           <form onSubmit={handleOrgSubmit} className="space-y-4">
             <div>
-              <label htmlFor="org-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="org-name"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Organization Name
               </label>
               <input
                 id="org-name"
                 type="text"
                 value={orgData.name}
-                onChange={(e) => setOrgData({ ...orgData, name: e.target.value })}
+                onChange={(e) =>
+                  setOrgData({ ...orgData, name: e.target.value })
+                }
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label htmlFor="org-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="org-email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Email
               </label>
               <input
                 id="org-email"
                 type="email"
                 value={orgData.email}
-                onChange={(e) => setOrgData({ ...orgData, email: e.target.value })}
+                onChange={(e) =>
+                  setOrgData({ ...orgData, email: e.target.value })
+                }
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label htmlFor="org-phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="org-phone"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Phone
               </label>
               <input
                 id="org-phone"
                 type="tel"
                 value={orgData.phone}
-                onChange={(e) => setOrgData({ ...orgData, phone: e.target.value })}
+                onChange={(e) =>
+                  setOrgData({ ...orgData, phone: e.target.value })
+                }
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label htmlFor="org-address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="org-address"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Address
               </label>
               <textarea
                 id="org-address"
                 value={orgData.address}
-                onChange={(e) => setOrgData({ ...orgData, address: e.target.value })}
+                onChange={(e) =>
+                  setOrgData({ ...orgData, address: e.target.value })
+                }
                 rows={2}
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label htmlFor="org-website" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="org-website"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Website
               </label>
               <input
                 id="org-website"
                 type="url"
                 value={orgData.website}
-                onChange={(e) => setOrgData({ ...orgData, website: e.target.value })}
+                onChange={(e) =>
+                  setOrgData({ ...orgData, website: e.target.value })
+                }
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
@@ -154,46 +179,64 @@ export default function SettingsPage() {
 
           <form onSubmit={handleProfileSubmit} className="space-y-4">
             <div>
-              <label htmlFor="profile-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="profile-name"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Full Name
               </label>
               <input
                 id="profile-name"
                 type="text"
                 value={profileData.name}
-                onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, name: e.target.value })
+                }
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label htmlFor="profile-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="profile-email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Email
               </label>
               <input
                 id="profile-email"
                 type="email"
                 value={profileData.email}
-                onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, email: e.target.value })
+                }
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label htmlFor="profile-phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="profile-phone"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Phone
               </label>
               <input
                 id="profile-phone"
                 type="tel"
                 value={profileData.phone}
-                onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, phone: e.target.value })
+                }
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label htmlFor="profile-role" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="profile-role"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Role
               </label>
               <input

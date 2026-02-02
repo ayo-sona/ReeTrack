@@ -1,17 +1,30 @@
-'use client';
+"use client";
 
-import { Wallet, CreditCard, Calendar, TrendingUp, Bell, QrCode } from 'lucide-react';
-import { useSubscriptions, useWallet, useNotifications } from '@/hooks/memberHook/useMember';
-import Link from 'next/link';
+import {
+  Wallet,
+  CreditCard,
+  Calendar,
+  TrendingUp,
+  Bell,
+  QrCode,
+} from "lucide-react";
+import {
+  useSubscriptions,
+  useWallet,
+  useNotifications,
+} from "@/hooks/memberHook/useMember";
+import Link from "next/link";
 
 export default function MemberDashboard() {
   const { data: subscriptions, isLoading: subsLoading } = useSubscriptions();
   const { data: wallet } = useWallet();
   const { data: notifications } = useNotifications();
 
-  const activeSubscriptions = subscriptions?.filter(s => s.status === 'active') || [];
-  const upcomingPayments = subscriptions?.filter(s => s.nextBillingDate && s.autoRenew) || [];
-  const unreadNotifications = notifications?.filter(n => !n.read).length || 0;
+  const activeSubscriptions =
+    subscriptions?.filter((s) => s.status === "active") || [];
+  const upcomingPayments =
+    subscriptions?.filter((s) => s.nextBillingDate && s.autoRenew) || [];
+  const unreadNotifications = notifications?.filter((n) => !n.read).length || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
@@ -19,19 +32,13 @@ export default function MemberDashboard() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Welcome back! 👋</h1>
-            <p className="text-gray-600 mt-1">Manage your subscriptions and payments</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Welcome back! 👋
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Manage your subscriptions and payments
+            </p>
           </div>
-          <Link href="/member/notifications">
-            <button className="relative p-3 rounded-full bg-white shadow-sm hover:shadow-md transition-shadow">
-              <Bell className="w-6 h-6 text-gray-700" />
-              {unreadNotifications > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {unreadNotifications}
-                </span>
-              )}
-            </button>
-          </Link>
         </div>
 
         {/* Wallet Card */}
@@ -41,10 +48,12 @@ export default function MemberDashboard() {
               <div>
                 <p className="text-emerald-100 text-sm">Wallet Balance</p>
                 <h2 className="text-4xl font-bold mt-2">
-                  ₦{wallet?.balance.toLocaleString() || '0'}
+                  ₦{wallet?.balance.toLocaleString() || "0"}
                 </h2>
                 <p className="text-emerald-100 text-sm mt-2">
-                  {wallet ? 'Tap to view details' : 'Create your wallet to get started'}
+                  {wallet
+                    ? "Tap to view details"
+                    : "Create your wallet to get started"}
                 </p>
               </div>
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
@@ -63,7 +72,9 @@ export default function MemberDashboard() {
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Active Plans</p>
-                <p className="text-2xl font-bold text-gray-900">{activeSubscriptions.length}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {activeSubscriptions.length}
+                </p>
               </div>
             </div>
           </div>
@@ -75,7 +86,9 @@ export default function MemberDashboard() {
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Upcoming Payments</p>
-                <p className="text-2xl font-bold text-gray-900">{upcomingPayments.length}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {upcomingPayments.length}
+                </p>
               </div>
             </div>
           </div>
@@ -96,15 +109,19 @@ export default function MemberDashboard() {
         {/* Active Subscriptions */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Active Subscriptions</h2>
+            <h2 className="text-xl font-bold text-gray-900">
+              Active Subscriptions
+            </h2>
             <Link href="/member/subscriptions">
-              <span className="text-emerald-600 hover:text-emerald-700 text-sm font-medium">View All</span>
+              <span className="text-emerald-600 hover:text-emerald-700 text-sm font-medium">
+                View All
+              </span>
             </Link>
           </div>
 
           {subsLoading ? (
             <div className="space-y-4">
-              {[1, 2].map(i => (
+              {[1, 2].map((i) => (
                 <div key={i} className="animate-pulse">
                   <div className="h-24 bg-gray-100 rounded-lg"></div>
                 </div>
@@ -120,13 +137,19 @@ export default function MemberDashboard() {
                         {sub.organizationName.charAt(0)}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">{sub.organizationName}</h3>
+                        <h3 className="font-semibold text-gray-900">
+                          {sub.organizationName}
+                        </h3>
                         <p className="text-sm text-gray-600">{sub.planName}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-gray-900">₦{sub.planPrice.toLocaleString()}</p>
-                      <p className="text-sm text-gray-600">/{sub.planInterval}</p>
+                      <p className="font-bold text-gray-900">
+                        ₦{sub.planPrice.toLocaleString()}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        /{sub.planInterval}
+                      </p>
                     </div>
                   </div>
                 </Link>

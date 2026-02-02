@@ -18,20 +18,18 @@ export function OrganizationHeader() {
   const handleLogout = async () => {
     try {
       setLoading(true);
-      // Call your logout API
       await apiClient.post("/auth/logout");
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
-      // Clear local storage
       if (typeof window !== "undefined") {
         localStorage.clear();
-        sessionStorage.clear();
+        // sessionStorage.clear();
       }
 
       // Delete all cookies
       deleteCookie("access_token");
-      deleteCookie("refresh_token");
+      deleteCookie("current_role");
       setLoading(false);
 
       // Redirect to login
