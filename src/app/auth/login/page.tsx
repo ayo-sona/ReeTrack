@@ -6,6 +6,7 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import apiClient from "@/lib/apiClient";
 import { setCookie } from "cookies-next";
+import { getUserRoles } from "@/utils/role-utils";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,13 +17,14 @@ export default function LoginPage() {
     email: "levi@life.com",
     password: "Password123",
   });
+  // console.log("env", process.env.NODE_ENV);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
@@ -32,14 +34,21 @@ export default function LoginPage() {
         email: formData.email,
         password: formData.password,
       });
+      // console.log(response.data);
 
-      if (response.data?.data?.access_token) {
+      if (response.data.statusCode === 200) {
         setCookie("access_token", response.data.data.access_token);
-        localStorage.setItem(
-          "organizations",
-          JSON.stringify(response.data.data.organizations),
-        );
-        router.push("/select");
+
+        localStorage.setItem("userData", JSON.stringify(response.data.data));
+        const roles = getUserRoles(response.data.data);
+        // console.log(roles);
+        if (roles.isMember && roles.isStaff) {
+          router.push("/select-role");
+        } else if (!roles.isMember && roles.isStaff) {
+          router.push("/select-org");
+        } else {
+          router.push("/member/dashboard");
+        }
       }
     } catch (err: any) {
       console.error("Login error:", err);

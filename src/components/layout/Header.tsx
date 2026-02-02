@@ -15,7 +15,7 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-blue-600">Paypips</h1>
+            <h1 className="text-xl font-bold text-blue-600">ReeTrack</h1>
           </div>
 
           {/* Right side */}

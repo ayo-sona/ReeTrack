@@ -36,20 +36,17 @@ interface OrganizationWithRole extends Organization {
 export default function OrganizationSelectPage() {
   const router = useRouter();
   const { addToast } = useToast();
-  const [organizations, setOrganizations] = useState<OrganizationWithRole[]>(
-    [],
-  );
+  const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const fetchOrganizations = async () => {
-      // ← INSIDE useEffect
+    const fetchOrganizations = () => {
       try {
-        const organizations = localStorage.getItem("organizations");
-        if (organizations) {
-          setOrganizations(JSON.parse(organizations));
+        const userData = localStorage.getItem("userData");
+        if (userData) {
+          setUserData(JSON.parse(userData));
           setLoading(false);
           return;
         }
@@ -71,9 +68,10 @@ export default function OrganizationSelectPage() {
 
       // API call to switch organization context
       const response = await apiClient.get(`/organizations/select/${orgId}`);
-      console.log(response.data);
-      if (response.data?.data?.accessToken) {
+      // console.log(response.data);
+      if (response.data.statusCode === 200) {
         setCookie("access_token", response.data.data.accessToken);
+        setCookie("current_role", "ORG");
         router.push("/organization/dashboard");
         // addToast("success", "Success", "Switched organization successfully");
       }
@@ -84,8 +82,10 @@ export default function OrganizationSelectPage() {
     }
   };
 
-  const filteredOrgs = organizations.filter((org) =>
-    org.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  const filteredOrgs = userData?.organizations?.filter(
+    (org: OrganizationWithRole) =>
+      org.role !== "MEMBER" &&
+      org.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const getRoleColor = (role: string) => {
@@ -106,7 +106,7 @@ export default function OrganizationSelectPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <header className="mb-8 text-center">
-          <h1 className="text-4xl font-bold bg-white bg-clip-text text-transparent mb-3">
+          <h1 className="text-4xl font-bold text-default-600 mb-3">
             Select an Organization
           </h1>
           <p className="text-default-600 text-lg">
@@ -152,7 +152,7 @@ export default function OrganizationSelectPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredOrgs.map((org) => (
+            {filteredOrgs.map((org: OrganizationWithRole) => (
               <div key={org.id} className="">
                 <Card
                   isPressable

@@ -1,8 +1,8 @@
-import SubscriptionDetailsPage from '@/components/member/pages/memberSubscriptionsDetails';
+import SubscriptionDetailsPage from "@/components/member/pages/memberSubscriptionsDetails";
 
 export const metadata = {
-  title: 'Subscription Details | PayPips',
-  description: 'View subscription details and manage your plan',
+  title: "Subscriptions | ReeTrack",
+  description: "View subscription details and manage your plan",
 };
 
 export default function Page() {

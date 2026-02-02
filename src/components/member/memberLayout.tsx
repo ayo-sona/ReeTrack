@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   Wallet,
@@ -15,9 +15,11 @@ import {
   X,
   LogOut,
   Settings,
-} from 'lucide-react';
-import { useProfile, useNotifications } from '@/hooks/memberHook/useMember';
-
+} from "lucide-react";
+import { useProfile, useNotifications } from "@/hooks/memberHook/useMember";
+import apiClient from "@/lib/apiClient";
+import { deleteCookie } from "cookies-next";
+import { Spinner } from "@heroui/react";
 interface MemberLayoutProps {
   children: React.ReactNode;
 }
@@ -28,22 +30,39 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
   const { data: profile } = useProfile();
   const { data: notifications } = useNotifications();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const unreadCount = notifications?.filter(n => !n.read).length || 0;
+  const unreadCount = notifications?.filter((n) => !n.read).length || 0;
 
   const navigation = [
-    { name: 'Dashboard', href: '/member/dashboard', icon: Home },
-    { name: 'Wallet', href: '/member/wallet', icon: Wallet },
-    { name: 'Subscriptions', href: '/member/subscriptions', icon: CreditCard },
-    { name: 'Check In', href: '/member/check-ins', icon: QrCode },
-    { name: 'Payments', href: '/member/payments', icon: CreditCard },
-    { name: 'Referrals', href: '/member/referrals', icon: Gift },
+    { name: "Dashboard", href: "/member/dashboard", icon: Home },
+    { name: "Wallet", href: "/member/wallet", icon: Wallet },
+    { name: "Subscriptions", href: "/member/subscriptions", icon: CreditCard },
+    { name: "Check In", href: "/member/check-ins", icon: QrCode },
+    { name: "Payments", href: "/member/payments", icon: CreditCard },
+    // { name: "Referrals", href: "/member/referrals", icon: Gift },
   ];
 
-  const handleLogout = () => {
-    // TODO: Implement logout
-    localStorage.removeItem('access_token');
-    router.push('/auth/login');
+  const handleLogout = async () => {
+    try {
+      setLoading(true);
+      await apiClient.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+      }
+
+      // Delete all cookies
+      deleteCookie("access_token");
+      deleteCookie("current_role");
+      setLoading(false);
+
+      // Redirect to login
+      router.push("/auth/login");
+      router.refresh();
+    }
   };
 
   return (
@@ -53,7 +72,7 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
         <div className="flex items-center justify-between p-4">
           <Link href="/member/dashboard">
             <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-              PayPips
+              ReeTrack
             </h1>
           </Link>
 
@@ -94,8 +113,8 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                       isActive
-                        ? 'bg-emerald-600 text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? "bg-emerald-600 text-white"
+                        : "text-gray-700 hover:bg-gray-100"
                     }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -120,8 +139,14 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
                 onClick={handleLogout}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
               >
-                <LogOut className="w-5 h-5" />
-                <span className="font-medium">Logout</span>
+                {loading ? (
+                  <Spinner color="danger" />
+                ) : (
+                  <>
+                    <LogOut className="w-5 h-5" />
+                    <span className="font-medium">Logout</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -130,11 +155,11 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
 
       <div className="lg:flex">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:block w-64 bg-white border-r border-gray-200 min-h-screen sticky top-0">
+        <aside className="hidden lg:block w-64 h-[100vh] bg-white border-r border-gray-200 min-h-screen sticky top-0">
           <div className="p-6">
             <Link href="/member/dashboard">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-8">
-                PayPips
+                ReeTrack
               </h1>
             </Link>
 
@@ -142,13 +167,16 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
             <div className="mb-8 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                  {profile?.firstName?.charAt(0)}{profile?.lastName?.charAt(0)}
+                  {profile?.firstName?.charAt(0)}
+                  {profile?.lastName?.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-gray-900 truncate">
                     {profile?.firstName} {profile?.lastName}
                   </p>
-                  <p className="text-xs text-gray-600 truncate">{profile?.email}</p>
+                  <p className="text-xs text-gray-600 truncate">
+                    {profile?.email}
+                  </p>
                 </div>
               </div>
               <Link href="/member/profile">
@@ -168,8 +196,8 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
                     <button
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                         isActive
-                          ? 'bg-emerald-600 text-white'
-                          : 'text-gray-700 hover:bg-gray-100'
+                          ? "bg-emerald-600 text-white"
+                          : "text-gray-700 hover:bg-gray-100"
                       }`}
                     >
                       <Icon className="w-5 h-5" />
@@ -183,9 +211,9 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
               <Link href="/member/notifications">
                 <button
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    pathname === '/member/notifications'
-                      ? 'bg-emerald-600 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
+                    pathname === "/member/notifications"
+                      ? "bg-emerald-600 text-white"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
                   <div className="relative">
@@ -214,17 +242,21 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
                 onClick={handleLogout}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
               >
-                <LogOut className="w-5 h-5" />
-                <span className="font-medium">Logout</span>
+                {loading ? (
+                  <Spinner color="danger" />
+                ) : (
+                  <>
+                    <LogOut className="w-5 h-5" />
+                    <span className="font-medium">Logout</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1">
-          {children}
-        </main>
+        <main className="flex-1">{children}</main>
       </div>
     </div>
   );

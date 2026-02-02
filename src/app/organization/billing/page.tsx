@@ -76,7 +76,7 @@ export default function BillingPage() {
       alert("Subscription canceled");
       loadData();
     } catch (err) {
-      console.error('Failed to cancel subscription:', err);
+      console.error("Failed to cancel subscription:", err);
       alert("Failed to cancel");
     }
   };
@@ -156,7 +156,7 @@ export default function BillingPage() {
                   {invoice.status}
                 </Chip>
               </div>
-              {invoice.status === "pending" && (
+              {invoice.status === "failed" && (
                 <Button
                   size="sm"
                   color="primary"
