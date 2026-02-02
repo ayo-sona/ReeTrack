@@ -205,7 +205,7 @@ export function MembersTable({ members, isSearching = false, isLoading = false }
                   {/* Actions */}
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <Link
-                      href={`/enterprise/members/${member.id}`}
+                      href={`/organization/members/${member.id}`}
                       className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                     >
                       View Details
