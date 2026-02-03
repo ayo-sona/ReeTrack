@@ -3,7 +3,7 @@
 import React from "react";
 import { useAuth } from "../../features/auth/authContext";
 import { ThemeToggle } from "./ThemeToggle";
-import { NotificationCenter } from "../../components/dashboard/NotificationCenter";
+// import { NotificationCenter } from "../member/memberLayout";
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -15,13 +15,13 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-blue-600">Paypips</h1>
+            <h1 className="text-xl font-bold text-blue-600">ReeTrack</h1>
           </div>
 
           {/* Right side */}
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <NotificationCenter />
+            {/* <NotificationCenter /> */}
 
             {/* User menu */}
             <div className="relative">

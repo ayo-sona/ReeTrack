@@ -1,0 +1,181 @@
+'use client';
+
+import { useState } from 'react';
+import { Search, CreditCard, Pause, Play, X, QrCode } from 'lucide-react';
+import { useSubscriptions } from '@/hooks/memberHook/useMember';
+import Link from 'next/link';
+
+export default function SubscriptionsPage() {
+  const { data: subscriptions, isLoading } = useSubscriptions();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'paused' | 'expired' | 'canceled'>('all');
+
+  const filteredSubscriptions = subscriptions?.filter((sub) => {
+    const matchesSearch = sub.organizationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sub.planName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || sub.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-100 text-green-700';
+      case 'paused': return 'bg-yellow-100 text-yellow-700';
+      case 'expired': return 'bg-red-100 text-red-700';
+      case 'canceled': return 'bg-gray-100 text-gray-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active': return <Play className="w-4 h-4" />;
+      case 'paused': return <Pause className="w-4 h-4" />;
+      case 'canceled': return <X className="w-4 h-4" />;
+      default: return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">My Subscriptions</h1>
+          <p className="text-gray-600 mt-1">Manage all your active and past subscriptions</p>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search subscriptions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {['all', 'active', 'paused', 'expired', 'canceled'].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status as 'all' | 'active' | 'paused' | 'expired' | 'canceled')}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
+                    statusFilter === status
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Subscriptions List */}
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="animate-pulse">
+                <div className="h-32 bg-white rounded-xl border border-gray-100"></div>
+              </div>
+            ))}
+          </div>
+        ) : filteredSubscriptions && filteredSubscriptions.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {filteredSubscriptions.map((sub) => (
+              <Link key={sub.id} href={`/member/subscriptions/${sub.id}`}>
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                        {sub.organizationName.charAt(0)}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900">{sub.organizationName}</h3>
+                        <p className="text-sm text-gray-600">{sub.planName}</p>
+                      </div>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(sub.status)}`}>
+                      {getStatusIcon(sub.status)}
+                      {sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
+                    </span>
+                  </div>
+
+                  {/* Price */}
+                  <div className="flex items-baseline gap-1 mb-4">
+                    <span className="text-3xl font-bold text-gray-900">₦{sub.planPrice.toLocaleString()}</span>
+                    <span className="text-gray-600">/{sub.planInterval}</span>
+                  </div>
+
+                  {/* Features */}
+                  <div className="space-y-2 mb-4">
+                    {sub.features.slice(0, 3).map((feature, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full"></div>
+                        {feature}
+                      </div>
+                    ))}
+                    {sub.features.length > 3 && (
+                      <p className="text-sm text-gray-500">+{sub.features.length - 3} more features</p>
+                    )}
+                  </div>
+
+                  {/* Next Billing */}
+                  {sub.status === 'active' && sub.nextBillingDate && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <p className="text-sm text-gray-600">
+                        Next billing: <span className="font-medium text-gray-900">
+                          {new Date(sub.nextBillingDate).toLocaleDateString()}
+                        </span>
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Check-in Button for Active Subs */}
+                  {sub.status === 'active' && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        // Navigate to check-in
+                      }}
+                      className="mt-4 w-full py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <QrCode className="w-4 h-4" />
+                      Check In
+                    </button>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-100">
+            <CreditCard className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              {searchQuery || statusFilter !== 'all' ? 'No subscriptions found' : 'No subscriptions yet'}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              {searchQuery || statusFilter !== 'all' 
+                ? 'Try adjusting your search or filters'
+                : 'Subscribe to a plan to get started'}
+            </p>
+            {!searchQuery && statusFilter === 'all' && (
+              <button className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+                Browse Plans
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

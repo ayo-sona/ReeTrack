@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { paymentsApi, InitializePaymentDto } from '../lib/api/paymentsApi';
+import { paymentsApi, InitializePaymentDto } from '../lib/organizationAPI/paymentsApi';
 
 // Get all payments
 export const usePayments = (page: number = 1, limit: number = 10, status?: string) => {

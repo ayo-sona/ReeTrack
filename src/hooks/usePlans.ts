@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { plansApi, CreatePlanDto, UpdatePlanDto } from '../lib/api/plansApi';
+import { plansApi, CreatePlanDto, UpdatePlanDto } from '../lib/organizationAPI/plansApi';
 
 // Get all plans
 export const usePlans = (page: number = 1, limit: number = 10) => {

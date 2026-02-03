@@ -3,16 +3,20 @@
 import { useTheme } from "next-themes";
 import { Button } from "@heroui/react";
 import { Moon, Sun } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+// Custom hook to safely handle client-side only rendering
+function useHasMounted() {
+  return useSyncExternalStore(
+    () => () => {}, // subscribe (no-op)
+    () => true, // client-side: always return true
+    () => false // server-side: always return false
+  );
+}
 
 export function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHasMounted();
   const { theme, setTheme } = useTheme();
-
-  // Avoid hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   if (!mounted) {
     return (

@@ -3,7 +3,7 @@ import "./globals.css";
 import { Providers } from "../providers/Providers";
 
 export const metadata: Metadata = {
-  title: "ReeTrack Enterprise",
+  title: "ReeTrack Inc",
   description: "Manage your subscriptions and payments",
 };
 

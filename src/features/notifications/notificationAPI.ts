@@ -1,5 +1,5 @@
 // import apiClient from '../../lib/apiClient';
-import { Notification } from '../../types/notification';
+import { Notification } from '../../types/ping';
 
 export const notificationAPI = {
   async getAll(): Promise<Notification[]> {

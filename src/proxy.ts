@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const token = request.cookies.get("access_token")?.value;
-  // console.log("token", token);
+  const currentRole = request.cookies.get("current_role")?.value;
   const { pathname } = request.nextUrl;
+  // console.log("role", currentRole);
 
   // Public paths that don't require authentication
   const publicPaths = ["/auth"];
@@ -16,9 +17,21 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // If user is authenticated and trying to access auth pages
-  if (token && publicPaths.some((path) => pathname.startsWith(path))) {
-    return NextResponse.redirect(new URL("/select", request.url));
+  // Role-based route protection
+  if (token && currentRole) {
+    // Member trying to access organization routes
+    if (pathname.startsWith("/organization") && currentRole === "MEMBER") {
+      return NextResponse.redirect(new URL("/select-role", request.url));
+    }
+
+    // Organization admin/staff trying to access member routes
+    if (pathname.startsWith("/member") && currentRole === "ORG") {
+      return NextResponse.redirect(new URL("/select-role", request.url));
+    }
+  }
+
+  if (token && !currentRole && pathname.startsWith("/organization")) {
+    return NextResponse.redirect(new URL("/member/dashboard", request.url));
   }
 
   return NextResponse.next();

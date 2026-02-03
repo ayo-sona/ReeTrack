@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { membersApi, UpdateMemberDto } from '../lib/api/membersApi';
+import { membersApi, UpdateMemberDto } from '../lib/organizationAPI/membersApi';
 
 // Get all members (with optional role filter)
 export const useMembers = (search?: string) => {

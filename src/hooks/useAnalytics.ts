@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { analyticsApi } from "../lib/api/analyticsApi";
+import { analyticsApi } from "../lib/organizationAPI/analyticsApi";
 import { getCurrentOrganizationId } from "../utils/organisationUtils";
 import type {
   AnalyticsOverview,

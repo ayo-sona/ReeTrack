@@ -1,5 +1,5 @@
-import { Plan } from '../lib/api/plansApi';
-import { SubscriptionPlan } from '../types/enterprise';
+import { Plan } from '../lib/organizationAPI/plansApi';
+import { SubscriptionPlan } from '../types/organization';
 import { Currency } from '../types/common';
 
 /**
@@ -33,7 +33,7 @@ export const mapPlanToSubscriptionPlan = (plan: Plan): SubscriptionPlan => {
 
   return {
     id: plan.id,
-    enterpriseId: plan.organization_id,
+    organizationId: plan.organization_id,
     name: plan.name,
     description: plan.description || '',
     price: plan.price,

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Notification } from '../../types/notification';
+import { Notification } from '../../types/ping';
 import { notificationAPI } from './notificationAPI';
 
 interface NotificationContextType {

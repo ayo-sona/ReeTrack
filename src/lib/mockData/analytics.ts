@@ -45,5 +45,5 @@ import {
     { plan: 'Starter', count: 125, revenue: 5625000, percentage: 33.5 },
     { plan: 'Growth', count: 150, revenue: 12000000, percentage: 40.2 },
     { plan: 'Pro', count: 75, revenue: 9000000, percentage: 20.1 },
-    { plan: 'Enterprise', count: 23, revenue: 11500000, percentage: 6.2 },
+    { plan: 'Organization', count: 23, revenue: 11500000, percentage: 6.2 },
   ];

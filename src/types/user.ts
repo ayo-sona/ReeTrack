@@ -10,7 +10,7 @@ export interface User {
     country: string;
     currency: Currency;
     preferredGateway: PaymentGateway;
-    role: 'Enterprise' | 'owner';
+    role: 'organizaiton' | 'owner';
     avatar?: string;
     createdAt: string;
     onboardingCompleted: boolean;
