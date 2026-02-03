@@ -109,7 +109,7 @@ export class OrganizationsService {
 
   async getTeamMembers(organizationId: string) {
     const users = await this.organizationUserRepository.find({
-      where: { organization_id: organizationId },
+      where: { organization_id: organizationId, role: OrgRole.MEMBER },
       select: ['id', 'role', 'status'],
       relations: ['user'],
     });

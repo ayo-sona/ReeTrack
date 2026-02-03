@@ -5,6 +5,7 @@ import { MemberSubscription } from '../../database/entities/member-subscription.
 import { Invoice } from '../../database/entities/invoice.entity';
 import { Payment } from '../../database/entities/payment.entity';
 import {
+  OrgRole,
   PaymentPayerType,
   PaymentStatus,
   SubscriptionStatus,
@@ -34,6 +35,9 @@ import {
   format,
   isBefore,
   isEqual,
+  startOfDay,
+  endOfDay,
+  addDays,
 } from 'date-fns';
 
 @Injectable()
@@ -410,61 +414,89 @@ export class AnalyticsService {
     queryDto: AnalyticsQueryDto,
   ): Promise<RevenueChartData[]> {
     const { startDate, endDate } = this.getDateRange(queryDto);
-    // const days = Math.ceil(
-    //   (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-    // );
 
-    // If your dates are strings
-    // const days = differenceInDays(parseISO(endDate), parseISO(startDate));
+    const start = startOfDay(new Date(startDate));
+    const end = endOfDay(new Date(endDate));
 
-    // If your dates are already Date objects
-    const days = differenceInDays(endDate, startDate);
-    console.log('days', days);
+    // Single query to get all revenue grouped by day
+    const revenueByDay = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .select([
+        "TO_CHAR(payment.created_at, 'YYYY-MM-DD') as date", // Return as string directly
+        'COALESCE(SUM(payment.amount), 0) as total',
+      ])
+      .where('payment.payer_org_id = :orgId', { orgId: organizationId })
+      .andWhere('payment.payer_type = :payer_type', {
+        payer_type: PaymentPayerType.USER,
+      })
+      .andWhere('payment.status = :status', { status: PaymentStatus.SUCCESS })
+      .andWhere('payment.created_at >= :start AND payment.created_at <= :end', {
+        start,
+        end,
+      })
+      .groupBy("TO_CHAR(payment.created_at, 'YYYY-MM-DD')")
+      .getRawMany();
 
+    // Single query to get subscriptions grouped by day
+    const subscriptionsByDay = await this.memberSubscriptionRepository
+      .createQueryBuilder('subscription')
+      .select([
+        "TO_CHAR(subscription.created_at, 'YYYY-MM-DD') as date",
+        'COUNT(*) as count',
+      ])
+      .where('subscription.organization_id = :orgId', { orgId: organizationId })
+      .andWhere(
+        'subscription.created_at >= :start AND subscription.created_at <= :end',
+        {
+          start,
+          end,
+        },
+      )
+      .groupBy("TO_CHAR(subscription.created_at, 'YYYY-MM-DD')")
+      .getRawMany();
+
+    // Single query to get new members grouped by day
+    const membersByDay = await this.memberRepository
+      .createQueryBuilder('member')
+      .innerJoin('member.organization_user', 'org_user')
+      .select([
+        "TO_CHAR(member.created_at, 'YYYY-MM-DD') as date",
+        'COUNT(*) as count',
+      ])
+      .where('org_user.organization_id = :orgId', { orgId: organizationId })
+      .andWhere('member.created_at >= :start AND member.created_at <= :end', {
+        start,
+        end,
+      })
+      .groupBy("TO_CHAR(member.created_at, 'YYYY-MM-DD')")
+      .getRawMany();
+
+    // r.date is already a string in 'YYYY-MM-DD' format
+    const revenueMap = new Map(
+      revenueByDay.map((r) => [r.date, parseFloat(r.total) || 0]),
+    );
+
+    const subscriptionsMap = new Map(
+      subscriptionsByDay.map((s) => [s.date, parseInt(s.count) || 0]),
+    );
+
+    const membersMap = new Map(
+      membersByDay.map((m) => [m.date, parseInt(m.count) || 0]),
+    );
+
+    // Generate complete date range with data
+    const days = differenceInDays(end, start);
     const chartData: RevenueChartData[] = [];
 
-    // Generate data points for each day
     for (let i = 0; i <= days; i++) {
-      const date = new Date(startDate);
-      date.setDate(date.getDate() + i);
-      // console.log('currentDate', date);
-
-      const nextDate = new Date(date);
-      nextDate.setDate(nextDate.getDate() + 1);
-      // console.log('nextDate', nextDate);
-
-      const [revenue, subscriptions, members] = await Promise.all([
-        this.paymentRepository
-          .createQueryBuilder('payment')
-          .select('COALESCE(SUM(amount), 0)', 'total')
-          .where('payer_org_id = :orgId', { orgId: organizationId })
-          .andWhere('payer_type = :payer_type', {
-            payer_type: PaymentPayerType.USER,
-          })
-          .andWhere('status = :status', { status: PaymentStatus.SUCCESS })
-          .andWhere('created_at >= :start', { start: date })
-          .andWhere('created_at < :end', { end: nextDate })
-          .getRawOne(),
-        this.memberSubscriptionRepository.count({
-          where: {
-            organization_id: organizationId,
-            created_at: Between(date, nextDate),
-          },
-        }),
-        this.memberRepository.count({
-          where: {
-            organization_user: { organization_id: organizationId },
-            created_at: Between(date, nextDate),
-          },
-          relations: ['organization_user'],
-        }),
-      ]);
+      const currentDay = addDays(start, i);
+      const dateKey = format(currentDay, 'yyyy-MM-dd');
 
       chartData.push({
-        date: date.toISOString().split('T')[0],
-        revenue: parseFloat(revenue.total),
-        subscriptions,
-        members,
+        date: dateKey,
+        revenue: revenueMap.get(dateKey) || 0,
+        subscriptions: subscriptionsMap.get(dateKey) || 0,
+        members: membersMap.get(dateKey) || 0,
       });
     }
 
@@ -566,27 +598,25 @@ export class AnalyticsService {
     const members = await this.memberRepository
       .createQueryBuilder('member')
       .leftJoinAndSelect('member.organization_user', 'org_user')
-      .leftJoinAndSelect('org_user.user', 'user')
-      .leftJoinAndSelect(
-        'member.subscriptions',
-        'subscription',
-        'subscription.status = :status',
-        { status: SubscriptionStatus.ACTIVE },
-      )
-      .leftJoinAndSelect('subscription.plan', 'plan')
+      .leftJoinAndSelect('member.user', 'user')
+      .leftJoinAndSelect('member.subscriptions', 'subscriptions')
+      .leftJoinAndSelect('subscriptions.plan', 'plan')
       .where('org_user.organization_id = :orgId', { orgId: organizationId })
+      .andWhere('org_user.role = :role', { role: OrgRole.MEMBER })
       .orderBy('member.created_at', 'DESC')
       .getMany();
 
     const reportItems = members.map((member) => {
-      const activeSubscription = member.subscriptions?.[0];
+      const activeSubscription = member.subscriptions?.find(
+        (sub) => sub.status === SubscriptionStatus.ACTIVE,
+      );
       const plan = activeSubscription?.plan;
 
       return {
         id: member.id,
-        name: `${member.organization_user?.user?.first_name || ''} ${member.organization_user?.user?.last_name || ''}`.trim(),
-        email: member.organization_user?.user?.email || '',
-        phone: member.organization_user?.user?.phone || '',
+        name: `${member.user?.first_name || ''} ${member.user?.last_name || ''}`.trim(),
+        email: member.user?.email || '',
+        phone: member.user?.phone || '',
         plan: plan?.name || 'No active plan',
         subscriptionStatus: activeSubscription?.status || 'inactive',
         joinDate: member.created_at?.toISOString().split('T')[0] || '',
@@ -641,6 +671,7 @@ export class AnalyticsService {
     const start = startOfMonth(new Date(startDate));
     const end = endOfMonth(new Date(endDate));
 
+    // console.log(start, end);
     // Single query to get all revenue data grouped by month
     const revenueByMonth = await this.paymentRepository
       .createQueryBuilder('payment')
@@ -688,6 +719,8 @@ export class AnalyticsService {
       .groupBy("DATE_TRUNC('month', member.created_at)")
       .getRawMany();
 
+    // console.log(revenueByMonth);
+
     // Create lookup maps for O(1) access
     const revenueMap = new Map(
       revenueByMonth.map((r) => [
@@ -723,29 +756,31 @@ export class AnalyticsService {
       currentMonth = addMonths(currentMonth, 1);
     }
 
-    const revenueData = months.map((month, i) => {
+    const revenueData = months.reduce((acc, month, i) => {
       const monthKey = format(month, 'yyyy-MM');
       const totalRevenue = revenueMap.get(monthKey) || 0;
       const subscriptions = subscriptionsMap.get(monthKey) || 0;
       const memberCount = memberCountMap.get(monthKey) || 0;
       const avgPerMember = memberCount > 0 ? totalRevenue / memberCount : 0;
 
-      // Calculate growth
+      // Calculate growth - access previous item from accumulator
       let growth = '0%';
-      if (i > 0 && revenueData[i - 1].totalRevenue > 0) {
-        const prevRevenue = revenueData[i - 1].totalRevenue;
+      if (i > 0 && acc[i - 1].totalRevenue > 0) {
+        const prevRevenue = acc[i - 1].totalRevenue;
         const growthValue = ((totalRevenue - prevRevenue) / prevRevenue) * 100;
         growth = `${growthValue >= 0 ? '+' : ''}${growthValue.toFixed(1)}%`;
       }
 
-      return {
+      acc.push({
         period: format(month, 'MMMM yyyy'),
         totalRevenue: Math.round(totalRevenue * 100) / 100,
         subscriptions,
         averagePerMember: Math.round(avgPerMember * 100) / 100,
         growth,
-      };
-    });
+      });
+
+      return acc;
+    }, [] as any[]);
 
     return { revenue: revenueData };
   }
