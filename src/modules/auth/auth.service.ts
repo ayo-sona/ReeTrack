@@ -24,6 +24,7 @@ import { OrgRole } from 'src/common/enums/enums';
 import { OrganizationInvite } from 'src/database/entities/organization-invite.entity';
 import { StaffRegisterDto } from 'src/common/dto/staff-register.dto';
 import type { Request, Response } from 'express';
+import { UserRegisterDto } from 'src/common/dto/user-register.dto';
 
 interface AuthResponse {
   message: string;
@@ -40,8 +41,6 @@ interface AuthResponse {
       last_name: string;
       phone: string;
     };
-    access_token: string;
-    refresh_token?: string;
   };
 }
 
@@ -128,13 +127,6 @@ export class AuthService {
 
     const savedOrgUser = await this.organizationUserRepository.save(orgUser);
 
-    // Generate tokens
-    const { accessToken, refreshToken } = await this.generateTokens(
-      user,
-      null,
-      null,
-    );
-
     // Send welcome email
     await this.notificationsService.sendWelcomeEmail({
       email: user.email,
@@ -157,8 +149,6 @@ export class AuthService {
           last_name: user.last_name,
           phone: user.phone,
         },
-        access_token: accessToken,
-        refresh_token: refreshToken,
       },
     };
   }
@@ -230,13 +220,6 @@ export class AuthService {
 
     await this.memberRepository.save(member);
 
-    // Generate tokens
-    const { accessToken, refreshToken } = await this.generateTokens(
-      user,
-      null,
-      null,
-    );
-
     // Send welcome email
     await this.notificationsService.sendWelcomeEmail({
       email: user.email,
@@ -247,15 +230,13 @@ export class AuthService {
     return {
       message: 'Registration successful',
       data: {
-        customer: {
+        user: {
           id: user.id,
           email: user.email,
           first_name: user.first_name,
           last_name: user.last_name,
           phone: user.phone,
         },
-        access_token: accessToken,
-        refresh_token: refreshToken,
       },
     };
   }
@@ -406,13 +387,6 @@ export class AuthService {
 
     await this.organizationUserRepository.save(orgUser);
 
-    // Generate tokens
-    const { accessToken, refreshToken } = await this.generateTokens(
-      user,
-      null,
-      null,
-    );
-
     // Send welcome email
     await this.notificationsService.sendWelcomeEmail({
       email: user.email,
@@ -421,17 +395,60 @@ export class AuthService {
     });
 
     return {
-      message: 'Registration successful',
+      message: 'User registration successful',
       data: {
-        customer: {
+        user: {
           id: user.id,
           email: user.email,
           first_name: user.first_name,
           last_name: user.last_name,
           phone: user.phone,
         },
-        access_token: accessToken,
-        refresh_token: refreshToken,
+      },
+    };
+  }
+
+  async registerUser(registerDto: UserRegisterDto) {
+    // Check if user email exists
+    let user = await this.userRepository.findOne({
+      where: { email: registerDto.email },
+    });
+
+    if (user) {
+      throw new ConflictException('User already exists');
+    } else {
+      // Create new user
+      const password_hash = await bcrypt.hash(registerDto.password, 10);
+
+      user = this.userRepository.create({
+        email: registerDto.email,
+        password_hash,
+        first_name: registerDto.firstName,
+        last_name: registerDto.lastName,
+        phone: registerDto.phone,
+        status: 'active',
+      });
+
+      user = await this.userRepository.save(user);
+    }
+
+    // Send welcome email
+    await this.notificationsService.sendWelcomeEmail({
+      email: user.email,
+      userName: `${user.first_name} ${user.last_name}`,
+      organizationName: 'ReeTrack Inc',
+    });
+
+    return {
+      message: 'User registration successful',
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          phone: user.phone,
+        },
       },
     };
   }
@@ -596,11 +613,16 @@ export class AuthService {
     };
   }
 
-  async getProfile(userId: string) {
+  async getProfile(userId: string, organizationId: string) {
     // Get user organization with their roles
     const orgUser = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['organization_users', 'organization_users.organization'],
+      where: {
+        id: userId,
+        organization_users: {
+          organization_id: organizationId,
+        },
+      },
+      relations: ['organization_users.organization'],
     });
 
     if (!orgUser) {
@@ -618,6 +640,8 @@ export class AuthService {
         name: orgUser.organization.name,
         email: orgUser.organization.email,
         role: orgUser.role,
+        address: orgUser.organization.address,
+        website: orgUser.organization.website,
       })),
     };
   }

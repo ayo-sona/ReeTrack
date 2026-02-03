@@ -18,10 +18,23 @@ import {
   MemberGrowthData,
   RevenueChartData,
   PlanPerformanceData,
+  MemberReport,
+  PaymentReport,
+  RevenueReport,
+  PlanReport,
 } from './interfaces/analytics.interface';
 import { AnalyticsQueryDto } from './dto/analytics-query.dto';
 import { TimePeriod } from 'src/common/enums/enums';
-import { differenceInDays, parseISO } from 'date-fns';
+import {
+  differenceInDays,
+  parseISO,
+  startOfMonth,
+  endOfMonth,
+  addMonths,
+  format,
+  isBefore,
+  isEqual,
+} from 'date-fns';
 
 @Injectable()
 export class AnalyticsService {
@@ -546,9 +559,255 @@ export class AnalyticsService {
   }
 
   // ============================================
+  // REPORTS
+  // ============================================
+
+  async getMembersReport(organizationId: string): Promise<MemberReport> {
+    const members = await this.memberRepository
+      .createQueryBuilder('member')
+      .leftJoinAndSelect('member.organization_user', 'org_user')
+      .leftJoinAndSelect('org_user.user', 'user')
+      .leftJoinAndSelect(
+        'member.subscriptions',
+        'subscription',
+        'subscription.status = :status',
+        { status: SubscriptionStatus.ACTIVE },
+      )
+      .leftJoinAndSelect('subscription.plan', 'plan')
+      .where('org_user.organization_id = :orgId', { orgId: organizationId })
+      .orderBy('member.created_at', 'DESC')
+      .getMany();
+
+    const reportItems = members.map((member) => {
+      const activeSubscription = member.subscriptions?.[0];
+      const plan = activeSubscription?.plan;
+
+      return {
+        id: member.id,
+        name: `${member.organization_user?.user?.first_name || ''} ${member.organization_user?.user?.last_name || ''}`.trim(),
+        email: member.organization_user?.user?.email || '',
+        phone: member.organization_user?.user?.phone || '',
+        plan: plan?.name || 'No active plan',
+        subscriptionStatus: activeSubscription?.status || 'inactive',
+        joinDate: member.created_at?.toISOString().split('T')[0] || '',
+        nextBilling:
+          activeSubscription?.expires_at?.toISOString().split('T')[0] || '',
+      };
+    });
+
+    return { members: reportItems };
+  }
+
+  async getPaymentsReport(
+    organizationId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<PaymentReport> {
+    const payments = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .leftJoinAndSelect('payment.payer_user', 'user')
+      .leftJoinAndSelect('payment.invoice', 'invoice')
+      .leftJoinAndSelect('invoice.member_subscription', 'subscription')
+      .leftJoinAndSelect('subscription.plan', 'plan')
+      .where('payment.payer_org_id = :orgId', { orgId: organizationId })
+      .andWhere('payment.created_at BETWEEN :start AND :end', {
+        start: startDate,
+        end: endDate,
+      })
+      .orderBy('payment.created_at', 'DESC')
+      .getMany();
+
+    const reportItems = payments.map((payment) => ({
+      id: payment.id,
+      date: payment.created_at.toISOString().split('T')[0],
+      memberName: payment.payer_user
+        ? `${payment.payer_user.first_name} ${payment.payer_user.last_name}`.trim()
+        : 'Unknown',
+      amount: payment.amount,
+      plan: payment.invoice?.member_subscription?.plan?.name || 'N/A',
+      paymentProvider: payment.provider,
+      status: payment.status,
+      reference: payment.provider_reference || '',
+    }));
+
+    return { payments: reportItems };
+  }
+
+  async getRevenueReport(
+    organizationId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<RevenueReport> {
+    const start = startOfMonth(new Date(startDate));
+    const end = endOfMonth(new Date(endDate));
+
+    // Single query to get all revenue data grouped by month
+    const revenueByMonth = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .select([
+        "DATE_TRUNC('month', payment.created_at) as month",
+        'COALESCE(SUM(payment.amount), 0) as total_revenue',
+        'COUNT(*) as payment_count',
+      ])
+      .where('payment.payer_org_id = :orgId', { orgId: organizationId })
+      .andWhere('payment.status = :status', { status: PaymentStatus.SUCCESS })
+      .andWhere('payment.payer_type = :type', { type: PaymentPayerType.USER })
+      .andWhere('payment.created_at >= :start AND payment.created_at <= :end', {
+        start,
+        end,
+      })
+      .groupBy("DATE_TRUNC('month', payment.created_at)")
+      .orderBy('month', 'ASC')
+      .getRawMany();
+
+    // Single query to get subscriptions grouped by month
+    const subscriptionsByMonth = await this.memberSubscriptionRepository
+      .createQueryBuilder('subscription')
+      .select([
+        "DATE_TRUNC('month', subscription.created_at) as month",
+        'COUNT(*) as count',
+      ])
+      .where('subscription.organization_id = :orgId', { orgId: organizationId })
+      .andWhere(
+        'subscription.created_at >= :start AND subscription.created_at <= :end',
+        { start, end },
+      )
+      .groupBy("DATE_TRUNC('month', subscription.created_at)")
+      .getRawMany();
+
+    // Get total member count up to end date (single query)
+    const memberCountByMonth = await this.memberRepository
+      .createQueryBuilder('member')
+      .innerJoin('member.organization_user', 'org_user')
+      .select([
+        "DATE_TRUNC('month', member.created_at) as month",
+        'COUNT(*) as count',
+      ])
+      .where('org_user.organization_id = :orgId', { orgId: organizationId })
+      .andWhere('member.created_at <= :end', { end })
+      .groupBy("DATE_TRUNC('month', member.created_at)")
+      .getRawMany();
+
+    // Create lookup maps for O(1) access
+    const revenueMap = new Map(
+      revenueByMonth.map((r) => [
+        format(new Date(r.month), 'yyyy-MM'),
+        parseFloat(r.total_revenue),
+      ]),
+    );
+
+    const subscriptionsMap = new Map(
+      subscriptionsByMonth.map((s) => [
+        format(new Date(s.month), 'yyyy-MM'),
+        parseInt(s.count),
+      ]),
+    );
+
+    // Calculate cumulative member count
+    let cumulativeMemberCount = 0;
+    const memberCountMap = new Map();
+    for (const m of memberCountByMonth) {
+      cumulativeMemberCount += parseInt(m.count);
+      memberCountMap.set(
+        format(new Date(m.month), 'yyyy-MM'),
+        cumulativeMemberCount,
+      );
+    }
+
+    // Generate report for each month
+    const months: Date[] = [];
+    let currentMonth = start;
+
+    while (isBefore(currentMonth, end) || isEqual(currentMonth, end)) {
+      months.push(currentMonth);
+      currentMonth = addMonths(currentMonth, 1);
+    }
+
+    const revenueData = months.map((month, i) => {
+      const monthKey = format(month, 'yyyy-MM');
+      const totalRevenue = revenueMap.get(monthKey) || 0;
+      const subscriptions = subscriptionsMap.get(monthKey) || 0;
+      const memberCount = memberCountMap.get(monthKey) || 0;
+      const avgPerMember = memberCount > 0 ? totalRevenue / memberCount : 0;
+
+      // Calculate growth
+      let growth = '0%';
+      if (i > 0 && revenueData[i - 1].totalRevenue > 0) {
+        const prevRevenue = revenueData[i - 1].totalRevenue;
+        const growthValue = ((totalRevenue - prevRevenue) / prevRevenue) * 100;
+        growth = `${growthValue >= 0 ? '+' : ''}${growthValue.toFixed(1)}%`;
+      }
+
+      return {
+        period: format(month, 'MMMM yyyy'),
+        totalRevenue: Math.round(totalRevenue * 100) / 100,
+        subscriptions,
+        averagePerMember: Math.round(avgPerMember * 100) / 100,
+        growth,
+      };
+    });
+
+    return { revenue: revenueData };
+  }
+
+  async getPlansReport(organizationId: string): Promise<PlanReport> {
+    const plans = await this.memberPlanRepository
+      .createQueryBuilder('plan')
+      .leftJoinAndSelect('plan.subscriptions', 'subscription')
+      .leftJoinAndSelect('subscription.invoices', 'invoice')
+      .leftJoinAndSelect(
+        'invoice.payments',
+        'payment',
+        'payment.status = :status',
+        {
+          status: PaymentStatus.SUCCESS,
+        },
+      )
+      .where('plan.organization_id = :orgId', { orgId: organizationId })
+      .getMany();
+
+    const reportItems = await Promise.all(
+      plans.map(async (plan) => {
+        const activeSubscriptions =
+          plan.subscriptions?.filter(
+            (sub) => sub.status === SubscriptionStatus.ACTIVE,
+          ).length || 0;
+
+        const totalRevenue =
+          plan.subscriptions?.reduce((sum, sub) => {
+            const subscriptionRevenue = sub.invoices?.reduce(
+              (invoiceSum, inv) => {
+                const paidAmount = inv.payments?.reduce(
+                  (paymentSum, p) => paymentSum + parseFloat(p.amount as any),
+                  0,
+                );
+                return invoiceSum + (paidAmount || 0);
+              },
+              0,
+            );
+            return sum + (subscriptionRevenue || 0);
+          }, 0) || 0;
+
+        return {
+          id: plan.id,
+          name: plan.name,
+          price: plan.price,
+          duration: plan.interval,
+          activeMembers: activeSubscriptions,
+          totalRevenue: Math.round(totalRevenue * 100) / 100,
+          status: plan.is_active ? 'active' : 'inactive',
+        };
+      }),
+    );
+
+    return { plans: reportItems };
+  }
+
+  // ============================================
   // HELPER METHODS
   // ============================================
-  private getDateRange(queryDto: AnalyticsQueryDto): {
+
+  getDateRange(queryDto: AnalyticsQueryDto): {
     startDate: Date;
     endDate: Date;
   } {
@@ -602,7 +861,7 @@ export class AnalyticsService {
     return { startDate, endDate };
   }
 
-  private normalizeToMonthly(
+  normalizeToMonthly(
     amount: number,
     interval: string,
     intervalCount: number,

@@ -40,3 +40,59 @@ export interface PlanPerformanceData {
   revenue: number;
   conversion_rate: number;
 }
+
+export interface MemberReportItem {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  plan: string;
+  subscriptionStatus: string;
+  joinDate: string;
+  nextBilling: string;
+}
+
+export interface MemberReport {
+  members: MemberReportItem[];
+}
+
+export interface PaymentReportItem {
+  id: string;
+  date: string;
+  memberName: string;
+  amount: number;
+  plan: string;
+  paymentProvider: string;
+  status: string;
+  reference: string;
+}
+
+export interface PaymentReport {
+  payments: PaymentReportItem[];
+}
+
+export interface RevenueReportItem {
+  period: string;
+  totalRevenue: number;
+  subscriptions: number;
+  averagePerMember: number;
+  growth: string;
+}
+
+export interface RevenueReport {
+  revenue: RevenueReportItem[];
+}
+
+export interface PlanReportItem {
+  id: string;
+  name: string;
+  price: number;
+  duration: string;
+  activeMembers: number;
+  totalRevenue: number;
+  status: string;
+}
+
+export interface PlanReport {
+  plans: PlanReportItem[];
+}

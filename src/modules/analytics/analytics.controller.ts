@@ -73,4 +73,80 @@ export class AnalyticsController {
   getTopMembers(@Param('organizationId') organizationId: string) {
     return this.analyticsService.getTopMembers(organizationId);
   }
+
+  @Get('reports/members/:organizationId')
+  @ApiOperation({ summary: 'Get members report' })
+  @ApiResponse({ status: 200, description: 'Members report' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async getMembersReport(@Param('organizationId') organizationId: string) {
+    const report = await this.analyticsService.getMembersReport(organizationId);
+    return {
+      message: 'Members report retrieved successfully',
+      data: report,
+    };
+  }
+
+  @Get('reports/payments/:organizationId')
+  @ApiOperation({ summary: 'Get payments report' })
+  @ApiResponse({ status: 200, description: 'Payments report' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async getPaymentsReport(
+    @Param('organizationId') organizationId: string,
+    @Query() queryDto: AnalyticsQueryDto,
+  ) {
+    const { startDate, endDate } = this.analyticsService.getDateRange(queryDto);
+    const report = await this.analyticsService.getPaymentsReport(
+      organizationId,
+      startDate,
+      endDate,
+    );
+    return {
+      message: 'Payments report retrieved successfully',
+      data: report,
+      period: {
+        start: startDate,
+        end: endDate,
+      },
+    };
+  }
+
+  @Get('reports/revenue/:organizationId')
+  @ApiOperation({ summary: 'Get revenue report' })
+  @ApiResponse({ status: 200, description: 'Revenue report' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async getRevenueReport(
+    @Param('organizationId') organizationId: string,
+    @Query() queryDto: AnalyticsQueryDto,
+  ) {
+    const { startDate, endDate } = this.analyticsService.getDateRange(queryDto);
+    const report = await this.analyticsService.getRevenueReport(
+      organizationId,
+      startDate,
+      endDate,
+    );
+    return {
+      message: 'Revenue report retrieved successfully',
+      data: report,
+      period: {
+        start: startDate,
+        end: endDate,
+      },
+    };
+  }
+
+  @Get('reports/plans/:organizationId')
+  @ApiOperation({ summary: 'Get plans report' })
+  @ApiResponse({ status: 200, description: 'Plans report' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async getPlansReport(@Param('organizationId') organizationId: string) {
+    const report = await this.analyticsService.getPlansReport(organizationId);
+    return {
+      message: 'Plans report retrieved successfully',
+      data: report,
+    };
+  }
 }

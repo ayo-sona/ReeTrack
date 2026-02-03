@@ -23,6 +23,7 @@ import { Throttle } from '@nestjs/throttler';
 import { SkipThrottle } from '../../common/decorators/throttle-skip.decorator';
 import { MemberRegisterDto } from 'src/common/dto/member-register.dto';
 import { CurrentOrganization } from 'src/common/decorators/organization.decorator';
+import { UserRegisterDto } from 'src/common/dto/user-register.dto';
 
 type RequestUser = {
   id: string;
@@ -70,21 +71,7 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const result = await this.authService.registerOrganization(registerDto);
-    const refreshToken = result.data.refresh_token;
-    if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token not found');
-    }
-    // Set refresh token in HTTP-only cookie
-    this.authService.setAuthCookies(response, {
-      refreshToken,
-    });
-
-    // Create a new object without refresh_token
-    const { refresh_token, ...data } = result.data;
-    return {
-      ...result,
-      data,
-    };
+    return result.data;
   }
 
   @Post('register-member')
@@ -117,21 +104,7 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const result = await this.authService.registerMember(registerDto);
-    const refreshToken = result.data.refresh_token;
-    if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token not found');
-    }
-    // Set refresh token in HTTP-only cookie
-    this.authService.setAuthCookies(response, {
-      refreshToken,
-    });
-
-    // Create a new object without refresh_token
-    const { refresh_token, ...data } = result.data;
-    return {
-      ...result,
-      data,
-    };
+    return result.data;
   }
 
   @Post('custom/register-member')
@@ -166,6 +139,33 @@ export class AuthController {
       registerDto,
     );
     return result;
+  }
+
+  @Post('register-user')
+  @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 requests per minute
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiResponse({
+    status: 201,
+    description: 'User successfully registered',
+    content: {
+      'application/json': {
+        example: {
+          user: {
+            email: 'levi@life.com',
+            firstName: 'Levi',
+            lastName: 'Ackerman',
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 409, description: 'Email already exists' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async registerUser(@Body() registerDto: UserRegisterDto) {
+    const result = await this.authService.registerUser(registerDto);
+    return result.data;
   }
 
   @Post('login')
@@ -343,7 +343,10 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async getProfile(@CurrentUser() user: any) {
-    return this.authService.getProfile(user.id);
+  async getProfile(
+    @CurrentUser() user: any,
+    @CurrentOrganization() organizationId: string,
+  ) {
+    return this.authService.getProfile(user.id, organizationId);
   }
 }

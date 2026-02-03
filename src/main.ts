@@ -95,10 +95,10 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('Willow API')
-    .setDescription('The Willow API documentation')
+    .setTitle('ReeTrack API')
+    .setDescription('The ReeTrack API documentation')
     .setVersion('1.0')
-    .setContact('Willow', 'https://paypips.vercel.app', 'keneusih@gmail.com')
+    .setContact('ReeTrack', 'https://paypips.vercel.app', 'keneusih@gmail.com')
     .addBearerAuth(
       {
         type: 'http',
@@ -117,7 +117,7 @@ async function bootstrap() {
   const port = configService.get('app.port');
   await app.listen(port);
 
-  console.log(`💰️ Willow API running on http://localhost:${port}/api`);
+  console.log(`💰️ ReeTrack API running on http://localhost:${port}/api`);
   console.log(
     `📡 Webhook endpoint: http://localhost:${port}/${apiPrefix}/webhooks/paystack`,
   );

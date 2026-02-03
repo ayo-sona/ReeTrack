@@ -26,7 +26,7 @@ export class NotificationsController {
     try {
       const result = await this.emailService.sendEmail({
         to: testRecipient,
-        subject: 'Test Email from Willow',
+        subject: 'Test Email from ReeTrack',
         template: 'test',
         context: { test: true },
       });
@@ -63,7 +63,7 @@ export class NotificationsController {
         to: { type: 'string', example: 'ayomideogunsona13@gmail.com' },
         context: {
           type: 'object',
-          example: { userName: 'Ayo Sona', organizationName: 'Willow' },
+          example: { userName: 'Ayo Sona', organizationName: 'ReeTrack' },
         },
       },
     },
@@ -74,7 +74,7 @@ export class NotificationsController {
       await this.notificationsService.sendWelcomeEmail({
         email: emailOptions.to,
         userName: emailOptions.context?.userName || 'User',
-        organizationName: emailOptions.context?.organizationName || 'Willow',
+        organizationName: emailOptions.context?.organizationName || 'ReeTrack',
       });
       return { success: true, message: 'Welcome email sent successfully' };
     } catch (error) {
@@ -92,7 +92,7 @@ export class NotificationsController {
   //     try {
   //       await this.notificationsService.sendSms({
   //         to: smsOptions.to,
-  //         message: smsOptions.message || 'This is a test SMS from Willow',
+  //         message: smsOptions.message || 'This is a test SMS from ReeTrack',
   //       });
   //       return { success: true, message: 'Test SMS sent successfully' };
   //     } catch (error) {

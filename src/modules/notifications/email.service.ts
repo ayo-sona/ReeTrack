@@ -87,7 +87,7 @@ export class EmailService {
             <p>You can now start managing your subscriptions and members.</p>
           </div>
           <div class="footer">
-            <p>This is an automated email from WIllow</p>
+            <p>This is an automated email from ReeTrack</p>
           </div>
         </div>
       </body>
@@ -129,7 +129,7 @@ export class EmailService {
             <p>Thank you for your payment!</p>
           </div>
           <div class="footer">
-            <p>This is an automated email from WIllow</p>
+            <p>This is an automated email from ReeTrack</p>
           </div>
         </div>
       </body>
@@ -173,7 +173,7 @@ export class EmailService {
             </p>
           </div>
           <div class="footer">
-            <p>This is an automated email from WIllow</p>
+            <p>This is an automated email from ReeTrack</p>
           </div>
         </div>
       </body>
@@ -215,7 +215,7 @@ export class EmailService {
             <p>Thank you for subscribing!</p>
           </div>
           <div class="footer">
-            <p>This is an automated email from WIllow</p>
+            <p>This is an automated email from ReeTrack</p>
           </div>
         </div>
       </body>
@@ -252,7 +252,7 @@ export class EmailService {
             </p>
           </div>
           <div class="footer">
-            <p>This is an automated email from WIllow</p>
+            <p>This is an automated email from ReeTrack</p>
           </div>
         </div>
       </body>
@@ -288,7 +288,7 @@ export class EmailService {
             </p>
           </div>
           <div class="footer">
-            <p>This is an automated email from WIllow</p>
+            <p>This is an automated email from ReeTrack</p>
           </div>
         </div>
       </body>
@@ -331,7 +331,7 @@ export class EmailService {
             </p>
           </div>
           <div class="footer">
-            <p>This is an automated email from WIllow</p>
+            <p>This is an automated email from ReeTrack</p>
           </div>
         </div>
       </body>
@@ -375,7 +375,7 @@ export class EmailService {
             </p>
           </div>
           <div class="footer">
-            <p>This is an automated email from WIllow</p>
+            <p>This is an automated email from ReeTrack</p>
           </div>
         </div>
       </body>
@@ -388,7 +388,7 @@ export class EmailService {
       <!DOCTYPE html>
       <html>
       <body>
-        <p>${context.message || 'Notification from WIllow'}</p>
+        <p>${context.message || 'Notification from ReeTrack'}</p>
       </body>
       </html>
     `;
