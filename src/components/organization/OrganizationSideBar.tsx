@@ -15,6 +15,7 @@ import {
   ScanLine,
 } from "lucide-react";
 import clsx from "clsx";
+import { useEffect, useState } from "react";
 
 const navigation = [
   { name: "Dashboard", href: "/organization/dashboard", icon: LayoutDashboard },
@@ -39,8 +40,17 @@ const navigation = [
 
 export function OrganizationSidebar() {
   const pathname = usePathname();
-  const { user } = JSON.parse(localStorage.getItem("userData") || "{}");
-  // console.log(user);
+  const [user, setUser] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+  });
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    setUser(userData.user);
+    // console.log(userData.user);
+  }, []);
 
   return (
     <div className="flex w-64 flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">

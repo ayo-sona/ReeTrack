@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { organizationsApi } from '../lib/organizationAPI/organisationsApi';
-import { getCurrentOrganizationId } from '../utils/organisationUtils';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { organizationsApi } from "../lib/organizationAPI/organisationsApi";
+import { getCurrentOrganizationId } from "../utils/organisationUtils";
 
 // Define a proper type for your organization data
 // interface Organization {
@@ -19,7 +19,7 @@ interface UpdateOrganizationData {
 // Get organization by slug
 export const useOrganizationBySlug = (slug: string) => {
   return useQuery({
-    queryKey: ['organizations', 'slug', slug],
+    queryKey: ["organizations", "slug", slug],
     queryFn: () => organizationsApi.getBySlug(slug),
     enabled: !!slug,
   });
@@ -28,17 +28,20 @@ export const useOrganizationBySlug = (slug: string) => {
 // Get team members
 export const useTeamMembers = () => {
   const organizationId = getCurrentOrganizationId();
-  
+
   return useQuery({
-    queryKey: ['organizations', organizationId, 'team'],
-    queryFn: () => organizationsApi.getTeamMembers(organizationId),
+    queryKey: ["organizations", organizationId, "team"],
+    queryFn: () =>
+      organizationId
+        ? organizationsApi.getTeamMembers(organizationId)
+        : Promise.resolve([]),
   });
 };
 
 // Get organization stats
 export const useOrganizationStats = () => {
   return useQuery({
-    queryKey: ['organizations', 'stats'],
+    queryKey: ["organizations", "stats"],
     queryFn: () => organizationsApi.getStats(),
   });
 };
@@ -46,11 +49,12 @@ export const useOrganizationStats = () => {
 // Update organization
 export const useUpdateOrganization = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (data: Partial<UpdateOrganizationData>) => organizationsApi.update(data),
+    mutationFn: (data: Partial<UpdateOrganizationData>) =>
+      organizationsApi.update(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
     },
   });
 };
@@ -58,11 +62,11 @@ export const useUpdateOrganization = () => {
 // Remove user from organization
 export const useRemoveUser = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (userId: string) => organizationsApi.removeUser(userId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
     },
   });
 };
