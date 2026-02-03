@@ -1,35 +1,73 @@
 "use client";
 
-import { useState } from "react";
-import { Building2, User, Save } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Building2, User, Save, Loader2 } from "lucide-react";
+import apiClient from "@/lib/apiClient";
 
 export default function SettingsPage() {
   const [orgData, setOrgData] = useState({
-    name: "GymFitness Lagos",
-    email: "Organization@gymfitness.ng",
-    phone: "+234 801 234 5678",
-    address: "123 Victoria Island, Lagos, Nigeria",
-    website: "https://gymfitness.ng",
+    name: "",
+    email: "",
+    address: "",
+    website: "",
+    role: "",
   });
 
   const [profileData, setProfileData] = useState({
-    name: "Organization User",
-    email: "Entrerprise@reetrack.com",
-    phone: "+234 901 234 5678",
-    role: "super_Organization",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
   });
+  const [loading, setLoading] = useState(false);
 
-  const handleOrgSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    async function fetchProfile() {
+      setLoading(true);
+      try {
+        const response = await apiClient.get("/auth/profile");
+        setProfileData({
+          firstName: response.data.data.first_name,
+          lastName: response.data.data.last_name,
+          email: response.data.data.email,
+          phone: response.data.data.phone,
+        });
+        setOrgData({
+          name: response.data.data.organizations[0].name,
+          email: response.data.data.organizations[0].email,
+          address: response.data.data.organizations[0].address,
+          website: response.data.data.organizations[0].website,
+          role: response.data.data.organizations[0].role,
+        });
+        console.log("Profile fetched:", response.data);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProfile();
+  }, []);
+
+  const handleOrgSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     console.log("Organization updated:", orgData);
     // TODO: Implement API call
   };
 
-  const handleProfileSubmit = (e: React.FormEvent) => {
+  const handleProfileSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     console.log("Profile updated:", profileData);
     // TODO: Implement API call
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -99,19 +137,17 @@ export default function SettingsPage() {
 
             <div>
               <label
-                htmlFor="org-phone"
+                htmlFor="org-role"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
-                Phone
+                Role
               </label>
               <input
-                id="org-phone"
-                type="tel"
-                value={orgData.phone}
-                onChange={(e) =>
-                  setOrgData({ ...orgData, phone: e.target.value })
-                }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                id="org-role"
+                type="text"
+                value={orgData.role}
+                disabled
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
               />
             </div>
 
@@ -180,17 +216,35 @@ export default function SettingsPage() {
           <form onSubmit={handleProfileSubmit} className="space-y-4">
             <div>
               <label
-                htmlFor="profile-name"
+                htmlFor="first-name"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
-                Full Name
+                First Name
               </label>
               <input
-                id="profile-name"
+                id="first-name"
                 type="text"
-                value={profileData.name}
+                value={profileData.firstName}
                 onChange={(e) =>
-                  setProfileData({ ...profileData, name: e.target.value })
+                  setProfileData({ ...profileData, firstName: e.target.value })
+                }
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="last-name"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Last Name
+              </label>
+              <input
+                id="last-name"
+                type="text"
+                value={profileData.lastName}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, lastName: e.target.value })
                 }
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
@@ -229,22 +283,6 @@ export default function SettingsPage() {
                   setProfileData({ ...profileData, phone: e.target.value })
                 }
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="profile-role"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Role
-              </label>
-              <input
-                id="profile-role"
-                type="text"
-                value={profileData.role}
-                disabled
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
               />
             </div>
 

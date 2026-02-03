@@ -59,7 +59,7 @@ export default function OrganizationSelectPage() {
     fetchOrganizations();
   }, [addToast]);
 
-  const handleSelectOrganization = async (orgId: string) => {
+  const handleSelectOrganization = async (orgId: string, role: string) => {
     setSelectedOrg(orgId);
 
     try {
@@ -71,7 +71,7 @@ export default function OrganizationSelectPage() {
       // console.log(response.data);
       if (response.data.statusCode === 200) {
         setCookie("access_token", response.data.data.accessToken);
-        setCookie("current_role", "ORG");
+        setCookie("current_role", role);
         router.push("/organization/dashboard");
         // addToast("success", "Success", "Switched organization successfully");
       }
@@ -201,11 +201,9 @@ export default function OrganizationSelectPage() {
                   endContent={
                     selectedOrg !== org.id && <ArrowRight size={18} />
                   }
-                  onPress={() => handleSelectOrganization(org.id)}
+                  onPress={() => handleSelectOrganization(org.id, org.role)}
                 >
-                  {selectedOrg === org.id
-                    ? "Loading..."
-                    : "Select Organization"}
+                  Select Organization
                 </Button>
               </div>
             ))}

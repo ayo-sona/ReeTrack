@@ -39,6 +39,8 @@ const navigation = [
 
 export function OrganizationSidebar() {
   const pathname = usePathname();
+  const { user } = JSON.parse(localStorage.getItem("userData") || "{}");
+  // console.log(user);
 
   return (
     <div className="flex w-64 flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
@@ -79,15 +81,16 @@ export function OrganizationSidebar() {
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
             <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-              RT
+              {user?.first_name?.charAt(0).toUpperCase() +
+                user?.last_name?.charAt(0).toUpperCase()}
             </span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-              ReeTrack Organization
+              {user?.first_name} {user?.last_name}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              enterprise@reetrack.com
+              {user?.email}
             </p>
           </div>
         </div>

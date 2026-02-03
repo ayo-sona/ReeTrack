@@ -30,6 +30,7 @@ export function OrganizationHeader() {
       // Delete all cookies
       deleteCookie("access_token");
       deleteCookie("current_role");
+      deleteCookie("user_roles");
       setLoading(false);
 
       // Redirect to login
@@ -52,7 +53,7 @@ export function OrganizationHeader() {
           <Button
             variant="light"
             onPress={() => setShowNotifications(!showNotifications)}
-            className="relative cursor-pointer rounded-lg p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="relative cursor-pointer rounded-lg p-2 text-gray-600 dark:text-gray-300 transition-colors"
           >
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
