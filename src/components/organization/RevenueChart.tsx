@@ -24,6 +24,40 @@ type PeriodOption = {
 
 type ChartType = "area" | "bar" | "line";
 
+// Use the actual type from the API hook
+interface RevenueChartData {
+  date?: string;
+  revenue?: number;
+}
+
+// Custom Tooltip Component with proper types - Defined outside
+interface TooltipPayload {
+  value: number;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 shadow-2xl">
+        <p className="text-gray-400 text-xs font-light mb-2">{label}</p>
+        <div className="flex items-baseline gap-2">
+          <span className="text-2xl font-semibold text-white">
+            ₦{Number(payload[0].value).toLocaleString()}
+          </span>
+          <span className="text-xs text-emerald-400">Revenue</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 const PERIOD_OPTIONS: PeriodOption[] = [
   { value: "week", label: "Week" },
   { value: "month", label: "Month" },
@@ -90,7 +124,7 @@ export function RevenueChart() {
   }
 
   const totalRevenue = chartData.reduce(
-    (sum: number, d: any) => sum + (Number(d.revenue) || 0),
+    (sum: number, d: RevenueChartData) => sum + (Number(d.revenue) || 0),
     0,
   );
   const avgRevenue = chartData.length > 0 ? totalRevenue / chartData.length : 0;
@@ -99,31 +133,16 @@ export function RevenueChart() {
   // Calculate trend
   const firstHalf = chartData.slice(0, Math.floor(chartData.length / 2));
   const secondHalf = chartData.slice(Math.floor(chartData.length / 2));
-  const firstHalfAvg = firstHalf.reduce((sum: number, d: any) => sum + (Number(d.revenue) || 0), 0) / firstHalf.length;
-  const secondHalfAvg = secondHalf.reduce((sum: number, d: any) => sum + (Number(d.revenue) || 0), 0) / secondHalf.length;
+  const firstHalfAvg = firstHalf.reduce((sum: number, d: RevenueChartData) => sum + (Number(d.revenue) || 0), 0) / firstHalf.length;
+  const secondHalfAvg = secondHalf.reduce((sum: number, d: RevenueChartData) => sum + (Number(d.revenue) || 0), 0) / secondHalf.length;
   const trendPercentage = firstHalfAvg > 0 ? ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100 : 0;
 
-  const formattedData = chartData.map((item: any) => ({
+  const formattedData = chartData.map((item: RevenueChartData) => ({
     ...item,
-    displayDate: formatDate(item.date),
+    date: item.date || '',
+    revenue: item.revenue || 0,
+    displayDate: item.date ? formatDate(item.date) : '',
   }));
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 shadow-2xl">
-          <p className="text-gray-400 text-xs font-light mb-2">{label}</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-semibold text-white">
-              ₦{Number(payload[0].value).toLocaleString()}
-            </span>
-            <span className="text-xs text-emerald-400">Revenue</span>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
 
   const renderChart = () => {
     const commonProps = {

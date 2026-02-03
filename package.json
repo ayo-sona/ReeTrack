@@ -21,6 +21,8 @@
     "clsx": "^2.1.1",
     "cookies-next": "^6.1.1",
     "framer-motion": "^12.26.2",
+    "jspdf": "^4.1.0",
+    "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.562.0",
     "motion": "^12.25.0",
     "next": "16.1.1",
@@ -30,7 +32,8 @@
     "recharts": "^3.6.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -9,6 +9,31 @@ import clsx from 'clsx';
 
 type ViewMode = 'chart' | 'list';
 
+// Move CustomTooltip outside the component to prevent recreation on render
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 shadow-2xl min-w-[180px]">
+        <p className="text-white font-medium mb-2">{data.planName}</p>
+        <div className="space-y-1">
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-xs text-gray-400">Members</span>
+            <span className="text-sm font-semibold text-white">{data.count}</span>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-xs text-gray-400">Share</span>
+            <span className="text-sm font-semibold text-emerald-400">
+              {data.percentage.toFixed(1)}%
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export function PlanDistributionChart() {
   const [viewMode, setViewMode] = useState<ViewMode>('chart');
   
@@ -95,30 +120,6 @@ export function PlanDistributionChart() {
   const mostPopularPlan = plansWithMembers.length > 0 
     ? plansWithMembers.reduce((max, p) => p.count > max.count ? p : max, plansWithMembers[0])
     : null;
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 shadow-2xl min-w-[180px]">
-          <p className="text-white font-medium mb-2">{data.planName}</p>
-          <div className="space-y-1">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-xs text-gray-400">Members</span>
-              <span className="text-sm font-semibold text-white">{data.count}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-xs text-gray-400">Share</span>
-              <span className="text-sm font-semibold text-emerald-400">
-                {data.percentage.toFixed(1)}%
-              </span>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
 
   const renderLabel = (props: any) => {
     const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;

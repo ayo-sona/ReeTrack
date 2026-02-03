@@ -18,6 +18,46 @@ import clsx from 'clsx';
 type ChartType = 'line' | 'area';
 type TimeRange = '3m' | '6m' | '12m';
 
+// Custom Tooltip Component with proper types - Defined outside
+interface TooltipPayload {
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 shadow-2xl min-w-[160px]">
+        <p className="text-gray-400 text-xs font-light mb-3">{label}</p>
+        <div className="space-y-2">
+          {payload.map((entry, index) => (
+            <div key={index} className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-2 h-2 rounded-full" 
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-xs text-gray-300 capitalize">{entry.name}</span>
+              </div>
+              <span className="text-sm font-medium text-white">
+                {entry.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export function MembersGrowthChart() {
   const [chartType, setChartType] = useState<ChartType>('area');
   const [timeRange, setTimeRange] = useState<TimeRange>('6m');
@@ -85,33 +125,6 @@ export function MembersGrowthChart() {
 
     return { total, active, inactive, growthRate };
   }, [teamMembers, chartData]);
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 shadow-2xl min-w-[160px]">
-          <p className="text-gray-400 text-xs font-light mb-3">{label}</p>
-          <div className="space-y-2">
-            {payload.map((entry: any, index: number) => (
-              <div key={index} className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-2 h-2 rounded-full" 
-                    style={{ backgroundColor: entry.color }}
-                  />
-                  <span className="text-xs text-gray-300 capitalize">{entry.name}</span>
-                </div>
-                <span className="text-sm font-medium text-white">
-                  {entry.value}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
 
   if (isLoading) {
     return (

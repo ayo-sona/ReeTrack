@@ -34,6 +34,7 @@ export function OrganizationHeader({ onToggleSidebar, isSidebarCollapsed }: Orga
 
       deleteCookie("access_token");
       deleteCookie("current_role");
+      deleteCookie("user_roles");
       setLoading(false);
 
       router.push("/auth/login");

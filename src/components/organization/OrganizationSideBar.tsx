@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -41,6 +41,19 @@ interface OrganizationSidebarProps {
 export function OrganizationSidebar({ isCollapsed, onToggleCollapse }: OrganizationSidebarProps) {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  
+  // Safely get user data
+  const getUserData = () => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const userData = localStorage.getItem("userData");
+      return userData ? JSON.parse(userData).user : null;
+    } catch {
+      return null;
+    }
+  };
+  
+  const user = getUserData();
 
   return (
     <>
@@ -93,7 +106,7 @@ export function OrganizationSidebar({ isCollapsed, onToggleCollapse }: Organizat
             <div className={`flex items-center gap-3 ${isCollapsed ? 'mx-auto' : ''}`}>
               <div className="relative">
                 <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-                  <span className="text-white font-bold text-lg">R</span>
+                  <span className="text-white font-bold text-lg">P</span>
                 </div>
                 {/* Glow effect */}
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 blur-xl opacity-20 -z-10"></div>
@@ -106,7 +119,7 @@ export function OrganizationSidebar({ isCollapsed, onToggleCollapse }: Organizat
                   transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent"
                 >
-                  ReeTrack
+                  PayPips
                 </motion.span>
               )}
             </div>
@@ -215,7 +228,7 @@ export function OrganizationSidebar({ isCollapsed, onToggleCollapse }: Organizat
           </nav>
 
           {/* User Card */}
-          {!isCollapsed && (
+          {!isCollapsed && user && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -229,16 +242,17 @@ export function OrganizationSidebar({ isCollapsed, onToggleCollapse }: Organizat
                 <div className="relative flex items-center gap-3">
                   <div className="relative">
                     <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-500 flex items-center justify-center text-white font-semibold shadow-lg shadow-emerald-500/25">
-                      RT
+                      {user?.first_name?.charAt(0).toUpperCase() || 'U'}
+                      {user?.last_name?.charAt(0).toUpperCase() || ''}
                     </div>
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900 shadow-lg"></div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                      ReeTrack Organization
+                      {user?.first_name} {user?.last_name}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      enterprise@reetrack.com
+                      {user?.email}
                     </p>
                   </div>
                 </div>
@@ -247,7 +261,7 @@ export function OrganizationSidebar({ isCollapsed, onToggleCollapse }: Organizat
           )}
 
           {/* Collapsed User Avatar */}
-          {isCollapsed && (
+          {isCollapsed && user && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -256,14 +270,15 @@ export function OrganizationSidebar({ isCollapsed, onToggleCollapse }: Organizat
             >
               <div className="relative group">
                 <div className="w-11 h-11 mx-auto rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-500 flex items-center justify-center text-white font-semibold shadow-lg shadow-emerald-500/25 cursor-pointer hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-200">
-                  RT
+                  {user?.first_name?.charAt(0).toUpperCase() || 'U'}
+                  {user?.last_name?.charAt(0).toUpperCase() || ''}
                 </div>
                 <div className="absolute -bottom-1 right-1/2 translate-x-1/2 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900 shadow-lg"></div>
                 
                 {/* Tooltip */}
                 <div className="absolute left-full ml-6 top-1/2 -translate-y-1/2 px-4 py-3 bg-gray-900/95 dark:bg-gray-700/95 backdrop-blur-xl text-white rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50 shadow-xl">
-                  <p className="font-semibold text-sm">ReeTrack Organization</p>
-                  <p className="text-xs text-gray-300 mt-0.5">enterprise@reetrack.com</p>
+                  <p className="font-semibold text-sm">{user?.first_name} {user?.last_name}</p>
+                  <p className="text-xs text-gray-300 mt-0.5">{user?.email}</p>
                 </div>
               </div>
             </motion.div>
