@@ -9,8 +9,25 @@ import clsx from 'clsx';
 
 type ViewMode = 'chart' | 'list';
 
-// Move CustomTooltip outside the component to prevent recreation on render
-const CustomTooltip = ({ active, payload }: any) => {
+// Custom Tooltip Component with proper types - Defined outside
+interface TooltipPayload {
+  name: string;
+  value: number;
+  color: string;
+  payload: {
+    planName: string;
+    count: number;
+    percentage: number;
+  };
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -121,8 +138,22 @@ export function PlanDistributionChart() {
     ? plansWithMembers.reduce((max, p) => p.count > max.count ? p : max, plansWithMembers[0])
     : null;
 
-  const renderLabel = (props: any) => {
+  const renderLabel = (props: {
+    cx?: number;
+    cy?: number;
+    midAngle?: number;
+    innerRadius?: number;
+    outerRadius?: number;
+    percent?: number;
+  }) => {
     const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
+    
+    // Return null if required props are missing
+    if (cx === undefined || cy === undefined || midAngle === undefined || 
+        innerRadius === undefined || outerRadius === undefined || percent === undefined) {
+      return null;
+    }
+    
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);

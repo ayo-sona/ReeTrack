@@ -9,7 +9,20 @@ import {
   Loader2,
 } from "lucide-react";
 import { ExportFormat, ExportType } from "@/types/organization";
-import { generateCSV, generateExcel, generatePDF } from "@/lib/fileGenerators";
+// Commented out unused imports - uncomment when file generation is implemented
+// import { generateCSV, generateExcel, generatePDF } from "@/lib/fileGenerators";
+import apiClient from "@/lib/apiClient";
+import { getCurrentOrganizationId } from "@/utils/organisationUtils";
+
+// Define proper type for API response
+interface ApiResponse {
+  statusCode: number;
+  data: unknown;
+}
+
+interface ReportData {
+  data: unknown;
+}
 
 export default function ReportsPage() {
   const [exportConfig, setExportConfig] = useState({
@@ -76,62 +89,104 @@ export default function ReportsPage() {
   const showDateRange = selectedExportType?.requiresDateRange || false;
 
   const handleExport = async () => {
-    // try {
-    //   setIsExporting(true);
-    //   // Validate date range if required
-    //   if (showDateRange && (!exportConfig.dateFrom || !exportConfig.dateTo)) {
-    //     alert("Please select a date range for this report type");
-    //     return;
-    //   }
-    //   // Fetch data from API
-    //   const response = await fetch(`/api/reports/${exportConfig.type}`, {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({
-    //       dateFrom: exportConfig.dateFrom || undefined,
-    //       dateTo: exportConfig.dateTo || undefined,
-    //     }),
-    //   });
-    //   if (!response.ok) {
-    //     throw new Error("Failed to fetch report data");
-    //   }
-    //   const data = await response.json();
-    //   // Generate file based on format
-    //   let blob: Blob;
-    //   let filename: string;
-    //   const timestamp = new Date().toISOString().split("T")[0];
-    //   switch (exportConfig.format) {
-    //     case "csv":
-    //       blob = generateCSV(data, exportConfig.type);
-    //       filename = `${exportConfig.type}_${timestamp}.csv`;
-    //       break;
-    //     case "excel":
-    //       blob = await generateExcel(data, exportConfig.type);
-    //       filename = `${exportConfig.type}_${timestamp}.xlsx`;
-    //       break;
-    //     case "pdf":
-    //       blob = await generatePDF(data, exportConfig.type);
-    //       filename = `${exportConfig.type}_${timestamp}.pdf`;
-    //       break;
-    //     default:
-    //       throw new Error("Unsupported format");
-    //   }
-    //   // Trigger download
-    //   const url = URL.createObjectURL(blob);
-    //   const link = document.createElement("a");
-    //   link.href = url;
-    //   link.download = filename;
-    //   document.body.appendChild(link);
-    //   link.click();
-    //   document.body.removeChild(link);
-    //   URL.revokeObjectURL(url);
-    //   alert(`Report exported successfully as ${filename}`);
-    // } catch (error) {
-    //   console.error("Export error:", error);
-    //   alert("Failed to export report. Please try again.");
-    // } finally {
-    //   setIsExporting(false);
-    // }
+    try {
+      setIsExporting(true);
+
+      // Validate date range if required
+      if (showDateRange && (!exportConfig.dateFrom || !exportConfig.dateTo)) {
+        alert("Please select a date range for this report type");
+        return;
+      }
+
+      let response: ApiResponse;
+      // Fetch data from API
+      const organizationId = getCurrentOrganizationId();
+      switch (exportConfig.type) {
+        case "members":
+          response = await apiClient.get(
+            `/analytics/reports/members/${organizationId}`,
+          ) as ApiResponse;
+          break;
+        case "payments":
+          response = await apiClient.get(
+            `/analytics/reports/payments/${organizationId}`,
+            {
+              params: {
+                startDate: exportConfig.dateFrom,
+                endDate: exportConfig.dateTo,
+              },
+            },
+          ) as ApiResponse;
+          break;
+        case "revenue":
+          response = await apiClient.get(
+            `/analytics/reports/revenue/${organizationId}`,
+            {
+              params: {
+                startDate: exportConfig.dateFrom,
+                endDate: exportConfig.dateTo,
+              },
+            },
+          ) as ApiResponse;
+          break;
+        case "plans":
+          response = await apiClient.get(
+            `/analytics/reports/plans/${organizationId}`,
+          ) as ApiResponse;
+          break;
+        default:
+          alert("Invalid report type");
+          return;
+      }
+
+      if (response.statusCode !== 200) {
+        throw new Error("Failed to fetch report data");
+      }
+
+      const reportData = response.data as ReportData;
+      const data = reportData.data;
+      console.log(data);
+
+      // TODO: Uncomment when file generation functions are implemented
+      // Generate file based on format
+      // let blob: Blob;
+      // let filename: string;
+      // const timestamp = new Date().toISOString().split("T")[0];
+
+      // switch (exportConfig.format) {
+      //   case "csv":
+      //     blob = generateCSV(data, exportConfig.type);
+      //     filename = `${exportConfig.type}_${timestamp}.csv`;
+      //     break;
+      //   case "excel":
+      //     blob = await generateExcel(data, exportConfig.type);
+      //     filename = `${exportConfig.type}_${timestamp}.xlsx`;
+      //     break;
+      //   case "pdf":
+      //     blob = await generatePDF(data, exportConfig.type);
+      //     filename = `${exportConfig.type}_${timestamp}.pdf`;
+      //     break;
+      //   default:
+      //     throw new Error("Unsupported format");
+      // }
+
+      // // Trigger download
+      // const url = URL.createObjectURL(blob);
+      // const link = document.createElement("a");
+      // link.href = url;
+      // link.download = filename;
+      // document.body.appendChild(link);
+      // link.click();
+      // document.body.removeChild(link);
+      // URL.revokeObjectURL(url);
+
+      // alert(`Report exported successfully as ${filename}`);
+    } catch (error) {
+      console.error("Export error:", error);
+      alert("Failed to export report. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
