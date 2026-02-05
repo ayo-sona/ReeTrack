@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Plus, Users, Eye, TrendingUp } from "lucide-react";
+import { Plus, Users, TrendingUp } from "lucide-react";
 import { PlansGrid } from "../../../components/organization/PlansGrid";
 import { CreatePlanModal } from "../../../components/organization/CreatePlanModal";
 import { PlanMembersModal } from "../../../components/organization/PlansMembersModal";

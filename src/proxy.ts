@@ -11,15 +11,15 @@ export async function proxy(request: NextRequest) {
   // console.log("user_roles", userRoles);
 
   // Public paths that don't require authentication
-  const publicPaths = ["/auth", "/members/dashboard"];
+  const publicPaths = ["/auth",];
 
   // If user is not authenticated and trying to access protected routes
-  // if (!token && !publicPaths.some((path) => pathname.startsWith(path))) {
-  //   const url = request.nextUrl.clone();
-  //   url.pathname = "/auth/login";
-  //   url.search = `redirect=${pathname}`;
-  //   return NextResponse.redirect(url);
-  // }
+  if (!token && !publicPaths.some((path) => pathname.startsWith(path))) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/login";
+    url.search = `redirect=${pathname}`;
+    return NextResponse.redirect(url);
+  }
 
   // Role-based route protection
   if (token && currentRole && userRoles) {
