@@ -38,7 +38,14 @@ export default function LoginPage() {
 
       if (response.data.statusCode === 200) {
         setCookie("access_token", response.data.data.access_token);
-
+        setCookie(
+          "user_roles",
+          response.data.data.organizations
+            ? response.data.data.organizations
+                .map((org: any) => org.role)
+                .join(",")
+            : "",
+        );
         localStorage.setItem("userData", JSON.stringify(response.data.data));
         const roles = getUserRoles(response.data.data);
         // console.log(roles);
@@ -176,6 +183,23 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
+
+        <div className="relative mt-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">
+              Already have an account?{" "}
+              <Link
+                href="/auth/register"
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
+                Register
+              </Link>
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

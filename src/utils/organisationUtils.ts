@@ -1,18 +1,18 @@
 // Utility to get current organization ID from localStorage
 // This matches how the select page stores it
 
-export const getCurrentOrganizationId = (): string => {
+export const getCurrentOrganizationId = (): string | null => {
   // Get from localStorage where select page saves it
   const orgId =
     typeof localStorage !== "undefined"
       ? localStorage.getItem("selectedOrganizationId")
       : null;
 
-  if (!orgId) {
-    throw new Error(
-      "No organization selected. Please select an organization first.",
-    );
-  }
+  // if (!orgId) {
+  //   throw new Error(
+  //     "No organization selected. Please select an organization first.",
+  //   );
+  // }
 
   return orgId;
 };

@@ -129,11 +129,12 @@ apiClient.interceptors.response.use(
 
         if (typeof window !== "undefined") {
           // Clear local storage items
-          localStorage.removeItem("selectedOrganizationId");
-          localStorage.removeItem("organizations");
+          localStorage.clear();
 
           // Delete any cookie
           deleteCookie("access_token");
+          deleteCookie("current_role");
+          deleteCookie("user_roles");
 
           // Redirect to login
           window.location.href = "/auth/login";
@@ -151,80 +152,3 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
-
-// https://paypips.onrender.com/api/v1/webhooks/paystack
-///////////////////////////////////////////////
-// import axios from 'axios';
-// import router from './router'; // Assuming you have a router for navigation
-
-// Request interceptor to add auth token
-// apiClient.interceptors.request.use(
-//   (config: AxiosRequestConfig): AxiosRequestConfig => {
-//     const token = getCookie("access_token");
-//     if (token && config.headers) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   }
-// );
-
-// axios.interceptors.response.use(
-//   (response) => response,
-//   async (error) => {
-//     const originalRequest = error.config;
-
-//     // Check if the error is a 401 and not a retry already
-//     if (error.response.status === 401 && !originalRequest._retry) {
-//       originalRequest._retry = true; // Mark as retried to prevent infinite loops
-
-//       // Check if the specific message indicates an invalid refresh token
-//       if (error.response.data && error.response.data.message === 'Invalid refresh token') {
-//         // Refresh token is invalid/expired, force user to re-login
-//         console.error('Refresh token invalid or expired. Redirecting to login.');
-//         // Clear any stored tokens
-//         localStorage.removeItem('accessToken');
-//         localStorage.removeItem('refreshToken');
-//         // Redirect to login page
-//         router.push('/login'); // Adjust this to your routing mechanism
-//         return Promise.reject(error);
-//       }
-
-//       // If it's a 401 but not explicitly "Invalid refresh token", try to refresh the access token
-//       try {
-//         const refreshToken = localStorage.getItem('refreshToken'); // Get refresh token from storage
-
-//         if (refreshToken) {
-//           // Send a request to your backend to refresh the access token
-//           const response = await axios.post('/api/auth/refresh-token', { refreshToken }); // Adjust endpoint
-//           const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
-
-//           // Store the new tokens
-//           localStorage.setItem('accessToken', newAccessToken);
-//           localStorage.setItem('refreshToken', newRefreshToken);
-
-//           // Update the authorization header for the original request
-//           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-
-//           // Retry the original request with the new token
-//           return axios(originalRequest);
-//         } else {
-//           // No refresh token available, redirect to login
-//           console.error('No refresh token found. Redirecting to login.');
-//           router.push('/login');
-//           return Promise.reject(error);
-//         }
-//       } catch (refreshError) {
-//         // Refresh token failed, force user to re-login
-//         console.error('Failed to refresh token. Redirecting to login.', refreshError);
-//         localStorage.removeItem('accessToken');
-//         localStorage.removeItem('refreshToken');
-//         router.push('/login');
-//         return Promise.reject(refreshError);
-//       }
-//     }
-//     return Promise.reject(error);
-//   }
-// );

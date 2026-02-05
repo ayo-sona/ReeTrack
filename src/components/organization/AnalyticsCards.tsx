@@ -3,25 +3,29 @@
 import { Users, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
 import { useAnalyticsOverview } from "../../hooks/useAnalytics";
 import { useTeamMembers } from "../../hooks/useOrganisations";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { AnimatePresence } from "framer-motion";
+import { StatCard } from "../ui/StatCard";
+import { MemberListDropdown } from "../ui";
+import { MetricsDropdown } from "../ui";
+import { LoadingSkeleton } from "../ui/Skeleton";
+import { ErrorAlert } from "../ui/ErrorAlert";
 
 export function AnalyticsCards() {
-  // Hooks handle ALL business logic
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+
   const {
     data: analytics,
     isLoading: analyticsLoading,
     error: analyticsError,
   } = useAnalyticsOverview({
     period: "month",
-    // startDate: new Date("2026-01-01").toISOString(),
-    // endDate: new Date("2026-01-31").toISOString(),
   });
-  // console.log("analytics", analytics);
+
   const { data: teamMembers, isLoading: teamLoading } = useTeamMembers();
 
   const isLoading = analyticsLoading || teamLoading;
 
-  // Calculate active/inactive from team data
   const memberStats = useMemo(() => {
     if (!teamMembers) {
       return { active: 0, inactive: 0, total: 0 };
@@ -38,47 +42,27 @@ export function AnalyticsCards() {
   }, [teamMembers]);
 
   if (isLoading) {
-    return (
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="h-40 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 animate-pulse"
-          />
-        ))}
-      </div>
-    );
+    return <LoadingSkeleton count={4} />;
   }
 
   if (analyticsError || !analytics) {
-    return (
-      <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-6">
-        <p className="text-sm text-red-600 dark:text-red-400">
-          Unable to load analytics. The analytics API endpoint may not be
-          implemented yet.
-        </p>
-      </div>
-    );
+    return <ErrorAlert />;
   }
 
-  // Smart fallbacks with priority order
   const activeMembers =
-    analytics.members.active_members ?? // Backend provides this (future)
-    memberStats.active ?? // Calculate from team (current)
-    analytics.subscriptions.active_subscriptions ?? // Last resort
+    analytics.members.active_members ??
+    memberStats.active ??
+    analytics.subscriptions.active_subscriptions ??
     0;
 
   const inactiveMembers =
-    analytics.members.inactive_members ?? // Backend provides this (future)
-    memberStats.inactive ?? // Calculate from team (current)
-    Math.max(0, analytics.members.total_members - activeMembers) ?? // Calculate
+    analytics.members.inactive_members ??
+    memberStats.inactive ??
+    Math.max(0, analytics.members.total_members - activeMembers) ??
     0;
 
-  // Use team count as source of truth for total
-  const totalMembers =
-    memberStats.total || analytics.members.total_members || 0;
+  const totalMembers = memberStats.total || analytics.members.total_members || 0;
 
-  // UI-only: Format stats from API data
   const stats = [
     {
       name: "Total Members",
@@ -86,11 +70,22 @@ export function AnalyticsCards() {
       change: `+${analytics.members.new_members || 0} this period`,
       changeType: "positive" as const,
       icon: Users,
-      color: "bg-blue-500",
+      gradient: "from-blue-400 via-blue-500 to-indigo-500",
+      glowColor: "blue",
       subStats: [
         { label: "Active", value: activeMembers },
         { label: "Inactive", value: inactiveMembers },
       ],
+      details: {
+        title: "Member Statistics",
+        metrics: [
+          { label: "Total Members", value: totalMembers, description: "All registered members" },
+          { label: "Active Members", value: activeMembers, description: "Currently active subscriptions" },
+          { label: "Inactive Members", value: inactiveMembers, description: "Paused or expired" },
+          { label: "New This Period", value: analytics.members.new_members || 0, description: "Recent sign-ups" },
+        ],
+      },
+      dropdownType: "members" as const,
     },
     {
       name: "This Month Revenue",
@@ -101,17 +96,22 @@ export function AnalyticsCards() {
           ? ("positive" as const)
           : ("negative" as const),
       icon: DollarSign,
-      color: "bg-green-500",
+      gradient: "from-emerald-400 via-emerald-500 to-teal-500",
+      glowColor: "emerald",
       subStats: [
-        {
-          label: "Payments",
-          value: analytics.payments.successful_payments || 0,
-        },
-        {
-          label: "Total",
-          value: `₦${(analytics.revenue.total_revenue || 0).toLocaleString()}`,
-        },
+        { label: "Payments", value: analytics.payments.successful_payments || 0 },
+        { label: "Total", value: `₦${(analytics.revenue.total_revenue || 0).toLocaleString()}` },
       ],
+      details: {
+        title: "Revenue Breakdown",
+        metrics: [
+          { label: "Period Revenue", value: `₦${analytics.revenue.period_revenue?.toLocaleString() || 0}`, description: "This period's earnings" },
+          { label: "Total Revenue", value: `₦${analytics.revenue.total_revenue?.toLocaleString() || 0}`, description: "All-time revenue" },
+          { label: "Growth Rate", value: `${(analytics.revenue.growth_rate || 0).toFixed(1)}%`, description: "Compared to last period" },
+          { label: "Successful Payments", value: analytics.payments.successful_payments || 0, description: "Completed transactions" },
+        ],
+      },
+      dropdownType: "metrics" as const,
     },
     {
       name: "MRR",
@@ -122,13 +122,21 @@ export function AnalyticsCards() {
           ? ("positive" as const)
           : ("negative" as const),
       icon: TrendingUp,
-      color: "bg-purple-500",
+      gradient: "from-purple-400 via-purple-500 to-indigo-500",
+      glowColor: "purple",
       subStats: [
-        {
-          label: "Active Subs",
-          value: analytics.subscriptions.active_subscriptions || 0,
-        },
+        { label: "Active Subs", value: analytics.subscriptions.active_subscriptions || 0 },
       ],
+      details: {
+        title: "MRR Details",
+        metrics: [
+          { label: "Current MRR", value: `₦${analytics.mrr.current_mrr?.toLocaleString() || 0}`, description: "Monthly recurring revenue" },
+          { label: "MRR Growth", value: `${(analytics.mrr.growth_rate || 0).toFixed(1)}%`, description: "Month-over-month growth" },
+          { label: "Active Subscriptions", value: analytics.subscriptions.active_subscriptions || 0, description: "Current active plans" },
+          { label: "Average per Sub", value: `₦${Math.round((analytics.mrr.current_mrr || 0) / Math.max(1, analytics.subscriptions.active_subscriptions || 1)).toLocaleString()}`, description: "Revenue per subscription" },
+        ],
+      },
+      dropdownType: "metrics" as const,
     },
     {
       name: "Needs Attention",
@@ -136,69 +144,73 @@ export function AnalyticsCards() {
       change: `${inactiveMembers} inactive members`,
       changeType: "warning" as const,
       icon: AlertCircle,
-      color: "bg-orange-500",
+      gradient: "from-orange-400 via-orange-500 to-red-500",
+      glowColor: "orange",
       subStats: [],
+      details: {
+        title: "Attention Required",
+        metrics: [
+          { label: "Inactive Members", value: inactiveMembers, description: "Members to follow up with" },
+          { label: "Retention Rate", value: `${Math.round((activeMembers / Math.max(1, totalMembers)) * 100)}%`, description: "Active/Total ratio" },
+          { label: "At Risk", value: inactiveMembers, description: "Potential churn" },
+        ],
+      },
+      dropdownType: "members" as const,
     },
   ];
 
   return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat) => {
-        const Icon = stat.icon;
+    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {stats.map((stat, index) => {
+        const isExpanded = expandedCard === stat.name;
+
         return (
-          <div
-            key={stat.name}
-            className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow"
-          >
-            <div className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {stat.name}
-                  </p>
-                  <p
-                    className="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100"
-                    suppressHydrationWarning
-                  >
-                    {stat.value}
-                  </p>
-                </div>
-                <div className={`${stat.color} rounded-lg p-3`}>
-                  <Icon className="h-6 w-6 text-white" />
-                </div>
-              </div>
+          <div key={stat.name} className="relative">
+            <StatCard
+              name={stat.name}
+              value={stat.value}
+              change={stat.change}
+              changeType={stat.changeType}
+              icon={stat.icon}
+              gradient={stat.gradient}
+              glowColor={stat.glowColor}
+              subStats={stat.subStats}
+              index={index}
+              isExpanded={isExpanded}
+              onClick={() => setExpandedCard(isExpanded ? null : stat.name)}
+            />
 
-              <div className="mt-4">
-                <div
-                  className={`inline-flex items-baseline gap-1 text-sm font-medium ${
-                    stat.changeType === "positive"
-                      ? "text-green-600 dark:text-green-400"
-                      : stat.changeType === "negative"
-                        ? "text-red-600 dark:text-red-400"
-                        : "text-orange-600 dark:text-orange-400"
-                  }`}
-                >
-                  {stat.change}
-                </div>
+            {/* Dropdown Panel */}
+            <AnimatePresence>
+              {isExpanded && (
+                <>
+                  {stat.dropdownType === "members" && teamMembers && (
+                    <MemberListDropdown
+                      title={stat.details.title}
+                      members={teamMembers}
+                      gradient={stat.gradient}
+                      onClose={(e) => {
+                        e.stopPropagation();
+                        setExpandedCard(null);
+                      }}
+                      filterInactive={stat.name === "Needs Attention"}
+                    />
+                  )}
 
-                {stat.subStats.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                    <div className="flex gap-4">
-                      {stat.subStats.map((subStat) => (
-                        <div key={subStat.label} className="text-xs">
-                          <span className="text-gray-500 dark:text-gray-400">
-                            {subStat.label}:
-                          </span>{" "}
-                          <span className="font-medium text-gray-900 dark:text-gray-100">
-                            {subStat.value}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+                  {stat.dropdownType === "metrics" && (
+                    <MetricsDropdown
+                      title={stat.details.title}
+                      metrics={stat.details.metrics}
+                      gradient={stat.gradient}
+                      onClose={(e) => {
+                        e.stopPropagation();
+                        setExpandedCard(null);
+                      }}
+                    />
+                  )}
+                </>
+              )}
+            </AnimatePresence>
           </div>
         );
       })}

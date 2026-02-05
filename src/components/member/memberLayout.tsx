@@ -57,6 +57,7 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
       // Delete all cookies
       deleteCookie("access_token");
       deleteCookie("current_role");
+      deleteCookie("user_roles");
       setLoading(false);
 
       // Redirect to login
