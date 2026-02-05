@@ -1,4 +1,12 @@
-import { MoreVertical, Edit, Trash2, Users, Eye } from "lucide-react";
+import {
+  MoreVertical,
+  Edit,
+  Trash2,
+  Users,
+  Eye,
+  PowerOff,
+  Power,
+} from "lucide-react";
 import { useState } from "react";
 import { SubscriptionPlan } from "../../types/organization";
 
@@ -101,6 +109,11 @@ export function PlansGrid({
                         }}
                         className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
+                        {plan.isActive ? (
+                          <PowerOff className="h-4 w-4" />
+                        ) : (
+                          <Power className="h-4 w-4" />
+                        )}
                         {plan.isActive ? "Deactivate" : "Activate"}
                       </button>
                       <button
@@ -151,7 +164,7 @@ export function PlansGrid({
                     />
                   </svg>
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {typeof feature === 'string' ? feature : feature.name || feature.description}
+                    {typeof feature === "string" ? feature : feature.name}
                   </span>
                 </div>
               ))}
@@ -169,7 +182,7 @@ export function PlansGrid({
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-gray-400" />
                 <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {plan.memberCount || 0} members
+                  {plan.subscriptions?.length || 0} members
                 </span>
               </div>
               <span

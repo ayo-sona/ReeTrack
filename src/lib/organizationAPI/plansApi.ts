@@ -1,3 +1,4 @@
+import { Member } from "@/types/organization";
 import apiClient from "../apiClient";
 
 export interface CreatePlanDto {
@@ -7,7 +8,6 @@ export interface CreatePlanDto {
   currency: string;
   interval: "daily" | "weekly" | "monthly" | "yearly";
   intervalCount: number;
-  trialPeriodDays?: number;
   features: string[];
 }
 
@@ -18,7 +18,6 @@ export interface UpdatePlanDto {
   currency?: string;
   interval?: "daily" | "weekly" | "monthly" | "yearly";
   intervalCount?: number;
-  trialPeriodDays?: number;
   features?: string[];
   isActive?: boolean;
 }
@@ -32,12 +31,18 @@ export interface Plan {
   currency: string;
   interval: string;
   interval_count: number;
-  features: {
-    features: string[];
-  };
+  features: string[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  subscriptions?: [
+    {
+      id: string;
+      status: string;
+      expires_at: string;
+      member: { id: string; created_at: string; user: Member["user"] };
+    },
+  ];
 }
 
 export interface PaginatedResponse<T> {
@@ -103,6 +108,12 @@ export const plansApi = {
   // ⭐ FIXED: Toggle plan active status
   toggleActive: async (id: string): Promise<Plan> => {
     const response = await apiClient.patch(`/plans/member/${id}/toggle`);
+    return response.data.data;
+  },
+
+  // Get plan statistics
+  getStats: async (): Promise<Plan[]> => {
+    const response = await apiClient.get("/plans/member/stats");
     return response.data.data;
   },
 };
