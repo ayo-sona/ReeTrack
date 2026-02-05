@@ -28,7 +28,8 @@ interface PlanFormData {
 export default function PlansPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
-  const [viewingPlanMembers, setViewingPlanMembers] = useState<SubscriptionPlan | null>(null);
+  const [viewingPlanMembers, setViewingPlanMembers] =
+    useState<SubscriptionPlan | null>(null);
 
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({
@@ -51,6 +52,8 @@ export default function PlansPage() {
         : [],
     [plansResponse],
   );
+  console.log("plansResponse", plansResponse);
+  console.log("allPlans", allPlans);
 
   const filteredPlans = useMemo(() => {
     return allPlans.filter((plan) => {
@@ -84,7 +87,10 @@ export default function PlansPage() {
   const stats = {
     total: allPlans.length,
     active: allPlans.filter((p) => p.isActive).length,
-    totalMembers: allPlans.reduce((sum, p) => sum + (p.memberCount || 0), 0),
+    totalMembers: allPlans.reduce(
+      (sum, p) => sum + (p.subscriptions?.length || 0),
+      0,
+    ),
     avgPrice:
       allPlans.length > 0
         ? allPlans.reduce((sum, p) => sum + p.price, 0) / allPlans.length
@@ -225,7 +231,7 @@ export default function PlansPage() {
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4">
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+        <div className="text-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Total Plans
@@ -239,7 +245,7 @@ export default function PlansPage() {
             {stats.total}
           </p>
         </div>
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+        <div className="text-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Active Plans
@@ -253,7 +259,7 @@ export default function PlansPage() {
             {stats.active}
           </p>
         </div>
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+        <div className="text-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Total Members
@@ -267,7 +273,7 @@ export default function PlansPage() {
             {stats.totalMembers}
           </p>
         </div>
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+        <div className="text-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">Avg. Price</p>
           <p
             className="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100"

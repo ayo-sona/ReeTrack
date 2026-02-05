@@ -24,7 +24,6 @@ export interface PlanFeature {
 }
 
 export type PlanDuration = "weekly" | "monthly" | "quarterly" | "yearly";
-export type PlanVisibility = "public" | "invite_only";
 
 export interface SubscriptionPlan {
   id: string;
@@ -35,9 +34,15 @@ export interface SubscriptionPlan {
   currency: Currency;
   duration: PlanDuration;
   features: PlanFeature[];
-  visibility: PlanVisibility;
   isActive: boolean;
-  memberCount: number;
+  subscriptions?: [
+    {
+      id: string;
+      status: string;
+      expires_at: string;
+      member: { id: string; created_at: string; user: Member["user"] };
+    },
+  ];
   createdAt: string;
   updatedAt: string;
 }
