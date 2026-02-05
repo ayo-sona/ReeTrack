@@ -21,7 +21,7 @@ export const useAnalyticsOverview = (params: {
   return useQuery<AnalyticsOverview, Error>({
     queryKey: ["analytics", "overview", organizationId, params],
     queryFn: () => analyticsApi.getOverview(organizationId!, params),
-    enabled: !!organizationId, // Only run query if organizationId exists
+    enabled: !!organizationId,
     retry: false,
   });
 };

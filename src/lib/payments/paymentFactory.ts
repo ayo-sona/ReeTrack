@@ -5,7 +5,7 @@ import { StripeGateway } from './stripe';
 import { KoraGateway } from './kora';
 
 // TODO: Move to environment variables
-const GATEWAY_KEYS = {
+const GATEWAY_KEYS: Record<Exclude<PaymentGateway, 'manual'>, string> = {
   paystack: 'pk_test_your_paystack_key',
   stripe: 'pk_test_your_stripe_key',
   kora: 'pk_test_your_kora_key',
@@ -13,6 +13,11 @@ const GATEWAY_KEYS = {
 
 export class PaymentFactory {
   static createGateway(gateway: PaymentGateway): PaymentGatewayInterface {
+    // Handle manual payments separately
+    if (gateway === 'manual') {
+      throw new Error('Manual payments do not require a payment gateway');
+    }
+
     const publicKey = GATEWAY_KEYS[gateway];
 
     switch (gateway) {
