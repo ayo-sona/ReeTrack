@@ -70,6 +70,43 @@ export class PlansService {
 
     const [plans, total] = await this.memberPlanRepository.findAndCount({
       where: { organization_id: organizationId },
+      relations: {
+        subscriptions: {
+          member: {
+            user: true,
+          },
+        },
+      } as const,
+      select: {
+        id: true,
+        organization_id: true,
+        name: true,
+        description: true,
+        price: true,
+        currency: true,
+        interval: true,
+        interval_count: true,
+        features: true,
+        is_active: true,
+        created_at: true,
+        updated_at: true,
+        subscriptions: {
+          id: true,
+          status: true,
+          expires_at: true,
+          member: {
+            id: true,
+            created_at: true,
+            user: {
+              id: true,
+              first_name: true,
+              last_name: true,
+              email: true,
+              phone: true,
+            },
+          },
+        },
+      },
       order: { created_at: 'DESC' },
       skip,
       take: limit,
@@ -257,7 +294,9 @@ export class PlansService {
           .leftJoin('subscription.plan', 'plan')
           .select('SUM(plan.price)', 'total')
           .where('subscription.plan_id = :planId', { planId: plan.id })
-          .andWhere('subscription.status = :status', { status: 'active' })
+          .andWhere('subscription.status = :status', {
+            status: SubscriptionStatus.ACTIVE,
+          })
           .getRawOne();
 
         return {
