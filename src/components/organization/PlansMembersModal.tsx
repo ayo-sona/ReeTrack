@@ -1,17 +1,17 @@
-import { X, Search, Mail, Phone, Calendar, Download, Filter, CheckCircle, AlertCircle, Clock } from "lucide-react";
+import {
+  X,
+  Search,
+  Mail,
+  Phone,
+  Calendar,
+  Download,
+  Filter,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+} from "lucide-react";
 import { useState, useMemo } from "react";
 import { SubscriptionPlan } from "../../types/organization";
-
-interface Member {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  joinDate: string;
-  expiryDate: string;
-  status: 'active' | 'expiring_soon' | 'expired';
-  daysUntilExpiry: number;
-}
 
 interface PlanMembersModalProps {
   isOpen: boolean;
@@ -19,104 +19,69 @@ interface PlanMembersModalProps {
   plan: SubscriptionPlan | null;
 }
 
-// Mock members data - replace with actual API call
-const MOCK_MEMBERS: Member[] = [
-  {
-    id: '1',
-    name: 'Chidi Okonkwo',
-    email: 'chidi@example.com',
-    phone: '+234 801 234 5678',
-    joinDate: '2025-08-15',
-    expiryDate: '2026-02-15',
-    status: 'expiring_soon',
-    daysUntilExpiry: 15
-  },
-  {
-    id: '2',
-    name: 'Amara Nwosu',
-    email: 'amara@example.com',
-    phone: '+234 802 345 6789',
-    joinDate: '2025-06-20',
-    expiryDate: '2025-12-20',
-    status: 'expired',
-    daysUntilExpiry: -42
-  },
-  {
-    id: '3',
-    name: 'Funke Ajayi',
-    email: 'funke@example.com',
-    phone: '+234 804 567 8901',
-    joinDate: '2025-12-01',
-    expiryDate: '2026-06-01',
-    status: 'active',
-    daysUntilExpiry: 121
-  },
-  {
-    id: '4',
-    name: 'Tunde Bakare',
-    email: 'tunde@example.com',
-    phone: '+234 805 678 9012',
-    joinDate: '2025-09-10',
-    expiryDate: '2026-03-10',
-    status: 'active',
-    daysUntilExpiry: 38
-  },
-  {
-    id: '5',
-    name: 'Ngozi Eze',
-    email: 'ngozi@example.com',
-    phone: '+234 806 789 0123',
-    joinDate: '2025-07-25',
-    expiryDate: '2026-01-25',
-    status: 'expiring_soon',
-    daysUntilExpiry: -6
-  },
-];
-
-export function PlanMembersModal({ isOpen, onClose, plan }: PlanMembersModalProps) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expiring_soon' | 'expired'>('all');
+export function PlanMembersModal({
+  isOpen,
+  onClose,
+  plan,
+}: PlanMembersModalProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "active" | "pending" | "cancelled" | "expired"
+  >("all");
 
   // Filter members
-  const filteredMembers = useMemo(() => {
-    return MOCK_MEMBERS.filter(member => {
-      const matchesSearch = member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           member.email.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || member.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [searchQuery, statusFilter]);
+  const filteredSubcriptions = useMemo(() => {
+    return (
+      plan?.subscriptions?.filter((subscription) => {
+        const matchesSearch =
+          subscription.member.user.first_name
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          subscription.member.user.email
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase());
+        const matchesStatus =
+          statusFilter === "all" || subscription.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      }) || []
+    );
+  }, [searchQuery, statusFilter, plan]);
 
   // Stats
   const stats = {
-    total: MOCK_MEMBERS.length,
-    active: MOCK_MEMBERS.filter(m => m.status === 'active').length,
-    expiring: MOCK_MEMBERS.filter(m => m.status === 'expiring_soon').length,
-    expired: MOCK_MEMBERS.filter(m => m.status === 'expired').length,
+    total: plan?.subscriptions?.length || 0,
+    active:
+      plan?.subscriptions?.filter((m) => m.status === "active").length || 0,
+    pending:
+      plan?.subscriptions?.filter((m) => m.status === "pending").length || 0,
+    cancelled:
+      plan?.subscriptions?.filter((m) => m.status === "cancelled").length || 0,
+    expired:
+      plan?.subscriptions?.filter((m) => m.status === "expired").length || 0,
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-NG', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return new Date(dateString).toLocaleDateString("en-NG", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
-  const handleExport = () => {
-    // TODO: Implement CSV export
-    console.log('Exporting members to CSV...');
-    alert('Export feature coming soon!');
-  };
+  // const handleExport = () => {
+  //   // TODO: Implement CSV export
+  //   console.log('Exporting members to CSV...');
+  //   alert('Export feature coming soon!');
+  // };
 
   if (!isOpen || !plan) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-white dark:bg-gray-800 rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
@@ -139,11 +104,13 @@ export function PlanMembersModal({ isOpen, onClose, plan }: PlanMembersModalProp
                     /{plan.duration}
                   </span>
                 </div>
-                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                  plan.isActive
-                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                    : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400"
-                }`}>
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                    plan.isActive
+                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                      : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400"
+                  }`}
+                >
                   {plan.isActive ? "Active" : "Inactive"}
                 </span>
               </div>
@@ -160,19 +127,31 @@ export function PlanMembersModal({ isOpen, onClose, plan }: PlanMembersModalProp
           <div className="grid grid-cols-4 gap-3">
             <div className="bg-white dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
               <p className="text-xs text-gray-600 dark:text-gray-400">Total</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.total}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {stats.total}
+              </p>
             </div>
             <div className="bg-white dark:bg-gray-700 rounded-lg p-3 border border-green-200 dark:border-green-800">
-              <p className="text-xs text-green-700 dark:text-green-400">Active</p>
-              <p className="text-2xl font-bold text-green-700 dark:text-green-400">{stats.active}</p>
+              <p className="text-xs text-green-700 dark:text-green-400">
+                Active
+              </p>
+              <p className="text-2xl font-bold text-green-700 dark:text-green-400">
+                {stats.active}
+              </p>
             </div>
             <div className="bg-white dark:bg-gray-700 rounded-lg p-3 border border-orange-200 dark:border-orange-800">
-              <p className="text-xs text-orange-700 dark:text-orange-400">Expiring</p>
-              <p className="text-2xl font-bold text-orange-700 dark:text-orange-400">{stats.expiring}</p>
+              <p className="text-xs text-orange-700 dark:text-orange-400">
+                Cancelled
+              </p>
+              <p className="text-2xl font-bold text-orange-700 dark:text-orange-400">
+                {stats.cancelled}
+              </p>
             </div>
             <div className="bg-white dark:bg-gray-700 rounded-lg p-3 border border-red-200 dark:border-red-800">
               <p className="text-xs text-red-700 dark:text-red-400">Expired</p>
-              <p className="text-2xl font-bold text-red-700 dark:text-red-400">{stats.expired}</p>
+              <p className="text-2xl font-bold text-red-700 dark:text-red-400">
+                {stats.expired}
+              </p>
             </div>
           </div>
         </div>
@@ -190,32 +169,40 @@ export function PlanMembersModal({ isOpen, onClose, plan }: PlanMembersModalProp
                 className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
               />
             </div>
-            <button
+            {/* <button
               onClick={handleExport}
               className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <Download className="w-4 h-4" />
               Export
-            </button>
+            </button> */}
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             <Filter className="w-4 h-4 text-gray-500" />
-            {(['all', 'active', 'expiring_soon', 'expired'] as const).map((status) => (
+            {(
+              ["all", "active", "cancelled", "pending", "expired"] as const
+            ).map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                   statusFilter === status
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }`}
               >
-                {status === 'all' ? 'All' : 
-                 status === 'expiring_soon' ? 'Expiring Soon' : 
-                 status.charAt(0).toUpperCase() + status.slice(1)}
+                {status === "all"
+                  ? "All"
+                  : status === "cancelled"
+                    ? "Cancelled"
+                    : status === "pending"
+                      ? "Pending"
+                      : status.charAt(0).toUpperCase() + status.slice(1)}
                 {statusFilter === status && (
-                  <span className="ml-1.5 text-xs">({filteredMembers.length})</span>
+                  <span className="ml-1.5 text-xs">
+                    ({filteredSubcriptions?.length})
+                  </span>
                 )}
               </button>
             ))}
@@ -224,11 +211,11 @@ export function PlanMembersModal({ isOpen, onClose, plan }: PlanMembersModalProp
 
         {/* Members List */}
         <div className="flex-1 overflow-y-auto">
-          {filteredMembers.length > 0 ? (
+          {filteredSubcriptions?.length > 0 ? (
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredMembers.map((member) => (
+              {filteredSubcriptions.map((subscription) => (
                 <div
-                  key={member.id}
+                  key={subscription.id}
                   className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -236,26 +223,36 @@ export function PlanMembersModal({ isOpen, onClose, plan }: PlanMembersModalProp
                       <div className="flex items-start gap-3">
                         {/* Avatar */}
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
-                          {member.name.split(' ').map(n => n[0]).join('')}
+                          {`${subscription.member.user.first_name} ${subscription.member.user.last_name}`
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()}
                         </div>
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                            {member.name}
+                            {subscription.member.user.first_name}{" "}
+                            {subscription.member.user.last_name}
                           </h4>
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                               <Mail className="w-4 h-4 flex-shrink-0" />
-                              <span className="truncate">{member.email}</span>
+                              <span className="truncate">
+                                {subscription.member.user.email}
+                              </span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                               <Phone className="w-4 h-4 flex-shrink-0" />
-                              <span>{member.phone}</span>
+                              <span>{subscription.member.user.phone}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                               <Calendar className="w-4 h-4 flex-shrink-0" />
-                              <span>Joined {formatDate(member.joinDate)}</span>
+                              <span>
+                                Joined{" "}
+                                {formatDate(subscription.member.created_at)}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -264,22 +261,35 @@ export function PlanMembersModal({ isOpen, onClose, plan }: PlanMembersModalProp
 
                     {/* Status */}
                     <div className="text-right flex-shrink-0">
-                      <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium mb-2 ${
-                        member.status === 'active' 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                        member.status === 'expiring_soon' 
-                          ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' :
-                        'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                      }`}>
-                        {member.status === 'active' && <CheckCircle className="w-3 h-3" />}
-                        {member.status === 'expiring_soon' && <Clock className="w-3 h-3" />}
-                        {member.status === 'expired' && <AlertCircle className="w-3 h-3" />}
-                        {member.status === 'active' ? 'Active' :
-                         member.status === 'expiring_soon' ? `${member.daysUntilExpiry}d left` :
-                         `${Math.abs(member.daysUntilExpiry)}d overdue`}
+                      <div
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium mb-2 ${
+                          subscription.status === "active"
+                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                            : subscription.status === "pending"
+                              ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+                              : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                        }`}
+                      >
+                        {subscription.status === "active" && (
+                          <CheckCircle className="w-3 h-3" />
+                        )}
+                        {subscription.status === "pending" && (
+                          <Clock className="w-3 h-3" />
+                        )}
+                        {subscription.status === "expired" && (
+                          <AlertCircle className="w-3 h-3" />
+                        )}
+                        {subscription.status === "active"
+                          ? "Active"
+                          : subscription.status === "pending"
+                            ? "Pending"
+                            : "Expired"}
                       </div>
                       <p className="text-xs text-gray-500 dark:text-gray-500">
-                        {member.status === 'expired' ? 'Expired' : 'Expires'} {formatDate(member.expiryDate)}
+                        {subscription.status === "expired"
+                          ? "Expired"
+                          : "Expires"}{" "}
+                        {formatDate(subscription.expires_at)}
                       </p>
                     </div>
                   </div>
@@ -305,7 +315,8 @@ export function PlanMembersModal({ isOpen, onClose, plan }: PlanMembersModalProp
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
           <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
             <span>
-              Showing {filteredMembers.length} of {MOCK_MEMBERS.length} members
+              Showing {filteredSubcriptions!.length} of{" "}
+              {plan.subscriptions?.length || 0} members
             </span>
             <button
               onClick={onClose}
