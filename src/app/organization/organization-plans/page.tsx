@@ -21,14 +21,7 @@ import {
 import {
   Check,
   CheckCircle,
-  HelpCircle,
-  Zap,
-  Shield,
-  Users,
-  Clock,
-  Mail,
-  Globe,
-  Lock,
+
   ArrowRight,
 } from "lucide-react";
 import apiClient from "@/lib/apiClient";
@@ -47,14 +40,14 @@ interface Plan {
   mostPopular: boolean;
 }
 
-const features = [
-  { name: "Users", icon: Users },
-  { name: "Storage", icon: Shield },
-  { name: "Support", icon: Clock },
-  { name: "Email", icon: Mail },
-  { name: "Domains", icon: Globe },
-  { name: "Security", icon: Lock },
-];
+// const features = [
+//   { name: "Users", icon: Users },
+//   { name: "Storage", icon: Shield },
+//   { name: "Support", icon: Clock },
+//   { name: "Email", icon: Mail },
+//   { name: "Domains", icon: Globe },
+//   { name: "Security", icon: Lock },
+// ];
 
 const includedFeatures = [
   "Secure data encryption",

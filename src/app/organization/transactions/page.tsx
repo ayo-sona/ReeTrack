@@ -11,14 +11,14 @@ import {
 } from "lucide-react";
 import { PaymentsTable } from "../../../components/organization/PaymentsTable";
 import { PaymentFilters } from "../../../components/organization/PaymentFilters";
-import {
-  ManualPaymentModal,
-  ManualPaymentData,
-} from "../../../components/organization/ManualPaymentModal";
+// import {
+//   ManualPaymentModal,
+//   ManualPaymentData,
+// } from "../../../components/organization/ManualPaymentModal";
 import {
   usePayments,
   usePaymentStats,
-  useInitializePayment,
+  // useInitializePayment,
 } from "../../../hooks/usePayments";
 import { mapApiPaymentsToUiPayments } from "../../../utils/paymentMapper";
 
@@ -43,7 +43,7 @@ export default function PaymentsPage() {
   // console.log("sample payment", paymentsResponse?.data[0]);
   const { data: stats } = usePaymentStats();
   // console.log("stats", stats);
-  const createPayment = useInitializePayment();
+  // const createPayment = useInitializePayment();
 
   // Transform API payments to match PaymentsTable expected format
   const payments = useMemo(() => {

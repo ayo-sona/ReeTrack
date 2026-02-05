@@ -92,10 +92,10 @@ export function RemindersTable({ reminders }: RemindersTableProps) {
                 <td className="px-6 py-4">
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {reminder.memberName}
+                      {reminder.payer_user?.first_name} {reminder.payer_user?.last_name}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {reminder.memberEmail}
+                      {reminder.payer_user?.email}
                     </p>
                   </div>
                 </td>
@@ -118,7 +118,7 @@ export function RemindersTable({ reminders }: RemindersTableProps) {
                   </div>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                  {formatDate(reminder.scheduledFor)}
+                  {formatDate(reminder.scheduled_for)}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
