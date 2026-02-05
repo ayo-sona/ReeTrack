@@ -10,18 +10,6 @@ import type {
   TopMemberData,
 } from "../types/analytics";
 
-// Helper to get default date range (last 30 days)
-// const getDefaultDateRange = () => {
-//   const endDate = new Date();
-//   const startDate = new Date();
-//   startDate.setDate(startDate.getDate() - 30);
-  
-//   return {
-//     startDate: startDate.toISOString().split('T')[0], // Format: YYYY-MM-DD
-//     endDate: endDate.toISOString().split('T')[0]
-//   };
-// };
-
 // Get analytics overview
 export const useAnalyticsOverview = (params: {
   period: string;
@@ -32,7 +20,8 @@ export const useAnalyticsOverview = (params: {
 
   return useQuery<AnalyticsOverview, Error>({
     queryKey: ["analytics", "overview", organizationId, params],
-    queryFn: () => analyticsApi.getOverview(organizationId, params),
+    queryFn: () => analyticsApi.getOverview(organizationId!, params),
+    enabled: !!organizationId, // Only run query if organizationId exists
     retry: false,
   });
 };
@@ -43,7 +32,8 @@ export const useMRR = () => {
 
   return useQuery<MRRData, Error>({
     queryKey: ["analytics", "mrr", organizationId],
-    queryFn: () => analyticsApi.getMRR(organizationId),
+    queryFn: () => analyticsApi.getMRR(organizationId!),
+    enabled: !!organizationId,
     retry: false,
   });
 };
@@ -58,7 +48,8 @@ export const useChurn = (params: {
 
   return useQuery<ChurnData, Error>({
     queryKey: ["analytics", "churn", organizationId, params],
-    queryFn: () => analyticsApi.getChurn(organizationId, params),
+    queryFn: () => analyticsApi.getChurn(organizationId!, params),
+    enabled: !!organizationId,
     retry: false,
   });
 };
@@ -73,7 +64,8 @@ export const useRevenueChart = (params: {
 
   return useQuery<RevenueChartData[], Error>({
     queryKey: ["analytics", "revenue-chart", organizationId, params],
-    queryFn: () => analyticsApi.getRevenueChart(organizationId, params),
+    queryFn: () => analyticsApi.getRevenueChart(organizationId!, params),
+    enabled: !!organizationId,
     retry: false,
   });
 };
@@ -84,7 +76,8 @@ export const usePlanPerformance = () => {
 
   return useQuery<PlanPerformanceData[], Error>({
     queryKey: ["analytics", "plan-performance", organizationId],
-    queryFn: () => analyticsApi.getPlanPerformance(organizationId),
+    queryFn: () => analyticsApi.getPlanPerformance(organizationId!),
+    enabled: !!organizationId,
     retry: false,
   });
 };
@@ -95,7 +88,8 @@ export const useTopMembers = () => {
 
   return useQuery<TopMemberData[], Error>({
     queryKey: ["analytics", "top-members", organizationId],
-    queryFn: () => analyticsApi.getTopMembers(organizationId),
+    queryFn: () => analyticsApi.getTopMembers(organizationId!),
+    enabled: !!organizationId,
     retry: false,
   });
 };
