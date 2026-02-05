@@ -35,7 +35,7 @@ async function bootstrap() {
   // console.log('frontendUrl', typeof frontendUrl, frontendUrl);
 
   const allowedOrigins = [
-    'https://paypips.vercel.app',
+    'https://reetrack.vercel.app',
     frontendUrl,
     'http://localhost:4000',
     'https://paypips.onrender.com',
