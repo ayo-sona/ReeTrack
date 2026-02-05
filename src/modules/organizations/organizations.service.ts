@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Organization } from '../../database/entities/organization.entity';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { OrganizationUser } from '../../database/entities/organization-user.entity';
@@ -109,7 +109,9 @@ export class OrganizationsService {
 
   async getTeamMembers(organizationId: string) {
     const users = await this.organizationUserRepository.find({
-      where: { organization_id: organizationId, role: OrgRole.MEMBER },
+      where: {
+        organization_id: organizationId,
+      },
       select: ['id', 'role', 'status'],
       relations: ['user'],
     });
