@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -41,9 +41,35 @@ const navigation = [
   { name: "Settings", href: "/organization/settings", icon: Settings },
 ];
 
+// Define User type
+interface User {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+  status?: string;
+}
+
 interface OrganizationSidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+}
+
+// Helper function to get user from localStorage safely
+function getUserFromLocalStorage(): User | null {
+  if (typeof window === 'undefined') return null;
+  
+  try {
+    const userData = localStorage.getItem("userData");
+    if (userData) {
+      const parsed = JSON.parse(userData);
+      return parsed.user;
+    }
+  } catch (error) {
+    console.error("Error loading user data:", error);
+  }
+  return null;
 }
 
 export function OrganizationSidebar({
@@ -52,24 +78,8 @@ export function OrganizationSidebar({
 }: OrganizationSidebarProps) {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-
-  const [user, setUser] = useState<any>(null);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    // This only runs on the client after hydration
-    setIsClient(true);
-
-    try {
-      const userData = localStorage.getItem("userData");
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        setUser(parsed.user);
-      }
-    } catch (error) {
-      console.error("Error loading user data:", error);
-    }
-  }, []);
+  // Use lazy initialization to load user data once on mount
+  const [user] = useState<User | null>(getUserFromLocalStorage);
 
   return (
     <>
@@ -257,8 +267,8 @@ export function OrganizationSidebar({
             })}
           </nav>
 
-          {/* User Card - Only render after client hydration */}
-          {!isCollapsed && isClient && user && (
+          {/* User Card - Only render when user data is available */}
+          {!isCollapsed && user && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -276,17 +286,17 @@ export function OrganizationSidebar({
                 <div className="relative flex items-center gap-3">
                   <div className="relative">
                     <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-500 flex items-center justify-center text-white font-semibold shadow-lg shadow-emerald-500/25">
-                      {user?.first_name?.charAt(0).toUpperCase() || "U"}
-                      {user?.last_name?.charAt(0).toUpperCase() || ""}
+                      {user.first_name?.charAt(0).toUpperCase() || "U"}
+                      {user.last_name?.charAt(0).toUpperCase() || ""}
                     </div>
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900 shadow-lg"></div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                      {user?.first_name} {user?.last_name}
+                      {user.first_name} {user.last_name}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {user?.email}
+                      {user.email}
                     </p>
                   </div>
                 </div>
@@ -294,8 +304,8 @@ export function OrganizationSidebar({
             </motion.div>
           )}
 
-          {/* Collapsed User Avatar - Only render after client hydration */}
-          {isCollapsed && isClient && user && (
+          {/* Collapsed User Avatar - Only render when user data is available */}
+          {isCollapsed && user && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -304,17 +314,17 @@ export function OrganizationSidebar({
             >
               <div className="relative group">
                 <div className="w-11 h-11 mx-auto rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-500 flex items-center justify-center text-white font-semibold shadow-lg shadow-emerald-500/25 cursor-pointer hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-200">
-                  {user?.first_name?.charAt(0).toUpperCase() || "U"}
-                  {user?.last_name?.charAt(0).toUpperCase() || ""}
+                  {user.first_name?.charAt(0).toUpperCase() || "U"}
+                  {user.last_name?.charAt(0).toUpperCase() || ""}
                 </div>
                 <div className="absolute -bottom-1 right-1/2 translate-x-1/2 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900 shadow-lg"></div>
 
                 {/* Tooltip */}
                 <div className="absolute left-full ml-6 top-1/2 -translate-y-1/2 px-4 py-3 bg-gray-900/95 dark:bg-gray-700/95 backdrop-blur-xl text-white rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50 shadow-xl">
                   <p className="font-semibold text-sm">
-                    {user?.first_name} {user?.last_name}
+                    {user.first_name} {user.last_name}
                   </p>
-                  <p className="text-xs text-gray-300 mt-0.5">{user?.email}</p>
+                  <p className="text-xs text-gray-300 mt-0.5">{user.email}</p>
                 </div>
               </div>
             </motion.div>
