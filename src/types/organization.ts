@@ -15,6 +15,31 @@ export interface Organization {
   owner_id: string;
 }
 
+export type PlanVisibility = "public" | "invite_only" | "private";
+export interface SubscriptionPlan {
+  id: string;
+  organizationId: string;
+  name: string;
+  description?: string;
+  price: number;
+  currency: Currency;
+  duration: PlanDuration;
+  features: PlanFeature[];
+  visibility?: PlanVisibility; // Add this line
+  isActive: boolean;
+  memberCount?: number; // Add this line
+  subscriptions?: [
+    {
+      id: string;
+      status: string;
+      expires_at: string;
+      member: { id: string; created_at: string; user: Member["user"] };
+    },
+  ];
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Plan Types
 export interface PlanFeature {
   id: string;
