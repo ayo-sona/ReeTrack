@@ -9,20 +9,9 @@ import {
   Loader2,
 } from "lucide-react";
 import { ExportFormat, ExportType } from "@/types/organization";
-// Commented out unused imports - uncomment when file generation is implemented
 // import { generateCSV, generateExcel, generatePDF } from "@/lib/fileGenerators";
 import apiClient from "@/lib/apiClient";
 import { getCurrentOrganizationId } from "@/utils/organisationUtils";
-
-// Define proper type for API response
-interface ApiResponse {
-  statusCode: number;
-  data: unknown;
-}
-
-interface ReportData {
-  data: unknown;
-}
 
 export default function ReportsPage() {
   const [exportConfig, setExportConfig] = useState({
@@ -98,14 +87,14 @@ export default function ReportsPage() {
         return;
       }
 
-      let response: ApiResponse;
+      let response;
       // Fetch data from API
       const organizationId = getCurrentOrganizationId();
       switch (exportConfig.type) {
         case "members":
           response = await apiClient.get(
             `/analytics/reports/members/${organizationId}`,
-          ) as ApiResponse;
+          );
           break;
         case "payments":
           response = await apiClient.get(
@@ -116,7 +105,7 @@ export default function ReportsPage() {
                 endDate: exportConfig.dateTo,
               },
             },
-          ) as ApiResponse;
+          );
           break;
         case "revenue":
           response = await apiClient.get(
@@ -127,23 +116,23 @@ export default function ReportsPage() {
                 endDate: exportConfig.dateTo,
               },
             },
-          ) as ApiResponse;
+          );
           break;
         case "plans":
           response = await apiClient.get(
             `/analytics/reports/plans/${organizationId}`,
-          ) as ApiResponse;
+          );
           break;
         default:
           alert("Invalid report type");
           return;
       }
 
-      if (response.statusCode !== 200) {
+      if (response.data.statusCode !== 200) {
         throw new Error("Failed to fetch report data");
       }
 
-      const reportData = response.data as ReportData;
+      const reportData = response.data;
       const data = reportData.data;
       console.log(data);
 

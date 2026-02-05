@@ -15,31 +15,6 @@ export interface Organization {
   owner_id: string;
 }
 
-export type PlanVisibility = "public" | "invite_only" | "private";
-export interface SubscriptionPlan {
-  id: string;
-  organizationId: string;
-  name: string;
-  description?: string;
-  price: number;
-  currency: Currency;
-  duration: PlanDuration;
-  features: PlanFeature[];
-  visibility?: PlanVisibility; // Add this line
-  isActive: boolean;
-  memberCount?: number; // Add this line
-  subscriptions?: [
-    {
-      id: string;
-      status: string;
-      expires_at: string;
-      member: { id: string; created_at: string; user: Member["user"] };
-    },
-  ];
-  createdAt: string;
-  updatedAt: string;
-}
-
 // Plan Types
 export interface PlanFeature {
   id: string;
@@ -49,6 +24,7 @@ export interface PlanFeature {
 }
 
 export type PlanDuration = "weekly" | "monthly" | "quarterly" | "yearly";
+export type PlanVisibility = "public" | "invite_only" | "private";
 
 export interface SubscriptionPlan {
   id: string;
@@ -59,7 +35,9 @@ export interface SubscriptionPlan {
   currency: Currency;
   duration: PlanDuration;
   features: PlanFeature[];
+  visibility?: PlanVisibility;
   isActive: boolean;
+  memberCount?: number;
   subscriptions?: [
     {
       id: string;
@@ -142,7 +120,7 @@ export interface Member {
 // Payment Types
 export type PaymentMethod = "card" | "bank_transfer" | "ussd";
 export type PaymentStatus = "success" | "pending" | "failed" | "refunded";
-export type PaymentProvider = "kora" | "paystack" | "manual";
+export type PaymentProvider = PaymentGateway; // Reuse PaymentGateway type
 
 export interface Payment {
   id: string;

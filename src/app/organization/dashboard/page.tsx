@@ -5,35 +5,17 @@ import { MembersGrowthChart } from "../../../components/organization/MembersGrow
 import { RevenueChart } from "../../../components/organization/RevenueChart";
 import { PlanDistributionChart } from "../../../components/organization/PlanDistributionChart";
 import { RecentMembersTable } from "../../../components/organization/RecentMembersTable";
-import { useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import apiClient from "@/lib/apiClient";
+import { PaymentVerification } from "../../../components/organization/PaymentVerification";
+import { Suspense } from "react";
 
 export default function OrganizationDashboardPage() {
-  const searchParams = useSearchParams();
-  const reference = searchParams.get("reference");
-
-  const verifyPayment = async (ref: string) => {
-    try {
-      const { data } = await apiClient.get(`/payments/paystack/verify/${ref}`);
-
-      if (data.data.status === "success") {
-        // Show success message
-        alert("Payment successful! Your subscription is now active.");
-      }
-    } catch (error) {
-      console.error("Verification error:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (reference) {
-      verifyPayment(reference);
-    }
-  }, [reference]);
-
   return (
     <div className="space-y-6">
+      {/* Payment verification wrapped in Suspense */}
+      <Suspense fallback={null}>
+        <PaymentVerification />
+      </Suspense>
+
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
