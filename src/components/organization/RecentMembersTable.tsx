@@ -1,23 +1,27 @@
-'use client';
+"use client";
 
-import { useTeamMembers } from '../../hooks/useOrganisations';
-import { useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Users } from 'lucide-react';
+import { useTeamMembers } from "../../hooks/useOrganisations";
+import { useMemo } from "react";
+import { motion } from "framer-motion";
+import { Users } from "lucide-react";
 
 export function RecentMembersTable() {
   const { data: teamMembers, isLoading } = useTeamMembers();
+  console.log("teamMembers", teamMembers);
 
   const recentTeamMembers = useMemo(() => {
     if (!teamMembers) return [];
-    
+
     return teamMembers
-      .filter(member => member.role !== 'MEMBER')
+      .filter((member) => member.role !== "MEMBER")
       .slice(0, 5)
       .map((member) => ({
         id: member.id,
-        name: `${member.user.first_name} ${member.user.last_name}`.trim() || member.user.email || 'Unknown',
-        email: member.user.email || '',
+        name:
+          `${member.user.first_name} ${member.user.last_name}`.trim() ||
+          member.user.email ||
+          "Unknown",
+        email: member.user.email || "",
         role: member.role,
         status: member.status,
         lastLogin: member.user.last_login_at,
@@ -32,7 +36,10 @@ export function RecentMembersTable() {
         </div>
         <div className="p-6 space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-16 bg-gray-100/50 dark:bg-gray-800/50 rounded-xl animate-pulse"></div>
+            <div
+              key={i}
+              className="h-16 bg-gray-100/50 dark:bg-gray-800/50 rounded-xl animate-pulse"
+            ></div>
           ))}
         </div>
       </div>
@@ -132,7 +139,7 @@ export function RecentMembersTable() {
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 via-blue-500 to-indigo-500 flex items-center justify-center text-white font-semibold text-sm shadow-lg shadow-blue-500/25">
-                        {(member.name || 'U').charAt(0).toUpperCase()}
+                        {(member.name || "U").charAt(0).toUpperCase()}
                       </div>
                       {/* Glow effect */}
                       <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 blur-lg opacity-20 -z-10"></div>
@@ -154,9 +161,9 @@ export function RecentMembersTable() {
                 <td className="px-6 py-4">
                   <span
                     className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                      member.role === 'ADMIN'
-                        ? 'bg-gradient-to-r from-purple-500/10 to-indigo-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20'
-                        : 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20'
+                      member.role === "ADMIN"
+                        ? "bg-gradient-to-r from-purple-500/10 to-indigo-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20"
+                        : "bg-gradient-to-r from-blue-500/10 to-cyan-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20"
                     }`}
                   >
                     {member.role}
@@ -167,14 +174,16 @@ export function RecentMembersTable() {
                 <td className="px-6 py-4">
                   <span
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                      member.status === 'active'
-                        ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
-                        : 'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20'
+                      member.status === "active"
+                        ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                        : "bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20"
                     }`}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
-                        member.status === 'active' ? 'bg-emerald-500' : 'bg-red-500'
+                        member.status === "active"
+                          ? "bg-emerald-500"
+                          : "bg-red-500"
                       }`}
                     ></span>
                     {member.status}
@@ -185,12 +194,12 @@ export function RecentMembersTable() {
                 <td className="px-6 py-4">
                   <span className="text-sm text-gray-600 dark:text-gray-400">
                     {member.lastLogin
-                      ? new Date(member.lastLogin).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
+                      ? new Date(member.lastLogin).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
                         })
-                      : 'Never'}
+                      : "Never"}
                   </span>
                 </td>
               </motion.tr>

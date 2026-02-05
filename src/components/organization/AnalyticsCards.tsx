@@ -31,13 +31,14 @@ export function AnalyticsCards() {
       return { active: 0, inactive: 0, total: 0 };
     }
 
-    const active = teamMembers.filter((m) => m.status === "active").length;
-    const inactive = teamMembers.filter((m) => m.status === "inactive").length;
+    const members = teamMembers.filter((m) => m.role === "MEMBER");
+    const active = members.filter((m) => m.status === "active").length;
+    const inactive = members.filter((m) => m.status === "inactive").length;
 
     return {
       active,
       inactive,
-      total: teamMembers.length,
+      total: members.length,
     };
   }, [teamMembers]);
 
@@ -58,10 +59,10 @@ export function AnalyticsCards() {
   const inactiveMembers =
     analytics.members.inactive_members ??
     memberStats.inactive ??
-    Math.max(0, analytics.members.total_members - activeMembers) ??
+    Math.max(0, memberStats.total - activeMembers) ??
     0;
 
-  const totalMembers = memberStats.total || analytics.members.total_members || 0;
+  const totalMembers = memberStats.total || 0;
 
   const stats = [
     {
@@ -79,10 +80,26 @@ export function AnalyticsCards() {
       details: {
         title: "Member Statistics",
         metrics: [
-          { label: "Total Members", value: totalMembers, description: "All registered members" },
-          { label: "Active Members", value: activeMembers, description: "Currently active subscriptions" },
-          { label: "Inactive Members", value: inactiveMembers, description: "Paused or expired" },
-          { label: "New This Period", value: analytics.members.new_members || 0, description: "Recent sign-ups" },
+          {
+            label: "Total Members",
+            value: totalMembers,
+            description: "All registered members",
+          },
+          {
+            label: "Active Members",
+            value: activeMembers,
+            description: "Currently active subscriptions",
+          },
+          {
+            label: "Inactive Members",
+            value: inactiveMembers,
+            description: "Paused or expired",
+          },
+          {
+            label: "New This Period",
+            value: analytics.members.new_members || 0,
+            description: "Recent sign-ups",
+          },
         ],
       },
       dropdownType: "members" as const,
@@ -99,16 +116,38 @@ export function AnalyticsCards() {
       gradient: "from-emerald-400 via-emerald-500 to-teal-500",
       glowColor: "emerald",
       subStats: [
-        { label: "Payments", value: analytics.payments.successful_payments || 0 },
-        { label: "Total", value: `₦${(analytics.revenue.total_revenue || 0).toLocaleString()}` },
+        {
+          label: "Payments",
+          value: analytics.payments.successful_payments || 0,
+        },
+        {
+          label: "Total",
+          value: `₦${(analytics.revenue.total_revenue || 0).toLocaleString()}`,
+        },
       ],
       details: {
         title: "Revenue Breakdown",
         metrics: [
-          { label: "Period Revenue", value: `₦${analytics.revenue.period_revenue?.toLocaleString() || 0}`, description: "This period's earnings" },
-          { label: "Total Revenue", value: `₦${analytics.revenue.total_revenue?.toLocaleString() || 0}`, description: "All-time revenue" },
-          { label: "Growth Rate", value: `${(analytics.revenue.growth_rate || 0).toFixed(1)}%`, description: "Compared to last period" },
-          { label: "Successful Payments", value: analytics.payments.successful_payments || 0, description: "Completed transactions" },
+          {
+            label: "Period Revenue",
+            value: `₦${analytics.revenue.period_revenue?.toLocaleString() || 0}`,
+            description: "This period's earnings",
+          },
+          {
+            label: "Total Revenue",
+            value: `₦${analytics.revenue.total_revenue?.toLocaleString() || 0}`,
+            description: "All-time revenue",
+          },
+          {
+            label: "Growth Rate",
+            value: `${(analytics.revenue.growth_rate || 0).toFixed(1)}%`,
+            description: "Compared to last period",
+          },
+          {
+            label: "Successful Payments",
+            value: analytics.payments.successful_payments || 0,
+            description: "Completed transactions",
+          },
         ],
       },
       dropdownType: "metrics" as const,
@@ -125,15 +164,34 @@ export function AnalyticsCards() {
       gradient: "from-purple-400 via-purple-500 to-indigo-500",
       glowColor: "purple",
       subStats: [
-        { label: "Active Subs", value: analytics.subscriptions.active_subscriptions || 0 },
+        {
+          label: "Active Subs",
+          value: analytics.subscriptions.active_subscriptions || 0,
+        },
       ],
       details: {
         title: "MRR Details",
         metrics: [
-          { label: "Current MRR", value: `₦${analytics.mrr.current_mrr?.toLocaleString() || 0}`, description: "Monthly recurring revenue" },
-          { label: "MRR Growth", value: `${(analytics.mrr.growth_rate || 0).toFixed(1)}%`, description: "Month-over-month growth" },
-          { label: "Active Subscriptions", value: analytics.subscriptions.active_subscriptions || 0, description: "Current active plans" },
-          { label: "Average per Sub", value: `₦${Math.round((analytics.mrr.current_mrr || 0) / Math.max(1, analytics.subscriptions.active_subscriptions || 1)).toLocaleString()}`, description: "Revenue per subscription" },
+          {
+            label: "Current MRR",
+            value: `₦${analytics.mrr.current_mrr?.toLocaleString() || 0}`,
+            description: "Monthly recurring revenue",
+          },
+          {
+            label: "MRR Growth",
+            value: `${(analytics.mrr.growth_rate || 0).toFixed(1)}%`,
+            description: "Month-over-month growth",
+          },
+          {
+            label: "Active Subscriptions",
+            value: analytics.subscriptions.active_subscriptions || 0,
+            description: "Current active plans",
+          },
+          {
+            label: "Average per Sub",
+            value: `₦${Math.round((analytics.mrr.current_mrr || 0) / Math.max(1, analytics.subscriptions.active_subscriptions || 1)).toLocaleString()}`,
+            description: "Revenue per subscription",
+          },
         ],
       },
       dropdownType: "metrics" as const,
@@ -150,9 +208,21 @@ export function AnalyticsCards() {
       details: {
         title: "Attention Required",
         metrics: [
-          { label: "Inactive Members", value: inactiveMembers, description: "Members to follow up with" },
-          { label: "Retention Rate", value: `${Math.round((activeMembers / Math.max(1, totalMembers)) * 100)}%`, description: "Active/Total ratio" },
-          { label: "At Risk", value: inactiveMembers, description: "Potential churn" },
+          {
+            label: "Inactive Members",
+            value: inactiveMembers,
+            description: "Members to follow up with",
+          },
+          {
+            label: "Retention Rate",
+            value: `${Math.round((activeMembers / Math.max(1, totalMembers)) * 100)}%`,
+            description: "Active/Total ratio",
+          },
+          {
+            label: "At Risk",
+            value: inactiveMembers,
+            description: "Potential churn",
+          },
         ],
       },
       dropdownType: "members" as const,
