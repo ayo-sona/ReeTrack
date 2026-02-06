@@ -9,7 +9,7 @@ interface MemberFiltersType {
   dateFrom: string;
   dateTo: string;
   plan: string;
-  status: "all" | "active" | "inactive" | "expired";
+  status: "all" | "active" | "inactive";
 }
 
 interface MemberFiltersProps {

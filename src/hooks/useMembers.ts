@@ -1,10 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { membersApi, UpdateMemberDto } from '../lib/organizationAPI/membersApi';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { membersApi, UpdateMemberDto } from "../lib/organizationAPI/membersApi";
 
-// Get all members (with optional role filter)
+// Get all members
 export const useMembers = (search?: string) => {
   return useQuery({
-    queryKey: ['members', search],
+    queryKey: ["members", search],
     queryFn: () => membersApi.getAll(search),
     retry: false,
     placeholderData: (previousData) => previousData, // ⭐ Keep previous data while loading new data
@@ -14,7 +14,7 @@ export const useMembers = (search?: string) => {
 // Get member by ID
 export const useMemberById = (id: string) => {
   return useQuery({
-    queryKey: ['member', id],
+    queryKey: ["member", id],
     queryFn: () => membersApi.getById(id),
     enabled: !!id,
     retry: false,
@@ -24,7 +24,7 @@ export const useMemberById = (id: string) => {
 // Get member stats
 export const useMemberStats = (id: string) => {
   return useQuery({
-    queryKey: ['member', id, 'stats'],
+    queryKey: ["member", id, "stats"],
     queryFn: () => membersApi.getStats(id),
     enabled: !!id,
     retry: false,
@@ -34,14 +34,14 @@ export const useMemberStats = (id: string) => {
 // Update member
 export const useUpdateMember = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateMemberDto }) => 
+    mutationFn: ({ id, data }: { id: string; data: UpdateMemberDto }) =>
       membersApi.update(id, data),
     onSuccess: (_, variables) => {
       // Invalidate member queries
-      queryClient.invalidateQueries({ queryKey: ['member', variables.id] });
-      queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ["member", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
     },
   });
 };
@@ -49,12 +49,12 @@ export const useUpdateMember = () => {
 // Delete member
 export const useDeleteMember = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => membersApi.delete(id),
     onSuccess: () => {
       // Invalidate members list
-      queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
     },
   });
 };

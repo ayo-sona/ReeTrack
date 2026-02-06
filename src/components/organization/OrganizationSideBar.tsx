@@ -147,7 +147,7 @@ export function OrganizationSidebar({
                   transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent"
                 >
-                  PayPips
+                  ReeTrack
                 </motion.span>
               )}
             </div>
