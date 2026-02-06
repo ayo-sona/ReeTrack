@@ -15,7 +15,7 @@ export default function MembersPage() {
     dateFrom: "",
     dateTo: "",
     plan: "all",
-    status: "all" as "all" | "active" | "inactive" | "expired",
+    status: "all" as "all" | "active" | "inactive",
   });
 
   // Fetch data

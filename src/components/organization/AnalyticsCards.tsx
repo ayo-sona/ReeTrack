@@ -257,7 +257,7 @@ export function AnalyticsCards() {
                   {stat.dropdownType === "members" && teamMembers && (
                     <MemberListDropdown
                       title={stat.details.title}
-                      members={teamMembers}
+                      members={teamMembers.filter((m) => m.role === "MEMBER")}
                       gradient={stat.gradient}
                       onClose={(e) => {
                         e.stopPropagation();

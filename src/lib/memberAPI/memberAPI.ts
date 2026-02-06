@@ -11,7 +11,7 @@ import {
   ReferredMember,
 } from "@/types/memberTypes/member";
 
-// MOCK DATA (Backend not ready yet)
+// MOCK DATA
 const MOCK_MEMBER: Member = {
   id: "1",
   email: "john@example.com",
@@ -227,7 +227,7 @@ const MOCK_REFERRED_MEMBERS: ReferredMember[] = [
   },
 ];
 
-// Member API (will use real endpoints when backend is ready)
+// Member API
 export const memberApi = {
   // Profile
   getProfile: async (): Promise<Member> => {
