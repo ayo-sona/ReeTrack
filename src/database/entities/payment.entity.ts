@@ -15,6 +15,7 @@ import {
   PaymentPayerType,
   PaymentProvider,
   PaymentStatus,
+  Currency,
 } from 'src/common/enums/enums';
 
 @Entity('payments')
@@ -31,24 +32,33 @@ export class Payment {
   @Column({ type: 'uuid', nullable: true })
   invoice_id: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'enum', enum: PaymentPayerType })
   @IsEnum(PaymentPayerType)
   payer_type: PaymentPayerType;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   amount: number;
 
-  @Column({ type: 'text', default: 'NGN' })
-  currency: string;
+  @Column({
+    type: 'enum',
+    enum: Currency,
+    default: Currency.NGN,
+  })
+  currency: Currency;
 
-  @Column({ type: 'text' })
+  @Column({
+    type: 'enum',
+    enum: PaymentProvider,
+    default: PaymentProvider.PAYSTACK,
+    nullable: true,
+  })
   @IsEnum(PaymentProvider)
   provider: PaymentProvider;
 
   @Column({ type: 'text', unique: true, nullable: true })
   provider_reference: string;
 
-  @Column({ type: 'text', default: PaymentStatus.PENDING })
+  @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.PENDING })
   status: PaymentStatus;
 
   @Column({ type: 'jsonb', nullable: true })

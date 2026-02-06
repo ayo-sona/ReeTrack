@@ -98,27 +98,6 @@ export class InvoicesController {
     return this.invoicesService.getOverdueMemberInvoices(organizationId);
   }
 
-  @Get('member/subscription/:subscriptionId')
-  @ApiOperation({ summary: 'Get member subscription invoices' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of member subscription invoices',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Not found' })
-  @ApiResponse({ status: 500, description: 'Internal server error' })
-  getMemberSubscriptionInvoices(
-    @CurrentOrganization() organizationId: string,
-    @Param('subscriptionId') subscriptionId: string,
-    @Query() paginationDto: PaginationDto,
-  ) {
-    return this.invoicesService.getMemberSubscriptionInvoices(
-      organizationId,
-      subscriptionId,
-      paginationDto,
-    );
-  }
-
   @Get('member/:invoiceId')
   @ApiOperation({ summary: 'Get invoice by id' })
   @ApiResponse({ status: 200, description: 'Invoice' })

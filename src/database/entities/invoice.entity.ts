@@ -18,6 +18,7 @@ import {
   InvoiceBilledType,
   InvoiceStatus,
   PaymentProvider,
+  Currency,
 } from 'src/common/enums/enums';
 
 @Entity('invoices')
@@ -46,17 +47,23 @@ export class Invoice {
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   amount: number;
 
-  @Column({ type: 'text', default: 'NGN' })
-  currency: string;
+  @Column({ type: 'enum', enum: Currency, default: Currency.NGN })
+  @IsEnum(Currency)
+  currency: Currency;
 
-  @Column({ type: 'text' })
+  @Column({
+    type: 'enum',
+    enum: PaymentProvider,
+    default: PaymentProvider.PAYSTACK,
+  })
   @IsEnum(PaymentProvider)
   payment_provider: PaymentProvider;
 
   @Column({ type: 'text', nullable: true })
   provider_reference: string;
 
-  @Column({ type: 'text', default: InvoiceStatus.PENDING })
+  @Column({ type: 'enum', enum: InvoiceStatus, default: InvoiceStatus.PENDING })
+  @IsEnum(InvoiceStatus)
   status: InvoiceStatus;
 
   @Column({ type: 'timestamp with time zone' })
@@ -74,7 +81,10 @@ export class Invoice {
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updated_at: Date;
 
-  @Column({ type: 'text' })
+  @Column({
+    type: 'enum',
+    enum: InvoiceBilledType,
+  })
   @IsEnum(InvoiceBilledType)
   billed_type: InvoiceBilledType;
 

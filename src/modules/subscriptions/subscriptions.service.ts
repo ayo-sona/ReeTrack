@@ -188,25 +188,21 @@ export class SubscriptionsService {
     };
   }
 
-  async findOneMemberSubscription(
-    organizationId: string,
-    subscriptionId: string,
-  ) {
-    const subscription = await this.memberSubscriptionRepository.findOne({
+  async findOneMemberSubscription(userId: string) {
+    const memberSub = await this.memberRepository.find({
       where: {
-        id: subscriptionId,
-        organization_id: organizationId,
+        user_id: userId,
       },
-      relations: ['member', 'member.user', 'plan'],
+      relations: ['subscriptions.plan'],
     });
 
-    if (!subscription) {
+    if (!memberSub || memberSub.length === 0) {
       throw new NotFoundException('Subscription not found');
     }
 
     return {
       message: 'Subscription retrieved successfully',
-      data: subscription,
+      data: memberSub,
     };
   }
 
@@ -812,7 +808,7 @@ export class SubscriptionsService {
       issuer_org_id: organizationId,
       member_subscription_id: subscription.id,
       billed_user_id: member.user.id,
-      billed_type: InvoiceBilledType.USER,
+      billed_type: InvoiceBilledType.MEMBER,
       invoice_number: generateInvoiceNumber(organizationId),
       payment_provider: PaymentProvider.PAYSTACK,
       amount: subscription.plan.price,

@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -25,6 +26,7 @@ import { OrganizationInvite } from 'src/database/entities/organization-invite.en
 import { StaffRegisterDto } from 'src/common/dto/staff-register.dto';
 import type { Request, Response } from 'express';
 import { UserRegisterDto } from 'src/common/dto/user-register.dto';
+import { CustomRegisterDto } from './auth.controller';
 
 interface AuthResponse {
   message: string;
@@ -210,10 +212,6 @@ export class AuthService {
     const member = this.memberRepository.create({
       user_id: user.id,
       organization_user_id: savedOrgUser.id,
-      date_of_birth: memberRegisterDto.dateOfBirth,
-      address: memberRegisterDto.address,
-      emergency_contact_phone: memberRegisterDto.emergencyContactPhone,
-      medical_notes: memberRegisterDto.medicalNotes,
       check_in_count: memberRegisterDto.checkInCount,
       metadata: {},
     });
@@ -243,7 +241,7 @@ export class AuthService {
 
   async customRegisterMember(
     organizationId: string,
-    memberRegisterDto: MemberRegisterDto,
+    memberRegisterDto: CustomRegisterDto,
   ) {
     // Find organization by id
     const organization = await this.organizationRepository.findOne({
@@ -273,19 +271,7 @@ export class AuthService {
         throw new ConflictException('Already a member of this organization');
       }
     } else {
-      // Create new user
-      const password_hash = await bcrypt.hash(memberRegisterDto.password, 10);
-
-      user = this.userRepository.create({
-        email: memberRegisterDto.email,
-        password_hash,
-        first_name: memberRegisterDto.firstName,
-        last_name: memberRegisterDto.lastName,
-        phone: memberRegisterDto.phone,
-        status: 'inactive',
-      });
-
-      user = await this.userRepository.save(user);
+      throw new ForbiddenException('User not found');
     }
 
     // Create organization_user with MEMBER role
@@ -301,12 +287,6 @@ export class AuthService {
     const member = this.memberRepository.create({
       user_id: user.id,
       organization_user_id: savedOrgUser.id,
-      date_of_birth: memberRegisterDto.dateOfBirth,
-      address: memberRegisterDto.address,
-      emergency_contact_phone: memberRegisterDto.emergencyContactPhone,
-      medical_notes: memberRegisterDto.medicalNotes,
-      check_in_count: memberRegisterDto.checkInCount,
-      metadata: {},
     });
 
     await this.memberRepository.save(member);
@@ -321,7 +301,7 @@ export class AuthService {
     return {
       message: 'Registration sent successfully',
       data: {
-        customer: {
+        member: {
           email: user.email,
           first_name: user.first_name,
           last_name: user.last_name,
@@ -716,7 +696,7 @@ export class AuthService {
     // Generate access token (15 minutes)
     const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.get('jwt.secret'),
-      expiresIn: '15m',
+      expiresIn: this.configService.get('jwt.expiresIn'),
     });
 
     // const decoded = this.jwtService.decode(accessToken);
@@ -728,7 +708,7 @@ export class AuthService {
       { ...payload, token: refreshTokenString },
       {
         secret: this.configService.get('jwt.refreshSecret'),
-        expiresIn: '1d',
+        expiresIn: this.configService.get('jwt.refreshExpiresIn'),
       },
     );
 

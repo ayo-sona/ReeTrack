@@ -12,7 +12,7 @@ import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { PaginationDto, paginate } from '../../common/dto/pagination.dto';
 import { generateInvoiceNumber } from '../../common/utils/invoice-number.util';
 import { MemberSubscription } from '../../database/entities/member-subscription.entity';
-import { InvoiceStatus } from 'src/common/enums/enums';
+import { Currency, InvoiceStatus } from 'src/common/enums/enums';
 import { InvoiceBilledType } from 'src/common/enums/enums';
 import { Organization, OrganizationSubscription } from 'src/database/entities';
 import { CreateOrganizationInvoiceDto } from './dto/create-organization-invoice.dto';
@@ -74,11 +74,11 @@ export class InvoicesService {
     const invoice = this.invoiceRepository.create({
       issuer_org_id: organizationId,
       billed_user_id: createInvoiceDto.billedUserId,
-      billed_type: InvoiceBilledType.USER,
+      billed_type: InvoiceBilledType.MEMBER,
       member_subscription_id: createInvoiceDto.subscriptionId,
       invoice_number: generateInvoiceNumber(organizationId),
       amount: createInvoiceDto.amount,
-      currency: createInvoiceDto.currency || 'NGN',
+      currency: (createInvoiceDto.currency as Currency) || Currency.NGN,
       status: InvoiceStatus.PENDING,
       due_date: createInvoiceDto.dueDate,
       metadata: createInvoiceDto.metadata || {},
@@ -135,31 +135,6 @@ export class InvoicesService {
     return {
       message: 'Member invoice retrieved successfully',
       data: invoice,
-    };
-  }
-
-  async getMemberSubscriptionInvoices(
-    organizationId: string,
-    subscriptionId: string,
-    paginationDto: PaginationDto,
-  ) {
-    const { page = 1, limit = 10 } = paginationDto;
-    const skip = (page - 1) * limit;
-
-    const [invoices, total] = await this.invoiceRepository.findAndCount({
-      where: {
-        issuer_org_id: organizationId,
-        member_subscription_id: subscriptionId,
-      },
-      relations: ['member_subscription', 'payments'],
-      order: { created_at: 'DESC' },
-      skip,
-      take: limit,
-    });
-
-    return {
-      message: 'Member subscription invoices retrieved successfully',
-      ...paginate(invoices, total, page, limit),
     };
   }
 
@@ -357,7 +332,7 @@ export class InvoicesService {
       billed_type: InvoiceBilledType.ORGANIZATION,
       invoice_number: `INV-ORG-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
       amount: createInvoiceDto.amount,
-      currency: createInvoiceDto.currency || 'NGN',
+      currency: (createInvoiceDto.currency as Currency) || Currency.NGN,
       status: createInvoiceDto.status || InvoiceStatus.PENDING,
       due_date: createInvoiceDto.dueDate || new Date(),
       description: createInvoiceDto.description,

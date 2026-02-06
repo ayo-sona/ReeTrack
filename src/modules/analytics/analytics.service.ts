@@ -202,7 +202,9 @@ export class AnalyticsService {
     const totalRevenueResult = await this.paymentRepository
       .createQueryBuilder('payment')
       .select('COALESCE(SUM(amount), 0)', 'total')
-      .where('payer_type = :payer_type', { payer_type: PaymentPayerType.USER })
+      .where('payer_type = :payer_type', {
+        payer_type: PaymentPayerType.MEMBER,
+      })
       .andWhere('payer_org_id = :orgId', { orgId: organizationId })
       .andWhere('status = :status', { status: PaymentStatus.SUCCESS })
       .getRawOne();
@@ -211,7 +213,9 @@ export class AnalyticsService {
     const periodRevenueResult = await this.paymentRepository
       .createQueryBuilder('payment')
       .select('COALESCE(SUM(amount), 0)', 'total')
-      .where('payer_type = :payer_type', { payer_type: PaymentPayerType.USER })
+      .where('payer_type = :payer_type', {
+        payer_type: PaymentPayerType.MEMBER,
+      })
       .andWhere('payer_org_id = :orgId', { orgId: organizationId })
       .andWhere('status = :status', { status: PaymentStatus.SUCCESS })
       .andWhere('created_at BETWEEN :start AND :end', {
@@ -228,7 +232,9 @@ export class AnalyticsService {
     const previousRevenueResult = await this.paymentRepository
       .createQueryBuilder('payment')
       .select('COALESCE(SUM(amount), 0)', 'total')
-      .where('payer_type = :payer_type', { payer_type: PaymentPayerType.USER })
+      .where('payer_type = :payer_type', {
+        payer_type: PaymentPayerType.MEMBER,
+      })
       .andWhere('payer_org_id = :orgId', { orgId: organizationId })
       .andWhere('status = :status', { status: PaymentStatus.SUCCESS })
       .andWhere('created_at BETWEEN :start AND :end', {
@@ -248,7 +254,7 @@ export class AnalyticsService {
     // Average transaction value
     const transactionCount = await this.paymentRepository.count({
       where: {
-        payer_type: PaymentPayerType.USER,
+        payer_type: PaymentPayerType.MEMBER,
         payer_org_id: organizationId,
         status: PaymentStatus.SUCCESS,
         created_at: Between(startDate, endDate),
@@ -317,14 +323,14 @@ export class AnalyticsService {
     const [total, successful, failed, pending] = await Promise.all([
       this.paymentRepository.count({
         where: {
-          payer_type: PaymentPayerType.USER,
+          payer_type: PaymentPayerType.MEMBER,
           payer_org_id: organizationId,
           created_at: Between(startDate, endDate),
         },
       }),
       this.paymentRepository.count({
         where: {
-          payer_type: PaymentPayerType.USER,
+          payer_type: PaymentPayerType.MEMBER,
           payer_org_id: organizationId,
           status: PaymentStatus.SUCCESS,
           created_at: Between(startDate, endDate),
@@ -427,7 +433,7 @@ export class AnalyticsService {
       ])
       .where('payment.payer_org_id = :orgId', { orgId: organizationId })
       .andWhere('payment.payer_type = :payer_type', {
-        payer_type: PaymentPayerType.USER,
+        payer_type: PaymentPayerType.MEMBER,
       })
       .andWhere('payment.status = :status', { status: PaymentStatus.SUCCESS })
       .andWhere('payment.created_at >= :start AND payment.created_at <= :end', {
@@ -531,7 +537,7 @@ export class AnalyticsService {
         .where('member_subscriptions.plan_id = :planId', { planId: plan.id })
         .andWhere('payment.status = :status', { status: PaymentStatus.SUCCESS })
         .andWhere('payment.payer_type = :payer_type', {
-          payer_type: PaymentPayerType.USER,
+          payer_type: PaymentPayerType.MEMBER,
         })
         .getRawOne();
 
@@ -571,7 +577,7 @@ export class AnalyticsService {
       .where('payment.payer_org_id = :orgId', { orgId: organizationId })
       .andWhere('payment.status = :status', { status: PaymentStatus.SUCCESS })
       .andWhere('payment.payer_type = :payer_type', {
-        payer_type: PaymentPayerType.USER,
+        payer_type: PaymentPayerType.MEMBER,
       })
       .groupBy('payment.payer_user_id')
       .addGroupBy('users.first_name')
@@ -682,7 +688,7 @@ export class AnalyticsService {
       ])
       .where('payment.payer_org_id = :orgId', { orgId: organizationId })
       .andWhere('payment.status = :status', { status: PaymentStatus.SUCCESS })
-      .andWhere('payment.payer_type = :type', { type: PaymentPayerType.USER })
+      .andWhere('payment.payer_type = :type', { type: PaymentPayerType.MEMBER })
       .andWhere('payment.created_at >= :start AND payment.created_at <= :end', {
         start,
         end,

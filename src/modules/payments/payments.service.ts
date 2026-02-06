@@ -14,6 +14,7 @@ import {
   InvoiceStatus,
   PaymentPayerType,
   SubscriptionStatus,
+  Currency,
 } from 'src/common/enums/enums';
 import { Invoice } from '../../database/entities/invoice.entity';
 import { Member } from '../../database/entities/member.entity';
@@ -84,9 +85,9 @@ export class PaymentsService {
       payer_org_id: organizationId,
       invoice_id: invoice.id,
       payer_user_id: invoice.billed_user_id,
-      payer_type: PaymentPayerType.USER,
+      payer_type: PaymentPayerType.MEMBER,
       amount: invoice.amount,
-      currency: invoice.currency,
+      currency: invoice.currency as Currency,
       provider: PaymentProvider.PAYSTACK,
       provider_reference: reference,
       status: PaymentStatus.PENDING,
@@ -165,7 +166,7 @@ export class PaymentsService {
       payer_user_id: invoice.billed_user_id,
       payer_type: PaymentPayerType.ORGANIZATION,
       amount: invoice.amount,
-      currency: invoice.currency,
+      currency: invoice.currency as Currency,
       provider: PaymentProvider.PAYSTACK,
       provider_reference: reference,
       status: PaymentStatus.PENDING,
@@ -396,9 +397,9 @@ export class PaymentsService {
       invoice_id: invoice.id,
       payer_user_id: subscription.member.user_id,
       payer_org_id: subscription.organization_id,
-      payer_type: PaymentPayerType.USER,
+      payer_type: PaymentPayerType.MEMBER,
       amount: invoice.amount,
-      currency: invoice.currency,
+      currency: invoice.currency as Currency,
       provider: PaymentProvider.PAYSTACK,
       provider_reference: reference,
       status: PaymentStatus.PENDING,
@@ -516,23 +517,16 @@ export class PaymentsService {
     };
   }
 
-  async getPaymentsByMember(
-    organizationId: string,
-    userId: string,
-    paginationDto: PaginationDto,
-  ) {
+  async getPaymentsByMember(userId: string, paginationDto: PaginationDto) {
     const { page = 1, limit = 10 } = paginationDto;
     const skip = (page - 1) * limit;
 
     const [payments, total] = await this.paymentRepository.findAndCount({
       where: {
-        payer_org_id: organizationId,
         payer_user_id: userId,
+        payer_type: PaymentPayerType.MEMBER,
       },
-      relations: [
-        'invoice.member_subscription.plan',
-        'invoice.organization_subscription.plan',
-      ],
+      relations: ['invoice.member_subscription.plan'],
       order: { created_at: 'DESC' },
       skip,
       take: limit,
@@ -556,35 +550,35 @@ export class PaymentsService {
       this.paymentRepository.count({
         where: {
           payer_org_id: organizationId,
-          payer_type: PaymentPayerType.USER,
+          payer_type: PaymentPayerType.MEMBER,
         },
       }),
       this.paymentRepository.count({
         where: {
           payer_org_id: organizationId,
           status: PaymentStatus.SUCCESS,
-          payer_type: PaymentPayerType.USER,
+          payer_type: PaymentPayerType.MEMBER,
         },
       }),
       this.paymentRepository.count({
         where: {
           payer_org_id: organizationId,
           status: PaymentStatus.FAILED,
-          payer_type: PaymentPayerType.USER,
+          payer_type: PaymentPayerType.MEMBER,
         },
       }),
       this.paymentRepository.count({
         where: {
           payer_org_id: organizationId,
           status: PaymentStatus.PENDING,
-          payer_type: PaymentPayerType.USER,
+          payer_type: PaymentPayerType.MEMBER,
         },
       }),
       this.paymentRepository.query(
         `SELECT COALESCE(SUM(amount), 0) as total
            FROM payments
            WHERE payer_org_id = $1 AND status = $2 AND payer_type = $3`,
-        [organizationId, PaymentStatus.SUCCESS, PaymentPayerType.USER],
+        [organizationId, PaymentStatus.SUCCESS, PaymentPayerType.MEMBER],
       ),
       this.paymentRepository.query(
         `SELECT COALESCE(SUM(amount), 0) as total

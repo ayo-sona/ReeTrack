@@ -97,15 +97,9 @@ export class SubscriptionsController {
   })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 404, description: 'Subscription not found' })
-  @Get('/members/:subscriptionId')
-  findOne(
-    @CurrentOrganization() organizationId: string,
-    @Param('subscriptionId') subscriptionId: string,
-  ) {
-    return this.subscriptionsService.findOneMemberSubscription(
-      organizationId,
-      subscriptionId,
-    );
+  @Get('/members/subscription')
+  findOne(@CurrentUser() user: any) {
+    return this.subscriptionsService.findOneMemberSubscription(user.id);
   }
 
   @ApiBearerAuth('JWT-auth')

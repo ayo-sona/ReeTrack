@@ -415,7 +415,7 @@ export class CronService {
       const invoice = await this.invoiceRepository.save({
         issuer_org_id: subscription.organization_id,
         billed_user_id: subscription.member.user_id,
-        billed_type: InvoiceBilledType.USER,
+        billed_type: InvoiceBilledType.MEMBER,
         amount: subscription.plan.price,
         currency: subscription.plan.currency,
         status: InvoiceStatus.PENDING,

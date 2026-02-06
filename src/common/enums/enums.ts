@@ -31,7 +31,7 @@ export enum PaymentProvider {
 
 export enum PaymentPayerType {
   ORGANIZATION = 'organization',
-  USER = 'user',
+  MEMBER = 'member',
 }
 
 export enum OrgRole {
@@ -59,7 +59,7 @@ export enum InvoiceStatus {
 
 export enum InvoiceBilledType {
   ORGANIZATION = 'organization',
-  USER = 'user',
+  MEMBER = 'member',
 }
 
 export enum TimePeriod {
@@ -68,4 +68,12 @@ export enum TimePeriod {
   QUARTER = 'quarter',
   YEAR = 'year',
   CUSTOM = 'custom',
+}
+
+export enum Currency {
+  NGN = 'NGN',
+  USD = 'USD',
+  EUR = 'EUR',
+  GBP = 'GBP',
+  ZAR = 'ZAR',
 }

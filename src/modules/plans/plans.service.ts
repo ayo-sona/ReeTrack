@@ -16,7 +16,7 @@ import {
 import { CreatePlanDto } from './dto/create-plan.dto';
 import { UpdatePlanDto } from './dto/update-plan.dto';
 import { PaginationDto, paginate } from '../../common/dto/pagination.dto';
-import { SubscriptionStatus } from 'src/common/enums/enums';
+import { SubscriptionStatus, Currency } from 'src/common/enums/enums';
 
 @Injectable()
 export class PlansService {
@@ -46,7 +46,7 @@ export class PlansService {
       name: createPlanDto.name,
       description: createPlanDto.description,
       price: createPlanDto.amount,
-      currency: createPlanDto.currency || 'NGN',
+      currency: (createPlanDto.currency as Currency) || Currency.NGN,
       interval: createPlanDto.interval,
       interval_count: createPlanDto.intervalCount || 1,
       features: createPlanDto.features || [],
@@ -350,7 +350,7 @@ export class PlansService {
       name: createPlanDto.name,
       description: createPlanDto.description,
       price: createPlanDto.amount,
-      currency: createPlanDto.currency || 'NGN',
+      currency: (createPlanDto.currency as Currency) || Currency.NGN,
       interval: createPlanDto.interval,
       interval_count: createPlanDto.intervalCount || 1,
       features: createPlanDto.features || [],

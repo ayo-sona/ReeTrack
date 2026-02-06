@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import * as entities from './entities';
 
 @Module({
   imports: [
@@ -17,11 +16,10 @@ import * as entities from './entities';
         return {
           type: 'postgres',
           url: configService.get('supabase.pooler'),
-          // entities: Object.values(entities),
           entities: [__dirname + '/../**/*.entity{.ts,.js}'], // This will auto-load all entity files
           autoLoadEntities: true,
-          synchronize: configService.get('app.nodeEnv') === 'development',
-          // synchronize: false,
+          // synchronize: configService.get('app.nodeEnv') === 'development',
+          synchronize: false,
           logging: configService.get('app.nodeEnv') === 'development',
           ssl: {
             rejectUnauthorized: false,

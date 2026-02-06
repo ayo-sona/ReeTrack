@@ -24,6 +24,8 @@ import { SkipThrottle } from '../../common/decorators/throttle-skip.decorator';
 import { MemberRegisterDto } from 'src/common/dto/member-register.dto';
 import { CurrentOrganization } from 'src/common/decorators/organization.decorator';
 import { UserRegisterDto } from 'src/common/dto/user-register.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail } from 'class-validator';
 
 type RequestUser = {
   id: string;
@@ -31,6 +33,14 @@ type RequestUser = {
   role: string;
   currentOrganization: string;
 };
+
+export class CustomRegisterDto {
+  @ApiProperty({
+    example: 'kenny@life.com',
+  })
+  @IsEmail()
+  email: string;
+}
 
 @Controller('auth')
 export class AuthController {
@@ -132,7 +142,7 @@ export class AuthController {
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async customRegisterMember(
     @CurrentOrganization() organizationId: string,
-    @Body() registerDto: MemberRegisterDto,
+    @Body() registerDto: CustomRegisterDto,
   ) {
     const result = await this.authService.customRegisterMember(
       organizationId,

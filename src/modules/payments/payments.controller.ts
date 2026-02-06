@@ -103,7 +103,7 @@ export class PaymentsController {
     return this.paymentsService.getMemberPaymentStats(organizationId);
   }
 
-  @Get('member/:userId')
+  @Get('member')
   @ApiOperation({ summary: 'Get member payments' })
   @ApiResponse({
     status: 200,
@@ -111,15 +111,10 @@ export class PaymentsController {
   })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   getMemberPayments(
-    @CurrentOrganization() organizationId: string,
-    @Param('userId') userId: string,
+    @CurrentUser() user: any,
     @Query() paginationDto: PaginationDto,
   ) {
-    return this.paymentsService.getPaymentsByMember(
-      organizationId,
-      userId,
-      paginationDto,
-    );
+    return this.paymentsService.getPaymentsByMember(user.id, paginationDto);
   }
 
   @Get(':paymentId')

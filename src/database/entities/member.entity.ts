@@ -39,25 +39,6 @@ export class Member {
   @Column({ type: 'uuid' })
   user_id: string;
 
-  @ApiProperty({
-    description: 'Member date of birth',
-    example: '2023-01-01',
-  })
-  @Column({ type: 'date', nullable: true })
-  date_of_birth?: Date | null;
-
-  @Column({ type: 'text', nullable: true })
-  address?: string;
-
-  @Column({ type: 'text', nullable: true })
-  emergency_contact_name?: string;
-
-  @Column({ type: 'text', nullable: true })
-  emergency_contact_phone?: string;
-
-  @Column({ type: 'text', nullable: true })
-  medical_notes?: string;
-
   @Column({ type: 'int', default: 0 })
   check_in_count: number;
 

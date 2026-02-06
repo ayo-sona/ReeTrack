@@ -10,8 +10,9 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Organization } from './organization.entity';
-import { PlanInterval } from 'src/common/enums/enums';
+import { PlanInterval, Currency } from 'src/common/enums/enums';
 import { OrganizationSubscription } from './organization-subscription.entity';
+import { IsEnum } from 'class-validator';
 
 @Entity('organization_plans')
 export class OrganizationPlan {
@@ -47,28 +48,29 @@ export class OrganizationPlan {
     description: 'Plan amount',
     example: 1000,
   })
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   price: number;
 
   @ApiProperty({
     description: 'Plan currency',
     example: 'NGN',
   })
-  @Column({ type: 'text', default: 'NGN' })
-  currency: string;
+  @IsEnum(Currency)
+  @Column({ type: 'enum', enum: Currency, default: Currency.NGN })
+  currency: Currency;
 
   @ApiProperty({
     description: 'Plan interval',
     example: 'month',
   })
-  @Column({ type: 'enum', enum: PlanInterval })
+  @Column({ type: 'enum', enum: PlanInterval, nullable: true })
   interval: PlanInterval;
 
   @ApiProperty({
     description: 'Plan interval count',
     example: 1,
   })
-  @Column({ type: 'int', default: 1 })
+  @Column({ type: 'int', default: 1, nullable: true })
   interval_count: number;
 
   @ApiProperty({

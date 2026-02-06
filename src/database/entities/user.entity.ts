@@ -60,6 +60,16 @@ export class User {
   @Column({ type: 'boolean', default: false })
   email_verified: boolean;
 
+  @ApiProperty({
+    description: 'Member date of birth',
+    example: '2023-01-01',
+  })
+  @Column({ type: 'date', nullable: true })
+  date_of_birth?: Date | null;
+
+  @Column({ type: 'text', nullable: true })
+  address?: string;
+
   @Column({
     type: 'timestamp with time zone',
     default: () => 'CURRENT_TIMESTAMP',

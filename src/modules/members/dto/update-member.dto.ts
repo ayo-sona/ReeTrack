@@ -1,11 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsString,
-  IsOptional,
-  IsDateString,
-  IsPhoneNumber,
-  IsObject,
-} from 'class-validator';
+import { IsString, IsOptional, IsDateString } from 'class-validator';
 
 export class UpdateMemberDto {
   @ApiProperty({
@@ -25,40 +19,4 @@ export class UpdateMemberDto {
   @IsOptional()
   @IsString()
   address?: string;
-
-  @ApiProperty({
-    description: 'Emergency contact name',
-    example: 'John Doe',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  emergency_contact_name?: string;
-
-  @ApiProperty({
-    description: 'Emergency contact phone',
-    example: '+1234567890',
-    required: false,
-  })
-  @IsOptional()
-  @IsPhoneNumber()
-  emergency_contact_phone?: string;
-
-  @ApiProperty({
-    description: 'Medical notes',
-    example: 'Allergic to penicillin',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  medical_notes?: string;
-
-  @ApiProperty({
-    description: 'Additional metadata',
-    example: { key: 'value' },
-    required: false,
-  })
-  @IsOptional()
-  @IsObject()
-  metadata?: Record<string, any>;
 }

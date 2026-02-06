@@ -9,12 +9,18 @@ import { Repository, ILike, Brackets } from 'typeorm';
 import { Member } from '../../database/entities/member.entity';
 import { OrganizationUser } from '../../database/entities/organization-user.entity';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { OrgRole } from 'src/common/enums/enums';
+import { User } from 'src/database/entities/user.entity';
 
 @Injectable()
 export class MembersService {
   constructor(
     @InjectRepository(Member)
     private memberRepository: Repository<Member>,
+
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+
     @InjectRepository(OrganizationUser)
     private orgUserRepository: Repository<OrganizationUser>,
   ) {}
@@ -46,56 +52,41 @@ export class MembersService {
     return queryBuilder.getMany();
   }
 
-  async findOne(organizationId: string, memberId: string): Promise<Member> {
-    const member = await this.memberRepository.findOne({
+  async findOne(userId: string): Promise<User> {
+    const member = await this.userRepository.findOne({
       where: {
-        id: memberId,
-        organization_user: {
-          organization_id: organizationId,
-        },
+        id: userId,
       },
-      relations: ['user', 'subscriptions', 'subscriptions.plan'],
     });
 
     if (!member) {
-      throw new NotFoundException(`Member not found in this organization`);
+      throw new NotFoundException(`Member not found in any organization`);
     }
     return member;
   }
 
-  async update(
-    organizationId: string,
-    memberId: string,
-    updateDto: UpdateMemberDto,
-  ): Promise<Member> {
-    const member = await this.findOne(organizationId, memberId);
+  async update(userId: string, updateDto: UpdateMemberDto): Promise<User> {
+    const member = await this.findOne(userId);
 
     // Only update allowed fields
-    const updated = this.memberRepository.merge(member, {
+    const updated = this.userRepository.merge(member, {
       date_of_birth: updateDto.date_of_birth,
       address: updateDto.address,
-      emergency_contact_name: updateDto.emergency_contact_name,
-      emergency_contact_phone: updateDto.emergency_contact_phone,
-      medical_notes: updateDto.medical_notes,
-      metadata: updateDto.metadata,
     });
 
-    return this.memberRepository.save(updated);
+    return this.userRepository.save(updated);
   }
 
-  async delete(organizationId: string, memberId: string) {
+  async delete(userId: string) {
     const member = await this.memberRepository.findOne({
       where: {
-        id: memberId,
-        organization_user: {
-          organization_id: organizationId,
-        },
+        user_id: userId,
       },
       relations: ['subscriptions'],
     });
 
     if (!member) {
-      throw new NotFoundException('Member not found in this organization');
+      throw new NotFoundException('Member not found in any organization');
     }
 
     // Check for active subscriptions
@@ -116,19 +107,17 @@ export class MembersService {
     };
   }
 
-  async getMemberStats(organizationId: string, memberId: string) {
-    const member = await this.memberRepository.findOne({
+  async getMemberStats(userId: string) {
+    const member = await this.memberRepository.find({
       where: {
-        id: memberId,
-        organization_user: {
-          organization_id: organizationId,
-        },
+        user_id: userId,
       },
       relations: ['user'],
     });
 
-    if (!member) {
-      throw new NotFoundException('Member not found in this organization');
+    // console.log(member);
+    if (member.length === 0) {
+      throw new NotFoundException('Member not found in any organization');
     }
 
     // Get subscription stats
@@ -136,22 +125,28 @@ export class MembersService {
       this.memberRepository.query(
         `SELECT COUNT(*) as count, status
          FROM member_subscriptions
-         WHERE member_id = $1
+         JOIN members m ON member_subscriptions.member_id = m.id
+         WHERE m.user_id = $1
          GROUP BY status`,
-        [member.id],
+        [userId],
       ),
       this.memberRepository.query(
-        `SELECT COUNT(*) as count, status
-         FROM invoices
-         WHERE billed_user_id = $1
-         GROUP BY status`,
-        [member.user_id],
+        `SELECT DISTINCT i.amount, i.status
+         FROM members m
+         LEFT JOIN invoices i ON i.billed_user_id = m.user_id 
+           AND i.billed_type = 'user'
+         WHERE m.user_id = $1
+           AND i.id IS NOT NULL`,
+        [userId],
       ),
       this.memberRepository.query(
-        `SELECT COALESCE(SUM(amount), 0) as total
-         FROM payments
-         WHERE payer_user_id = $1 AND status = 'success'`,
-        [member.user_id],
+        `SELECT DISTINCT p.amount, p.status
+         FROM members m
+         LEFT JOIN payments p ON p.payer_user_id = m.user_id 
+           AND p.payer_type = 'user'
+         WHERE m.user_id = $1
+           AND p.id IS NOT NULL`,
+        [userId],
       ),
     ]);
 
@@ -163,10 +158,21 @@ export class MembersService {
           return acc;
         }, {}),
         invoices: invoices.reduce((acc, curr) => {
-          acc[curr.status] = parseInt(curr.count);
+          if (!acc[curr.status]) {
+            acc[curr.status] = { total: 0, count: 0 };
+          }
+          acc[curr.status].total += parseFloat(curr.amount) || 0;
+          acc[curr.status].count += 1;
           return acc;
         }, {}),
-        totalPaid: parseFloat(totalPaid[0].total),
+        payments: totalPaid.reduce((acc, curr) => {
+          if (!acc[curr.status]) {
+            acc[curr.status] = { total: 0, count: 0 };
+          }
+          acc[curr.status].total += parseFloat(curr.amount) || 0;
+          acc[curr.status].count += 1;
+          return acc;
+        }, {}),
       },
     };
   }
