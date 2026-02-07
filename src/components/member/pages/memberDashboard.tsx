@@ -23,7 +23,7 @@ export default function MemberDashboard() {
 
   // 🔜 Placeholders (API not implemented yet)
   const walletBalance = 0; // useWallet() - not in API yet
-  const unreadNotifications = 0; // useNotifications() - not in API yet
+  // const unreadNotifications = 0; // useNotifications() - not in API yet
 
   // ✅ Calculate stats from real data
   const activeSubscriptionsCount = subscriptions?.length || 0;

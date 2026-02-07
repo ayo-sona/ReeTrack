@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   ArrowLeft,
   Calendar,
@@ -20,7 +20,7 @@ import Link from "next/link";
 
 export default function SubscriptionDetailsPage() {
   const params = useParams();
-  const router = useRouter();
+  // const router = useRouter();
   const subscriptionId = params.id as string;
 
   const { data: subscription, isLoading } = useSubscription(subscriptionId);
@@ -97,6 +97,9 @@ export default function SubscriptionDetailsPage() {
     );
     return daysUntilExpiry <= 7 && daysUntilExpiry > 0;
   };
+
+  // ✅ FIX: Extract nested features array
+  const featuresArray = subscription.plan.features?.features || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
@@ -191,14 +194,14 @@ export default function SubscriptionDetailsPage() {
           </div>
         </div>
 
-        {/* Features */}
+        {/* Features - ✅ FIXED: Use featuresArray */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
           <h2 className="text-lg font-bold text-gray-900 mb-4">
             What&apos;s Included
           </h2>
-          {subscription.plan.features.features.length > 0 ? (
+          {featuresArray.length > 0 ? (
             <div className="space-y-3">
-              {subscription.plan.features.features.map((feature, idx) => (
+              {featuresArray.map((feature: string, idx: number) => (
                 <div key={idx} className="flex items-center gap-3">
                   <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center">
                     <Check className="w-4 h-4 text-emerald-600" />

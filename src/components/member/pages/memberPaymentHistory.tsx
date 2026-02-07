@@ -3,19 +3,33 @@
 import { useState } from "react";
 import { Search, Check, X, Clock, CreditCard } from "lucide-react";
 import { useAllPayments } from "@/hooks/memberHook/useMember";
+import Link from "next/link";
 
 export default function PaymentHistoryPage() {
-  const { data: paymentsData, isLoading } = useAllPayments();
+  const { data: payments, isLoading } = useAllPayments();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "all" | "success" | "pending" | "failed"
   >("all");
 
-  // Extract payments array from paginated response
-  const payments = paymentsData?.data || [];
+  const paymentsArray = payments || [];
+
+  // ✅ FIX: Helper function to format currency properly - handle string or number
+  const formatCurrency = (amount: number | string) => {
+    // Convert to number if it's a string
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+    
+    // Handle invalid numbers
+    if (isNaN(numAmount)) return '₦0.00';
+    
+    return `₦${numAmount.toLocaleString('en-US', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    })}`;
+  };
 
   // Filter payments
-  const filteredPayments = payments.filter((payment) => {
+  const filteredPayments = paymentsArray.filter((payment) => {
     const planName =
       payment.invoice?.member_subscription?.plan.name || "Unknown Plan";
     const reference = payment.provider_reference || "";
@@ -62,14 +76,22 @@ export default function PaymentHistoryPage() {
     }
   };
 
-  // Calculate summary stats
-  const totalAmount = sortedPayments.reduce((sum, p) => sum + p.amount, 0);
+  // Calculate summary stats - ensure numbers are properly converted
+  const totalAmount = sortedPayments.reduce((sum, p) => {
+    const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : p.amount;
+    return sum + (isNaN(amount) ? 0 : amount);
+  }, 0);
+  
   const successfulCount = sortedPayments.filter(
     (p) => p.status === "success"
   ).length;
+  
   const successfulAmount = sortedPayments
     .filter((p) => p.status === "success")
-    .reduce((sum, p) => sum + p.amount, 0);
+    .reduce((sum, p) => {
+      const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : p.amount;
+      return sum + (isNaN(amount) ? 0 : amount);
+    }, 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
@@ -137,13 +159,13 @@ export default function PaymentHistoryPage() {
               <div>
                 <p className="text-sm text-gray-600 mb-1">Total Amount</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ₦{totalAmount.toLocaleString()}
+                  {formatCurrency(totalAmount)}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600 mb-1">Successful</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {successfulCount} (₦{successfulAmount.toLocaleString()})
+                  {successfulCount} ({formatCurrency(successfulAmount)})
                 </p>
               </div>
             </div>
@@ -166,12 +188,14 @@ export default function PaymentHistoryPage() {
                 payment.invoice?.member_subscription?.plan.name || "Unknown Plan";
               const paymentMethod = payment.payment_method || "card";
               const reference = payment.provider_reference || payment.id;
+              
+              // ✅ FIX: Only successful and failed payments are clickable
+              const isClickable = payment.status === "success" || payment.status === "failed";
 
-              return (
-                <div
-                  key={payment.id}
-                  className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-                >
+              const PaymentCard = (
+                <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-100 transition-all ${
+                  isClickable ? 'hover:shadow-md hover:border-emerald-300 cursor-pointer' : ''
+                }`}>
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     {/* Payment Info */}
                     <div className="flex-1">
@@ -197,6 +221,11 @@ export default function PaymentHistoryPage() {
                             <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
                               {paymentMethod}
                             </span>
+                            {payment.status === "pending" && (
+                              <span className="text-xs text-gray-500 italic">
+                                Receipt not available
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -205,16 +234,35 @@ export default function PaymentHistoryPage() {
                     {/* Amount & Date */}
                     <div className="text-right">
                       <p className="text-2xl font-bold text-gray-900">
-                        ₦{payment.amount.toLocaleString()}
+                        {formatCurrency(payment.amount)}
                       </p>
                       <p className="text-sm text-gray-500">
-                        {new Date(payment.created_at).toLocaleDateString()}
+                        {new Date(payment.created_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
                       </p>
                       <p className="text-xs text-gray-400 mt-1 truncate max-w-[200px]">
                         Ref: {reference}
                       </p>
                     </div>
                   </div>
+                </div>
+              );
+
+              // ✅ FIX: Wrap in Link only if clickable (success or failed)
+              return isClickable ? (
+                <Link 
+                  key={payment.id} 
+                  href={`/member/payments/${payment.id}`}
+                  className="block"
+                >
+                  {PaymentCard}
+                </Link>
+              ) : (
+                <div key={payment.id}>
+                  {PaymentCard}
                 </div>
               );
             })}

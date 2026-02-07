@@ -14,9 +14,14 @@ export default function SubscriptionsPage() {
 
   // Filter subscriptions
   const filteredSubscriptions = subscriptions?.filter((sub) => {
+    // Skip subscriptions without plan data (already filtered in hook, but double-check)
+    if (!sub.plan || !sub.plan.name) {
+      return false;
+    }
+    
     const matchesSearch =
       sub.plan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      sub.plan.description.toLowerCase().includes(searchQuery.toLowerCase());
+      sub.plan.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || sub.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -138,6 +143,9 @@ export default function SubscriptionsPage() {
               const expiringSoon =
                 sub.status === "active" && isExpiringSoon(sub.expires_at);
 
+              // ✅ FIX: Access nested features array correctly
+              const featuresArray = sub.plan.features?.features || [];
+
               return (
                 <Link key={sub.id} href={`/member/subscriptions/${sub.id}`}>
                   <div
@@ -181,9 +189,9 @@ export default function SubscriptionsPage() {
                       <span className="text-gray-600">/{sub.plan.interval}</span>
                     </div>
 
-                    {/* Features */}
+                    {/* Features - ✅ FIXED: Use featuresArray instead of sub.plan.features */}
                     <div className="space-y-2 mb-4">
-                      {sub.plan.features.features.slice(0, 3).map((feature, idx) => (
+                      {featuresArray.slice(0, 3).map((feature: string, idx: number) => (
                         <div
                           key={idx}
                           className="flex items-center gap-2 text-sm text-gray-600"
@@ -192,9 +200,9 @@ export default function SubscriptionsPage() {
                           {feature}
                         </div>
                       ))}
-                      {sub.plan.features.features.length > 3 && (
+                      {featuresArray.length > 3 && (
                         <p className="text-sm text-gray-500">
-                          +{sub.plan.features.features.length - 3} more features
+                          +{featuresArray.length - 3} more features
                         </p>
                       )}
                     </div>

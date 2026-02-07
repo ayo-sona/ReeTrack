@@ -11,6 +11,8 @@ import {
   Trash2,
   Save,
   AlertCircle,
+  MapPin,
+  CheckCircle,
 } from "lucide-react";
 import {
   useProfile,
@@ -19,28 +21,85 @@ import {
 } from "@/hooks/memberHook/useMember";
 import { deleteCookie } from "cookies-next";
 
+// Interface for the wrapped API response
+interface ApiResponse<T> {
+  statusCode: number;
+  message: string;
+  data: T;
+}
+
+// Type for the actual user profile data
+interface UserProfile {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  status: string;
+  email_verified: boolean;
+  date_of_birth: string | null;
+  address: string | null;
+  last_login_at: string | null;
+  created_at: string;
+  updated_at: string;
+  check_in_count?: number;
+}
+
 export default function ProfileSettingsPage() {
   const router = useRouter();
-  const { data: profile, isLoading } = useProfile();
+  const { data: profile, isLoading, error } = useProfile();
   const updateProfile = useUpdateProfile();
   const deleteMember = useDeleteMember();
 
+  // Debug logging
+  console.log('Profile Debug:', {
+    profile,
+    isLoading,
+    error,
+    hasProfile: !!profile,
+    hasData: !!(profile as unknown as ApiResponse<UserProfile>)?.data,
+    profileStructure: profile ? Object.keys(profile) : [],
+  });
+
+  // ✅ Handle wrapped API response - the actual user data is in profile.data
+  // The API returns { statusCode: 200, message: "Success", data: {...actual user data} }
+  const wrappedProfile = profile as unknown as ApiResponse<UserProfile> | undefined;
+  const actualProfile = wrappedProfile?.data || (profile as unknown as UserProfile);
+
   const [activeTab, setActiveTab] = useState<"profile" | "account">("profile");
   const [isEditing, setIsEditing] = useState(false);
-  const [dateOfBirth, setDateOfBirth] = useState(
-    profile?.user.date_of_birth || ""
-  );
+  const [editedDateOfBirth, setEditedDateOfBirth] = useState<string | null>(null);
+  const [editedAddress, setEditedAddress] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  // ✅ Compute values using actualProfile
+  const dateOfBirth = editedDateOfBirth ?? (actualProfile?.date_of_birth || "");
+  const address = editedAddress ?? (actualProfile?.address || "");
 
   const handleSaveProfile = async () => {
     try {
       await updateProfile.mutateAsync({
-        date_of_birth: dateOfBirth,
+        date_of_birth: dateOfBirth || undefined,
+        address: address || undefined,
       });
       setIsEditing(false);
+      setEditedDateOfBirth(null);
+      setEditedAddress(null);
+      setShowSuccessMessage(true);
+      
+      // Hide success message after 3 seconds
+      setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (error) {
       console.error("Failed to update profile:", error);
     }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    // Reset edited values
+    setEditedDateOfBirth(null);
+    setEditedAddress(null);
   };
 
   const handleLogout = () => {
@@ -77,6 +136,44 @@ export default function ProfileSettingsPage() {
         <div className="max-w-5xl mx-auto animate-pulse space-y-6">
           <div className="h-8 bg-gray-200 rounded w-1/4"></div>
           <div className="h-96 bg-gray-200 rounded-2xl"></div>
+          <p className="text-center text-gray-500">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
+        <div className="max-w-5xl mx-auto text-center py-12">
+          <AlertCircle className="w-16 h-16 text-red-300 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
+            Error Loading Profile
+          </h3>
+          <p className="text-gray-600 mb-4">{error.message}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile || !actualProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
+        <div className="max-w-5xl mx-auto text-center py-12">
+          <AlertCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
+            Unable to load profile
+          </h3>
+          <p className="text-gray-600 mb-2">Please try refreshing the page</p>
+          <pre className="text-left bg-gray-100 p-4 rounded mt-4 text-xs overflow-auto">
+            {JSON.stringify({ profile, actualProfile }, null, 2)}
+          </pre>
         </div>
       </div>
     );
@@ -92,6 +189,16 @@ export default function ProfileSettingsPage() {
             Manage your account settings and preferences
           </p>
         </div>
+
+        {/* Success Message */}
+        {showSuccessMessage && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <p className="text-green-700 font-medium">
+              Profile updated successfully!
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar */}
@@ -141,10 +248,7 @@ export default function ProfileSettingsPage() {
                   ) : (
                     <div className="flex gap-2">
                       <button
-                        onClick={() => {
-                          setIsEditing(false);
-                          setDateOfBirth(profile?.user.date_of_birth || "");
-                        }}
+                        onClick={handleCancelEdit}
                         className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                       >
                         Cancel
@@ -164,17 +268,21 @@ export default function ProfileSettingsPage() {
                 {/* Avatar */}
                 <div className="flex items-center gap-6 mb-8 pb-8 border-b border-gray-200">
                   <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                    {profile?.user.first_name?.charAt(0)}
-                    {profile?.user.last_name?.charAt(0)}
+                    {actualProfile.first_name?.charAt(0) || ''}
+                    {actualProfile.last_name?.charAt(0) || ''}
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900 text-lg">
-                      {profile?.user.first_name} {profile?.user.last_name}
+                      {actualProfile.first_name} {actualProfile.last_name}
                     </h3>
-                    <p className="text-gray-600">{profile?.user.email}</p>
+                    <p className="text-gray-600">{actualProfile.email}</p>
                     <p className="text-sm text-gray-500 mt-1">
                       Member since{" "}
-                      {new Date(profile?.created_at || "").toLocaleDateString()}
+                      {new Date(actualProfile.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
                     </p>
                   </div>
                 </div>
@@ -192,9 +300,9 @@ export default function ProfileSettingsPage() {
                       </label>
                       <input
                         type="text"
-                        value={profile?.user.first_name || ""}
+                        value={actualProfile.first_name || ""}
                         disabled
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                       />
                     </div>
 
@@ -205,9 +313,9 @@ export default function ProfileSettingsPage() {
                       </label>
                       <input
                         type="text"
-                        value={profile?.user.last_name || ""}
+                        value={actualProfile.last_name || ""}
                         disabled
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                       />
                     </div>
 
@@ -218,9 +326,9 @@ export default function ProfileSettingsPage() {
                       </label>
                       <input
                         type="email"
-                        value={profile?.user.email || ""}
+                        value={actualProfile.email || ""}
                         disabled
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                       />
                     </div>
 
@@ -231,37 +339,81 @@ export default function ProfileSettingsPage() {
                       </label>
                       <input
                         type="tel"
-                        value={profile?.user.phone || ""}
+                        value={actualProfile.phone || ""}
                         disabled
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                       />
                     </div>
                   </div>
-                  <p className="text-sm text-gray-500 mt-4">
+                  <p className="text-sm text-gray-500 mt-4 flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
                     Contact support to update these fields
                   </p>
                 </div>
 
-                {/* Editable Field */}
+                {/* Editable Fields */}
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-4">
                     Additional Information
                   </h3>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Calendar className="w-4 h-4 inline mr-1" />
-                      Date of Birth
-                    </label>
-                    <p className="text-xs text-gray-500 mb-2">
-                      Required for age-restricted subscriptions
-                    </p>
-                    <input
-                      type="date"
-                      value={dateOfBirth}
-                      onChange={(e) => setDateOfBirth(e.target.value)}
-                      disabled={!isEditing}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Date of Birth */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <Calendar className="w-4 h-4 inline mr-1" />
+                        Date of Birth
+                      </label>
+                      <p className="text-xs text-gray-500 mb-2">
+                        Required for age-restricted subscriptions
+                      </p>
+                      <input
+                        type="date"
+                        value={dateOfBirth}
+                        onChange={(e) => setEditedDateOfBirth(e.target.value)}
+                        disabled={!isEditing}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                      />
+                    </div>
+
+                    {/* Address */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <MapPin className="w-4 h-4 inline mr-1" />
+                        Address
+                      </label>
+                      <p className="text-xs text-gray-500 mb-2">
+                        Your residential address
+                      </p>
+                      <input
+                        type="text"
+                        value={address}
+                        onChange={(e) => setEditedAddress(e.target.value)}
+                        disabled={!isEditing}
+                        placeholder="Enter your address"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email Verification Status */}
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      {actualProfile.email_verified ? (
+                        <>
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                          <span className="text-sm font-medium text-green-700">
+                            Email verified
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="w-5 h-5 text-yellow-600" />
+                          <span className="text-sm font-medium text-yellow-700">
+                            Email not verified
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -274,17 +426,28 @@ export default function ProfileSettingsPage() {
                   <h2 className="text-xl font-bold text-gray-900 mb-6">
                     Account Overview
                   </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="p-4 bg-emerald-50 rounded-lg">
                       <p className="text-sm text-gray-600">Account Status</p>
                       <p className="text-lg font-bold text-emerald-600 capitalize">
-                        {profile?.user.status || "Active"}
+                        {actualProfile.status || "Active"}
                       </p>
                     </div>
                     <div className="p-4 bg-purple-50 rounded-lg">
                       <p className="text-sm text-gray-600">Total Check-ins</p>
                       <p className="text-lg font-bold text-purple-600">
-                        {profile?.check_in_count || 0}
+                        {actualProfile.check_in_count || 0}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-gray-600">Last Login</p>
+                      <p className="text-lg font-bold text-blue-600">
+                        {actualProfile.last_login_at 
+                          ? new Date(actualProfile.last_login_at).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric'
+                            })
+                          : 'Never'}
                       </p>
                     </div>
                   </div>
@@ -296,7 +459,7 @@ export default function ProfileSettingsPage() {
                     Sign Out
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    Sign out of your account on this device
+                    Sign out of your account on this device. You can sign back in anytime.
                   </p>
                   <button
                     onClick={handleLogout}
@@ -314,7 +477,7 @@ export default function ProfileSettingsPage() {
                   </h3>
                   <p className="text-gray-600 mb-4">
                     Once you delete your account, there is no going back. All
-                    your data will be permanently deleted.
+                    your data, subscriptions, and payment history will be permanently deleted.
                   </p>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
@@ -334,17 +497,21 @@ export default function ProfileSettingsPage() {
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-6 h-6 text-red-600" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">
               Delete Account?
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 mb-6 text-center">
               This action cannot be undone. All your data, subscriptions, and
               payment history will be permanently deleted.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                disabled={deleteMember.isPending}
+                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>

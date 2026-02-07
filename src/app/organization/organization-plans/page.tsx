@@ -309,7 +309,7 @@ export default function EnterprisePlansPage() {
 
         <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="md">
           <ModalContent className="bg-white">
-            {(onClose) => (
+            {() => (
               <>
                 <ModalHeader className="flex flex-col gap-1">
                   <div className="flex justify-center items-center">

@@ -87,7 +87,7 @@ import type {
       reference: payment.provider_reference,
       organizationName,
       planName,
-      description: paymentWithOptionals.description,
+      description: paymentWithOptionals.description || "", // ✅ Fix: provide empty string as fallback
       receiptUrl: undefined, // Not provided by API - needs to be generated
       createdAt: payment.created_at,
     };

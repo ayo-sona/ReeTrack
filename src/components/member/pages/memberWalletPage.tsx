@@ -80,7 +80,7 @@ export default function WalletPage() {
             <div>
               <h3 className="font-semibold text-blue-900 mb-1">Wallet Feature Coming Soon</h3>
               <p className="text-sm text-blue-800">
-                Virtual wallet, top-up, and transaction features are in development. Once the backend API is ready, you'll be able to fund your wallet and manage your balance here.
+                Virtual wallet, top-up, and transaction features are in development. Once the backend API is ready, you&apos;ll be able to fund your wallet and manage your balance here.
               </p>
             </div>
           </div>

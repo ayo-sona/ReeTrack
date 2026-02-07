@@ -13,6 +13,23 @@ import type {
 } from "@/types/memberTypes/member";
 
 // ============================================
+// TYPE DEFINITIONS FOR API RESPONSES
+// ============================================
+
+/**
+ * Type for the subscription API response
+ * The API returns members with nested subscriptions
+ */
+interface MemberWithSubscriptions {
+  id: string;
+  subscriptions?: MemberSubscription[];
+}
+
+interface SubscriptionApiResponse {
+  data: MemberWithSubscriptions[];
+}
+
+// ============================================
 // PROFILE HOOKS
 // ============================================
 
@@ -80,9 +97,15 @@ export const useMemberStats = () => {
 /**
  * Get current member's subscription
  * GET /api/v1/subscriptions/members/subscription
+ * 
+ * Response structure can be either:
+ * 1. { data: [{ id: "member-id", subscriptions: [...] }] }
+ * 2. [{ id: "member-id", subscriptions: [...] }]
+ * 
+ * This hook normalizes both formats
  */
 export const useMySubscription = () => {
-  return useQuery<MemberSubscription, Error>({
+  return useQuery<SubscriptionApiResponse | MemberWithSubscriptions[], Error>({
     queryKey: ["member", "subscription", "current"],
     queryFn: memberApi.getMySubscription,
     retry: 1,
@@ -102,30 +125,40 @@ export const useSubscriptions = (
   return useQuery<PaginatedResponse<MemberSubscription>, Error>({
     queryKey: ["member", "subscriptions", page, limit, status],
     queryFn: () => memberApi.getSubscriptions(page, limit, status),
-    placeholderData: keepPreviousData, // ✅ Fixed: v5 syntax
+    placeholderData: keepPreviousData,
     retry: 1,
   });
 };
 
 /**
  * Get single subscription by ID
- * Note: This uses the paginated list and filters
+ * ✅ FIXED: Uses useMySubscription instead of admin-only endpoint
+ * 
+ * This version works for regular members by:
+ * 1. Getting all member subscriptions via useMySubscription
+ * 2. Flattening the nested structure
+ * 3. Finding the specific subscription by ID
  */
 export const useSubscription = (subscriptionId: string) => {
-  return useQuery<MemberSubscription, Error>({
-    queryKey: ["member", "subscriptions", subscriptionId],
-    queryFn: async () => {
-      // Since there's no single subscription endpoint, get from list
-      const response = await memberApi.getSubscriptions(1, 100); // Get a large batch
-      const subscription = response.data.find((s: MemberSubscription) => s.id === subscriptionId); // ✅ Fixed: Added type
-      if (!subscription) {
-        throw new Error("Subscription not found");
-      }
-      return subscription;
-    },
-    enabled: !!subscriptionId,
-    retry: 1,
-  });
+  const { data: rawResponse, isLoading, error, ...rest } = useMySubscription();
+
+  // Normalize the response to get member data array
+  const memberData = normalizeSubscriptionResponse(rawResponse);
+  
+  // Flatten all subscriptions across all members
+  const allSubscriptions = memberData.flatMap((member) => 
+    member.subscriptions?.filter((sub) => sub.plan) || []
+  );
+  
+  // Find the specific subscription
+  const subscription = allSubscriptions.find((sub) => sub.id === subscriptionId);
+
+  return {
+    data: subscription || null,
+    isLoading,
+    error: !subscription && !isLoading ? new Error("Subscription not found") : error,
+    ...rest,
+  };
 };
 
 /**
@@ -196,7 +229,7 @@ export const usePayments = (page: number = 1, limit: number = 10) => {
   return useQuery<PaginatedResponse<MemberPayment>, Error>({
     queryKey: ["member", "payments", page, limit],
     queryFn: () => memberApi.getPayments(page, limit),
-    placeholderData: keepPreviousData, // ✅ Fixed: v5 syntax
+    placeholderData: keepPreviousData,
     retry: 1,
   });
 };
@@ -323,30 +356,79 @@ export const useCancelInvoice = () => {
 // ============================================
 
 /**
- * Get all subscriptions as a simple array
- * ⚠️ NOTE: Members only have ONE subscription at a time in this API
- * This hook wraps useMySubscription() in an array for components expecting multiple subscriptions
+ * Helper function to normalize subscription API response
+ * Handles both response formats:
+ * 1. { data: [...] }
+ * 2. [...]
+ */
+const normalizeSubscriptionResponse = (
+  response: SubscriptionApiResponse | MemberWithSubscriptions[] | undefined
+): MemberWithSubscriptions[] => {
+  if (!response) return [];
+  
+  // Check if response has a 'data' property (wrapped format)
+  if ('data' in response && Array.isArray(response.data)) {
+    return response.data;
+  }
+  
+  // Response is already an array
+  if (Array.isArray(response)) {
+    return response;
+  }
+  
+  return [];
+};
+
+/**
+ * Get all subscriptions as a flattened array
+ * ✅ FIXED: Properly handles both possible API response structures
  * 
- * For admin access to all member subscriptions, use useSubscriptions() instead
+ * API Response can be either:
+ * Format 1: { data: [{ id: "member1", subscriptions: [...] }] }
+ * Format 2: [{ id: "member1", subscriptions: [...] }]
+ * 
+ * Returns: Flattened array of all subscriptions across all members
  */
 export const useAllSubscriptions = () => {
-  const { data, ...rest } = useMySubscription();
+  const { data: rawResponse, isLoading, error, ...rest } = useMySubscription();
+
+  // Normalize the response to always get an array of members
+  const memberData = normalizeSubscriptionResponse(rawResponse);
+  
+  // Flatten the nested structure
+  const flattenedSubscriptions = memberData.flatMap((member) => 
+    member.subscriptions?.filter((sub) => sub.plan) || []
+  );
 
   return {
-    data: data ? [data] : [], // ✅ Wrap single subscription in array for compatibility
+    data: flattenedSubscriptions,
+    isLoading,
+    error,
     ...rest,
   };
 };
 
 /**
  * Get active subscriptions only
- * Note: For members, this returns the same as useMySubscription if status is active
+ * ✅ FIXED: Filters for active status from flattened subscriptions
  */
 export const useActiveSubscriptions = () => {
-  const { data, ...rest } = useMySubscription();
+  const { data: rawResponse, isLoading, error, ...rest } = useMySubscription();
+
+  // Normalize the response to always get an array of members
+  const memberData = normalizeSubscriptionResponse(rawResponse);
+  
+  // Flatten and filter for active subscriptions
+  const activeSubscriptions = memberData.flatMap((member) => 
+    member.subscriptions?.filter((sub) => 
+      sub.plan && sub.status === 'active'
+    ) || []
+  );
 
   return {
-    data: data && data.status === 'active' ? [data] : [], // Only return if active
+    data: activeSubscriptions,
+    isLoading,
+    error,
     ...rest,
   };
 };
@@ -358,7 +440,7 @@ export const useAllPayments = () => {
   const { data, ...rest } = usePayments(1, 100); // Get all in one page
 
   return {
-    data: data?.data ?? [], // ✅ Access nested data property
+    data: data?.data ?? [],
     meta: data?.meta,
     ...rest,
   };
@@ -439,4 +521,4 @@ const memberHooks = {
   useCancelInvoice,
 };
 
-export default memberHooks; // ✅ Fixed: Named export
+export default memberHooks;
