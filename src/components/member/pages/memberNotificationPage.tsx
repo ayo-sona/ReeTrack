@@ -1,86 +1,155 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Bell, Check, CheckCheck, Info, AlertCircle, CheckCircle, XCircle, Trash2 } from 'lucide-react';
-import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from '@/hooks/memberHook/useMember';
-import { Notification } from '@/types/memberTypes/member';
-import Link from 'next/link';
+import { useState, useMemo } from "react";
+import {
+  Bell,
+  Check,
+  CheckCheck,
+  Info,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import {
+  useSyntheticNotifications,
+  useMarkAsRead,
+  useMarkAllAsRead,
+  type SyntheticNotification,
+} from "@/hooks/memberHook/useSyntheticNotifications";
+import Link from "next/link";
 
 export default function NotificationsPage() {
-  const { data: notifications, isLoading } = useNotifications();
-  const markAsRead = useMarkNotificationRead();
-  const markAllAsRead = useMarkAllNotificationsRead();
-  
-  const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const notifications = useSyntheticNotifications();
+  const markAsRead = useMarkAsRead();
+  const markAllAsRead = useMarkAllAsRead();
 
-  const filteredNotifications = notifications?.filter((notif) => {
-    if (filter === 'unread') return !notif.read;
+  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [refreshKey, setRefreshKey] = useState(0); // Trigger re-computation when marking as read
+
+  // ✅ Compute read status using useMemo instead of useEffect + setState
+  const readStatus = useMemo(() => {
+    if (typeof window === "undefined") return {};
+
+    const readNotifications = JSON.parse(
+      localStorage.getItem("readNotifications") || "[]"
+    ) as string[];
+
+    const status: Record<string, boolean> = {};
+    notifications.forEach((n) => {
+      status[n.id] = readNotifications.includes(n.id);
+    });
+    return status;
+  }, [notifications, refreshKey]); // refreshKey forces recomputation
+
+  const filteredNotifications = notifications.filter((notif) => {
+    if (filter === "unread") return !readStatus[notif.id];
     return true;
   });
 
-  const unreadCount = notifications?.filter(n => !n.read).length || 0;
+  const unreadCount = notifications.filter((n) => !readStatus[n.id]).length;
 
-  const handleMarkAsRead = async (id: string, e: React.MouseEvent) => {
+  const handleMarkAsRead = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    try {
-      await markAsRead.mutateAsync(id);
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
-    }
+    markAsRead(id);
+    setRefreshKey(prev => prev + 1); // Trigger recomputation
   };
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      await markAllAsRead.mutateAsync();
-    } catch (error) {
-      console.error('Failed to mark all as read:', error);
-    }
+  const handleMarkAllAsRead = () => {
+    markAllAsRead();
+    setRefreshKey(prev => prev + 1); // Trigger recomputation
   };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'success': return <CheckCircle className="w-6 h-6 text-green-600" />;
-      case 'warning': return <AlertCircle className="w-6 h-6 text-yellow-600" />;
-      case 'error': return <XCircle className="w-6 h-6 text-red-600" />;
-      default: return <Info className="w-6 h-6 text-blue-600" />;
+      case "success":
+        return <CheckCircle className="w-6 h-6 text-green-600" />;
+      case "warning":
+        return <AlertCircle className="w-6 h-6 text-yellow-600" />;
+      case "error":
+        return <XCircle className="w-6 h-6 text-red-600" />;
+      default:
+        return <Info className="w-6 h-6 text-blue-600" />;
     }
   };
 
   const getNotificationBg = (type: string) => {
     switch (type) {
-      case 'success': return 'bg-green-50 border-green-200';
-      case 'warning': return 'bg-yellow-50 border-yellow-200';
-      case 'error': return 'bg-red-50 border-red-200';
-      default: return 'bg-blue-50 border-blue-200';
+      case "success":
+        return "bg-green-50 border-green-200";
+      case "warning":
+        return "bg-yellow-50 border-yellow-200";
+      case "error":
+        return "bg-red-50 border-red-200";
+      default:
+        return "bg-blue-50 border-blue-200";
     }
   };
 
-  const NotificationCard = ({ notification }: { notification: Notification }) => {
+  const getCategoryBadge = (category: string) => {
+    const badges = {
+      subscription: { color: "bg-purple-100 text-purple-700", label: "Subscription" },
+      payment: { color: "bg-green-100 text-green-700", label: "Payment" },
+      achievement: { color: "bg-yellow-100 text-yellow-700", label: "Achievement" },
+      system: { color: "bg-blue-100 text-blue-700", label: "System" },
+    };
+
+    const badge = badges[category as keyof typeof badges];
+    if (!badge) return null;
+
+    return (
+      <span className={`px-2 py-0.5 rounded text-xs font-medium ${badge.color}`}>
+        {badge.label}
+      </span>
+    );
+  };
+
+  const NotificationCard = ({
+    notification,
+  }: {
+    notification: SyntheticNotification;
+  }) => {
+    const isRead = readStatus[notification.id];
+
     const content = (
-      <div className={`p-4 rounded-xl border transition-all ${
-        notification.read 
-          ? 'bg-white border-gray-200 hover:border-gray-300' 
-          : `${getNotificationBg(notification.type)} hover:shadow-md`
-      }`}>
+      <div
+        className={`p-4 rounded-xl border transition-all ${
+          isRead
+            ? "bg-white border-gray-200 hover:border-gray-300"
+            : `${getNotificationBg(notification.type)} hover:shadow-md`
+        }`}
+      >
         <div className="flex items-start gap-4">
           {/* Icon */}
-          <div className={`flex-shrink-0 ${notification.read ? 'opacity-50' : ''}`}>
+          <div className={`flex-shrink-0 ${isRead ? "opacity-50" : ""}`}>
             {getNotificationIcon(notification.type)}
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-2">
-              <h3 className={`font-semibold ${notification.read ? 'text-gray-700' : 'text-gray-900'}`}>
-                {notification.title}
-              </h3>
-              {!notification.read && (
+              <div className="flex-1">
+                <h3
+                  className={`font-semibold ${
+                    isRead ? "text-gray-700" : "text-gray-900"
+                  }`}
+                >
+                  {notification.title}
+                </h3>
+                <div className="mt-1">
+                  {getCategoryBadge(notification.category)}
+                </div>
+              </div>
+              {!isRead && (
                 <span className="w-2 h-2 bg-emerald-600 rounded-full flex-shrink-0 mt-1.5"></span>
               )}
             </div>
-            
-            <p className={`text-sm ${notification.read ? 'text-gray-500' : 'text-gray-700'}`}>
+
+            <p
+              className={`text-sm ${
+                isRead ? "text-gray-500" : "text-gray-700"
+              }`}
+            >
               {notification.message}
             </p>
 
@@ -88,8 +157,8 @@ export default function NotificationsPage() {
               <p className="text-xs text-gray-500">
                 {new Date(notification.createdAt).toLocaleString()}
               </p>
-              
-              {!notification.read && (
+
+              {!isRead && (
                 <button
                   onClick={(e) => handleMarkAsRead(notification.id, e)}
                   className="text-xs text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1"
@@ -119,14 +188,15 @@ export default function NotificationsPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
             <p className="text-gray-600 mt-1">
-              {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
+              {unreadCount > 0
+                ? `${unreadCount} unread notification${unreadCount > 1 ? "s" : ""}`
+                : "All caught up!"}
             </p>
           </div>
           {unreadCount > 0 && (
             <button
               onClick={handleMarkAllAsRead}
-              disabled={markAllAsRead.isPending}
-              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center gap-2 text-sm font-medium"
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2 text-sm font-medium"
             >
               <CheckCheck className="w-4 h-4" />
               Mark all as read
@@ -137,21 +207,21 @@ export default function NotificationsPage() {
         {/* Filter Tabs */}
         <div className="bg-white rounded-xl p-2 shadow-sm border border-gray-100 flex gap-2">
           <button
-            onClick={() => setFilter('all')}
+            onClick={() => setFilter("all")}
             className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-              filter === 'all'
-                ? 'bg-emerald-600 text-white'
-                : 'text-gray-700 hover:bg-gray-100'
+              filter === "all"
+                ? "bg-emerald-600 text-white"
+                : "text-gray-700 hover:bg-gray-100"
             }`}
           >
-            All ({notifications?.length || 0})
+            All ({notifications.length})
           </button>
           <button
-            onClick={() => setFilter('unread')}
+            onClick={() => setFilter("unread")}
             className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-              filter === 'unread'
-                ? 'bg-emerald-600 text-white'
-                : 'text-gray-700 hover:bg-gray-100'
+              filter === "unread"
+                ? "bg-emerald-600 text-white"
+                : "text-gray-700 hover:bg-gray-100"
             }`}
           >
             Unread ({unreadCount})
@@ -159,15 +229,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Notifications List */}
-        {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="animate-pulse">
-                <div className="h-24 bg-white rounded-xl border border-gray-100"></div>
-              </div>
-            ))}
-          </div>
-        ) : filteredNotifications && filteredNotifications.length > 0 ? (
+        {filteredNotifications.length > 0 ? (
           <div className="space-y-3">
             {filteredNotifications.map((notification) => (
               <NotificationCard key={notification.id} notification={notification} />
@@ -177,43 +239,32 @@ export default function NotificationsPage() {
           <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-100">
             <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">
-              {filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}
+              {filter === "unread"
+                ? "No unread notifications"
+                : "No notifications yet"}
             </h3>
             <p className="text-gray-600">
-              {filter === 'unread' 
+              {filter === "unread"
                 ? "You're all caught up! New notifications will appear here."
-                : 'When you receive notifications, they will appear here.'}
+                : "When important updates happen, they will appear here."}
             </p>
           </div>
         )}
 
-        {/* Notification Settings Card */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="font-bold text-gray-900 mb-4">Notification Preferences</h3>
-          <div className="space-y-3">
-            <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
-              <div>
-                <p className="font-medium text-gray-900">Email Notifications</p>
-                <p className="text-sm text-gray-600">Receive notifications via email</p>
-              </div>
-              <input type="checkbox" defaultChecked className="w-5 h-5 text-emerald-600 rounded focus:ring-2 focus:ring-emerald-500" />
-            </label>
-
-            <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
-              <div>
-                <p className="font-medium text-gray-900">Payment Reminders</p>
-                <p className="text-sm text-gray-600">Get notified before payments are due</p>
-              </div>
-              <input type="checkbox" defaultChecked className="w-5 h-5 text-emerald-600 rounded focus:ring-2 focus:ring-emerald-500" />
-            </label>
-
-            <label className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
-              <div>
-                <p className="font-medium text-gray-900">Promotions & Updates</p>
-                <p className="text-sm text-gray-600">Receive updates about new features and offers</p>
-              </div>
-              <input type="checkbox" className="w-5 h-5 text-emerald-600 rounded focus:ring-2 focus:ring-emerald-500" />
-            </label>
+        {/* Info Card */}
+        <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+          <div className="flex items-start gap-3">
+            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-blue-900 mb-1">
+                Smart Notifications
+              </h3>
+              <p className="text-sm text-blue-800">
+                We automatically notify you about important updates like expiring
+                subscriptions, payment confirmations, and achievements based on
+                your account activity.
+              </p>
+            </div>
           </div>
         </div>
       </div>

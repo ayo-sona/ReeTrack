@@ -1,38 +1,67 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Search, CreditCard, Pause, Play, X, QrCode } from 'lucide-react';
-import { useSubscriptions } from '@/hooks/memberHook/useMember';
-import Link from 'next/link';
+import { useState } from "react";
+import { Search, CreditCard, X, QrCode, CheckCircle } from "lucide-react";
+import { useAllSubscriptions } from "@/hooks/memberHook/useMember";
+import Link from "next/link";
 
 export default function SubscriptionsPage() {
-  const { data: subscriptions, isLoading } = useSubscriptions();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'paused' | 'expired' | 'canceled'>('all');
+  const { data: subscriptions, isLoading } = useAllSubscriptions();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "active" | "expired" | "canceled" | "pending"
+  >("all");
 
+  // Filter subscriptions
   const filteredSubscriptions = subscriptions?.filter((sub) => {
-    const matchesSearch = sub.organizationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      sub.planName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || sub.status === statusFilter;
+    const matchesSearch =
+      sub.plan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sub.plan.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || sub.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
+  // Sort by expiry date (soonest first)
+  const sortedSubscriptions = filteredSubscriptions
+    ? [...filteredSubscriptions].sort(
+        (a, b) =>
+          new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime()
+      )
+    : [];
+
+  // Check if subscription expires within 7 days
+  const isExpiringSoon = (expiresAt: string) => {
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const daysUntilExpiry = Math.ceil(
+      (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return daysUntilExpiry <= 7 && daysUntilExpiry > 0;
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-700';
-      case 'paused': return 'bg-yellow-100 text-yellow-700';
-      case 'expired': return 'bg-red-100 text-red-700';
-      case 'canceled': return 'bg-gray-100 text-gray-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case "active":
+        return "bg-green-100 text-green-700";
+      case "expired":
+        return "bg-red-100 text-red-700";
+      case "canceled":
+        return "bg-gray-100 text-gray-700";
+      case "pending":
+        return "bg-yellow-100 text-yellow-700";
+      default:
+        return "bg-gray-100 text-gray-700";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'active': return <Play className="w-4 h-4" />;
-      case 'paused': return <Pause className="w-4 h-4" />;
-      case 'canceled': return <X className="w-4 h-4" />;
-      default: return null;
+      case "active":
+        return <CheckCircle className="w-4 h-4" />;
+      case "canceled":
+        return <X className="w-4 h-4" />;
+      default:
+        return null;
     }
   };
 
@@ -42,7 +71,9 @@ export default function SubscriptionsPage() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900">My Subscriptions</h1>
-          <p className="text-gray-600 mt-1">Manage all your active and past subscriptions</p>
+          <p className="text-gray-600 mt-1">
+            Manage all your active and past subscriptions
+          </p>
         </div>
 
         {/* Search and Filters */}
@@ -62,113 +93,175 @@ export default function SubscriptionsPage() {
 
             {/* Status Filter */}
             <div className="flex gap-2 overflow-x-auto pb-2">
-              {['all', 'active', 'paused', 'expired', 'canceled'].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status as 'all' | 'active' | 'paused' | 'expired' | 'canceled')}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
-                    statusFilter === status
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </button>
-              ))}
+              {["all", "active", "pending", "expired", "canceled"].map(
+                (status) => (
+                  <button
+                    key={status}
+                    onClick={() =>
+                      setStatusFilter(
+                        status as
+                          | "all"
+                          | "active"
+                          | "expired"
+                          | "canceled"
+                          | "pending"
+                      )
+                    }
+                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
+                      statusFilter === status
+                        ? "bg-emerald-600 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </button>
+                )
+              )}
             </div>
           </div>
         </div>
 
+        
+
         {/* Subscriptions List */}
         {isLoading ? (
           <div className="space-y-4">
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="animate-pulse">
                 <div className="h-32 bg-white rounded-xl border border-gray-100"></div>
               </div>
             ))}
           </div>
-        ) : filteredSubscriptions && filteredSubscriptions.length > 0 ? (
+        ) : sortedSubscriptions && sortedSubscriptions.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredSubscriptions.map((sub) => (
-              <Link key={sub.id} href={`/member/subscriptions/${sub.id}`}>
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
-                        {sub.organizationName.charAt(0)}
+            {sortedSubscriptions.map((sub) => {
+              const expiringSoon =
+                sub.status === "active" && isExpiringSoon(sub.expires_at);
+
+              return (
+                <Link key={sub.id} href={`/member/subscriptions/${sub.id}`}>
+                  <div
+                    className={`bg-white rounded-xl p-6 shadow-sm border transition-all cursor-pointer ${
+                      expiringSoon
+                        ? "border-orange-300 bg-orange-50 hover:bg-orange-100"
+                        : "border-gray-100 hover:border-emerald-300 hover:shadow-md"
+                    }`}
+                  >
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                          {sub.plan.name.charAt(0)}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-gray-900">
+                            {sub.plan.name}
+                          </h3>
+                          <p className="text-sm text-gray-600 line-clamp-1">
+                            {sub.plan.description}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900">{sub.organizationName}</h3>
-                        <p className="text-sm text-gray-600">{sub.planName}</p>
-                      </div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(
+                          sub.status
+                        )}`}
+                      >
+                        {getStatusIcon(sub.status)}
+                        {sub.status.charAt(0).toUpperCase() +
+                          sub.status.slice(1)}
+                      </span>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(sub.status)}`}>
-                      {getStatusIcon(sub.status)}
-                      {sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}
-                    </span>
-                  </div>
 
-                  {/* Price */}
-                  <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-3xl font-bold text-gray-900">₦{sub.planPrice.toLocaleString()}</span>
-                    <span className="text-gray-600">/{sub.planInterval}</span>
-                  </div>
+                    {/* Price */}
+                    <div className="flex items-baseline gap-1 mb-4">
+                      <span className="text-3xl font-bold text-gray-900">
+                        ₦{sub.plan.price.toLocaleString()}
+                      </span>
+                      <span className="text-gray-600">/{sub.plan.interval}</span>
+                    </div>
 
-                  {/* Features */}
-                  <div className="space-y-2 mb-4">
-                    {sub.features.slice(0, 3).map((feature, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
-                        <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full"></div>
-                        {feature}
+                    {/* Features */}
+                    <div className="space-y-2 mb-4">
+                      {sub.plan.features.features.slice(0, 3).map((feature, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-2 text-sm text-gray-600"
+                        >
+                          <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full"></div>
+                          {feature}
+                        </div>
+                      ))}
+                      {sub.plan.features.features.length > 3 && (
+                        <p className="text-sm text-gray-500">
+                          +{sub.plan.features.features.length - 3} more features
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Expiry Info */}
+                    {sub.status === "active" && (
+                      <div className="pt-4 border-t border-gray-100">
+                        <p
+                          className={`text-sm ${
+                            expiringSoon
+                              ? "text-orange-600 font-medium"
+                              : "text-gray-600"
+                          }`}
+                        >
+                          {expiringSoon && "⚠️ "}
+                          {sub.auto_renew ? "Renews" : "Expires"}:{" "}
+                          <span className="font-medium">
+                            {new Date(sub.expires_at).toLocaleDateString()}
+                          </span>
+                        </p>
                       </div>
-                    ))}
-                    {sub.features.length > 3 && (
-                      <p className="text-sm text-gray-500">+{sub.features.length - 3} more features</p>
+                    )}
+
+                    {/* Canceled Info */}
+                    {sub.status === "canceled" && sub.canceled_at && (
+                      <div className="pt-4 border-t border-gray-100">
+                        <p className="text-sm text-gray-600">
+                          Canceled on:{" "}
+                          <span className="font-medium text-gray-900">
+                            {new Date(sub.canceled_at).toLocaleDateString()}
+                          </span>
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Check-in Button for Active Subs - 🔜 Placeholder */}
+                    {sub.status === "active" && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // Navigate to check-in
+                        }}
+                        className="mt-4 w-full py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <QrCode className="w-4 h-4" />
+                        Check In
+                      </button>
                     )}
                   </div>
-
-                  {/* Next Billing */}
-                  {sub.status === 'active' && sub.nextBillingDate && (
-                    <div className="pt-4 border-t border-gray-100">
-                      <p className="text-sm text-gray-600">
-                        Next billing: <span className="font-medium text-gray-900">
-                          {new Date(sub.nextBillingDate).toLocaleDateString()}
-                        </span>
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Check-in Button for Active Subs */}
-                  {sub.status === 'active' && (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        // Navigate to check-in
-                      }}
-                      className="mt-4 w-full py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <QrCode className="w-4 h-4" />
-                      Check In
-                    </button>
-                  )}
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         ) : (
           <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-100">
             <CreditCard className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">
-              {searchQuery || statusFilter !== 'all' ? 'No subscriptions found' : 'No subscriptions yet'}
+              {searchQuery || statusFilter !== "all"
+                ? "No subscriptions found"
+                : "No subscriptions yet"}
             </h3>
             <p className="text-gray-600 mb-6">
-              {searchQuery || statusFilter !== 'all' 
-                ? 'Try adjusting your search or filters'
-                : 'Subscribe to a plan to get started'}
+              {searchQuery || statusFilter !== "all"
+                ? "Try adjusting your search or filters"
+                : "Subscribe to a plan to get started"}
             </p>
-            {!searchQuery && statusFilter === 'all' && (
+            {!searchQuery && statusFilter === "all" && (
               <button className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
                 Browse Plans
               </button>
