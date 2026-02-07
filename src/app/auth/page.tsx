@@ -47,7 +47,7 @@ export default function AuthPage() {
           {/* Login Button */}
           <Link
             href={`/auth/login`}
-            className="group relative w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+            className="group relative w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
           >
             <LogIn className="w-5 h-5 mr-2" />
             Login to Your Account
@@ -59,7 +59,27 @@ export default function AuthPage() {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-gray-50 text-gray-500">
-                New to ReeTrack?
+                Don't have an account?
+              </span>
+            </div>
+          </div>
+
+          {/*  Registration button */}
+          <Link
+            href="/auth/register"
+            className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+          >
+            Register your account
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-gray-50 text-gray-500">
+                Have an organization?
               </span>
             </div>
           </div>
@@ -67,7 +87,7 @@ export default function AuthPage() {
           {/* Organization Registration */}
           <Link
             href="/auth/org/register"
-            className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+            className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
           >
             Register your organization
             <ArrowRight className="ml-2 h-4 w-4" />
