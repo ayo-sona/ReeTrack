@@ -134,7 +134,7 @@ export class MembersService {
         `SELECT DISTINCT i.amount, i.status
          FROM members m
          LEFT JOIN invoices i ON i.billed_user_id = m.user_id 
-           AND i.billed_type = 'user'
+           AND i.billed_type = 'member'
          WHERE m.user_id = $1
            AND i.id IS NOT NULL`,
         [userId],
@@ -143,7 +143,7 @@ export class MembersService {
         `SELECT DISTINCT p.amount, p.status
          FROM members m
          LEFT JOIN payments p ON p.payer_user_id = m.user_id 
-           AND p.payer_type = 'user'
+           AND p.payer_type = 'member'
          WHERE m.user_id = $1
            AND p.id IS NOT NULL`,
         [userId],
