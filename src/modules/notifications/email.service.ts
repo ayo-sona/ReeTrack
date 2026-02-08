@@ -18,8 +18,11 @@ export class EmailService {
         pass: this.configService.get('smtp.password'),
       },
       tls: {
-        rejectUnauthorized: false,
+        rejectUnauthorized:
+          this.configService.get('app.nodeEnv') !== 'development',
+        ciphers: 'SSLv3',
       },
+      requireTLS: true, // Added
     });
   }
 
