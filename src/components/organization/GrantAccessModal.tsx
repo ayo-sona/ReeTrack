@@ -123,7 +123,7 @@ export function GrantAccessModal({ member, onClose, onGrant }: GrantAccessModalP
                   <option value="">Choose a plan...</option>
                   {plans.map((plan) => (
                     <option key={plan.id} value={plan.id}>
-                      {plan.name} - ₦{plan.price.toLocaleString()}/{plan.interval}
+                      {plan.name} - ₦{plan.price?.toLocaleString()}/{plan.interval}
                     </option>
                   ))}
                 </select>
