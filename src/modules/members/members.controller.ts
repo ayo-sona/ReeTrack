@@ -47,23 +47,6 @@ export class MembersController {
   }
 
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get a member by ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Member retrieved successfully',
-    type: Member,
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Member not found' })
-  @Get('/:organizationId/:memberId')
-  findOneMemberDetails(
-    @Param('organizationId') organizationId: string,
-    @Param('memberId') memberId: string,
-  ) {
-    return this.membersService.findOneMemberDetails(organizationId, memberId);
-  }
-
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get a member profile' })
   @ApiResponse({
     status: 200,
@@ -88,6 +71,23 @@ export class MembersController {
   @Get('/stats')
   getStats(@CurrentUser() user: any) {
     return this.membersService.getMemberStats(user.id);
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get a member by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Member retrieved successfully',
+    type: Member,
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Member not found' })
+  @Get('/:memberId')
+  findOneMemberDetails(
+    @CurrentOrganization() organizationId: string,
+    @Param('memberId') memberId: string,
+  ) {
+    return this.membersService.findOneMemberDetails(organizationId, memberId);
   }
 
   @ApiBearerAuth('JWT-auth')
