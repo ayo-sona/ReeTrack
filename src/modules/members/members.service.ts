@@ -69,15 +69,20 @@ export class MembersService {
     organizationId: string,
     memberId: string,
   ): Promise<Member> {
-    const member = await this.memberRepository.findOne({
-      where: {
-        id: memberId,
-        subscriptions: {
-          organization_id: organizationId,
-        },
-      },
-      relations: ['user', 'subscriptions.plan'],
-    });
+    const member = await this.memberRepository
+      .createQueryBuilder('member')
+      .leftJoinAndSelect('member.user', 'user')
+      .leftJoinAndSelect(
+        'member.subscriptions',
+        'subscription',
+        'subscription.organization_id = :organizationId',
+        { organizationId },
+      )
+      .leftJoinAndSelect('subscription.plan', 'plan')
+      .leftJoin('member.organization_user', 'orgUser')
+      .where('member.id = :memberId', { memberId })
+      .andWhere('orgUser.organization_id = :organizationId', { organizationId })
+      .getOne();
 
     if (!member) {
       throw new NotFoundException(`Member not found in this organization`);
