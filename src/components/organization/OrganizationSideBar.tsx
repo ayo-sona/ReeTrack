@@ -63,51 +63,20 @@ export function OrganizationSidebar({
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
 
-  // ✅ Load user data and set mounted state
+  // Load user data on mount
   useEffect(() => {
-    // Set mounted first
-    setIsMounted(true);
-    
-    // Then load user data
     try {
       const userData = localStorage.getItem("userData");
       if (userData) {
         const parsed = JSON.parse(userData);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setUser(parsed.user);
       }
     } catch (error) {
       console.error("Error loading user data:", error);
     }
   }, []);
-
-  // ✅ Don't render motion animations until mounted
-  if (!isMounted) {
-    return (
-      <>
-        {/* Mobile Toggle Button */}
-        <button
-          onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl border border-white/20 dark:border-gray-700/20 shadow-lg"
-        >
-          <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-        </button>
-
-        {/* Static Sidebar for SSR */}
-        <aside className="hidden lg:flex w-[280px] h-screen flex-col bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl border-r border-white/20 dark:border-gray-700/20 shadow-xl">
-          <div className="flex items-center h-20 px-6 border-b border-white/10">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">P</span>
-            </div>
-            <span className="ml-3 text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-              ReeTrack
-            </span>
-          </div>
-        </aside>
-      </>
-    );
-  }
 
   return (
     <>

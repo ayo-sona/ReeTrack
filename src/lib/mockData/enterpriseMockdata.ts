@@ -21,9 +21,9 @@ export const CURRENT_ORGANIZATION: Organization = {
   address: '45 Admiralty Way, Lekki Phase 1, Lagos',
   website: 'https://fitlifegym.ng',
   currency: 'NGN',
-  preferred_gateway: 'paystack', // Fixed: was preferredGateway
-  created_at: '2023-01-15', // Fixed: was createdAt
-  owner_id: 'user_001', // Fixed: was ownerId
+  preferred_gateway: 'paystack',
+  created_at: '2023-01-15',
+  owner_id: 'user_001',
 };
 
 // Subscription Plans
@@ -115,17 +115,12 @@ export const MOCK_PLANS: SubscriptionPlan[] = [
   },
 ];
 
-// Members - Note: Member type doesn't have organizationId property based on the type definition
+// Members
 export const MOCK_MEMBERS: Member[] = [
   {
     id: 'mem_001',
     organization_user_id: 'org_user_001',
     user_id: 'user_101',
-    date_of_birth: '1990-05-15',
-    address: '12 Victoria Island, Lagos',
-    emergency_contact_name: 'Adaeze Okonkwo',
-    emergency_contact_phone: '+234 802 345 6789',
-    medical_notes: null,
     check_in_count: 45,
     metadata: {},
     created_at: '2023-06-15T00:00:00Z',
@@ -138,6 +133,8 @@ export const MOCK_MEMBERS: Member[] = [
       phone: '+234 801 234 5678',
       status: 'active',
       email_verified: true,
+      date_of_birth: '1990-05-15',
+      address: '12 Victoria Island, Lagos',
       last_login_at: '2025-01-15T08:30:00Z',
       created_at: '2023-06-15T00:00:00Z',
       updated_at: '2025-01-01T00:00:00Z',
@@ -165,9 +162,7 @@ export const MOCK_MEMBERS: Member[] = [
           currency: 'NGN',
           interval: 'month',
           interval_count: 1,
-          features: {
-            features: ['Gym Equipment Access', 'Personal Trainer', 'Group Classes'],
-          },
+          features: ['Gym Equipment Access', 'Personal Trainer', 'Group Classes'],
           is_active: true,
           created_at: '2023-01-20T00:00:00Z',
           updated_at: '2024-08-10T00:00:00Z',
@@ -179,11 +174,6 @@ export const MOCK_MEMBERS: Member[] = [
     id: 'mem_002',
     organization_user_id: 'org_user_002',
     user_id: 'user_102',
-    date_of_birth: '1995-08-22',
-    address: 'Lekki Phase 1, Lagos',
-    emergency_contact_name: 'Chioma Nwosu',
-    emergency_contact_phone: '+234 803 456 7890',
-    medical_notes: null,
     check_in_count: 28,
     metadata: {},
     created_at: '2024-01-20T00:00:00Z',
@@ -196,6 +186,8 @@ export const MOCK_MEMBERS: Member[] = [
       phone: '+234 802 345 6789',
       status: 'active',
       email_verified: true,
+      date_of_birth: '1995-08-22',
+      address: 'Lekki Phase 1, Lagos',
       last_login_at: '2025-01-14T10:15:00Z',
       created_at: '2024-01-20T00:00:00Z',
       updated_at: '2025-01-01T00:00:00Z',
@@ -223,9 +215,7 @@ export const MOCK_MEMBERS: Member[] = [
           currency: 'NGN',
           interval: 'month',
           interval_count: 1,
-          features: {
-            features: ['Gym Equipment Access', 'Locker Room Access'],
-          },
+          features: ['Gym Equipment Access', 'Locker Room Access'],
           is_active: true,
           created_at: '2023-01-20T00:00:00Z',
           updated_at: '2024-06-15T00:00:00Z',
@@ -237,11 +227,6 @@ export const MOCK_MEMBERS: Member[] = [
     id: 'mem_003',
     organization_user_id: 'org_user_003',
     user_id: 'user_103',
-    date_of_birth: '2002-03-10',
-    address: 'Yaba, Lagos',
-    emergency_contact_name: 'Grace Adeyemi',
-    emergency_contact_phone: '+234 804 567 8901',
-    medical_notes: null,
     check_in_count: 15,
     metadata: {},
     created_at: '2024-08-01T00:00:00Z',
@@ -254,6 +239,8 @@ export const MOCK_MEMBERS: Member[] = [
       phone: '+234 803 456 7890',
       status: 'inactive',
       email_verified: true,
+      date_of_birth: '2002-03-10',
+      address: 'Yaba, Lagos',
       last_login_at: '2024-11-25T14:30:00Z',
       created_at: '2024-08-01T00:00:00Z',
       updated_at: '2024-12-01T00:00:00Z',
@@ -281,9 +268,7 @@ export const MOCK_MEMBERS: Member[] = [
           currency: 'NGN',
           interval: 'month',
           interval_count: 1,
-          features: {
-            features: ['Gym Equipment Access', 'Group Classes'],
-          },
+          features: ['Gym Equipment Access', 'Group Classes'],
           is_active: true,
           created_at: '2023-09-01T00:00:00Z',
           updated_at: '2024-09-01T00:00:00Z',
@@ -295,11 +280,6 @@ export const MOCK_MEMBERS: Member[] = [
     id: 'mem_004',
     organization_user_id: 'org_user_004',
     user_id: 'user_104',
-    date_of_birth: '1988-12-05',
-    address: 'Ikoyi, Lagos',
-    emergency_contact_name: 'Bola Ajayi',
-    emergency_contact_phone: '+234 805 678 9012',
-    medical_notes: 'None',
     check_in_count: 120,
     metadata: {},
     created_at: '2022-03-10T00:00:00Z',
@@ -312,6 +292,8 @@ export const MOCK_MEMBERS: Member[] = [
       phone: '+234 804 567 8901',
       status: 'active',
       email_verified: true,
+      date_of_birth: '1988-12-05',
+      address: 'Ikoyi, Lagos',
       last_login_at: '2025-01-16T07:45:00Z',
       created_at: '2022-03-10T00:00:00Z',
       updated_at: '2025-01-01T00:00:00Z',
@@ -339,9 +321,7 @@ export const MOCK_MEMBERS: Member[] = [
           currency: 'NGN',
           interval: 'month',
           interval_count: 1,
-          features: {
-            features: ['Gym Equipment Access', 'Personal Trainer', 'Spa Access'],
-          },
+          features: ['Gym Equipment Access', 'Personal Trainer', 'Spa Access'],
           is_active: true,
           created_at: '2023-03-10T00:00:00Z',
           updated_at: '2024-09-05T00:00:00Z',
@@ -353,11 +333,6 @@ export const MOCK_MEMBERS: Member[] = [
     id: 'mem_005',
     organization_user_id: 'org_user_005',
     user_id: 'user_105',
-    date_of_birth: '1992-07-18',
-    address: 'Surulere, Lagos',
-    emergency_contact_name: 'Kehinde Bakare',
-    emergency_contact_phone: '+234 806 789 0123',
-    medical_notes: null,
     check_in_count: 22,
     metadata: {},
     created_at: '2024-06-01T00:00:00Z',
@@ -370,6 +345,8 @@ export const MOCK_MEMBERS: Member[] = [
       phone: '+234 805 678 9012',
       status: 'inactive',
       email_verified: true,
+      date_of_birth: '1992-07-18',
+      address: 'Surulere, Lagos',
       last_login_at: '2024-11-20T16:00:00Z',
       created_at: '2024-06-01T00:00:00Z',
       updated_at: '2024-12-01T00:00:00Z',
@@ -397,9 +374,7 @@ export const MOCK_MEMBERS: Member[] = [
           currency: 'NGN',
           interval: 'month',
           interval_count: 1,
-          features: {
-            features: ['Gym Equipment Access', 'Locker Room Access'],
-          },
+          features: ['Gym Equipment Access', 'Locker Room Access'],
           is_active: true,
           created_at: '2023-01-20T00:00:00Z',
           updated_at: '2024-06-15T00:00:00Z',
@@ -409,7 +384,7 @@ export const MOCK_MEMBERS: Member[] = [
   },
 ];
 
-// Payments - Note: Payment type doesn't have organizationId property based on the type definition
+// Payments
 export const MOCK_PAYMENTS: Payment[] = [
   {
     id: 'pay_001',
@@ -698,7 +673,7 @@ export const MOCK_PAYMENTS: Payment[] = [
   },
 ];
 
-// Payment Reminders - Note: PaymentReminder type doesn't have organizationId property
+// Payment Reminders
 export const MOCK_REMINDERS: PaymentReminder[] = [
   {
     id: 'rem_001',
@@ -733,7 +708,7 @@ export const MOCK_REMINDERS: PaymentReminder[] = [
   },
 ];
 
-// Reminder Templates - Note: ReminderTemplate type doesn't have organizationId property
+// Reminder Templates
 export const MOCK_REMINDER_TEMPLATES: ReminderTemplate[] = [
   {
     id: 'temp_001',
@@ -784,7 +759,7 @@ export const MOCK_MEMBER_GROWTH: MemberGrowth[] = [
   { month: 'Jun', newMembers: 13, totalMembers: 273, active: 203, inactive: 45 },
 ];
 
-// Revenue Data - Fixed: previousYear → previous_year
+// Revenue Data
 export const MOCK_REVENUE_DATA: RevenueByMonth[] = [
   { month: 'Jan', revenue: 5500000, previous_year: 4200000, member_count: 185 },
   { month: 'Feb', revenue: 6100000, previous_year: 4800000, member_count: 203 },
@@ -794,7 +769,7 @@ export const MOCK_REVENUE_DATA: RevenueByMonth[] = [
   { month: 'Jun', revenue: 7250000, previous_year: 6000000, member_count: 273 },
 ];
 
-// Plan Distribution - Fixed: planId → plan_id, planName → plan_name
+// Plan Distribution
 export const MOCK_PLAN_DISTRIBUTION: PlanDistribution[] = [
   { plan_id: 'plan_001', plan_name: 'Basic Membership', member_count: 125, revenue: 1875000, percentage: 45.8 },
   { plan_id: 'plan_002', plan_name: 'Premium Membership', member_count: 78, revenue: 2730000, percentage: 28.6 },
