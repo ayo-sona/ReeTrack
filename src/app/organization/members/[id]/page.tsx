@@ -10,10 +10,11 @@ import {
   MapPin,
   Heart,
   UserPlus,
+  AlertCircle,
 } from "lucide-react";
-import { useMemberById } from "../../../../hooks/useMembers";
-import { useCreateSubscription } from "../../../../hooks/useSubscriptions";
-import { GrantAccessModal } from "../../../../components/organization/GrantAccessModal";
+import { useMemberById } from "@/hooks/useMembers";
+import { useCreateSubscription } from "@/hooks/useSubscriptions";
+import { GrantAccessModal } from "@/components/organization/GrantAccessModal";
 import clsx from "clsx";
 import { toast } from "sonner";
 
@@ -24,7 +25,6 @@ interface GrantAccessData {
   duration?: number;
   durationType?: 'days' | 'months';
   startDate?: string;
-  // Add other fields as needed based on your API
 }
 
 export default function MemberDetailPage() {
@@ -33,8 +33,17 @@ export default function MemberDetailPage() {
   const memberId = params.id as string;
   const [showGrantAccessModal, setShowGrantAccessModal] = useState(false);
 
+  // Debug: Log the member ID
+  console.log('Member ID from params:', memberId);
+  console.log('Full params:', params);
+
   // Fetch member using hook
   const { data: member, isLoading, error } = useMemberById(memberId);
+
+  // Debug: Log the response
+  console.log('Member data:', member);
+  console.log('Is loading:', isLoading);
+  console.log('Error:', error);
 
   // Grant access mutation
   const createSubscription = useCreateSubscription();
@@ -42,23 +51,55 @@ export default function MemberDetailPage() {
   if (isLoading) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">Loading...</p>
+        <p className="text-gray-500 dark:text-gray-400">Loading member {memberId}...</p>
       </div>
     );
   }
 
   if (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const is404 = errorMessage.includes('404') || errorMessage.includes('Not Found');
+    
     return (
       <div className="text-center py-12">
-        <p className="text-red-500 dark:text-red-400">
-          Error loading member: {error instanceof Error ? error.message : 'Unknown error'}
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 mb-4">
+          <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+        </div>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          {is404 ? 'Member Not Found' : 'Error Loading Member'}
+        </h2>
+        <p className="text-red-500 dark:text-red-400 mb-2">
+          {errorMessage}
         </p>
-        <button
-          onClick={() => router.back()}
-          className="mt-4 text-blue-600 hover:underline"
-        >
-          Go Back
-        </button>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Member ID: <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{memberId}</code>
+        </p>
+        {is404 && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 max-w-md mx-auto mb-4">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              This member may have been deleted or the ID is incorrect. Please check:
+            </p>
+            <ul className="text-xs text-yellow-700 dark:text-yellow-300 mt-2 space-y-1 text-left">
+              <li>• The member ID in the URL is correct</li>
+              <li>• The member exists in your organization</li>
+              <li>• You have permission to view this member</li>
+            </ul>
+          </div>
+        )}
+        <div className="flex gap-3 justify-center">
+          <button
+            onClick={() => router.back()}
+            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            Go Back
+          </button>
+          <button
+            onClick={() => router.push('/organization/members')}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            View All Members
+          </button>
+        </div>
       </div>
     );
   }
@@ -66,25 +107,35 @@ export default function MemberDetailPage() {
   if (!member) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">Member not found</p>
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+          <AlertCircle className="h-8 w-8 text-gray-400" />
+        </div>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          Member Not Found
+        </h2>
+        <p className="text-gray-500 dark:text-gray-400 mb-4">
+          No member data available
+        </p>
         <button
-          onClick={() => router.back()}
-          className="mt-4 text-blue-600 hover:underline"
+          onClick={() => router.push('/organization/members')}
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
         >
-          Go Back
+          View All Members
         </button>
       </div>
     );
   }
 
-  // Use direct user object from API response
+  // Extract user data from the API response
   const user = member.user;
   const firstName = user?.first_name || '';
   const lastName = user?.last_name || '';
   const fullName = `${firstName} ${lastName}`.trim() || 'Unknown User';
-  const initials = (firstName.charAt(0) || lastName.charAt(0) || 'M').toUpperCase();
+  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || 'M';
   const email = user?.email || 'N/A';
-  const phone = user?.phone || member.emergency_contact_phone || 'N/A';
+  const phone = user?.phone || 'N/A';
+  const dateOfBirth = user?.date_of_birth;
+  const address = user?.address;
   const createdAt = member.created_at ? new Date(member.created_at) : null;
   const status = user?.status || 'inactive';
   const emailVerified = user?.email_verified || false;
@@ -109,6 +160,8 @@ export default function MemberDetailPage() {
         return "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400";
       case "inactive":
         return "bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400";
+      case "pending":
+        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400";
       default:
         return "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300";
     }
@@ -200,11 +253,11 @@ export default function MemberDetailPage() {
                     </span>
                   </div>
                 )}
-                {member.address && (
+                {address && (
                   <div className="flex items-start gap-3 text-sm">
                     <MapPin className="h-5 w-5 text-gray-400 shrink-0 mt-0.5" />
                     <span className="text-gray-600 dark:text-gray-400">
-                      {member.address}
+                      {address}
                     </span>
                   </div>
                 )}
@@ -253,7 +306,7 @@ export default function MemberDetailPage() {
                     Date of Birth
                   </p>
                   <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {member.date_of_birth ? formatDate(new Date(member.date_of_birth)) : 'N/A'}
+                    {dateOfBirth ? formatDate(new Date(dateOfBirth)) : 'N/A'}
                   </p>
                 </div>
                 <div>
@@ -266,13 +319,10 @@ export default function MemberDetailPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Emergency Contact
+                    User Created
                   </p>
                   <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {member.emergency_contact_name || 'N/A'}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {member.emergency_contact_phone || 'N/A'}
+                    {user?.created_at ? formatDate(new Date(user.created_at)) : 'N/A'}
                   </p>
                 </div>
                 <div>
@@ -287,7 +337,7 @@ export default function MemberDetailPage() {
             </div>
 
             {/* Subscriptions */}
-            {member.subscriptions && member.subscriptions.length > 0 && (
+            {member.subscriptions && member.subscriptions.length > 0 ? (
               <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                   Subscriptions
@@ -305,9 +355,28 @@ export default function MemberDetailPage() {
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                           {subscription.plan.description}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                          {formatDate(new Date(subscription.started_at))} - {formatDate(new Date(subscription.expires_at))}
-                        </p>
+                        <div className="flex items-center gap-4 mt-2">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatDate(new Date(subscription.started_at))} - {formatDate(new Date(subscription.expires_at))}
+                          </p>
+                          {subscription.auto_renew && (
+                            <span className="text-xs text-blue-600 dark:text-blue-400">
+                              Auto-renew enabled
+                            </span>
+                          )}
+                        </div>
+                        {subscription.plan.features && subscription.plan.features.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {subscription.plan.features.map((feature: string, idx: number) => (
+                              <span
+                                key={idx}
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                              >
+                                {feature}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="ml-4">
                         <span
@@ -317,6 +386,8 @@ export default function MemberDetailPage() {
                               "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
                             subscription.status === "expired" &&
                               "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+                            subscription.status === "pending" &&
+                              "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
                             subscription.status === "canceled" &&
                               "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
                           )}
@@ -328,16 +399,13 @@ export default function MemberDetailPage() {
                   ))}
                 </div>
               </div>
-            )}
-
-            {/* Medical Notes */}
-            {member.medical_notes && (
+            ) : (
               <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                  Medical Notes
+                  Subscriptions
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {member.medical_notes}
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  No active subscriptions
                 </p>
               </div>
             )}

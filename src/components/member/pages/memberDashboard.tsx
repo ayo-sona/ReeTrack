@@ -4,7 +4,6 @@ import {
   Wallet,
   CreditCard,
   Calendar,
-  TrendingUp,
   QrCode,
   CheckCircle,
 } from "lucide-react";
@@ -20,10 +19,6 @@ export default function MemberDashboard() {
   const { data: profile } = useProfile();
   const { data: subscriptions, isLoading: subsLoading } =
     useActiveSubscriptions();
-
-  // 🔜 Placeholders (API not implemented yet)
-  const walletBalance = 0; // useWallet() - not in API yet
-  // const unreadNotifications = 0; // useNotifications() - not in API yet
 
   // ✅ Calculate stats from real data
   const activeSubscriptionsCount = subscriptions?.length || 0;
@@ -66,25 +61,21 @@ export default function MemberDashboard() {
           </div>
         </div>
 
-        {/* Wallet Card - 🔜 Placeholder */}
-        <Link href="/member/wallet">
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all cursor-pointer">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-emerald-100 text-sm">Wallet Balance</p>
-                <h2 className="text-4xl font-bold mt-2">
-                  ₦{walletBalance.toLocaleString()}
-                </h2>
-                <p className="text-emerald-100 text-sm mt-2">
-                  Create your wallet to get started
-                </p>
-              </div>
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                <Wallet className="w-8 h-8" />
-              </div>
+        {/* Wallet Card - 🔜 Coming Soon */}
+        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 text-white shadow-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-emerald-100 text-sm">Wallet Balance</p>
+              <h2 className="text-4xl font-bold mt-2">Coming Soon</h2>
+              <p className="text-emerald-100 text-sm mt-2">
+                Wallet feature will be available soon
+              </p>
+            </div>
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+              <Wallet className="w-8 h-8" />
             </div>
           </div>
-        </Link>
+        </div>
 
         {/* Quick Stats - 3 Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -125,7 +116,7 @@ export default function MemberDashboard() {
                 <Calendar className="w-6 h-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Upcoming Payments</p>
+                <p className="text-gray-600 text-sm">Pending Payments</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {upcomingPayments}
                 </p>
@@ -216,33 +207,37 @@ export default function MemberDashboard() {
         {/* Recent Activity - New Component */}
         <RecentActivity />
 
-        {/* Quick Actions - 🔜 Placeholders */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <Link href="/member/check-in">
-            <button className="w-full p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-emerald-300 hover:shadow-md transition-all">
-              <QrCode className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
+            <button className="w-full p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-emerald-300 hover:shadow-md transition-all h-full">
+              <div className="bg-emerald-100 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <QrCode className="w-6 h-6 text-emerald-600" />
+              </div>
               <p className="text-sm font-medium text-gray-900">Check In</p>
+              <p className="text-xs text-gray-500 mt-1">Coming soon</p>
             </button>
           </Link>
 
           <Link href="/member/wallet">
-            <button className="w-full p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-emerald-300 hover:shadow-md transition-all">
-              <Wallet className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-              <p className="text-sm font-medium text-gray-900">Top Up</p>
+            <button className="w-full p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-emerald-300 hover:shadow-md transition-all h-full">
+              <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <Wallet className="w-6 h-6 text-blue-600" />
+              </div>
+              <p className="text-sm font-medium text-gray-900">Wallet</p>
+              <p className="text-xs text-gray-500 mt-1">Coming soon</p>
             </button>
           </Link>
 
           <Link href="/member/payments">
-            <button className="w-full p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-emerald-300 hover:shadow-md transition-all">
-              <Calendar className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
+            <button className="w-full p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-emerald-300 hover:shadow-md transition-all h-full">
+              <div className="bg-purple-100 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <CreditCard className="w-6 h-6 text-purple-600" />
+              </div>
               <p className="text-sm font-medium text-gray-900">Payments</p>
-            </button>
-          </Link>
-
-          <Link href="/member/referrals">
-            <button className="w-full p-6 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-emerald-300 hover:shadow-md transition-all">
-              <TrendingUp className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-              <p className="text-sm font-medium text-gray-900">Refer & Earn</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {upcomingPayments} upcoming
+              </p>
             </button>
           </Link>
         </div>
