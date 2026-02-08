@@ -17,13 +17,14 @@ import { useCreateSubscription } from "@/hooks/useSubscriptions";
 import { GrantAccessModal } from "@/components/organization/GrantAccessModal";
 import clsx from "clsx";
 import { toast } from "sonner";
+import { Spinner } from "@heroui/react";
 
 // Define the type for grant access data
 interface GrantAccessData {
   memberId: string;
   planId: string;
   duration?: number;
-  durationType?: 'days' | 'months';
+  durationType?: "days" | "months";
   startDate?: string;
 }
 
@@ -33,51 +34,50 @@ export default function MemberDetailPage() {
   const memberId = params.id as string;
   const [showGrantAccessModal, setShowGrantAccessModal] = useState(false);
 
-  // Debug: Log the member ID
-  console.log('Member ID from params:', memberId);
-  console.log('Full params:', params);
-
   // Fetch member using hook
   const { data: member, isLoading, error } = useMemberById(memberId);
 
   // Debug: Log the response
-  console.log('Member data:', member);
-  console.log('Is loading:', isLoading);
-  console.log('Error:', error);
+  // console.log("Member data:", member);
+  // console.log("Error:", error);
 
   // Grant access mutation
   const createSubscription = useCreateSubscription();
 
   if (isLoading) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">Loading member {memberId}...</p>
+      <div className="flex justify-center items-center text-center py-12">
+        <Spinner color="secondary" />
       </div>
     );
   }
 
   if (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const is404 = errorMessage.includes('404') || errorMessage.includes('Not Found');
-    
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    const is404 =
+      errorMessage.includes("404") || errorMessage.includes("Not Found");
+
     return (
       <div className="text-center py-12">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 mb-4">
           <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
         </div>
         <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-          {is404 ? 'Member Not Found' : 'Error Loading Member'}
+          {is404 ? "Member Not Found" : "Error Loading Member"}
         </h2>
-        <p className="text-red-500 dark:text-red-400 mb-2">
-          {errorMessage}
-        </p>
+        <p className="text-red-500 dark:text-red-400 mb-2">{errorMessage}</p>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          Member ID: <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{memberId}</code>
+          Member ID:{" "}
+          <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+            {memberId}
+          </code>
         </p>
         {is404 && (
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 max-w-md mx-auto mb-4">
             <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              This member may have been deleted or the ID is incorrect. Please check:
+              This member may have been deleted or the ID is incorrect. Please
+              check:
             </p>
             <ul className="text-xs text-yellow-700 dark:text-yellow-300 mt-2 space-y-1 text-left">
               <li>• The member ID in the URL is correct</li>
@@ -94,7 +94,7 @@ export default function MemberDetailPage() {
             Go Back
           </button>
           <button
-            onClick={() => router.push('/organization/members')}
+            onClick={() => router.push("/organization/members")}
             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
           >
             View All Members
@@ -117,7 +117,7 @@ export default function MemberDetailPage() {
           No member data available
         </p>
         <button
-          onClick={() => router.push('/organization/members')}
+          onClick={() => router.push("/organization/members")}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
         >
           View All Members
@@ -128,29 +128,30 @@ export default function MemberDetailPage() {
 
   // Extract user data from the API response
   const user = member.user;
-  const firstName = user?.first_name || '';
-  const lastName = user?.last_name || '';
-  const fullName = `${firstName} ${lastName}`.trim() || 'Unknown User';
-  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || 'M';
-  const email = user?.email || 'N/A';
-  const phone = user?.phone || 'N/A';
+  const firstName = user?.first_name || "";
+  const lastName = user?.last_name || "";
+  const fullName = `${firstName} ${lastName}`.trim() || "Unknown User";
+  const initials =
+    `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "M";
+  const email = user?.email || "N/A";
+  const phone = user?.phone || "N/A";
   const dateOfBirth = user?.date_of_birth;
   const address = user?.address;
   const createdAt = member.created_at ? new Date(member.created_at) : null;
-  const status = user?.status || 'inactive';
+  const status = user?.status || "inactive";
   const emailVerified = user?.email_verified || false;
   const lastLoginAt = user?.last_login_at ? new Date(user.last_login_at) : null;
-  
-  const role = 'MEMBER';
+
+  const role = "MEMBER";
 
   const handleGrantAccess = async (data: GrantAccessData) => {
     try {
       await createSubscription.mutateAsync(data);
-      toast.success('Access granted successfully!');
+      toast.success("Access granted successfully!");
       setShowGrantAccessModal(false);
     } catch (error) {
-      toast.error('Failed to grant access. Please try again.');
-      console.error('Grant access error:', error);
+      toast.error("Failed to grant access. Please try again.");
+      console.error("Grant access error:", error);
     }
   };
 
@@ -220,7 +221,7 @@ export default function MemberDetailPage() {
                 <span
                   className={clsx(
                     "mt-2 inline-flex items-center rounded-full px-3 py-1 text-sm font-medium capitalize",
-                    getStatusColor(status)
+                    getStatusColor(status),
                   )}
                 >
                   {status}
@@ -282,9 +283,13 @@ export default function MemberDetailPage() {
                     </p>
                     <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
                       {emailVerified ? (
-                        <span className="text-green-600 dark:text-green-400">✓ Verified</span>
+                        <span className="text-green-600 dark:text-green-400">
+                          ✓ Verified
+                        </span>
                       ) : (
-                        <span className="text-yellow-600 dark:text-yellow-400">Unverified</span>
+                        <span className="text-yellow-600 dark:text-yellow-400">
+                          Unverified
+                        </span>
                       )}
                     </p>
                   </div>
@@ -306,7 +311,7 @@ export default function MemberDetailPage() {
                     Date of Birth
                   </p>
                   <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {dateOfBirth ? formatDate(new Date(dateOfBirth)) : 'N/A'}
+                    {dateOfBirth ? formatDate(new Date(dateOfBirth)) : "N/A"}
                   </p>
                 </div>
                 <div>
@@ -314,7 +319,7 @@ export default function MemberDetailPage() {
                     Member Since
                   </p>
                   <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {createdAt ? formatDate(createdAt) : 'N/A'}
+                    {createdAt ? formatDate(createdAt) : "N/A"}
                   </p>
                 </div>
                 <div>
@@ -322,7 +327,9 @@ export default function MemberDetailPage() {
                     User Created
                   </p>
                   <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {user?.created_at ? formatDate(new Date(user.created_at)) : 'N/A'}
+                    {user?.created_at
+                      ? formatDate(new Date(user.created_at))
+                      : "N/A"}
                   </p>
                 </div>
                 <div>
@@ -330,7 +337,7 @@ export default function MemberDetailPage() {
                     Last Login
                   </p>
                   <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {lastLoginAt ? formatDate(lastLoginAt) : 'Never'}
+                    {lastLoginAt ? formatDate(lastLoginAt) : "Never"}
                   </p>
                 </div>
               </div>
@@ -357,7 +364,8 @@ export default function MemberDetailPage() {
                         </p>
                         <div className="flex items-center gap-4 mt-2">
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatDate(new Date(subscription.started_at))} - {formatDate(new Date(subscription.expires_at))}
+                            {formatDate(new Date(subscription.started_at))} -{" "}
+                            {formatDate(new Date(subscription.expires_at))}
                           </p>
                           {subscription.auto_renew && (
                             <span className="text-xs text-blue-600 dark:text-blue-400">
@@ -365,18 +373,21 @@ export default function MemberDetailPage() {
                             </span>
                           )}
                         </div>
-                        {subscription.plan.features && subscription.plan.features.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {subscription.plan.features.map((feature: string, idx: number) => (
-                              <span
-                                key={idx}
-                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
-                              >
-                                {feature}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        {subscription.plan.features &&
+                          subscription.plan.features.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {subscription.plan.features.map(
+                                (feature: string, idx: number) => (
+                                  <span
+                                    key={idx}
+                                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+                                  >
+                                    {feature}
+                                  </span>
+                                ),
+                              )}
+                            </div>
+                          )}
                       </div>
                       <div className="ml-4">
                         <span
@@ -389,10 +400,11 @@ export default function MemberDetailPage() {
                             subscription.status === "pending" &&
                               "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
                             subscription.status === "canceled" &&
-                              "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
+                              "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
                           )}
                         >
-                          {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
+                          {subscription.status.charAt(0).toUpperCase() +
+                            subscription.status.slice(1)}
                         </span>
                       </div>
                     </div>
@@ -420,7 +432,7 @@ export default function MemberDetailPage() {
                   {Object.entries(member.metadata).map(([key, value]) => (
                     <div key={key} className="flex justify-between text-sm">
                       <span className="text-gray-500 dark:text-gray-400 capitalize">
-                        {key.replace(/_/g, ' ')}:
+                        {key.replace(/_/g, " ")}:
                       </span>
                       <span className="text-gray-900 dark:text-gray-100 font-medium">
                         {String(value)}

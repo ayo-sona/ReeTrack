@@ -15,7 +15,7 @@ export default function MembersPage() {
     dateFrom: "",
     dateTo: "",
     plan: "all",
-    status: "all" as "all" | "active" | "inactive" | "expired",
+    status: "all" as "all" | "active" | "inactive",
   });
 
   // Fetch data
@@ -37,7 +37,7 @@ export default function MembersPage() {
     return wrappedData.data || [];
   }, [membersData]);
 
-  // ⭐ UPDATED: Filter members based on current filters
+  // UPDATED: Filter members based on current filters
   const filteredMembers = useMemo(() => {
     return members.filter((member: Member) => {
       // Date range filter - by joined date
@@ -53,7 +53,7 @@ export default function MembersPage() {
         if (joinedDate > toDate) return false;
       }
 
-      // ⭐ UPDATED: Status filter using direct user.status
+      // UPDATED: Status filter using direct user.status
       if (filters.status !== "all") {
         const memberStatus = member.user?.status;
         if (filters.status === "active" && memberStatus !== "active")
