@@ -32,12 +32,12 @@ async function bootstrap() {
 
   // CORS
   const frontendUrl = configService.get('frontend.url');
-  // console.log('frontendUrl', typeof frontendUrl, frontendUrl);
+  // console.log('frontendUrl', typeof fontendUrl, frontendUrl);
 
   const allowedOrigins = [
     'https://reetrack.vercel.app',
     frontendUrl,
-    'http://localhost:4000',
+    'http://localhost:3000',
     'https://paypips.onrender.com',
   ];
   app.enableCors({
