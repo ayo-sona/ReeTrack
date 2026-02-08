@@ -42,10 +42,14 @@ export const mapPlanToSubscriptionPlan = (plan: Plan): SubscriptionPlan => {
 
 /**
  * Maps backend interval format to frontend duration format
+ * ✅ FIXED: Added null/undefined safety check
  */
 const mapIntervalToDuration = (
-  interval: string,
+  interval: string | null | undefined,
 ): "weekly" | "monthly" | "quarterly" | "yearly" => {
+  // ✅ Handle null, undefined, or empty string
+  if (!interval) return "monthly";
+
   const mapping: Record<string, "weekly" | "monthly" | "quarterly" | "yearly"> =
     {
       week: "weekly",

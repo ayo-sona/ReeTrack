@@ -137,10 +137,10 @@ export function PlansGrid({
           <div className="mb-4">
             <div className="flex items-baseline gap-1">
               <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                ₦{plan.price.toLocaleString()}
+                ₦{plan.price != null ? plan.price.toLocaleString() : '0'}
               </span>
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                /{plan.duration}
+                /{plan.duration || 'month'}
               </span>
             </div>
           </div>

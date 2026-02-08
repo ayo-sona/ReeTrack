@@ -1,8 +1,20 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --primary-hsl: 142 76% 36%;
+    --background-hsl: 0 0% 100%;
+  }
+
+  .dark {
+    --primary-hsl: 142 76% 50%;
+    --background-hsl: 0 0% 4%;
+  }
+
   body {
     @apply bg-gray-50 text-gray-900;
   }
@@ -63,4 +75,15 @@
 
 .animate-in {
   animation: slide-in-from-right 0.3s ease-out;
+}
+
+/* Utility class for mesh background */
+.mesh-background {
+  background-image: radial-gradient(
+    circle at 2px 2px,
+    hsl(var(--primary-hsl) / 0.2) 1px,
+    transparent 0
+  );
+  background-size: 40px 40px;
+  background-color: hsl(var(--background-hsl));
 }

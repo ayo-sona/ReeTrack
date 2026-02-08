@@ -9,7 +9,7 @@ interface MemberFiltersType {
   dateFrom: string;
   dateTo: string;
   plan: string;
-  status: "all" | "active" | "inactive" | "expired";
+  status: "all" | "active" | "inactive";
 }
 
 interface MemberFiltersProps {
@@ -137,7 +137,6 @@ export function MemberFilters({
               <option value="all">All Status</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
-              <option value="expired">Expired</option>
             </select>
           </div>
         </div>
@@ -159,7 +158,7 @@ export function MemberFilters({
               Inactive:
             </span>
             <span className="text-gray-700 dark:text-gray-300 ml-1">
-              Self-signup
+              Last login - 6 months
             </span>
           </div>
         </div>

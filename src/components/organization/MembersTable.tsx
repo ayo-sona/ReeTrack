@@ -86,14 +86,15 @@ export function MembersTable({ members, isSearching = false, isLoading = false }
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {members.map((member) => {
-              // ⭐ UPDATED: Use direct user object from API response
+              // Use direct user object from API response
               const user = member.user;
               const firstName = user?.first_name || '';
               const lastName = user?.last_name || '';
               const fullName = `${firstName} ${lastName}`.trim() || 'Unknown User';
               const initials = (firstName.charAt(0) || lastName.charAt(0) || 'M').toUpperCase();
               const email = user?.email || 'N/A';
-              const phone = user?.phone || member.emergency_contact_phone || 'N/A';
+              const phone = user?.phone || 'N/A';
+              const address = user?.address;
               const createdAt = member.created_at ? new Date(member.created_at) : null;
               const status = user?.status || 'inactive';
               const checkInCount = member.check_in_count || 0;
@@ -139,10 +140,10 @@ export function MembersTable({ members, isSearching = false, isLoading = false }
                         <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                         <span className="truncate">{phone}</span>
                       </div>
-                      {member.address && (
+                      {address && (
                         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
                           <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
-                          <span className="truncate max-w-[200px]">{member.address}</span>
+                          <span className="truncate max-w-[200px]">{address}</span>
                         </div>
                       )}
                     </div>

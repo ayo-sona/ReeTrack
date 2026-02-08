@@ -9,17 +9,17 @@ import {
   CreditCard,
   QrCode,
   Bell,
-  User,
-  Gift,
   Menu,
   X,
   LogOut,
   Settings,
 } from "lucide-react";
-import { useProfile, useNotifications } from "@/hooks/memberHook/useMember";
+import { useProfile } from "@/hooks/memberHook/useMember";
+import { useUnreadCount } from "@/hooks/memberHook/useSyntheticNotifications";
 import apiClient from "@/lib/apiClient";
 import { deleteCookie } from "cookies-next";
 import { Spinner } from "@heroui/react";
+
 interface MemberLayoutProps {
   children: React.ReactNode;
 }
@@ -28,19 +28,17 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: profile } = useProfile();
-  const { data: notifications } = useNotifications();
+  const unreadCount = useUnreadCount(); // ✅ Using synthetic notifications
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const unreadCount = notifications?.filter((n) => !n.read).length || 0;
-
   const navigation = [
     { name: "Dashboard", href: "/member/dashboard", icon: Home },
-    { name: "Wallet", href: "/member/wallet", icon: Wallet },
+    { name: "Wallet", href: "/member/wallet", icon: Wallet }, // 🔜 Placeholder
     { name: "Subscriptions", href: "/member/subscriptions", icon: CreditCard },
-    { name: "Check In", href: "/member/check-ins", icon: QrCode },
+    { name: "Check In", href: "/member/check-ins", icon: QrCode }, // 🔜 Placeholder
     { name: "Payments", href: "/member/payments", icon: CreditCard },
-    // { name: "Referrals", href: "/member/referrals", icon: Gift },
+    // { name: "Referrals", href: "/member/referrals", icon: Gift }, // 🔜 Placeholder
   ];
 
   const handleLogout = async () => {
@@ -168,15 +166,15 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
             <div className="mb-8 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                  {profile?.firstName?.charAt(0)}
-                  {profile?.lastName?.charAt(0)}
+                  {profile?.user?.first_name?.charAt(0)}
+                  {profile?.user?.last_name?.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-gray-900 truncate">
-                    {profile?.firstName} {profile?.lastName}
+                    {profile?.user?.first_name} {profile?.user?.last_name}
                   </p>
                   <p className="text-xs text-gray-600 truncate">
-                    {profile?.email}
+                    {profile?.user?.email}
                   </p>
                 </div>
               </div>

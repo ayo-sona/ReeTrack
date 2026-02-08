@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -56,30 +56,58 @@ interface OrganizationSidebarProps {
   onToggleCollapse: () => void;
 }
 
-// Helper function to get user from localStorage safely
-function getUserFromLocalStorage(): User | null {
-  if (typeof window === 'undefined') return null;
-  
-  try {
-    const userData = localStorage.getItem("userData");
-    if (userData) {
-      const parsed = JSON.parse(userData);
-      return parsed.user;
-    }
-  } catch (error) {
-    console.error("Error loading user data:", error);
-  }
-  return null;
-}
-
 export function OrganizationSidebar({
   isCollapsed,
   onToggleCollapse,
 }: OrganizationSidebarProps) {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  // Use lazy initialization to load user data once on mount
-  const [user] = useState<User | null>(getUserFromLocalStorage);
+  const [user, setUser] = useState<User | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // ✅ Load user data and set mounted state
+  useEffect(() => {
+    // Set mounted first
+    setIsMounted(true);
+    
+    // Then load user data
+    try {
+      const userData = localStorage.getItem("userData");
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        setUser(parsed.user);
+      }
+    } catch (error) {
+      console.error("Error loading user data:", error);
+    }
+  }, []);
+
+  // ✅ Don't render motion animations until mounted
+  if (!isMounted) {
+    return (
+      <>
+        {/* Mobile Toggle Button */}
+        <button
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl border border-white/20 dark:border-gray-700/20 shadow-lg"
+        >
+          <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+        </button>
+
+        {/* Static Sidebar for SSR */}
+        <aside className="hidden lg:flex w-[280px] h-screen flex-col bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl border-r border-white/20 dark:border-gray-700/20 shadow-xl">
+          <div className="flex items-center h-20 px-6 border-b border-white/10">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+              <span className="text-white font-bold text-lg">P</span>
+            </div>
+            <span className="ml-3 text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+              ReeTrack
+            </span>
+          </div>
+        </aside>
+      </>
+    );
+  }
 
   return (
     <>
@@ -147,7 +175,7 @@ export function OrganizationSidebar({
                   transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent"
                 >
-                  PayPips
+                  ReeTrack
                 </motion.span>
               )}
             </div>
@@ -269,16 +297,7 @@ export function OrganizationSidebar({
 
           {/* User Card - Only render when user data is available */}
           {!isCollapsed && user && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.3,
-                delay: 0.2,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-              className="p-4"
-            >
+            <div className="p-4">
               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/60 to-white/30 dark:from-gray-800/60 dark:to-gray-800/30 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 p-4 shadow-lg shadow-emerald-500/5">
                 {/* Subtle glow */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-400/10 to-transparent rounded-full blur-3xl"></div>
@@ -301,17 +320,12 @@ export function OrganizationSidebar({
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* Collapsed User Avatar - Only render when user data is available */}
           {isCollapsed && user && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
-              className="p-4"
-            >
+            <div className="p-4">
               <div className="relative group">
                 <div className="w-11 h-11 mx-auto rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-500 flex items-center justify-center text-white font-semibold shadow-lg shadow-emerald-500/25 cursor-pointer hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-200">
                   {user.first_name?.charAt(0).toUpperCase() || "U"}
@@ -327,7 +341,7 @@ export function OrganizationSidebar({
                   <p className="text-xs text-gray-300 mt-0.5">{user.email}</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
         </div>
       </motion.aside>

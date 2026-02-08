@@ -164,7 +164,7 @@ export default function LoginPage() {
             <div className="text-sm">
               <Link
                 href="/auth/forgot-password"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
+                className="font-medium text-primary hover:text-primary/80"
               >
                 Forgot your password?
               </Link>
@@ -175,7 +175,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
                 isLoading ? "opacity-70 cursor-not-allowed" : ""
               }`}
             >
@@ -193,7 +193,7 @@ export default function LoginPage() {
               Already have an account?{" "}
               <Link
                 href="/auth/register"
-                className="font-medium text-blue-600 hover:text-blue-500"
+                className="font-medium text-primary hover:text-primary/80"
               >
                 Register
               </Link>
