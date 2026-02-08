@@ -65,6 +65,26 @@ export class MembersService {
     return member;
   }
 
+  async findOneMemberDetails(
+    organizationId: string,
+    memberId: string,
+  ): Promise<Member> {
+    const member = await this.memberRepository.findOne({
+      where: {
+        id: memberId,
+        subscriptions: {
+          organization_id: organizationId,
+        },
+      },
+      relations: ['user', 'subscriptions.plan'],
+    });
+
+    if (!member) {
+      throw new NotFoundException(`Member not found in this organization`);
+    }
+    return member;
+  }
+
   async update(userId: string, updateDto: UpdateMemberDto): Promise<User> {
     const member = await this.findOne(userId);
 
