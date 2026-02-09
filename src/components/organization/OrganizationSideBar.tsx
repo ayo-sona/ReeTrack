@@ -66,6 +66,10 @@ export function OrganizationSidebar({
 
   // Load user data on mount
   useEffect(() => {
+    // Set mounted first
+    setIsMounted(true);
+
+    // Then load user data
     try {
       const userData = localStorage.getItem("userData");
       if (userData) {
@@ -131,7 +135,7 @@ export function OrganizationSidebar({
             >
               <div className="relative">
                 <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-                  <span className="text-white font-bold text-lg">P</span>
+                  <span className="text-white font-bold text-lg">RT</span>
                 </div>
                 {/* Glow effect */}
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 blur-xl opacity-20 -z-10"></div>

@@ -49,13 +49,13 @@ export function HeroSection() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Button
                 as={Link}
-                href="/auth/register"
+                href="/auth"
                 size="lg"
                 color="primary"
                 className="bg-primary text-primary-foreground text-lg px-8 py-6"
                 endContent={<ArrowRight className="w-5 h-5" />}
               >
-                Start free plan
+                Start Now
               </Button>
               <Button
                 as={Link}
