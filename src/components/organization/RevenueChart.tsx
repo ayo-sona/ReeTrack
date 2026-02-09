@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   AreaChart,
   Area,
@@ -66,11 +66,16 @@ const PERIOD_OPTIONS: PeriodOption[] = [
 ];
 
 export function RevenueChart() {
+  const [isMounted, setIsMounted] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("week");
   const [chartType, setChartType] = useState<ChartType>("area");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const params =
     selectedPeriod === "custom" && startDate && endDate
@@ -98,6 +103,19 @@ export function RevenueChart() {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
+
+  // Don't render until mounted to avoid hydration mismatch
+  if (!isMounted) {
+    return (
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/40 to-white/20 dark:from-gray-900/40 dark:to-gray-800/20 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 p-8 shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-cyan-500/5" />
+        <div className="relative space-y-4 animate-pulse">
+          <div className="h-6 w-48 bg-gray-200/50 dark:bg-gray-700/50 rounded-lg" />
+          <div className="h-80 bg-gray-200/30 dark:bg-gray-700/30 rounded-xl" />
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
