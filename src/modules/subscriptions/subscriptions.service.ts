@@ -13,6 +13,7 @@ import {
   InvoiceStatus,
   OrgRole,
   PaymentProvider,
+  PlanInterval,
   SubscriptionStatus,
 } from 'src/common/enums/enums';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
@@ -21,7 +22,7 @@ import { generateInvoiceNumber } from '../../common/utils/invoice-number.util';
 import { MemberSubscription } from '../../database/entities/member-subscription.entity';
 import { MemberPlan } from '../../database/entities/member-plan.entity';
 import { FindAllMemberSubscriptionsDto } from './dto/find-all-subscriptions.dto';
-import { addMonths, isAfter } from 'date-fns';
+import { addMonths, addWeeks, addYears, isAfter } from 'date-fns';
 import {
   Organization,
   OrganizationSubscription,
@@ -227,11 +228,18 @@ export class SubscriptionsService {
     if (updateDto.status === 'active' && subscription.status !== 'active') {
       const now = new Date();
       subscription.started_at = now;
-      subscription.expires_at = addMonths(
-        now,
-        subscription.plan.interval_count,
-      );
-      subscription.canceled_at = new Date();
+      subscription.expires_at =
+        subscription.plan.interval === PlanInterval.MONTHLY
+          ? addMonths(now, subscription.plan.interval_count)
+          : subscription.plan.interval === PlanInterval.YEARLY
+            ? addYears(now, subscription.plan.interval_count)
+            : subscription.plan.interval === PlanInterval.WEEKLY
+              ? addWeeks(now, subscription.plan.interval_count)
+              : subscription.plan.interval === PlanInterval.BIWEEKLY
+                ? addWeeks(now, subscription.plan.interval_count)
+                : subscription.plan.interval === PlanInterval.QUARTERLY
+                  ? addMonths(now, subscription.plan.interval_count)
+                  : addMonths(now, subscription.plan.interval_count);
     }
     // If canceling an active subscription
     else if (
@@ -293,7 +301,18 @@ export class SubscriptionsService {
           organization_id: organizationId,
           status: SubscriptionStatus.ACTIVE,
           started_at: new Date(),
-          expires_at: addMonths(new Date(), newPlan.interval_count),
+          expires_at:
+            newPlan.interval === PlanInterval.MONTHLY
+              ? addMonths(new Date(), newPlan.interval_count)
+              : newPlan.interval === PlanInterval.YEARLY
+                ? addYears(new Date(), newPlan.interval_count)
+                : newPlan.interval === PlanInterval.WEEKLY
+                  ? addWeeks(new Date(), newPlan.interval_count)
+                  : newPlan.interval === PlanInterval.BIWEEKLY
+                    ? addWeeks(new Date(), newPlan.interval_count)
+                    : newPlan.interval === PlanInterval.QUARTERLY
+                      ? addMonths(new Date(), newPlan.interval_count)
+                      : addMonths(new Date(), newPlan.interval_count),
           auto_renew: currentSubscription.auto_renew,
           metadata: {
             ...currentSubscription.metadata,

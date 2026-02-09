@@ -37,7 +37,6 @@ export class InvitationsController {
 
     return this.invitationsService.createInvitation(
       organization,
-      user,
       body.staffEmail,
     );
   }
@@ -58,18 +57,5 @@ export class InvitationsController {
       email: invitation.email,
       organization: invitation.organization.name,
     };
-  }
-
-  @Post('accept/:token')
-  @ApiOperation({
-    summary: 'Accept an invitation',
-    description: 'Accept an invitation',
-  })
-  @ApiResponse({ status: 200, description: 'Invitation accepted successfully' })
-  async acceptInvitation(
-    @Param('token') token: string,
-    @Body() body: StaffRegisterDto,
-  ) {
-    return this.invitationsService.acceptInvitation(token, body);
   }
 }

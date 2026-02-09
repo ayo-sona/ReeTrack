@@ -27,6 +27,7 @@ import { StaffRegisterDto } from 'src/common/dto/staff-register.dto';
 import type { Request, Response } from 'express';
 import { UserRegisterDto } from 'src/common/dto/user-register.dto';
 import { CustomRegisterDto } from './auth.controller';
+import { InvitationsService } from '../invitations/invitations.service';
 
 interface AuthResponse {
   message: string;
@@ -70,6 +71,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private notificationsService: NotificationsService,
+    private invitationsService: InvitationsService,
   ) {}
 
   async registerOrganization(registerDto: RegisterDto): Promise<AuthResponse> {
@@ -168,35 +170,22 @@ export class AuthService {
     // Check if user email exists
     let user = await this.userRepository.findOne({
       where: { email: memberRegisterDto.email },
-      relations: ['organization_users', 'organization_users.organization'],
     });
 
-    if (user) {
-      // Check if already member of this org
-      const existingOrgUser = await this.organizationUserRepository.findOne({
-        where: {
-          user_id: user.id,
-          organization_id: organization.id,
-        },
-      });
+    if (!user) {
+      throw new NotFoundException('User not found!');
+    }
 
-      if (existingOrgUser) {
-        throw new ConflictException('Already a member of this organization');
-      }
-    } else {
-      // Create new user
-      const password_hash = await bcrypt.hash(memberRegisterDto.password, 10);
+    // Check if already member of this org
+    const existingOrgUser = await this.organizationUserRepository.findOne({
+      where: {
+        user_id: user.id,
+        organization_id: organization.id,
+      },
+    });
 
-      user = this.userRepository.create({
-        email: memberRegisterDto.email,
-        password_hash,
-        first_name: memberRegisterDto.firstName,
-        last_name: memberRegisterDto.lastName,
-        phone: memberRegisterDto.phone,
-        status: 'active',
-      });
-
-      user = await this.userRepository.save(user);
+    if (existingOrgUser) {
+      throw new ConflictException('Already a member of this organization');
     }
 
     // Create organization_user with MEMBER role
@@ -212,18 +201,9 @@ export class AuthService {
     const member = this.memberRepository.create({
       user_id: user.id,
       organization_user_id: savedOrgUser.id,
-      check_in_count: memberRegisterDto.checkInCount,
-      metadata: {},
     });
 
     await this.memberRepository.save(member);
-
-    // Send welcome email
-    await this.notificationsService.sendWelcomeEmail({
-      email: user.email,
-      userName: `${user.first_name} ${user.last_name}`,
-      organizationName: organization.name,
-    });
 
     return {
       message: 'Registration successful',
@@ -233,7 +213,6 @@ export class AuthService {
           email: user.email,
           first_name: user.first_name,
           last_name: user.last_name,
-          phone: user.phone,
         },
       },
     };
@@ -257,57 +236,16 @@ export class AuthService {
       where: { email: memberRegisterDto.email },
     });
 
-    if (user) {
-      // Check if already member of this org
-      const existingOrgUser = await this.organizationUserRepository.findOne({
-        where: {
-          user_id: user.id,
-          organization_id: organization.id,
-          role: OrgRole.MEMBER,
-        },
-      });
-
-      if (existingOrgUser) {
-        throw new ConflictException('Already a member of this organization');
-      }
-    } else {
-      throw new ForbiddenException('User not found');
-    }
-
-    // Create organization_user with MEMBER role
-    const orgUser = this.organizationUserRepository.create({
-      user_id: user.id,
-      organization_id: organization.id,
-      role: OrgRole.MEMBER,
-      status: 'inactive',
-    });
-
-    const savedOrgUser = await this.organizationUserRepository.save(orgUser);
-
-    const member = this.memberRepository.create({
-      user_id: user.id,
-      organization_user_id: savedOrgUser.id,
-    });
-
-    await this.memberRepository.save(member);
-
-    // Send welcome email
-    await this.notificationsService.sendWelcomeEmail({
-      email: user.email,
-      userName: `${user.first_name} ${user.last_name}`,
+    // Send registration email
+    await this.notificationsService.sendMemberRegisterEmail({
+      email: user?.email || memberRegisterDto.email,
+      userName: user ? `${user.first_name} ${user.last_name}` : undefined,
       organizationName: organization.name,
+      joinToken: organization.slug,
     });
 
     return {
       message: 'Registration sent successfully',
-      data: {
-        member: {
-          email: user.email,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          phone: user.phone,
-        },
-      },
     };
   }
 
@@ -317,7 +255,7 @@ export class AuthService {
       where: { token },
       relations: ['organization'],
     });
-    console.log('invitation', invitation);
+    // console.log('invitation', invitation);
 
     if (!invitation?.organization.id) {
       throw new NotFoundException('Organization not found');
@@ -326,35 +264,22 @@ export class AuthService {
     // Check if user email exists
     let user = await this.userRepository.findOne({
       where: { email: staffRegisterDto.email },
-      relations: ['organization_users', 'organization_users.organization'],
     });
 
-    if (user) {
-      // Check if already part of this org
-      const existingOrgUser = await this.organizationUserRepository.findOne({
-        where: {
-          user_id: user.id,
-          organization_id: invitation.organization.id,
-        },
-      });
+    if (!user) {
+      throw new NotFoundException('User not found!');
+    }
 
-      if (existingOrgUser) {
-        throw new ConflictException('Already a part of this organization');
-      }
-    } else {
-      // Create new user
-      const password_hash = await bcrypt.hash(staffRegisterDto.password, 10);
+    // Check if already part of this org
+    const existingOrgUser = await this.organizationUserRepository.findOne({
+      where: {
+        user_id: user.id,
+        organization_id: invitation.organization.id,
+      },
+    });
 
-      user = this.userRepository.create({
-        email: staffRegisterDto.email,
-        password_hash,
-        first_name: staffRegisterDto.firstName,
-        last_name: staffRegisterDto.lastName,
-        phone: staffRegisterDto.phone,
-        status: 'active',
-      });
-
-      user = await this.userRepository.save(user);
+    if (existingOrgUser) {
+      throw new ConflictException('Already a part of this organization');
     }
 
     // Create organization_user with STAFF role
@@ -367,12 +292,7 @@ export class AuthService {
 
     await this.organizationUserRepository.save(orgUser);
 
-    // Send welcome email
-    await this.notificationsService.sendWelcomeEmail({
-      email: user.email,
-      userName: `${user.first_name} ${user.last_name}`,
-      organizationName: invitation.organization.name,
-    });
+    await this.invitationsService.acceptInvitation(invitation);
 
     return {
       message: 'User registration successful',
@@ -382,9 +302,44 @@ export class AuthService {
           email: user.email,
           first_name: user.first_name,
           last_name: user.last_name,
-          phone: user.phone,
         },
       },
+    };
+  }
+
+  async customRegisterStaff(
+    organizationId: string,
+    staffRegisterDto: CustomRegisterDto,
+  ) {
+    // Find organization by id
+    const organization = await this.organizationRepository.findOne({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    // Check if user email exists
+    let user = await this.userRepository.findOne({
+      where: { email: staffRegisterDto.email },
+    });
+
+    const data = await this.invitationsService.createInvitation(
+      organization,
+      staffRegisterDto.email,
+    );
+
+    // Send registration email
+    await this.notificationsService.sendStaffRegisterEmail({
+      email: user?.email || staffRegisterDto.email,
+      userName: user ? `${user.first_name} ${user.last_name}` : undefined,
+      organizationName: organization.name,
+      joinToken: data.token,
+    });
+
+    return {
+      message: 'Registration sent successfully',
     };
   }
 

@@ -20,6 +20,54 @@ export class NotificationsService {
     private configService: ConfigService,
   ) {}
 
+  async sendMemberRegisterEmail(data: {
+    email: string;
+    userName?: string;
+    organizationName: string;
+    joinToken?: string;
+  }) {
+    const baseUrl = this.configService.get('frontend.url');
+    const context = {
+      ...data,
+      registrationUrl: `${baseUrl}/auth/register`,
+      joinUrl: data.joinToken ? `${baseUrl}/auth/org/${data.joinToken}` : null,
+    };
+
+    await this.emailService.sendEmail({
+      to: data.email,
+      subject: `Welcome to ${data.organizationName}!`,
+      template: 'register_member_email',
+      context,
+    });
+
+    this.logger.log(`Member registration email sent to ${data.email}`);
+  }
+
+  async sendStaffRegisterEmail(data: {
+    email: string;
+    userName?: string;
+    organizationName: string;
+    joinToken?: string;
+  }) {
+    const baseUrl = this.configService.get('frontend.url');
+    const context = {
+      ...data,
+      registrationUrl: `${baseUrl}/auth/register`,
+      joinUrl: data.joinToken
+        ? `${baseUrl}/auth/accept-invite/${data.joinToken}`
+        : null,
+    };
+
+    await this.emailService.sendEmail({
+      to: data.email,
+      subject: `You've been invited to join ${data.organizationName}'s staff team`,
+      template: 'register_staff_email',
+      context,
+    });
+
+    this.logger.log(`Staff registration email sent to ${data.email}`);
+  }
+
   async sendWelcomeEmail(data: {
     email: string;
     userName: string;

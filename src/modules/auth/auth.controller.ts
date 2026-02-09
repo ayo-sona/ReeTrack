@@ -26,6 +26,7 @@ import { CurrentOrganization } from 'src/common/decorators/organization.decorato
 import { UserRegisterDto } from 'src/common/dto/user-register.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail } from 'class-validator';
+import { StaffRegisterDto } from 'src/common/dto/staff-register.dto';
 
 type RequestUser = {
   id: string;
@@ -109,11 +110,41 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 409, description: 'Email already exists' })
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
-  async registerMember(
-    @Body() registerDto: MemberRegisterDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
+  async registerMember(@Body() registerDto: MemberRegisterDto) {
     const result = await this.authService.registerMember(registerDto);
+    return result.data;
+  }
+
+  @Post('register-staff')
+  @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 requests per minute
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Register a new staff' })
+  @ApiResponse({
+    status: 201,
+    description: 'Member successfully registered',
+    content: {
+      'application/json': {
+        example: {
+          access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+          user: {
+            id: '123e4567-e89b-12d3-a456-426614174000',
+            email: 'levi@life.com',
+            firstName: 'Levi',
+            lastName: 'Ackerman',
+            role: 'member',
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 409, description: 'Email already exists' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async registerStaff(@Body() registerDto: StaffRegisterDto) {
+    const result = await this.authService.registerStaff(
+      registerDto,
+      registerDto.token,
+    );
     return result.data;
   }
 
@@ -145,6 +176,40 @@ export class AuthController {
     @Body() registerDto: CustomRegisterDto,
   ) {
     const result = await this.authService.customRegisterMember(
+      organizationId,
+      registerDto,
+    );
+    return result;
+  }
+
+  @Post('custom/register-staff')
+  @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 requests per minute
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Register a new member' })
+  @ApiResponse({
+    status: 201,
+    description: 'Member successfully registered',
+    content: {
+      'application/json': {
+        example: {
+          user: {
+            email: 'levi@life.com',
+            firstName: 'Levi',
+            lastName: 'Ackerman',
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 409, description: 'Email already exists' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async customRegisterStaff(
+    @CurrentOrganization() organizationId: string,
+    @Body() registerDto: CustomRegisterDto,
+  ) {
+    const result = await this.authService.customRegisterStaff(
       organizationId,
       registerDto,
     );

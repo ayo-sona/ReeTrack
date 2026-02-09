@@ -9,8 +9,6 @@ import { NotificationsService } from '../notifications/notifications.service';
 import * as crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import { OrganizationUser } from 'src/database/entities/organization-user.entity';
-import { AuthService } from '../auth/auth.service';
-import { StaffRegisterDto } from 'src/common/dto/staff-register.dto';
 
 @Injectable()
 export class InvitationsService {
@@ -23,7 +21,6 @@ export class InvitationsService {
 
     private notificationsService: NotificationsService,
     private configService: ConfigService,
-    private authService: AuthService,
 
     @InjectRepository(OrganizationUser)
     private organizationUserRepository: Repository<OrganizationUser>,
@@ -46,11 +43,7 @@ export class InvitationsService {
     return orgUser.organization;
   }
 
-  async createInvitation(
-    organization: Organization,
-    invitedBy: User,
-    staffEmail: string,
-  ) {
+  async createInvitation(organization: Organization, staffEmail: string) {
     // Check for existing invitation
     const existing = await this.invitationRepository.findOne({
       where: {
@@ -71,7 +64,6 @@ export class InvitationsService {
 
     const invitation = this.invitationRepository.create({
       organization_id: organization.id,
-      invited_by_id: invitedBy.id,
       email: staffEmail,
       token,
       expires_at: expiresAt,
@@ -79,9 +71,6 @@ export class InvitationsService {
     });
 
     const savedInvitation = await this.invitationRepository.save(invitation);
-
-    // Send invitation email
-    await this.sendInvitationEmail(savedInvitation, organization);
 
     return savedInvitation;
   }
@@ -100,37 +89,11 @@ export class InvitationsService {
     return invitation;
   }
 
-  async acceptInvitation(token: string, body: StaffRegisterDto) {
-    const invitation = await this.validateInvitation(token);
-
+  async acceptInvitation(invitation: OrganizationInvite) {
     // Mark invitation as accepted
     invitation.accepted = 'true';
     invitation.accepted_at = new Date();
     await this.invitationRepository.save(invitation);
-
-    // Add user to organization with specified role
-    await this.authService.registerStaff(body, invitation.token);
-
-    return { success: true };
-  }
-
-  private async sendInvitationEmail(
-    invitation: OrganizationInvite,
-    organization: Organization,
-  ) {
-    const frontendUrl = this.configService.get('frontend.url');
-    const acceptUrl = `${frontendUrl}/accept-invitation?token=${invitation.token}`;
-
-    // await this.notificationsService.sendEmail({
-    //   to: invitation.email,
-    //   subject: `You've been invited to join ${organization.name}`,
-    //   template: 'staff-invitation',
-    //   context: {
-    //     organizationName: organization.name,
-    //     inviterName: invitation.invited_by || 'An admin',
-    //     acceptUrl,
-    //     expiresIn: '7 days',
-    //   },
-    // });
+    // return { success: true };
   }
 }

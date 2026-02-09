@@ -30,13 +30,6 @@ export class OrganizationInvite {
   organization_id: string;
 
   @ApiProperty({
-    example: '123e4567-e89b-12d3-a456-426614174000',
-    description: 'Invited By',
-  })
-  @Column({ type: 'uuid' })
-  invited_by_id: string;
-
-  @ApiProperty({
     description: 'john@example.com',
     example: 'john@example.com',
   })
@@ -73,8 +66,4 @@ export class OrganizationInvite {
   @ManyToOne(() => Organization, (org) => org.invitations)
   @JoinColumn({ name: 'organization_id' })
   organization: Organization;
-
-  @ManyToOne(() => User, (user) => user.invitations)
-  @JoinColumn({ name: 'invited_by_id' })
-  invited_by: User;
 }

@@ -6,15 +6,17 @@ import {
   IsString,
   IsNotEmpty,
 } from 'class-validator';
-
-enum SubscriptionStatus {
-  ACTIVE = 'active',
-  // PAUSED = 'paused',
-  CANCELED = 'canceled',
-  EXPIRED = 'expired',
-}
+import { SubscriptionStatus } from 'src/common/enums/enums';
 
 export class UpdateSubscriptionDto {
+  @ApiProperty({
+    description: 'Subscription ID',
+    example: '0f037613-c27e-4d2b-8750-33886ae853ca',
+  })
+  @IsString()
+  @IsNotEmpty()
+  subscriptionId: string;
+
   @ApiProperty({
     description: 'Subscription status',
     example: 'active',

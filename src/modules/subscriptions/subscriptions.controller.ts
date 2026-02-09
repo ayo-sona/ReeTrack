@@ -144,7 +144,7 @@ export class SubscriptionsController {
     );
   }
 
-  @Patch('/members/:subscriptionId/status')
+  @Patch('/members/update-status')
   @ApiOperation({ summary: 'Update subscription status' })
   @ApiResponse({
     status: 200,
@@ -153,12 +153,11 @@ export class SubscriptionsController {
   @ApiResponse({ status: 404, description: 'Subscription not found' })
   async updateStatus(
     @CurrentOrganization() organizationId: string,
-    @Param('subscriptionId') subscriptionId: string,
     @Body() updateDto: UpdateSubscriptionDto,
   ) {
     return this.subscriptionsService.updateSubscriptionStatus(
       organizationId,
-      subscriptionId,
+      updateDto.subscriptionId,
       updateDto,
     );
   }

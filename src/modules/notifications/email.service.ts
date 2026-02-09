@@ -61,6 +61,8 @@ export class EmailService {
       invoice_created: this.invoiceCreatedTemplate(context),
       invoice_overdue: this.invoiceOverdueTemplate(context),
       welcome_email: this.welcomeEmailTemplate(context),
+      register_member_email: this.registerMemberEmailTemplate(context),
+      register_staff_email: this.registerStaffEmailTemplate(context),
     };
 
     return templates[template] || this.defaultTemplate(context);
@@ -93,6 +95,103 @@ export class EmailService {
             <p>This is an automated email from ReeTrack</p>
           </div>
         </div>
+      </body>
+      </html>
+    `;
+  }
+
+  private registerMemberEmailTemplate(context: any): string {
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .button { 
+                display: inline-block; 
+                padding: 12px 24px; 
+                background-color: #4CAF50; 
+                color: white; 
+                text-decoration: none; 
+                border-radius: 4px; 
+                margin: 15px 0; 
+            }
+            .footer { margin-top: 30px; font-size: 12px; color: #666; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Welcome to ${context.organizationName}!</h2>
+            <p>Hello ${context.userName || ''},</p>
+            <p>You've been invited to join ${context.organizationName} as a member.</p>
+            
+            <p>Please click the button below to create your account and get started:</p>
+            <a href="${context.registrationUrl}" class="button">Create Account</a>
+
+            <p>Or copy and paste this link into your browser:</p>
+            <p>${context.registrationUrl}</p>
+            
+            <p>Please click the button below to join the organization:</p>
+            <a href="${context.joinUrl}" class="button">Join Organization</a>
+            
+            <p>Or copy and paste this link into your browser:</p>
+            <p>${context.joinUrl}</p>
+
+            <p>If you didn't request this, you can safely ignore this email.</p>
+            
+            <div class="footer">
+                <p>Best regards,<br>The ${context.organizationName} Team</p>
+            </div>
+        </div>
+    </body>
+    </html>`;
+  }
+
+  private registerStaffEmailTemplate(context: any): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .button { 
+                  display: inline-block; 
+                  padding: 12px 24px; 
+                  background-color: #2563eb; 
+                  color: white; 
+                  text-decoration: none; 
+                  border-radius: 4px; 
+                  margin: 15px 0; 
+              }
+              .footer { margin-top: 30px; font-size: 12px; color: #666; }
+          </style>
+      </head>
+      <body>
+          <div class="container">
+              <h2>Welcome to ${context.organizationName}'s Staff Team!</h2>
+              <p>Hello ${context.userName || ''},</p>
+              <p>You've been invited to join ${context.organizationName} as a staff member.</p>
+            
+              <p>Please click the button below to create your staff account and get started:</p>          
+              <a href="${context.registrationUrl}" class="button">Create Staff Account</a>
+
+              <p>Or copy and paste this link into your browser:</p>
+              <p>${context.registrationUrl}</p>
+      
+              <p>Please click the button below to join the organization as staff:</p>
+              <a href="${context.joinUrl}" class="button">Join as Staff</a>
+
+              <p>Or copy and paste this link into your browser:</p>
+              <p>${context.joinUrl}</p>
+
+              <p>If you didn't request this, please contact your administrator immediately.</p>
+              
+              <div class="footer">
+                  <p>Best regards,<br>The ${context.organizationName} Admin Team</p>
+              </div>
+          </div>
       </body>
       </html>
     `;

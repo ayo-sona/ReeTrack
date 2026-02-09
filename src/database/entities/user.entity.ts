@@ -98,7 +98,4 @@ export class User {
 
   @OneToMany(() => RefreshToken, (token) => token.user)
   refresh_tokens: RefreshToken[];
-
-  @OneToMany(() => OrganizationInvite, (invite) => invite.invited_by)
-  invitations: OrganizationInvite[];
 }

@@ -21,4 +21,6 @@ export enum NotificationType {
   INVOICE_CREATED = 'invoice_created',
   INVOICE_OVERDUE = 'invoice_overdue',
   WELCOME_EMAIL = 'welcome_email',
+  REGISTER_MEMBER_EMAIL = 'register_member_email',
+  REGISTER_STAFF_EMAIL = 'register_staff_email',
 }
