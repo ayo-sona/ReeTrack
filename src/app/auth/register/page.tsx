@@ -43,7 +43,7 @@ export default function RegisterPage() {
 
     try {
       const response = await apiClient.post("auth/register-user", formData);
-      //   console.log(response.data);
+        console.log(response.data);
       if (response.data.statusCode === 201) {
         toast.success("Registration successful! Please log in.");
         router.push("/auth/login");
