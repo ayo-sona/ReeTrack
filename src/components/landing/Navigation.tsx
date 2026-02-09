@@ -1,44 +1,44 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useSpring } from 'framer-motion';
-import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import GlassSurface from '../effects/glassEffect';
+import React, { useState, useEffect, useRef } from "react";
+import { motion, useSpring } from "framer-motion";
+import Link from "next/link";
+import { Menu, X } from "lucide-react";
+import dynamic from "next/dynamic";
+import GlassSurface from "../effects/glassEffect";
 
 // Better approach: Use dynamic import with ssr: false
 const ClientOnlyNavigation = () => {
   const [scrolled, setScrolled] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>('Features');
+  const [activeTab, setActiveTab] = useState<string>("Features");
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const [pillStyle, setPillStyle] = useState({ left: 0, width: 0 });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   const navRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const navItems = [
-    { label: 'Features', href: '/features' },
-    { label: 'Pricing', href: '/pricing' },
-    { label: 'About', href: '#about' },
+    { label: "Features", href: "/features" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "About", href: "#about" },
   ];
 
   // Update pill position based on active or hovered tab
   useEffect(() => {
     const targetTab = hoveredTab || activeTab;
     const targetElement = itemRefs.current[targetTab];
-    
+
     if (targetElement && navRef.current) {
       const navRect = navRef.current.getBoundingClientRect();
       const itemRect = targetElement.getBoundingClientRect();
-      
+
       setPillStyle({
         left: itemRect.left - navRect.left,
         width: itemRect.width,
@@ -79,13 +79,16 @@ const ClientOnlyNavigation = () => {
                 transition={{ delay: 0.2, duration: 0.6 }}
                 className="relative z-10 shrink-0"
               >
-                <Link href="/" className="text-xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 bg-clip-text text-transparent tracking-tight">
+                <Link
+                  href="/"
+                  className="text-xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 bg-clip-text text-transparent tracking-tight"
+                >
                   ReeTrack
                 </Link>
               </motion.div>
 
               {/* Navigation Items with Sliding Pill */}
-              <div 
+              <div
                 ref={navRef}
                 className="relative flex items-center gap-2 px-3 py-2 rounded-full flex-1 justify-center max-w-md"
               >
@@ -119,8 +122,8 @@ const ClientOnlyNavigation = () => {
                     onMouseLeave={() => setHoveredTab(null)}
                     className={`relative z-10 px-4 py-2 text-[14px] font-semibold tracking-tight transition-colors duration-200 whitespace-nowrap ${
                       activeTab === item.label
-                        ? 'text-gray-900'
-                        : 'text-gray-600 hover:text-gray-900'
+                        ? "text-gray-900"
+                        : "text-gray-600 hover:text-gray-900"
                     }`}
                   >
                     {item.label}
@@ -151,15 +154,15 @@ const ClientOnlyNavigation = () => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <Link
-                    href="/auth/register"
+                    href="/auth"
                     className="relative z-10 px-7 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-full text-sm font-semibold shadow-lg shadow-emerald-600/20 hover:shadow-xl hover:shadow-emerald-600/30 transition-all duration-300 overflow-hidden group"
                   >
                     <span className="relative z-10">Get Started</span>
                     {/* Shine effect */}
                     <motion.div
                       className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                      initial={{ x: '-100%' }}
-                      whileHover={{ x: '100%' }}
+                      initial={{ x: "-100%" }}
+                      whileHover={{ x: "100%" }}
                       transition={{ duration: 0.6 }}
                     />
                   </Link>
@@ -200,7 +203,10 @@ const ClientOnlyNavigation = () => {
           >
             <div className="w-full px-6 py-4 flex items-center justify-between">
               {/* Logo */}
-              <Link href="/" className="text-lg font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 bg-clip-text text-transparent tracking-tight">
+              <Link
+                href="/"
+                className="text-lg font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 bg-clip-text text-transparent tracking-tight"
+              >
                 ReeTrack
               </Link>
 
@@ -261,7 +267,7 @@ const ClientOnlyNavigation = () => {
                   Sign In
                 </Link>
                 <Link
-                  href="/auth/register"
+                  href="/auth"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block text-center py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-full font-semibold shadow-lg shadow-emerald-600/20 hover:shadow-xl hover:shadow-emerald-600/30 transition-all"
                 >

@@ -41,7 +41,7 @@ export function CTASection() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
             as={Link}
-            href="/auth/register"
+            href="/auth"
             size="lg"
             color="primary"
             className="bg-primary text-primary-foreground text-lg px-10 py-7"

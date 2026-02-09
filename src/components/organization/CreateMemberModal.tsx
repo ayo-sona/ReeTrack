@@ -35,12 +35,12 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
     setIsSubmitting(true);
 
     try {
-      const member = await apiClient.post(
+      const data = await apiClient.post(
         "/auth/custom/register-member",
         formData,
       );
-      console.log(member);
-      toast.success("Member created successfully");
+      console.log(data);
+      toast.success("Email sent successfully");
       onClose();
       // Reset form
       setFormData({
@@ -115,7 +115,7 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
                 disabled={isSubmitting}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Creating..." : "Create Member"}
+                {isSubmitting ? "Adding..." : "Add Member"}
               </button>
             </div>
           </form>

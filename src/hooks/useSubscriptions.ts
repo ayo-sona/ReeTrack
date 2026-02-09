@@ -1,10 +1,18 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { subscriptionsApi, CreateSubscriptionDto } from '../lib/organizationAPI/subscriptionsApi';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  subscriptionsApi,
+  CreateSubscriptionDto,
+  UpdateSubscriptionDto,
+} from "../lib/organizationAPI/subscriptionsApi";
 
 // Get all subscriptions
-export const useSubscriptions = (page: number = 1, limit: number = 10, status?: string) => {
+export const useSubscriptions = (
+  page: number = 1,
+  limit: number = 10,
+  status?: string,
+) => {
   return useQuery({
-    queryKey: ['subscriptions', page, limit, status],
+    queryKey: ["subscriptions", page, limit, status],
     queryFn: () => subscriptionsApi.getAll(page, limit, status),
   });
 };
@@ -12,21 +20,34 @@ export const useSubscriptions = (page: number = 1, limit: number = 10, status?: 
 // Get subscription by ID
 export const useSubscription = (subscriptionId: string) => {
   return useQuery({
-    queryKey: ['subscriptions', subscriptionId],
+    queryKey: ["subscriptions", subscriptionId],
     queryFn: () => subscriptionsApi.getById(subscriptionId),
     enabled: !!subscriptionId,
   });
 };
 
-// Create subscription (Grant Access)
+// Create subscription
 export const useCreateSubscription = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: CreateSubscriptionDto) => subscriptionsApi.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
-      queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
+    },
+  });
+};
+
+// Update subscription
+export const useUpdateSubscription = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateSubscriptionDto) => subscriptionsApi.update(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
     },
   });
 };
@@ -34,12 +55,13 @@ export const useCreateSubscription = () => {
 // Pause subscription
 export const usePauseSubscription = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (subscriptionId: string) => subscriptionsApi.pause(subscriptionId),
+    mutationFn: (subscriptionId: string) =>
+      subscriptionsApi.pause(subscriptionId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
-      queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
     },
   });
 };
@@ -47,12 +69,13 @@ export const usePauseSubscription = () => {
 // Resume subscription
 export const useResumeSubscription = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (subscriptionId: string) => subscriptionsApi.resume(subscriptionId),
+    mutationFn: (subscriptionId: string) =>
+      subscriptionsApi.resume(subscriptionId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
-      queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
     },
   });
 };
@@ -60,12 +83,13 @@ export const useResumeSubscription = () => {
 // Cancel subscription
 export const useCancelSubscription = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (subscriptionId: string) => subscriptionsApi.cancel(subscriptionId),
+    mutationFn: (subscriptionId: string) =>
+      subscriptionsApi.cancel(subscriptionId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
-      queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
     },
   });
 };
@@ -73,12 +97,13 @@ export const useCancelSubscription = () => {
 // Renew subscription
 export const useRenewSubscription = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (subscriptionId: string) => subscriptionsApi.renew(subscriptionId),
+    mutationFn: (subscriptionId: string) =>
+      subscriptionsApi.renew(subscriptionId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
-      queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
     },
   });
 };

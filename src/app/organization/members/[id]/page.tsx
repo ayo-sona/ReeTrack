@@ -13,19 +13,23 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useMemberById } from "@/hooks/useMembers";
-import { useCreateSubscription } from "@/hooks/useSubscriptions";
+import { useUpdateSubscription } from "@/hooks/useSubscriptions";
 import { GrantAccessModal } from "@/components/organization/GrantAccessModal";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { Spinner } from "@heroui/react";
 
 // Define the type for grant access data
-interface GrantAccessData {
+export interface GrantAccessData {
   memberId: string;
   planId: string;
-  duration?: number;
-  durationType?: "days" | "months";
-  startDate?: string;
+  subscriptionId: string;
+  intervalCount?: number;
+  interval?: "days" | "months";
+  metadata?: {
+    grantedReason?: string;
+    grantedAt?: string;
+  };
 }
 
 export default function MemberDetailPage() {
@@ -33,6 +37,7 @@ export default function MemberDetailPage() {
   const router = useRouter();
   const memberId = params.id as string;
   const [showGrantAccessModal, setShowGrantAccessModal] = useState(false);
+  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
 
   // Fetch member using hook
   const { data: member, isLoading, error } = useMemberById(memberId);
@@ -41,8 +46,8 @@ export default function MemberDetailPage() {
   // console.log("Member data:", member);
   // console.log("Error:", error);
 
-  // Grant access mutation
-  const createSubscription = useCreateSubscription();
+  // Update access mutation
+  const updateSubscription = useUpdateSubscription();
 
   if (isLoading) {
     return (
@@ -146,7 +151,11 @@ export default function MemberDetailPage() {
 
   const handleGrantAccess = async (data: GrantAccessData) => {
     try {
-      await createSubscription.mutateAsync(data);
+      await updateSubscription.mutateAsync({
+        subscriptionId: data.subscriptionId,
+        status: "active",
+        metadata: data.metadata,
+      });
       toast.success("Access granted successfully!");
       setShowGrantAccessModal(false);
     } catch (error) {
@@ -195,14 +204,6 @@ export default function MemberDetailPage() {
               View and manage member information
             </p>
           </div>
-          {/* Grant Access Button */}
-          <button
-            onClick={() => setShowGrantAccessModal(true)}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-          >
-            <UserPlus className="h-4 w-4" />
-            Grant Access
-          </button>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -407,6 +408,20 @@ export default function MemberDetailPage() {
                             subscription.status.slice(1)}
                         </span>
                       </div>
+                      {/* Grant Access Button */}
+                      {subscription.status === "expired" ||
+                      subscription.status === "canceled" ? (
+                        <button
+                          onClick={() => {
+                            setCurrentSubscription(subscription);
+                            setShowGrantAccessModal(true);
+                          }}
+                          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                        >
+                          <UserPlus className="h-4 w-4" />
+                          Grant Access
+                        </button>
+                      ) : null}
                     </div>
                   ))}
                 </div>
@@ -452,6 +467,7 @@ export default function MemberDetailPage() {
           member={member}
           onClose={() => setShowGrantAccessModal(false)}
           onGrant={handleGrantAccess}
+          currentSubscription={currentSubscription}
         />
       )}
     </>
