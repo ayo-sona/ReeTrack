@@ -55,6 +55,7 @@ export default () => ({
     password: process.env.SMTP_PASSWORD,
     fromName: process.env.SMTP_FROM_NAME,
     fromEmail: process.env.SMTP_FROM_EMAIL,
+    replyToEmail: process.env.SMTP_REPLY_TO_EMAIL,
   },
 
   termii: {

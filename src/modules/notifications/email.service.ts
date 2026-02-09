@@ -33,6 +33,7 @@ export class EmailService {
       await this.transporter.sendMail({
         from: `"${this.configService.get('smtp.fromName')}" <${this.configService.get('smtp.fromEmail')}>`,
         to: options.to,
+        replyTo: this.configService.get('smtp.re  plyToEmail'),
         subject: options.subject,
         html,
       });
