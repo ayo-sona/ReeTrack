@@ -10,8 +10,14 @@ export async function proxy(request: NextRequest) {
   // console.log("current_role", currentRole);
   // console.log("user_roles", userRoles);
 
+  // If user is authenticated and trying to access login page, redirect to home or intended URL
+  if (token && pathname === "/auth/login") {
+    const redirectTo = request.nextUrl.searchParams.get("redirect") || "/";
+    return NextResponse.redirect(new URL(redirectTo, request.url));
+  }
+
   // Public paths that don't require authentication
-  const publicPaths = ["/auth",];
+  const publicPaths = ["/auth"];
 
   // If user is not authenticated and trying to access protected routes
   if (!token && !publicPaths.some((path) => pathname.startsWith(path))) {
