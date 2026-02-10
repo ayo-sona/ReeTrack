@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import apiClient from "@/lib/apiClient";
-import { setCookie } from "cookies-next";
+import { getCookie, setCookie } from "cookies-next";
 import { getUserRoles } from "@/utils/role-utils";
 
 export default function LoginPage() {
   const router = useRouter();
+  const token = getCookie("access_token");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +19,12 @@ export default function LoginPage() {
     password: "Password123",
   });
   // console.log("env", process.env.NODE_ENV);
+
+  useEffect(() => {
+    if (token) {
+      router.push("/");
+    }
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

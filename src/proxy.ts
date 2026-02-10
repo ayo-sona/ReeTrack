@@ -11,16 +11,22 @@ export async function proxy(request: NextRequest) {
   // console.log("user_roles", userRoles);
 
   // If user is authenticated and trying to access login page, redirect to home or intended URL
-  if (token && pathname === "/auth/login") {
+  if (token && pathname.startsWith("/auth/login")) {
     const redirectTo = request.nextUrl.searchParams.get("redirect") || "/";
+    console.log("redirectTo", redirectTo);
     return NextResponse.redirect(new URL(redirectTo, request.url));
   }
 
-  // Public paths that don't require authentication
-  const publicPaths = ["/auth"];
+  // Private paths that require authentication
+  const privatePaths = [
+    "/organization",
+    "/select-role",
+    "/select-org",
+    "/member",
+  ];
 
   // If user is not authenticated and trying to access protected routes
-  if (!token && !publicPaths.some((path) => pathname.startsWith(path))) {
+  if (!token && privatePaths.some((path) => pathname.startsWith(path))) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     url.search = `redirect=${pathname}`;
@@ -28,7 +34,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Role-based route protection
-  if (token && currentRole && userRoles) {
+  if (token && currentRole) {
     // Member trying to access organization routes
     if (pathname.startsWith("/organization") && currentRole === "MEMBER") {
       return NextResponse.redirect(new URL("/select-role", request.url));
@@ -42,12 +48,12 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/select-role", request.url));
     }
 
-    if (!userRoles.includes("MEMBER") && pathname.startsWith("/select-role")) {
+    if (!userRoles?.includes("MEMBER") && pathname.startsWith("/select-role")) {
       return NextResponse.redirect(new URL("/select-org", request.url));
     }
 
     if (
-      !(userRoles.includes("ADMIN") || userRoles.includes("STAFF")) &&
+      !(userRoles?.includes("ADMIN") || userRoles?.includes("STAFF")) &&
       (pathname.startsWith("/select-org") ||
         pathname.startsWith("/select-role"))
     ) {
