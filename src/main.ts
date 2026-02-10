@@ -38,6 +38,7 @@ async function bootstrap() {
     'https://reetrack.vercel.app',
     frontendUrl,
     'http://localhost:3000',
+    'http://localhost:4000',
     'https://paypips.onrender.com',
   ];
   app.enableCors({

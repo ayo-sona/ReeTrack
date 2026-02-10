@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { MemberPlan } from '../../database/entities/member-plan.entity';
 import {
   Member,
@@ -133,28 +133,30 @@ export class PlansService {
     };
   }
 
-  async findMemberPlan(organizationId: string, planId: string) {
-    const plan = await this.memberPlanRepository.findOne({
+  async findMemberPlan(userId: string) {
+    const member = await this.memberRepository.find({
       where: {
-        id: planId,
-        organization_id: organizationId,
+        user_id: userId,
       },
-      relations: ['subscriptions'],
+      relations: ['organization_user'],
     });
 
-    if (!plan) {
-      throw new NotFoundException('Plan not found');
+    if (!member) {
+      throw new NotFoundException('Member not found');
     }
 
-    // Count active subscriptions
-    const activeSubscriptionsCount =
-      plan.subscriptions?.filter((sub) => sub.status === 'active').length || 0;
+    const plans = await this.memberPlanRepository.find({
+      where: {
+        organization_id: In(
+          member.map((m) => m.organization_user.organization_id),
+        ),
+      },
+    });
 
     return {
-      message: 'Plan retrieved successfully',
+      message: 'Member retrieved successfully',
       data: {
-        ...plan,
-        activeSubscriptionsCount,
+        plans,
       },
     };
   }

@@ -24,6 +24,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { MemberPlan, OrganizationPlan } from 'src/database/entities';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 class PlanStatisticsResponse {
   @ApiProperty({ description: 'Total number of plans' })
@@ -145,20 +146,17 @@ export class PlansController {
   }
 
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get a plan by ID' })
+  @ApiOperation({ summary: 'Get available plans from organization for member' })
   @ApiResponse({
     status: 200,
-    description: 'Plan retrieved successfully',
-    type: MemberPlan,
+    description: 'Plans retrieved successfully',
+    type: [MemberPlan],
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Plan not found' })
-  @Get('/member/:id')
-  findOne(
-    @CurrentOrganization() organizationId: string,
-    @Param('id') id: string,
-  ) {
-    return this.plansService.findMemberPlan(organizationId, id);
+  @Get('/member/available')
+  findOne(@CurrentUser() user: any) {
+    return this.plansService.findMemberPlan(user.id);
   }
 
   @ApiBearerAuth('JWT-auth')

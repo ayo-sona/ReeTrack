@@ -17,7 +17,9 @@ import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { IsEnum, IsOptional } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { PaymentStatus } from 'src/common/enums/enums';
+import { OrgRole, PaymentStatus } from 'src/common/enums/enums';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { CreatePaymentDto } from './dto/create-payment.dto';
 
 class PaymentStatusDto extends PaginationDto {
   @ApiPropertyOptional({
@@ -89,6 +91,24 @@ export class PaymentsController {
       organizationId,
       paginationDto,
       paginationDto.status,
+    );
+  }
+
+  @Post('manual')
+  @Roles(OrgRole.ADMIN, OrgRole.STAFF)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a manual payment record' })
+  @ApiResponse({ status: 201, description: 'Payment recorded successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  async createManualPayment(
+    @CurrentOrganization() organizationId: string,
+    @Body() createPaymentDto: CreatePaymentDto,
+  ) {
+    return this.paymentsService.createManualPayment(
+      organizationId,
+      createPaymentDto,
     );
   }
 

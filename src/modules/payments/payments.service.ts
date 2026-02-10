@@ -27,6 +27,8 @@ import {
   OrganizationSubscription,
   OrganizationUser,
 } from 'src/database/entities';
+import { CreatePaymentDto } from './dto/create-payment.dto';
+import { generateReference } from 'src/common/utils/generatePaymentReference';
 
 @Injectable()
 export class PaymentsService {
@@ -514,6 +516,42 @@ export class PaymentsService {
     return {
       message: 'Payment retrieved successfully',
       data: payment,
+    };
+  }
+
+  async createManualPayment(
+    organizationId: string,
+    createPaymentDto: CreatePaymentDto,
+  ) {
+    // Validate payment amount
+    if (createPaymentDto.amount <= 0) {
+      throw new BadRequestException('Payment amount must be greater than zero');
+    }
+
+    // Create payment record
+    const payment = this.paymentRepository.create({
+      amount: createPaymentDto.amount,
+      currency: createPaymentDto.currency || 'NGN',
+      provider_reference: generateReference(),
+      status: PaymentStatus.SUCCESS,
+      provider: PaymentProvider.OTHER,
+      metadata: createPaymentDto.metadata,
+      payer_org_id: organizationId,
+      payer_user_id: createPaymentDto.payer_user_id,
+      payer_type: PaymentPayerType.MEMBER,
+    });
+
+    const savedPayment = await this.paymentRepository.save(payment);
+
+    // Log the payment
+    this.logger.log(
+      `Manual payment ${savedPayment.id} created for organization ${organizationId}`,
+    );
+
+    return {
+      success: true,
+      message: 'Payment recorded successfully',
+      data: savedPayment,
     };
   }
 

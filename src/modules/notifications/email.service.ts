@@ -33,7 +33,7 @@ export class EmailService {
       await this.transporter.sendMail({
         from: `"${this.configService.get('smtp.fromName')}" <${this.configService.get('smtp.fromEmail')}>`,
         to: options.to,
-        replyTo: this.configService.get('smtp.re  plyToEmail'),
+        replyTo: this.configService.get('smtp.replyToEmail'),
         subject: options.subject,
         html,
       });
@@ -90,7 +90,7 @@ export class EmailService {
           <div class="content">
             <p>Hi ${context.userName},</p>
             <p>Welcome! Your account has been created successfully.</p>
-            <p>You can now start managing your subscriptions and members.</p>
+            <p>You can now start managing your subscriptions.</p>
           </div>
           <div class="footer">
             <p>This is an automated email from ReeTrack</p>

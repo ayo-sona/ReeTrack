@@ -27,6 +27,7 @@ export enum StripePaymentIntentStatus {
 export enum PaymentProvider {
   PAYSTACK = 'paystack',
   KORA = 'kora',
+  OTHER = 'other',
 }
 
 export enum PaymentPayerType {
