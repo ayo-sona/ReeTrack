@@ -5,6 +5,7 @@ import {
   PaystackInitializeResponse,
   PaystackVerifyResponse,
 } from './interfaces/paystack.interface';
+import { CreateSubaccountDto } from './dto/create-subaccount.dto';
 
 @Injectable()
 export class PaystackService {
@@ -228,6 +229,81 @@ export class PaystackService {
       return response.data.data;
     } catch (error) {
       throw new BadRequestException('Customer not found');
+    }
+  }
+
+  async createSubaccount(createSubaccountDto: CreateSubaccountDto) {
+    try {
+      const response = await this.paystackClient.post('/subaccount', {
+        business_name: createSubaccountDto.business_name,
+        settlement_bank: createSubaccountDto.bank_code,
+        account_number: createSubaccountDto.account_number,
+        percentage_charge: createSubaccountDto.percentage_charge,
+        primary_contact_email: createSubaccountDto.primary_contact_email,
+        primary_contact_name: createSubaccountDto.primary_contact_name,
+      });
+      return response.data.data;
+    } catch (error) {
+      this.logger.error(
+        'Error creating Paystack subaccount:',
+        error.response?.data || error.message,
+      );
+      throw new BadRequestException(
+        error.response?.data?.message || 'Failed to create Paystack subaccount',
+      );
+    }
+  }
+
+  async getSubaccount(subaccountCode: string) {
+    try {
+      const response = await this.paystackClient.get(
+        `/subaccount/${subaccountCode}`,
+      );
+      return response.data.data;
+    } catch (error) {
+      this.logger.error(
+        'Error fetching Paystack subaccount:',
+        error.response?.data || error.message,
+      );
+      throw new BadRequestException(
+        error.response?.data?.message || 'Failed to fetch Paystack subaccount',
+      );
+    }
+  }
+
+  async listSubaccounts() {
+    try {
+      const response = await this.paystackClient.get('/subaccount');
+      return response.data.data;
+    } catch (error) {
+      this.logger.error(
+        'Error listing Paystack subaccounts:',
+        error.response?.data || error.message,
+      );
+      throw new BadRequestException(
+        error.response?.data?.message || 'Failed to list Paystack subaccounts',
+      );
+    }
+  }
+
+  async updateSubaccount(
+    subaccountCode: string,
+    updateData: Partial<CreateSubaccountDto>,
+  ) {
+    try {
+      const response = await this.paystackClient.put(
+        `/subaccount/${subaccountCode}`,
+        updateData,
+      );
+      return response.data.data;
+    } catch (error) {
+      this.logger.error(
+        'Error updating Paystack subaccount:',
+        error.response?.data || error.message,
+      );
+      throw new BadRequestException(
+        error.response?.data?.message || 'Failed to update Paystack subaccount',
+      );
     }
   }
 

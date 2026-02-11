@@ -64,6 +64,7 @@ export class EmailService {
       welcome_email: this.welcomeEmailTemplate(context),
       register_member_email: this.registerMemberEmailTemplate(context),
       register_staff_email: this.registerStaffEmailTemplate(context),
+      custom_email: this.customEmailTemplate(context),
     };
 
     return templates[template] || this.defaultTemplate(context);
@@ -195,6 +196,100 @@ export class EmailService {
           </div>
       </body>
       </html>
+    `;
+  }
+
+  private customEmailTemplate(context: any): string {
+    const {
+      subject = 'Notification',
+      content = '',
+      organization = {},
+      additionalInfo = '',
+    } = context;
+
+    const orgName = organization?.name || 'Our Organization';
+    const website = organization?.website || '#';
+    const address =
+      organization?.address || '123 Organization St, City, Country';
+    const email = organization?.email || 'contact@example.com';
+    const phone = organization?.phone || '+1 (555) 123-4567';
+
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${subject}</title>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; padding: 20px 0; border-bottom: 1px solid #eee; }
+        .logo { max-width: 150px; height: auto; margin-bottom: 15px; }
+        .content { padding: 20px 0; }
+        .footer { 
+          margin-top: 30px; 
+          padding: 20px 0; 
+          text-align: center; 
+          font-size: 12px; 
+          color: #666;
+          border-top: 1px solid #eee;
+        }
+        .button {
+          display: inline-block;
+          padding: 10px 20px;
+          margin: 20px 0;
+          background-color: #4CAF50;
+          color: white;
+          text-decoration: none;
+          border-radius: 4px;
+        }
+        .footer-links { margin-top: 10px; }
+        .footer-links a { 
+          color: #666; 
+          text-decoration: none;
+          margin: 0 10px;
+        }
+        .footer-links a:hover { text-decoration: underline; }
+        @media only screen and (max-width: 600px) {
+          .container { width: 100% !important; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>${subject}</h1>
+        </div>
+        
+        <div class="content">
+          ${content}
+          
+          ${
+            additionalInfo
+              ? `
+          <div style="margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-left: 4px solid #4CAF50;">
+            ${additionalInfo}
+          </div>
+          `
+              : ''
+          }
+        </div>
+        
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} ${orgName}. All rights reserved.</p>
+          <p>${address}</p>
+          
+          <div class="footer-links">
+            ${website ? `<a href="${website}">Website</a> | ` : ''}
+            ${email ? `<a href="mailto:${email}">Contact Us</a> | ` : ''}
+            ${phone ? `<a href="tel:${phone.replace(/[^0-9+]/g, '')}">${phone}</a>` : ''}
+          </div>
+        
+        </div>
+      </div>
+    </body>
+    </html>
     `;
   }
 

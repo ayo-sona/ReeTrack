@@ -29,20 +29,13 @@ import { UserRegisterDto } from 'src/common/dto/user-register.dto';
 import { CustomRegisterDto } from './auth.controller';
 import { InvitationsService } from '../invitations/invitations.service';
 
-interface AuthResponse {
+interface RegisterOrgResponse {
   message: string;
   data: {
     organization: {
       id: string;
       name: string;
       email: string;
-    };
-    user: {
-      id: string;
-      email: string;
-      first_name: string;
-      last_name: string;
-      phone: string;
     };
   };
 }
@@ -74,7 +67,9 @@ export class AuthService {
     private invitationsService: InvitationsService,
   ) {}
 
-  async registerOrganization(registerDto: RegisterDto): Promise<AuthResponse> {
+  async registerOrganization(
+    registerDto: RegisterDto,
+  ): Promise<RegisterOrgResponse> {
     // Check if organization email exists
     const existingOrg = await this.organizationRepository.findOne({
       where: { email: registerDto.organizationEmail },
@@ -97,33 +92,18 @@ export class AuthService {
 
     const savedOrg = await this.organizationRepository.save(organization);
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-
     // Check if user email exists
     const existingUser = await this.userRepository.findOne({
       where: { email: registerDto.email },
     });
 
-    // Create admin user
-    let user: User;
     if (!existingUser) {
-      const createdUser = this.userRepository.create({
-        email: registerDto.email,
-        password_hash: hashedPassword,
-        first_name: registerDto.firstName,
-        last_name: registerDto.lastName,
-        phone: registerDto.phone,
-        status: 'active',
-      });
-      user = await this.userRepository.save(createdUser);
-    } else {
-      user = existingUser;
+      throw new NotFoundException('User not found!');
     }
 
-    // Create organization_user with OWNER role
+    // Create organization_user with ADMIN role
     const orgUser = this.organizationUserRepository.create({
-      user_id: user.id,
+      user_id: existingUser.id,
       organization_id: savedOrg.id,
       role: OrgRole.ADMIN,
       status: 'active',
@@ -132,11 +112,11 @@ export class AuthService {
     const savedOrgUser = await this.organizationUserRepository.save(orgUser);
 
     // Send welcome email
-    await this.notificationsService.sendWelcomeEmail({
-      email: user.email,
-      userName: `${user.first_name} ${user.last_name}`,
-      organizationName: savedOrg.name,
-    });
+    // await this.notificationsService.sendWelcomeEmail({
+    //   email: existingUser.email,
+    //   userName: `${existingUser.first_name} ${existingUser.last_name}`,
+    //   organizationName: savedOrg.name,
+    // });
 
     return {
       message: 'Organization and admin user created successfully',
@@ -145,13 +125,6 @@ export class AuthService {
           id: savedOrg.id,
           name: savedOrg.name,
           email: savedOrg.email,
-        },
-        user: {
-          id: user.id,
-          email: user.email,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          phone: user.phone,
         },
       },
     };

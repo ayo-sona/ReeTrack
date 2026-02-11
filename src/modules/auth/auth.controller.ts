@@ -50,21 +50,13 @@ export class AuthController {
   @Post('register-organization')
   @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 requests per minute
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Register a new user and organization' })
+  @ApiOperation({ summary: 'Register an and organization' })
   @ApiResponse({
     status: 201,
-    description: 'User and organization successfully registered',
+    description: 'Organization successfully registered',
     content: {
       'application/json': {
         example: {
-          access_token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-          user: {
-            id: '123e4567-e89b-12d3-a456-426614174000',
-            email: 'levi@life.com',
-            firstName: 'Levi',
-            lastName: 'Ackerman',
-            role: 'admin',
-          },
           organization: {
             id: '123e4567-e89b-12d3-a456-426614174001',
             name: 'Life Fitness',

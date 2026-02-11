@@ -29,6 +29,7 @@ import {
 } from 'src/database/entities';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { generateReference } from 'src/common/utils/generatePaymentReference';
+import { CreateSubaccountDto } from './dto/create-subaccount.dto';
 
 @Injectable()
 export class PaymentsService {
@@ -357,6 +358,53 @@ export class PaymentsService {
         gateway_response: data.gateway_response,
       },
     };
+  }
+
+  async createSubaccount(
+    userId: string,
+    organizationId: string,
+    createSubaccountDto: CreateSubaccountDto,
+  ) {
+    const organizationUser = await this.organizationUserRepository.findOne({
+      where: { user_id: userId, organization_id: organizationId },
+    });
+
+    if (!organizationUser) {
+      throw new NotFoundException('Organization user not found');
+    }
+
+    const data =
+      await this.paystackService.createSubaccount(createSubaccountDto);
+
+    organizationUser.paystack_subaccount_code = data.subaccount_code;
+    await this.organizationUserRepository.save(organizationUser);
+
+    return data;
+  }
+
+  async updateSubaccount(
+    userId: string,
+    organizationId: string,
+    subaccountCode: string,
+    updateData: Partial<CreateSubaccountDto>,
+  ) {
+    const organizationUser = await this.organizationUserRepository.findOne({
+      where: { user_id: userId, organization_id: organizationId },
+    });
+
+    if (!organizationUser) {
+      throw new NotFoundException('Organization user not found');
+    }
+
+    const data = await this.paystackService.updateSubaccount(
+      subaccountCode,
+      updateData,
+    );
+
+    organizationUser.paystack_subaccount_code = data.subaccount_code;
+    await this.organizationUserRepository.save(organizationUser);
+
+    return data;
   }
 
   async chargeRecurring(subscriptionId: string, invoiceId: string) {

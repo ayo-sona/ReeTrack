@@ -4,6 +4,9 @@ import { NotificationsService } from './notifications.service';
 import { EmailService } from './email.service';
 import { ConfigService } from '@nestjs/config';
 import { type EmailOptions } from './interfaces/notification.interface';
+import { SendCustomEmailDto } from './dto/send-custom-email.dto';
+import { CurrentOrganization } from 'src/common/decorators/organization.decorator';
+import { Throttle } from '@nestjs/throttler';
 // import { type SmsOptions } from './interfaces/notification.interface';
 
 @ApiTags('Notifications')
@@ -68,6 +71,43 @@ export class NotificationsController {
       },
     },
   })
+  @Post('email/custom')
+  @Throttle({ default: { limit: 10, ttl: 60 } })
+  @ApiOperation({ summary: 'Send custom email to multiple recipients' })
+  @ApiResponse({ status: 200, description: 'Emails sent successfully' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  async sendCustomEmail(@Body() sendCustomEmailDto: SendCustomEmailDto) {
+    this.logger.log(
+      `Sending custom email to ${sendCustomEmailDto.to.length} recipients`,
+    );
+    try {
+      const results = await this.notificationsService.sendCustomEmail({
+        to: sendCustomEmailDto.to,
+        subject: sendCustomEmailDto.subject,
+        template: sendCustomEmailDto.template,
+        context: sendCustomEmailDto.context,
+      });
+
+      return {
+        success: true,
+        message: 'Custom emails processed',
+        results: {
+          total: sendCustomEmailDto.to.length,
+          success: results.success,
+          failed: results.failed,
+          errors: results.errors,
+        },
+      };
+    } catch (error) {
+      this.logger.error('Failed to send custom emails', error.stack);
+      return {
+        success: false,
+        message: 'Failed to send custom emails',
+        error: error.message,
+      };
+    }
+  }
+
   async sendWelcomeEmail(@Body() emailOptions: EmailOptions) {
     this.logger.log('Sending welcome email');
     try {
@@ -99,18 +139,6 @@ export class NotificationsController {
   //       this.logger.error('Failed to send test SMS', error.stack);
   //       throw error;
   //     }
-  //   }
-
-  //   @Post('welcome')
-  //   @ApiOperation({ summary: 'Send welcome email' })
-  //   async sendWelcomeEmail(
-  //     @Body() body: { email: string; name: string; organizationName: string },
-  //   ) {
-  //     return this.notificationsService.sendWelcomeEmail({
-  //       email: body.email,
-  //       userName: body.name,
-  //       organizationName: body.organizationName,
-  //     });
   //   }
 
   //   @Post('payment/success')

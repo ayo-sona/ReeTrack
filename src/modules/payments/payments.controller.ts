@@ -6,6 +6,7 @@ import {
   Param,
   Query,
   UseGuards,
+  Put,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { InitializePaymentDto } from './dto/initialize-payment.dto';
@@ -20,6 +21,8 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { OrgRole, PaymentStatus } from 'src/common/enums/enums';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { CreatePaymentDto } from './dto/create-payment.dto';
+import { CreateSubaccountDto } from './dto/create-subaccount.dto';
+import { PaystackService } from './paystack.service';
 
 class PaymentStatusDto extends PaginationDto {
   @ApiPropertyOptional({
@@ -36,7 +39,10 @@ class PaymentStatusDto extends PaginationDto {
 @Throttle({ short: { limit: 20, ttl: 60000 } })
 @UseGuards(JwtAuthGuard)
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  constructor(
+    private readonly paymentsService: PaymentsService,
+    private readonly paystackService: PaystackService,
+  ) {}
 
   @Post('/paystack/initialize')
   @ApiOperation({ summary: 'Initialize a payment' })
@@ -79,6 +85,52 @@ export class PaymentsController {
     return this.paymentsService.verifyPayment(organizationId, reference);
   }
 
+  @Post('paystack/subaccount')
+  @Roles(OrgRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new subaccount' })
+  @ApiResponse({ status: 201, description: 'Subaccount created successfully' })
+  async createSubaccount(
+    @CurrentUser() user: any,
+    @CurrentOrganization() organizationId: string,
+    @Body() createSubaccountDto: CreateSubaccountDto,
+  ) {
+    const subaccount = await this.paymentsService.createSubaccount(
+      user.id,
+      organizationId,
+      createSubaccountDto,
+    );
+    return {
+      success: true,
+      message: 'Subaccount created successfully',
+      data: subaccount,
+    };
+  }
+
+  @Put('paystack/subaccounts/:subaccountCode')
+  @Roles(OrgRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a subaccount' })
+  @ApiResponse({ status: 200, description: 'Subaccount updated successfully' })
+  async updateSubaccount(
+    @CurrentUser() user: any,
+    @CurrentOrganization() organizationId: string,
+    @Param('subaccountCode') subaccountCode: string,
+    @Body() updateData: Partial<CreateSubaccountDto>,
+  ) {
+    const subaccount = await this.paymentsService.updateSubaccount(
+      user.id,
+      organizationId,
+      subaccountCode,
+      updateData,
+    );
+    return {
+      success: true,
+      message: 'Subaccount updated successfully',
+      data: subaccount,
+    };
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get all payments' })
   @ApiResponse({ status: 200, description: 'Payments retrieved successfully' })
@@ -94,7 +146,7 @@ export class PaymentsController {
     );
   }
 
-  @Post('manual')
+  @Post('other')
   @Roles(OrgRole.ADMIN, OrgRole.STAFF)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a manual payment record' })

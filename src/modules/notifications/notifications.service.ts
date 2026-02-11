@@ -3,6 +3,9 @@ import { EmailService } from './email.service';
 import { SmsService } from './sms.service';
 import { NotificationType } from './interfaces/notification.interface';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Organization } from 'src/database/entities';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class NotificationsService {
@@ -18,6 +21,9 @@ export class NotificationsService {
     private emailService: EmailService,
     private smsService: SmsService,
     private configService: ConfigService,
+
+    @InjectRepository(Organization)
+    private organizationRepository: Repository<Organization>,
   ) {}
 
   async sendMemberRegisterEmail(data: {
@@ -82,6 +88,54 @@ export class NotificationsService {
 
     this.logger.log(`Welcome email sent to ${data.email}`);
     this.stats.emailsSent++;
+  }
+
+  /**
+   * Sends a custom email to multiple recipients
+   * @param data Object containing email details
+   */
+  async sendCustomEmail(data: {
+    to: string[];
+    subject: string;
+    template: string;
+    context: Record<string, any>;
+  }) {
+    const results = {
+      success: 0,
+      failed: 0,
+      errors: [] as Array<{ email: string; error: string }>,
+    };
+
+    // Send emails in parallel
+    await Promise.all(
+      data.to.map(async (email) => {
+        try {
+          await this.emailService.sendEmail({
+            to: email,
+            subject: data.subject,
+            template: data.template,
+            context: data.context,
+          });
+          results.success++;
+          this.logger.log(`Custom email sent to ${email}`);
+        } catch (error) {
+          results.failed++;
+          results.errors.push({
+            email,
+            error: error.message,
+          });
+          this.logger.error(
+            `Failed to send custom email to ${email}`,
+            error.stack,
+          );
+        }
+      }),
+    );
+
+    this.stats.emailsSent += results.success;
+    this.stats.emailsFailed += results.failed;
+
+    return results;
   }
 
   async sendPaymentSuccessNotification(data: {
