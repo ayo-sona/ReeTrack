@@ -50,6 +50,12 @@ export class Organization {
   @Column({ type: 'text', nullable: true })
   website: string;
 
+  @Column({ type: 'text', nullable: true })
+  phone: string;
+
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
   @ApiProperty({
     description: 'Created At',
     example: '2025-01-01T00:00:00.000Z',
