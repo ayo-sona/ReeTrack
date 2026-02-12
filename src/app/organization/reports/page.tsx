@@ -9,7 +9,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { ExportFormat, ExportType } from "@/types/organization";
-// import { generateCSV, generateExcel, generatePDF } from "@/lib/fileGenerators";
+import { generateCSV, generateExcel, generatePDF } from "@/lib/fileGenerators";
 import apiClient from "@/lib/apiClient";
 import { getCurrentOrganizationId } from "@/utils/organisationUtils";
 
@@ -136,40 +136,39 @@ export default function ReportsPage() {
       const data = reportData.data;
       console.log(data);
 
-      // TODO: Uncomment when file generation functions are implemented
       // Generate file based on format
-      // let blob: Blob;
-      // let filename: string;
-      // const timestamp = new Date().toISOString().split("T")[0];
+      let blob: Blob;
+      let filename: string;
+      const timestamp = new Date().toISOString().split("T")[0];
 
-      // switch (exportConfig.format) {
-      //   case "csv":
-      //     blob = generateCSV(data, exportConfig.type);
-      //     filename = `${exportConfig.type}_${timestamp}.csv`;
-      //     break;
-      //   case "excel":
-      //     blob = await generateExcel(data, exportConfig.type);
-      //     filename = `${exportConfig.type}_${timestamp}.xlsx`;
-      //     break;
-      //   case "pdf":
-      //     blob = await generatePDF(data, exportConfig.type);
-      //     filename = `${exportConfig.type}_${timestamp}.pdf`;
-      //     break;
-      //   default:
-      //     throw new Error("Unsupported format");
-      // }
+      switch (exportConfig.format) {
+        case "csv":
+          blob = generateCSV(data, exportConfig.type);
+          filename = `${exportConfig.type}_${timestamp}.csv`;
+          break;
+        case "excel":
+          blob = await generateExcel(data, exportConfig.type);
+          filename = `${exportConfig.type}_${timestamp}.xlsx`;
+          break;
+        case "pdf":
+          blob = await generatePDF(data, exportConfig.type);
+          filename = `${exportConfig.type}_${timestamp}.pdf`;
+          break;
+        default:
+          throw new Error("Unsupported format");
+      }
 
-      // // Trigger download
-      // const url = URL.createObjectURL(blob);
-      // const link = document.createElement("a");
-      // link.href = url;
-      // link.download = filename;
-      // document.body.appendChild(link);
-      // link.click();
-      // document.body.removeChild(link);
-      // URL.revokeObjectURL(url);
+      // Trigger download
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
 
-      // alert(`Report exported successfully as ${filename}`);
+      alert(`Report exported successfully as ${filename}`);
     } catch (error) {
       console.error("Export error:", error);
       alert("Failed to export report. Please try again.");
