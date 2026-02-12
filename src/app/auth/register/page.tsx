@@ -43,7 +43,7 @@ export default function RegisterPage() {
 
     try {
       const response = await apiClient.post("auth/register-user", formData);
-        console.log(response.data);
+      console.log(response.data);
       if (response.data.statusCode === 201) {
         toast.success("Registration successful! Please log in.");
         router.push("/auth/login");
@@ -198,7 +198,7 @@ export default function RegisterPage() {
           <div>
             <Button
               type="submit"
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-700"
               disabled={isLoading}
               isLoading={isLoading}
             >

@@ -10,19 +10,19 @@ export function generateCSV(data: any, reportType: ExportType): Blob {
   switch (reportType) {
     case "members":
       // Headers
-      csvContent = "Name,Email,Phone,Plan,Status,Join Date,Next Billing\n";
+      csvContent = "Name,Email,Phone,Plan,Join Date,Next Billing\n";
 
       // Data rows
       data.members?.forEach((member: any) => {
-        csvContent += `"${member.name}","${member.email}","${member.phone || ""}","${member.plan}","${member.status}","${member.joinDate}","${member.nextBilling || ""}"\n`;
+        csvContent += `"${member.name}","${member.email}","${member.phone || ""}","${member.plan}","${member.joinDate}","${member.nextBilling || ""}"\n`;
       });
       break;
 
     case "payments":
-      csvContent = "Date,Member,Amount,Plan,Payment Method,Status,Reference\n";
+      csvContent = "Date,Member,Amount,Plan,Status,Reference\n";
 
       data.payments?.forEach((payment: any) => {
-        csvContent += `"${payment.date}","${payment.memberName}","${payment.amount}","${payment.plan}","${payment.paymentMethod}","${payment.status}","${payment.reference}"\n`;
+        csvContent += `"${payment.date}","${payment.memberName}","${payment.amount}","${payment.plan}","${payment.status}","${payment.reference}"\n`;
       });
       break;
 
@@ -59,21 +59,12 @@ export async function generateExcel(
     case "members":
       sheetName = "Members";
       worksheetData = [
-        [
-          "Name",
-          "Email",
-          "Phone",
-          "Plan",
-          "Status",
-          "Join Date",
-          "Next Billing",
-        ],
+        ["Name", "Email", "Phone", "Plan", "Join Date", "Next Billing"],
         ...(data.members?.map((member: any) => [
           member.name,
           member.email,
           member.phone || "",
           member.plan,
-          member.status,
           member.joinDate,
           member.nextBilling || "",
         ]) || []),
@@ -83,21 +74,12 @@ export async function generateExcel(
     case "payments":
       sheetName = "Payments";
       worksheetData = [
-        [
-          "Date",
-          "Member",
-          "Amount",
-          "Plan",
-          "Payment Method",
-          "Status",
-          "Reference",
-        ],
+        ["Date", "Member", "Amount", "Plan", "Status", "Reference"],
         ...(data.payments?.map((payment: any) => [
           payment.date,
           payment.memberName,
           payment.amount,
           payment.plan,
-          payment.paymentMethod,
           payment.status,
           payment.reference,
         ]) || []),
@@ -177,13 +159,12 @@ export async function generatePDF(
   switch (reportType) {
     case "members":
       title = "Members Report";
-      headers = ["Name", "Email", "Plan", "Status", "Join Date"];
+      headers = ["Name", "Email", "Plan", "Join Date"];
       tableData =
         data.members?.map((member: any) => [
           member.name,
           member.email,
           member.plan,
-          member.status,
           member.joinDate,
         ]) || [];
       break;
