@@ -94,7 +94,6 @@ export function MembersTable({ members, isSearching = false, isLoading = false }
               const initials = (firstName.charAt(0) || lastName.charAt(0) || 'M').toUpperCase();
               const email = user?.email || 'N/A';
               const phone = user?.phone || 'N/A';
-              const address = user?.address;
               const createdAt = member.created_at ? new Date(member.created_at) : null;
               const status = user?.status || 'inactive';
               const checkInCount = member.check_in_count || 0;
@@ -140,12 +139,6 @@ export function MembersTable({ members, isSearching = false, isLoading = false }
                         <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                         <span className="truncate">{phone}</span>
                       </div>
-                      {address && (
-                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
-                          <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
-                          <span className="truncate max-w-[200px]">{address}</span>
-                        </div>
-                      )}
                     </div>
                   </td>
 
