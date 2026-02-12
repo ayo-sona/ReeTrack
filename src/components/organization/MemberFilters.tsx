@@ -1,7 +1,6 @@
 "use client";
 
 import { Calendar, Filter, X } from "lucide-react";
-import { MOCK_PLANS } from "../../lib/mockData/enterpriseMockdata";
 import { SearchBar } from "./MemberSearchBar";
 
 interface MemberFiltersType {
@@ -108,11 +107,6 @@ export function MemberFilters({
               className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
             >
               <option value="all">All Plans</option>
-              {MOCK_PLANS.map((plan) => (
-                <option key={plan.id} value={plan.id}>
-                  {plan.name} (₦{plan.price.toLocaleString()}/{plan.duration})
-                </option>
-              ))}
             </select>
           </div>
         </div>
