@@ -9,12 +9,11 @@ import { motion } from "framer-motion";
 
 const plans = [
   {
-    name: "Starter",
-    price: "$29",
+    name: "Basic",
+    price: "Free",
     period: "per month",
     description: "Perfect for small organizations just getting started",
     features: [
-      { text: "Up to 100 members", included: true },
       { text: "Basic billing automation", included: true },
       { text: "Email support", included: true },
       { text: "Standard analytics", included: true },
@@ -26,12 +25,11 @@ const plans = [
     popular: false,
   },
   {
-    name: "Professional",
-    price: "$79",
+    name: "Gold",
+    price: "$100",
     period: "per month",
     description: "For growing organizations that need more power",
     features: [
-      { text: "Up to 500 members", included: true },
       { text: "Advanced billing automation", included: true },
       { text: "Priority email support", included: true },
       { text: "Advanced analytics", included: true },
@@ -43,12 +41,11 @@ const plans = [
     popular: true,
   },
   {
-    name: "Enterprise",
-    price: "Custom",
-    period: "contact us",
-    description: "For large organizations with custom requirements",
+    name: "Platinum",
+    price: "$200",
+    period: "per month",
+    description: "For large organizations with heavy requirements",
     features: [
-      { text: "Unlimited members", included: true },
       { text: "Custom billing automation", included: true },
       { text: "24/7 phone & email support", included: true },
       { text: "Custom analytics", included: true },
