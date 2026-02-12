@@ -1,11 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Building2, User, Save, Loader2, UserPlus } from "lucide-react";
+import {
+  Building2,
+  User,
+  Save,
+  Loader2,
+  UserPlus,
+  Landmark,
+} from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { Button } from "@heroui/react";
 import { toast } from "sonner";
 import { InviteStaffModal } from "@/components/organization/InviteStaffModal";
+import AddSubaccountModal from "@/components/organization/AddSubaccountModal";
 
 export default function SettingsPage() {
   const [orgData, setOrgData] = useState({
@@ -24,6 +32,8 @@ export default function SettingsPage() {
   });
   const [loading, setLoading] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isAddSubaccountModalOpen, setIsAddSubaccountModalOpen] =
+    useState(false);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -67,6 +77,11 @@ export default function SettingsPage() {
 
   const handleInviteSuccess = () => {
     toast.success("Invitation sent successfully");
+  };
+
+  const handleSubaccountSuccess = () => {
+    // Add a toast notification
+    toast.success("Account created successfully");
   };
 
   if (loading) {
@@ -303,18 +318,34 @@ export default function SettingsPage() {
             </button>
           </form>
 
-          <Button
-            color="primary"
-            startContent={<UserPlus className="h-4 w-4" />}
-            onPress={() => setIsInviteModalOpen(true)}
-          >
-            Invite Staff
-          </Button>
+          <div className="flex justify-center items-center gap-2 mt-6">
+            <Button
+              color="primary"
+              startContent={<UserPlus className="h-4 w-4" />}
+              onPress={() => setIsInviteModalOpen(true)}
+            >
+              Invite Staff
+            </Button>
+            <Button
+              color="primary"
+              startContent={<Landmark className="h-4 w-4" />}
+              onPress={() => setIsAddSubaccountModalOpen(true)}
+            >
+              Add Bank Account
+            </Button>
+          </div>
         </div>
         <InviteStaffModal
           isOpen={isInviteModalOpen}
           onOpenChange={setIsInviteModalOpen}
           onSuccess={handleInviteSuccess}
+        />
+        <AddSubaccountModal
+          isOpen={isAddSubaccountModalOpen}
+          onOpenChange={setIsAddSubaccountModalOpen}
+          onSuccess={handleSubaccountSuccess}
+          organization={orgData}
+          profile={profileData}
         />
       </div>
     </div>

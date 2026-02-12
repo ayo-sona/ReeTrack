@@ -75,7 +75,7 @@ export default function PaymentsPage() {
     if (selectedSource === "paystack" && payment.provider !== "paystack")
       return false;
     if (selectedSource === "kora" && payment.provider !== "kora") return false;
-    if (selectedSource === "manual" && payment.provider !== "manual")
+    if (selectedSource === "other" && payment.provider !== "other")
       return false;
 
     return true;

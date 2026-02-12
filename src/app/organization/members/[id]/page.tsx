@@ -7,7 +7,6 @@ import {
   Mail,
   Phone,
   Calendar,
-  MapPin,
   Heart,
   UserPlus,
   AlertCircle,
@@ -15,6 +14,7 @@ import {
 import { useMemberById } from "@/hooks/useMembers";
 import { useUpdateSubscription } from "@/hooks/useSubscriptions";
 import { GrantAccessModal } from "@/components/organization/GrantAccessModal";
+import type { Member } from "@/types/organization";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { Spinner } from "@heroui/react";
@@ -37,7 +37,7 @@ export default function MemberDetailPage() {
   const router = useRouter();
   const memberId = params.id as string;
   const [showGrantAccessModal, setShowGrantAccessModal] = useState(false);
-  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
+  const [currentSubscription, setCurrentSubscription] = useState<Member['subscriptions'][number] | null>(null);
 
   // Fetch member using hook
   const { data: member, isLoading, error } = useMemberById(memberId);
@@ -140,8 +140,6 @@ export default function MemberDetailPage() {
     `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "M";
   const email = user?.email || "N/A";
   const phone = user?.phone || "N/A";
-  const dateOfBirth = user?.date_of_birth;
-  const address = user?.address;
   const createdAt = member.created_at ? new Date(member.created_at) : null;
   const status = user?.status || "inactive";
   const emailVerified = user?.email_verified || false;
@@ -255,14 +253,6 @@ export default function MemberDetailPage() {
                     </span>
                   </div>
                 )}
-                {address && (
-                  <div className="flex items-start gap-3 text-sm">
-                    <MapPin className="h-5 w-5 text-gray-400 shrink-0 mt-0.5" />
-                    <span className="text-gray-600 dark:text-gray-400">
-                      {address}
-                    </span>
-                  </div>
-                )}
               </div>
 
               <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
@@ -307,14 +297,6 @@ export default function MemberDetailPage() {
                 Personal Information
               </h3>
               <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Date of Birth
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {dateOfBirth ? formatDate(new Date(dateOfBirth)) : "N/A"}
-                  </p>
-                </div>
                 <div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Member Since
@@ -374,7 +356,7 @@ export default function MemberDetailPage() {
                             </span>
                           )}
                         </div>
-                        {subscription.plan.features &&
+                        {Array.isArray(subscription.plan.features) &&
                           subscription.plan.features.length > 0 && (
                             <div className="flex flex-wrap gap-2 mt-2">
                               {subscription.plan.features.map(
@@ -398,8 +380,6 @@ export default function MemberDetailPage() {
                               "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
                             subscription.status === "expired" &&
                               "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-                            subscription.status === "pending" &&
-                              "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
                             subscription.status === "canceled" &&
                               "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400",
                           )}

@@ -1,15 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import apiClient from "@/lib/apiClient";
-import { setCookie } from "cookies-next";
+import { getCookie, setCookie } from "cookies-next";
 import { getUserRoles } from "@/utils/role-utils";
+import { Button, Spinner } from "@heroui/react";
 
 export default function LoginPage() {
   const router = useRouter();
+  const token = getCookie("access_token");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +20,12 @@ export default function LoginPage() {
     password: "Password123",
   });
   // console.log("env", process.env.NODE_ENV);
+
+  useEffect(() => {
+    if (token) {
+      router.push("/");
+    }
+  }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -172,15 +180,20 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <button
+            <Button
               type="submit"
               disabled={isLoading}
-              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                isLoading ? "opacity-70 cursor-not-allowed" : ""
-              }`}
+              className={
+                isLoading
+                  ? "opacity-70 cursor-not-allowed text-black w-full"
+                  : "text-black w-full"
+              }
+              color="success"
+              variant="solid"
+              isLoading={isLoading}
             >
-              {isLoading ? "Signing in..." : "Sign in"}
-            </button>
+              Sign in
+            </Button>
           </div>
         </form>
 

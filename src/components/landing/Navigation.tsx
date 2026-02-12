@@ -1,19 +1,32 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, useSpring } from "framer-motion";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import GlassSurface from "../effects/glassEffect";
+import { getCookie, deleteCookie } from "cookies-next/client";
+import { Button, Spinner } from "@heroui/react";
+import { useRouter } from "next/navigation";
+import apiClient from "@/lib/apiClient";
+
+const navItems = [
+  { label: "Features", href: "/features" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "About", href: "#about" },
+];
 
 // Better approach: Use dynamic import with ssr: false
 const ClientOnlyNavigation = () => {
+  const token = getCookie("access_token");
   const [scrolled, setScrolled] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("Features");
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const [pillStyle, setPillStyle] = useState({ left: 0, width: 0 });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const navRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
@@ -23,12 +36,6 @@ const ClientOnlyNavigation = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const navItems = [
-    { label: "Features", href: "/features" },
-    { label: "Pricing", href: "/pricing" },
-    { label: "About", href: "#about" },
-  ];
 
   // Update pill position based on active or hovered tab
   useEffect(() => {
@@ -49,6 +56,24 @@ const ClientOnlyNavigation = () => {
   // Smooth spring animation for pill movement
   const pillLeft = useSpring(pillStyle.left, { stiffness: 300, damping: 30 });
   const pillWidth = useSpring(pillStyle.width, { stiffness: 300, damping: 30 });
+
+  const handleLogout = async () => {
+    try {
+      setLoading(true);
+      await apiClient.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+      }
+
+      deleteCookie("access_token");
+      deleteCookie("current_role");
+      deleteCookie("user_roles");
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -132,42 +157,53 @@ const ClientOnlyNavigation = () => {
               </div>
 
               {/* Auth Buttons */}
-              <div className="flex items-center gap-3 shrink-0">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.5, duration: 0.5 }}
+              {token ? (
+                <Button
+                  variant="flat"
+                  color="success"
+                  onPress={handleLogout}
+                  size="lg"
                 >
-                  <Link
-                    href="/auth/login"
-                    className="relative z-10 px-5 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+                  {loading ? <Spinner /> : <LogOut className="w-5 h-5" />}
+                </Button>
+              ) : (
+                <div className="flex items-center gap-3 shrink-0">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
                   >
-                    Sign In
-                  </Link>
-                </motion.div>
+                    <Link
+                      href="/auth/login"
+                      className="relative z-10 px-5 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors"
+                    >
+                      Sign In
+                    </Link>
+                  </motion.div>
 
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.6, duration: 0.5 }}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Link
-                    href="/auth"
-                    className="relative z-10 px-7 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-full text-sm font-semibold shadow-lg shadow-emerald-600/20 hover:shadow-xl hover:shadow-emerald-600/30 transition-all duration-300 overflow-hidden group"
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.6, duration: 0.5 }}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <span className="relative z-10">Get Started</span>
-                    {/* Shine effect */}
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                      initial={{ x: "-100%" }}
-                      whileHover={{ x: "100%" }}
-                      transition={{ duration: 0.6 }}
-                    />
-                  </Link>
-                </motion.div>
-              </div>
+                    <Link
+                      href="/auth"
+                      className="relative z-10 px-7 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-full text-sm font-semibold shadow-lg shadow-emerald-600/20 hover:shadow-xl hover:shadow-emerald-600/30 transition-all duration-300 overflow-hidden group"
+                    >
+                      <span className="relative z-10">Get Started</span>
+                      {/* Shine effect */}
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        initial={{ x: "-100%" }}
+                        whileHover={{ x: "100%" }}
+                        transition={{ duration: 0.6 }}
+                      />
+                    </Link>
+                  </motion.div>
+                </div>
+              )}
             </div>
           </GlassSurface>
         </div>
@@ -258,22 +294,33 @@ const ClientOnlyNavigation = () => {
                   {item.label}
                 </Link>
               ))}
-              <div className="pt-4 space-y-3 border-t border-gray-200">
-                <Link
-                  href="/auth/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block text-center py-2.5 text-gray-700 hover:text-gray-900 font-semibold transition-colors"
+              {token ? (
+                <Button
+                  variant="flat"
+                  color="success"
+                  onPress={handleLogout}
+                  size="lg"
                 >
-                  Sign In
-                </Link>
-                <Link
-                  href="/auth"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block text-center py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-full font-semibold shadow-lg shadow-emerald-600/20 hover:shadow-xl hover:shadow-emerald-600/30 transition-all"
-                >
-                  Get Started
-                </Link>
-              </div>
+                  {loading ? <Spinner /> : <LogOut className="w-5 h-5" />}
+                </Button>
+              ) : (
+                <div className="pt-4 space-y-3 border-t border-gray-200">
+                  <Link
+                    href="/auth/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block text-center py-2.5 text-gray-700 hover:text-gray-900 font-semibold transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/auth"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block text-center py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-full font-semibold shadow-lg shadow-emerald-600/20 hover:shadow-xl hover:shadow-emerald-600/30 transition-all"
+                  >
+                    Get Started
+                  </Link>
+                </div>
+              )}
             </div>
           </GlassSurface>
         </motion.div>
