@@ -151,6 +151,50 @@ export const initializePayment = async (paymentData: {
   return data;
 };
 
+// Add this section to your member API file
+
+// ============================================
+// PLANS API - Member Plans
+// ============================================
+
+/**
+ * Get available plans from organization for member
+ * GET /api/v1/plans/member/available
+ */
+export const getAvailablePlans = async () => {
+  const { data } = await apiClient.get("/plans/member/available");
+  return data;
+};
+
+/**
+ * Get all member plans (paginated)
+ * GET /api/v1/plans/member?page=1&limit=10
+ */
+export const getMemberPlans = async (page: number = 1, limit: number = 10) => {
+  const { data } = await apiClient.get("/plans/member", {
+    params: { page, limit },
+  });
+  return data;
+};
+
+/**
+ * Get active plans
+ * GET /api/v1/plans/member/active
+ */
+export const getActivePlans = async () => {
+  const { data } = await apiClient.get("/plans/member/active");
+  return data;
+};
+
+/**
+ * Get plan statistics
+ * GET /api/v1/plans/member/stats
+ */
+export const getPlanStats = async () => {
+  const { data } = await apiClient.get("/plans/member/stats");
+  return data;
+};
+
 /**
  * Verify payment
  * GET /api/v1/payments/paystack/verify/:reference
@@ -259,6 +303,12 @@ export const memberApi = {
   getInvoiceById,
   markInvoiceAsPaid,
   cancelInvoice,
+
+  // Plans (NEW)
+  getAvailablePlans,
+  getMemberPlans,
+  getActivePlans,
+  getPlanStats,
 };
 
 // ============================================

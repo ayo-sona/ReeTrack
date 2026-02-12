@@ -16,7 +16,6 @@ import {
   ScanLine,
   ChevronLeft,
   Menu,
-  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -64,18 +63,19 @@ export function OrganizationSidebar({
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
-  // Load user data on mount
-  useEffect(() => {
-    try {
-      const userData = localStorage.getItem("userData");
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        setUser(parsed.user);
-      }
-    } catch (error) {
-      console.error("Error loading user data:", error);
+  /// Load user data on mount
+useEffect(() => {
+  try {
+    const userData = localStorage.getItem("userData");
+    if (userData) {
+      const parsed = JSON.parse(userData);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setUser(parsed.user);
     }
-  }, []);
+  } catch (error) {
+    console.error("Error loading user data:", error);
+  }
+}, []);
 
   return (
     <>
@@ -84,9 +84,7 @@ export function OrganizationSidebar({
         onClick={() => setIsMobileOpen(!isMobileOpen)}
         className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl border border-white/20 dark:border-gray-700/20 shadow-lg shadow-emerald-500/5 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300"
       >
-        {isMobileOpen ? (
-          <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-        ) : (
+        {!isMobileOpen && (
           <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
         )}
       </button>

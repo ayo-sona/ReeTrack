@@ -60,6 +60,10 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  // if (token && pathname === "/auth/login") {
+  //   return NextResponse.redirect(new URL("/member/dashboard", request.url));
+  // }
+
   return NextResponse.next();
 }
 

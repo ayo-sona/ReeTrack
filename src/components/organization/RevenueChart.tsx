@@ -74,6 +74,7 @@ export function RevenueChart() {
   const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
   }, []);
 

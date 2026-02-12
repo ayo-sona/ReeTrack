@@ -60,8 +60,13 @@ export interface Member {
   id: string;
   organization_user_id: string;
   user_id: string;
+  date_of_birth: string;
+  address: string | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  medical_notes: string | null;
   check_in_count: number;
-  metadata: Record<string, unknown> | null;
+  metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 
@@ -74,9 +79,7 @@ export interface Member {
     phone: string;
     status: "active" | "inactive";
     email_verified: boolean;
-    date_of_birth: string | null;
-    address: string | null;
-    last_login_at: string | null;
+    last_login_at: string;
     created_at: string;
     updated_at: string;
   };
@@ -87,7 +90,7 @@ export interface Member {
     member_id: string;
     plan_id: string;
     organization_id: string;
-    status: "active" | "expired" | "canceled" | "pending";
+    status: "active" | "expired" | "canceled";
     started_at: string;
     expires_at: string;
     canceled_at: string | null;
@@ -104,7 +107,9 @@ export interface Member {
       currency: string;
       interval: string;
       interval_count: number;
-      features: string[]; // Changed from nested object to array
+      features: {
+        features: string[];
+      };
       is_active: boolean;
       created_at: string;
       updated_at: string;
