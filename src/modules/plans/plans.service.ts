@@ -151,6 +151,7 @@ export class PlansService {
           member.map((m) => m.organization_user.organization_id),
         ),
       },
+      relations: ['organization'],
     });
 
     return {
