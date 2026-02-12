@@ -22,6 +22,7 @@
     "cookies-next": "^6.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.26.2",
+    "html5-qrcode": "^2.3.8",
     "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.562.0",

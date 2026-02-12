@@ -1,21 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { 
-  QrCode, 
-  Scan, 
-  CheckCircle, 
-  XCircle, 
-  Users, 
-  Calendar, 
+import { useState, useEffect, useRef } from "react";
+import {
+  QrCode,
+  Scan,
+  CheckCircle,
+  XCircle,
+  Users,
+  Calendar,
   TrendingUp,
   Search,
   Hash,
   Camera,
   Clock,
   Award,
-  Filter
-} from 'lucide-react';
+  Filter,
+} from "lucide-react";
+import { Button } from "@heroui/react";
+import QRCodeScanner from "@/components/organization/QRCodeScanner";
 
 interface Member {
   id: string;
@@ -25,7 +27,7 @@ interface Member {
   planName: string;
   membershipNumber: string;
   photoUrl?: string;
-  status: 'active' | 'expired' | 'expiring_soon';
+  status: "active" | "expired" | "expiring_soon";
 }
 
 interface CheckInRecord {
@@ -49,109 +51,99 @@ interface MemberStats {
 // Mock data - replace with actual API calls
 const MOCK_RECENT_CHECKINS: CheckInRecord[] = [
   {
-    id: '1',
-    memberId: 'm1',
-    memberName: 'Chidi Okonkwo',
-    planName: 'Premium Membership',
+    id: "1",
+    memberId: "m1",
+    memberName: "Chidi Okonkwo",
+    planName: "Premium Membership",
     checkedInAt: new Date().toISOString(),
-    photoUrl: undefined
+    photoUrl: undefined,
   },
   {
-    id: '2',
-    memberId: 'm2',
-    memberName: 'Amara Nwosu',
-    planName: 'Basic Membership',
+    id: "2",
+    memberId: "m2",
+    memberName: "Amara Nwosu",
+    planName: "Basic Membership",
     checkedInAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-    photoUrl: undefined
+    photoUrl: undefined,
   },
 ];
 
 const MOCK_MEMBER_STATS: MemberStats[] = [
   {
-    memberId: 'm1',
-    memberName: 'Chidi Okonkwo',
-    planName: 'Premium Membership',
+    memberId: "m1",
+    memberName: "Chidi Okonkwo",
+    planName: "Premium Membership",
     totalCheckIns: 24,
     lastCheckIn: new Date().toISOString(),
   },
   {
-    memberId: 'm2',
-    memberName: 'Amara Nwosu',
-    planName: 'Basic Membership',
+    memberId: "m2",
+    memberName: "Amara Nwosu",
+    planName: "Basic Membership",
     totalCheckIns: 18,
     lastCheckIn: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
   },
   {
-    memberId: 'm3',
-    memberName: 'Funke Ajayi',
-    planName: 'VIP Membership',
+    memberId: "m3",
+    memberName: "Funke Ajayi",
+    planName: "VIP Membership",
     totalCheckIns: 30,
     lastCheckIn: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
   },
 ];
 
 export default function OrganizationCheckInPage() {
-  const [activeTab, setActiveTab] = useState<'scan' | 'stats'>('scan');
-  const [scanMode, setScanMode] = useState<'qr' | 'manual'>('qr');
-  const [manualCode, setManualCode] = useState('');
-  const [recentCheckIns, setRecentCheckIns] = useState<CheckInRecord[]>(MOCK_RECENT_CHECKINS);
+  const [activeTab, setActiveTab] = useState<"scan" | "stats">("scan");
+  const [scanMode, setScanMode] = useState<"qr" | "manual">("qr");
+  const [manualCode, setManualCode] = useState("");
+  const [recentCheckIns, setRecentCheckIns] =
+    useState<CheckInRecord[]>(MOCK_RECENT_CHECKINS);
   const [checkInResult, setCheckInResult] = useState<{
     success: boolean;
     member?: Member;
     message: string;
   } | null>(null);
-  const [isScanning, setIsScanning] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [timeFilter, setTimeFilter] = useState<'today' | 'week' | 'month'>('month');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [timeFilter, setTimeFilter] = useState<"today" | "week" | "month">(
+    "month",
+  );
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  // Handle successful check-in
+  const handleCheckInSuccess = async (member: any) => {
+    // Add to recent check-ins
+    const newCheckIn: CheckInRecord = {
+      id: `checkin-${Date.now()}`,
+      memberId: member.id,
+      memberName: member.name,
+      planName: member.planName || "N/A",
+      checkedInAt: new Date().toISOString(),
+      photoUrl: member.photoUrl,
+    };
+
+    setRecentCheckIns((prev) => [newCheckIn, ...prev]);
+
+    // Refresh member stats
+    // await fetchMemberStats();
+  };
 
   // Stats
-  const todayCheckIns = recentCheckIns.filter(c => {
+  const todayCheckIns = recentCheckIns.filter((c) => {
     const checkInDate = new Date(c.checkedInAt);
     const today = new Date();
     return checkInDate.toDateString() === today.toDateString();
   }).length;
 
   const totalMembers = MOCK_MEMBER_STATS.length;
-  const activeToday = new Set(recentCheckIns
-    .filter(c => {
-      const checkInDate = new Date(c.checkedInAt);
-      const today = new Date();
-      return checkInDate.toDateString() === today.toDateString();
-    })
-    .map(c => c.memberId)
+  const activeToday = new Set(
+    recentCheckIns
+      .filter((c) => {
+        const checkInDate = new Date(c.checkedInAt);
+        const today = new Date();
+        return checkInDate.toDateString() === today.toDateString();
+      })
+      .map((c) => c.memberId),
   ).size;
-
-  // Start QR Scanner
-  const startScanner = async () => {
-    try {
-      setIsScanning(true);
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-      });
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
-    } catch (error) {
-      console.error('Failed to start camera:', error);
-      alert('Unable to access camera. Please check permissions.');
-      setIsScanning(false);
-    }
-  };
-
-  // Stop QR Scanner
-  const stopScanner = () => {
-    if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-    }
-    setIsScanning(false);
-  };
 
   // Handle Manual Code Submit
   const handleManualCheckIn = async () => {
@@ -161,17 +153,17 @@ export default function OrganizationCheckInPage() {
     setTimeout(() => {
       // Mock successful check-in
       const mockMember: Member = {
-        id: 'm' + Date.now(),
-        name: 'John Doe',
-        email: 'john@example.com',
-        phone: '+234 801 234 5678',
-        planName: 'Premium Membership',
+        id: "m" + Date.now(),
+        name: "John Doe",
+        email: "john@example.com",
+        phone: "+234 801 234 5678",
+        planName: "Premium Membership",
         membershipNumber: manualCode,
-        status: 'active'
+        status: "active",
       };
 
       const newCheckIn: CheckInRecord = {
-        id: 'c' + Date.now(),
+        id: "c" + Date.now(),
         memberId: mockMember.id,
         memberName: mockMember.name,
         planName: mockMember.planName,
@@ -182,9 +174,9 @@ export default function OrganizationCheckInPage() {
       setCheckInResult({
         success: true,
         member: mockMember,
-        message: 'Check-in successful!'
+        message: "Check-in successful!",
       });
-      setManualCode('');
+      setManualCode("");
 
       // Clear result after 5 seconds
       setTimeout(() => setCheckInResult(null), 5000);
@@ -192,34 +184,32 @@ export default function OrganizationCheckInPage() {
   };
 
   // Filter member stats
-  const filteredStats = MOCK_MEMBER_STATS.filter(stat => 
-    stat.memberName.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredStats = MOCK_MEMBER_STATS.filter((stat) =>
+    stat.memberName.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   // Format time ago
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60),
+    );
 
-    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 1) return "Just now";
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
-
-  useEffect(() => {
-    return () => {
-      stopScanner();
-    };
-  }, []);
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Member Check-In</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Member Check-In
+          </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Scan QR codes or enter codes manually to check in members
           </p>
@@ -228,22 +218,22 @@ export default function OrganizationCheckInPage() {
         {/* Tab Switcher */}
         <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
           <button
-            onClick={() => setActiveTab('scan')}
+            onClick={() => setActiveTab("scan")}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-              activeTab === 'scan'
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              activeTab === "scan"
+                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
             }`}
           >
             <Scan className="w-4 h-4 inline mr-2" />
             Check-In
           </button>
           <button
-            onClick={() => setActiveTab('stats')}
+            onClick={() => setActiveTab("stats")}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-              activeTab === 'stats'
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              activeTab === "stats"
+                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
             }`}
           >
             <TrendingUp className="w-4 h-4 inline mr-2" />
@@ -256,30 +246,42 @@ export default function OrganizationCheckInPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-5 border border-blue-200 dark:border-blue-800">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-blue-900 dark:text-blue-300">Today&apos;s Check-Ins</p>
+            <p className="text-sm font-medium text-blue-900 dark:text-blue-300">
+              Today&apos;s Check-Ins
+            </p>
             <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
-          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{todayCheckIns}</p>
+          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+            {todayCheckIns}
+          </p>
         </div>
 
         <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-5 border border-green-200 dark:border-green-800">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-green-900 dark:text-green-300">Active Today</p>
+            <p className="text-sm font-medium text-green-900 dark:text-green-300">
+              Active Today
+            </p>
             <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
           </div>
-          <p className="text-3xl font-bold text-green-600 dark:text-green-400">{activeToday}</p>
+          <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+            {activeToday}
+          </p>
         </div>
 
         <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-5 border border-purple-200 dark:border-purple-800">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-purple-900 dark:text-purple-300">Total Members</p>
+            <p className="text-sm font-medium text-purple-900 dark:text-purple-300">
+              Total Members
+            </p>
             <Award className="w-5 h-5 text-purple-600 dark:text-purple-400" />
           </div>
-          <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{totalMembers}</p>
+          <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+            {totalMembers}
+          </p>
         </div>
       </div>
 
-      {activeTab === 'scan' ? (
+      {activeTab === "scan" ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Scanner Section */}
           <div className="lg:col-span-2 space-y-6">
@@ -288,97 +290,35 @@ export default function OrganizationCheckInPage() {
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Select Check-In Method
               </h2>
-              
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <button
-                  onClick={() => {
-                    setScanMode('qr');
-                    if (scanMode === 'manual') stopScanner();
-                  }}
-                  className={`p-6 rounded-xl border-2 transition-all ${
-                    scanMode === 'qr'
-                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <QrCode className={`w-8 h-8 mx-auto mb-3 ${
-                    scanMode === 'qr' ? 'text-blue-600' : 'text-gray-400'
-                  }`} />
-                  <p className="font-semibold text-gray-900 dark:text-gray-100">Scan QR Code</p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Use camera to scan</p>
-                </button>
 
-                <button
-                  onClick={() => {
-                    setScanMode('manual');
-                    stopScanner();
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <Button
+                  onPress={() => {
+                    setScanMode("qr");
+                    setIsScannerOpen(true);
                   }}
-                  className={`p-6 rounded-xl border-2 transition-all ${
-                    scanMode === 'manual'
-                      ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                  }`}
+                  startContent={<QrCode size={20} />}
                 >
-                  <Hash className={`w-8 h-8 mx-auto mb-3 ${
-                    scanMode === 'manual' ? 'text-blue-600' : 'text-gray-400'
-                  }`} />
-                  <p className="font-semibold text-gray-900 dark:text-gray-100">Enter Code</p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Type code manually</p>
-                </button>
+                  Scan QR Code
+                </Button>
+
+                <Button
+                  onPress={() => {
+                    setScanMode("manual");
+                  }}
+                  startContent={<Hash size={20} />}
+                >
+                  Enter Code
+                </Button>
+                <QRCodeScanner
+                  isOpen={isScannerOpen}
+                  onOpenChange={setIsScannerOpen}
+                  onCheckInSuccess={handleCheckInSuccess}
+                />
               </div>
 
-              {/* QR Scanner */}
-              {scanMode === 'qr' && (
-                <div className="space-y-4">
-                  <div className="relative bg-gray-900 rounded-xl overflow-hidden aspect-video">
-                    {isScanning ? (
-                      <>
-                        <video
-                          ref={videoRef}
-                          className="w-full h-full object-cover"
-                          playsInline
-                        />
-                        <canvas ref={canvasRef} className="hidden" />
-                        
-                        {/* Scanning overlay */}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-64 h-64 border-4 border-blue-500 rounded-xl relative">
-                            <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-blue-500 rounded-tl-xl"></div>
-                            <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-blue-500 rounded-tr-xl"></div>
-                            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-blue-500 rounded-bl-xl"></div>
-                            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-blue-500 rounded-br-xl"></div>
-                          </div>
-                        </div>
-                        
-                        <div className="absolute bottom-4 left-0 right-0 text-center">
-                          <p className="text-white font-medium text-sm bg-black/50 inline-block px-4 py-2 rounded-full">
-                            Position QR code within the frame
-                          </p>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center h-full">
-                        <Camera className="w-16 h-16 text-gray-600 mb-4" />
-                        <p className="text-gray-400 text-sm">Camera not started</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={isScanning ? stopScanner : startScanner}
-                    className={`w-full py-3 rounded-lg font-medium transition-colors ${
-                      isScanning
-                        ? 'bg-red-600 hover:bg-red-700 text-white'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white'
-                    }`}
-                  >
-                    {isScanning ? 'Stop Camera' : 'Start Camera'}
-                  </button>
-                </div>
-              )}
-
               {/* Manual Code Entry */}
-              {scanMode === 'manual' && (
+              {scanMode === "manual" && (
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -387,55 +327,70 @@ export default function OrganizationCheckInPage() {
                     <input
                       type="text"
                       value={manualCode}
-                      onChange={(e) => setManualCode(e.target.value.toUpperCase())}
-                      onKeyPress={(e) => e.key === 'Enter' && handleManualCheckIn()}
+                      onChange={(e) =>
+                        setManualCode(e.target.value.toUpperCase())
+                      }
+                      onKeyUp={(e) =>
+                        e.key === "Enter" && handleManualCheckIn()
+                      }
                       placeholder="e.g., ABC123XYZ"
                       className="w-full px-4 py-3 text-center text-2xl font-mono font-bold tracking-wider border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       maxLength={9}
                     />
                   </div>
 
-                  <button
-                    onClick={handleManualCheckIn}
-                    disabled={!manualCode.trim()}
+                  <Button
+                    onPress={handleManualCheckIn}
+                    isDisabled={!manualCode.trim()}
                     className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                   >
                     Check In Member
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
 
             {/* Check-In Result */}
             {checkInResult && (
-              <div className={`rounded-xl p-6 border-2 ${
-                checkInResult.success
-                  ? 'bg-green-50 dark:bg-green-900/20 border-green-500'
-                  : 'bg-red-50 dark:bg-red-900/20 border-red-500'
-              }`}>
+              <div
+                className={`rounded-xl p-6 border-2 ${
+                  checkInResult.success
+                    ? "bg-green-50 dark:bg-green-900/20 border-green-500"
+                    : "bg-red-50 dark:bg-red-900/20 border-red-500"
+                }`}
+              >
                 <div className="flex items-start gap-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    checkInResult.success ? 'bg-green-500' : 'bg-red-500'
-                  }`}>
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      checkInResult.success ? "bg-green-500" : "bg-red-500"
+                    }`}
+                  >
                     {checkInResult.success ? (
                       <CheckCircle className="w-6 h-6 text-white" />
                     ) : (
                       <XCircle className="w-6 h-6 text-white" />
                     )}
                   </div>
-                  
+
                   <div className="flex-1">
-                    <h3 className={`font-bold text-lg mb-1 ${
-                      checkInResult.success ? 'text-green-900 dark:text-green-300' : 'text-red-900 dark:text-red-300'
-                    }`}>
+                    <h3
+                      className={`font-bold text-lg mb-1 ${
+                        checkInResult.success
+                          ? "text-green-900 dark:text-green-300"
+                          : "text-red-900 dark:text-red-300"
+                      }`}
+                    >
                       {checkInResult.message}
                     </h3>
-                    
+
                     {checkInResult.member && (
                       <div className="mt-3 space-y-2">
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
-                            {checkInResult.member.name.split(' ').map(n => n[0]).join('')}
+                            {checkInResult.member.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
                           </div>
                           <div>
                             <p className="font-semibold text-gray-900 dark:text-gray-100">
@@ -446,18 +401,25 @@ export default function OrganizationCheckInPage() {
                             </p>
                           </div>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-3 mt-3">
                           <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                            <p className="text-xs text-gray-600 dark:text-gray-400">Status</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              Status
+                            </p>
                             <p className="font-semibold text-green-600 dark:text-green-400 capitalize">
-                              {checkInResult.member.status.replace('_', ' ')}
+                              {checkInResult.member.status.replace("_", " ")}
                             </p>
                           </div>
                           <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                            <p className="text-xs text-gray-600 dark:text-gray-400">Time</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              Time
+                            </p>
                             <p className="font-semibold text-gray-900 dark:text-gray-100">
-                              {new Date().toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })}
+                              {new Date().toLocaleTimeString("en-NG", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </p>
                           </div>
                         </div>
@@ -485,7 +447,10 @@ export default function OrganizationCheckInPage() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0">
-                        {checkIn.memberName.split(' ').map(n => n[0]).join('')}
+                        {checkIn.memberName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
@@ -506,7 +471,9 @@ export default function OrganizationCheckInPage() {
             ) : (
               <div className="text-center py-8">
                 <Users className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                <p className="text-gray-500 dark:text-gray-400 text-sm">No check-ins yet today</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">
+                  No check-ins yet today
+                </p>
               </div>
             )}
           </div>
@@ -530,14 +497,14 @@ export default function OrganizationCheckInPage() {
 
               <div className="flex gap-2">
                 <Filter className="w-5 h-5 text-gray-500 my-auto" />
-                {(['today', 'week', 'month'] as const).map((period) => (
+                {(["today", "week", "month"] as const).map((period) => (
                   <button
                     key={period}
                     onClick={() => setTimeFilter(period)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
                       timeFilter === period
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                     }`}
                   >
                     {period}
@@ -569,11 +536,17 @@ export default function OrganizationCheckInPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {filteredStats.map((stat, index) => (
-                    <tr key={stat.memberId} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <tr
+                      key={stat.memberId}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0">
-                            {stat.memberName.split(' ').map(n => n[0]).join('')}
+                            {stat.memberName
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
                           </div>
                           <div>
                             <p className="font-medium text-gray-900 dark:text-gray-100">
@@ -611,7 +584,9 @@ export default function OrganizationCheckInPage() {
             {filteredStats.length === 0 && (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                <p className="text-gray-500 dark:text-gray-400">No members found</p>
+                <p className="text-gray-500 dark:text-gray-400">
+                  No members found
+                </p>
               </div>
             )}
           </div>
