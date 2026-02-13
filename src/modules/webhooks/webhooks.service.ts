@@ -192,7 +192,7 @@ export class WebhooksService {
             payment.invoice.member_subscription,
           );
           this.logger.log(
-            `Subscription ${subscription.id} reactivated after payment`,
+            `Subscription ${subscription.id} activated after payment`,
           );
         }
       }

@@ -9,6 +9,7 @@ import { Member } from '../../database/entities/member.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
 import {
   MemberSubscription,
+  Organization,
   OrganizationSubscription,
   OrganizationUser,
 } from 'src/database/entities';
@@ -21,6 +22,7 @@ import {
       Member,
       OrganizationUser,
       MemberSubscription,
+      Organization,
       OrganizationSubscription,
     ]),
     NotificationsModule,

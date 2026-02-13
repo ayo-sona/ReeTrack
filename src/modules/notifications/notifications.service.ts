@@ -138,6 +138,15 @@ export class NotificationsService {
     return results;
   }
 
+  async sendPasswordResetEmail(data: { email: string; resetToken: string }) {
+    await this.emailService.sendEmail({
+      to: data.email,
+      subject: 'Password Reset',
+      template: 'password_reset',
+      context: data,
+    });
+  }
+
   async sendPaymentSuccessNotification(data: {
     email: string;
     phone?: string;

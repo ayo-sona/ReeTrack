@@ -65,6 +65,7 @@ export class EmailService {
       register_member_email: this.registerMemberEmailTemplate(context),
       register_staff_email: this.registerStaffEmailTemplate(context),
       custom_email: this.customEmailTemplate(context),
+      password_reset: this.passwordResetEmail(context),
     };
 
     return templates[template] || this.defaultTemplate(context);
@@ -291,6 +292,122 @@ export class EmailService {
     </body>
     </html>
     `;
+  }
+
+  private passwordResetEmail(context: any): string {
+    const { resetToken, email, organization = {} } = context;
+
+    const orgName = organization?.name || 'ReeTrack';
+    const supportEmail = organization?.email || 'hello@reetrack.com';
+    const website = organization?.website || 'https://www.reetrack.com';
+    const logoUrl =
+      organization?.logoUrl || 'https://www.reetrack.com/logo.png';
+
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reset Your Password</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          line-height: 1.6;
+          color: #333333;
+          margin: 0;
+          padding: 0;
+        }
+        .container {
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #ffffff;
+        }
+        .header {
+          text-align: center;
+          padding: 20px 0;
+          border-bottom: 1px solid #eeeeee;
+        }
+        .logo {
+          max-width: 180px;
+          height: auto;
+          margin-bottom: 20px;
+        }
+        .content {
+          padding: 30px 20px;
+        }
+        .button {
+          display: inline-block;
+          padding: 12px 30px;
+          margin: 25px 0;
+          background-color: #4F46E5;
+          color: #ffffff !important;
+          text-decoration: none;
+          border-radius: 6px;
+          font-weight: 600;
+          text-align: center;
+        }
+        .footer {
+          margin-top: 30px;
+          padding: 20px;
+          text-align: center;
+          font-size: 12px;
+          color: #666666;
+          border-top: 1px solid #eeeeee;
+        }
+        .note {
+          background-color: #f8f9fa;
+          padding: 15px;
+          border-left: 4px solid #4F46E5;
+          margin: 20px 0;
+          font-size: 14px;
+          color: #495057;
+        }
+        @media only screen and (max-width: 600px) {
+          .container {
+            width: 100% !important;
+          }
+          .button {
+            width: 100% !important;
+            box-sizing: border-box;
+          }
+        }
+      </style>
+    </head>
+    <body style="background-color: #f3f4f6; padding: 20px 0;">
+      <div class="container">
+        <div class="header">
+          ${logoUrl ? `<img src="${logoUrl}" alt="${orgName} Logo" class="logo">` : ''}
+          <h1 style="color: #1f2937; margin: 10px 0;">Reset Your Password</h1>
+        </div>
+        
+        <div class="content">
+          <p>Hello,</p>
+          
+          <p>We received a request to reset the password for your ${orgName} account.</p>
+          
+          <p>Copy and paste this code into the password reset field:</p>
+          <div style="word-break: break-all; color: #3b82f6; margin: 15px 0;">${resetToken}</div>
+          
+          <div class="note">
+            If you didn't request this password reset, you can safely ignore this email.
+          </div>
+          
+          <p>Thanks,<br>The ${orgName} Team</p>
+        </div>
+        
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} ${orgName}. All rights reserved.</p>
+          <p>If you have any questions, please contact our support team at <a href="mailto:${supportEmail}" style="color: #4F46E5; text-decoration: none;">${supportEmail}</a></p>
+          <p style="margin-top: 10px; font-size: 11px; color: #9ca3af;">
+            This email was sent to ${email}. If you believe you received this email in error, please ignore it.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
   }
 
   private paymentSuccessTemplate(context: any): string {

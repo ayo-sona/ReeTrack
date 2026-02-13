@@ -663,4 +663,46 @@ export class AuthService {
 
     return { accessToken, refreshToken };
   }
+
+  async forgotPassword(email: string) {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const token = Math.floor(100000 + Math.random() * 900000).toString();
+    await this.userRepository.update(user.id, { reset_password_token: token });
+
+    // Send email with reset link
+    await this.notificationsService.sendPasswordResetEmail({
+      email: user.email,
+      resetToken: token,
+    });
+
+    return {
+      message: 'Password reset email sent successfully',
+    };
+  }
+
+  async resetPassword(email, token, password) {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    if (user.reset_password_token !== token) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    const password_hash = await bcrypt.hash(password, 10);
+
+    await this.userRepository.update(user.id, {
+      reset_password_token: null,
+      password_hash,
+    });
+
+    return {
+      message: 'Password reset successfully',
+    };
+  }
 }

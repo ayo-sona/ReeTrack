@@ -132,16 +132,64 @@ export class MembersService {
     };
   }
 
+  async getMemberOrgs(userId: string) {
+    const members = await this.memberRepository.find({
+      where: {
+        user_id: userId,
+      },
+      relations: ['user', 'organization_user.organization'],
+    });
+
+    // console.log(members);
+    if (members.length === 0) {
+      throw new NotFoundException('Member not found in any organization');
+    }
+
+    return members;
+  }
+
+  async checkInMember(memberId: string, checkInCode: string) {
+    // Find the member
+    const member = await this.memberRepository.findOne({
+      where: { id: memberId },
+      relations: ['user'],
+    });
+
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+    // Verify check-in code
+    if (member.check_in_code !== checkInCode) {
+      throw new BadRequestException('Invalid check-in code');
+    }
+    // Update check-in information
+    member.check_in_count += 1;
+    member.checked_in_at = new Date();
+
+    // Save the updated member
+    await this.memberRepository.save(member);
+    return {
+      success: true,
+      message: 'Check-in successful',
+      data: {
+        memberId: member.id,
+        fullName: `${member.user.first_name} ${member.user.last_name}`,
+        checkInCount: member.check_in_count,
+        checkedInAt: member.checked_in_at,
+      },
+    };
+  }
+
   async getMemberStats(userId: string) {
-    const member = await this.memberRepository.find({
+    const members = await this.memberRepository.find({
       where: {
         user_id: userId,
       },
       relations: ['user'],
     });
 
-    // console.log(member);
-    if (member.length === 0) {
+    // console.log(members);
+    if (members.length === 0) {
       throw new NotFoundException('Member not found in any organization');
     }
 

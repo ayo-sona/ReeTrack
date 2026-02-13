@@ -45,9 +45,6 @@ export class OrganizationUser {
   @Column({ type: 'text', nullable: true })
   paystack_card_brand: string | null;
 
-  @Column({ type: 'text', nullable: true })
-  paystack_subaccount_code: string | null;
-
   // @Column({ type: 'text', nullable: true })
   // stripe_customer_id: string | null;
 

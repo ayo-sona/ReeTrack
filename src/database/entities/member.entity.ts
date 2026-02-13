@@ -42,6 +42,15 @@ export class Member {
   @Column({ type: 'int', default: 0 })
   check_in_count: number;
 
+  @Column({ type: 'text', nullable: true })
+  check_in_code: string;
+
+  @Column({
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  checked_in_at: Date;
+
   @Column({ type: 'jsonb', nullable: true })
   metadata?: Record<string, any>;
 

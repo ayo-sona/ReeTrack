@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   Logger,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan, MoreThan } from 'typeorm';
@@ -81,11 +82,12 @@ export class SubscriptionsService {
     // Verify member belongs to organization
     const member = await this.memberRepository.findOne({
       where: {
-        id: createSubscriptionDto.memberId,
+        user_id: userId,
         organization_user: {
           organization_id: organizationId,
         },
       },
+      relations: ['user'],
     });
 
     if (!member) {
@@ -109,7 +111,7 @@ export class SubscriptionsService {
     const existingSubscription =
       await this.memberSubscriptionRepository.findOne({
         where: {
-          member_id: createSubscriptionDto.memberId,
+          member_id: member.id,
           plan_id: createSubscriptionDto.planId,
           status: SubscriptionStatus.ACTIVE,
         },
@@ -131,9 +133,10 @@ export class SubscriptionsService {
 
     // Create subscription
     const subscription = this.memberSubscriptionRepository.create({
-      member_id: createSubscriptionDto.memberId,
+      member_id: member.id,
+      organization_id: organizationId,
       plan_id: createSubscriptionDto.planId,
-      status: SubscriptionStatus.ACTIVE,
+      status: SubscriptionStatus.PENDING,
       started_at: now,
       expires_at: periodEnd,
       metadata: createSubscriptionDto.metadata || {},
@@ -145,18 +148,22 @@ export class SubscriptionsService {
     console.log('sub', savedSubscription);
 
     // Generate invoice for subscription
-    await this.createInvoiceForSubscription(
+    const savedInvoice = await this.createInvoiceForSubscription(
       organizationId,
       savedSubscription,
       member,
+      plan,
     );
 
     return {
       message: 'Subscription created successfully',
-      data: await this.memberSubscriptionRepository.findOne({
-        where: { id: savedSubscription.id },
-        relations: ['member', 'plan'],
-      }),
+      data: {
+        subscription: await this.memberSubscriptionRepository.findOne({
+          where: { id: savedSubscription.id },
+          relations: ['member', 'plan'],
+        }),
+        invoice: savedInvoice,
+      },
     };
   }
 
@@ -280,6 +287,12 @@ export class SubscriptionsService {
 
         if (!currentSubscription) {
           throw new NotFoundException('Subscription not found');
+        }
+
+        if (currentSubscription.status === SubscriptionStatus.ACTIVE) {
+          throw new ForbiddenException(
+            'Cannot change plan for an active subscription',
+          );
         }
 
         // Get the new plan
@@ -587,7 +600,7 @@ export class SubscriptionsService {
         interval_count: plan.interval_count,
       },
     });
-    await this.invoiceRepository.save(invoice);
+    const savedInvoice = await this.invoiceRepository.save(invoice);
 
     // 9. Send confirmation email
     // await this.notificationsService.sendSubscriptionCreatedNotification({
@@ -605,7 +618,7 @@ export class SubscriptionsService {
       message: 'Enterprise subscription created successfully',
       data: {
         subscription: savedSubscription,
-        invoice,
+        invoice: savedInvoice,
       },
     };
   }
@@ -822,6 +835,7 @@ export class SubscriptionsService {
     organizationId: string,
     subscription: MemberSubscription,
     member: Member,
+    plan: MemberPlan,
   ) {
     const invoice = this.invoiceRepository.create({
       issuer_org_id: organizationId,
@@ -830,12 +844,12 @@ export class SubscriptionsService {
       billed_type: InvoiceBilledType.MEMBER,
       invoice_number: generateInvoiceNumber(organizationId),
       payment_provider: PaymentProvider.PAYSTACK,
-      amount: subscription.plan.price,
-      currency: subscription.plan.currency,
+      amount: plan.price,
+      currency: plan.currency,
       status: InvoiceStatus.PENDING,
       due_date: subscription.expires_at,
       metadata: {
-        plan_name: subscription.plan.name,
+        plan_name: plan.name,
         billing_period: {
           start: subscription.created_at,
           end: subscription.expires_at,

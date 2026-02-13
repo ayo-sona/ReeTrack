@@ -24,6 +24,7 @@ import { InitializePaymentDto } from './dto/initialize-payment.dto';
 import { PaginationDto, paginate } from '../../common/dto/pagination.dto';
 import {
   MemberSubscription,
+  Organization,
   OrganizationSubscription,
   OrganizationUser,
 } from 'src/database/entities';
@@ -48,6 +49,9 @@ export class PaymentsService {
     @InjectRepository(OrganizationUser)
     private organizationUserRepository: Repository<OrganizationUser>,
 
+    @InjectRepository(Organization)
+    private organizationRepository: Repository<Organization>,
+
     @InjectRepository(MemberSubscription)
     private memberSubscriptionRepository: Repository<MemberSubscription>,
 
@@ -60,14 +64,14 @@ export class PaymentsService {
   ) {}
 
   async initializePayment(
-    organizationId: string,
+    userId: string,
     initializePaymentDto: InitializePaymentDto,
   ) {
     // Get invoice
     const invoice = await this.invoiceRepository.findOne({
       where: {
         id: initializePaymentDto.invoiceId,
-        issuer_org_id: organizationId,
+        billed_user_id: userId,
       },
       relations: ['billed_user'],
     });
@@ -85,7 +89,7 @@ export class PaymentsService {
 
     // Create payment record
     const payment = this.paymentRepository.create({
-      payer_org_id: organizationId,
+      payer_org_id: invoice.issuer_org_id,
       invoice_id: invoice.id,
       payer_user_id: invoice.billed_user_id,
       payer_type: PaymentPayerType.MEMBER,
@@ -97,14 +101,28 @@ export class PaymentsService {
       metadata: {
         ...initializePaymentDto.metadata,
         invoice_number: invoice.invoice_number,
+        subscription_id: invoice.member_subscription_id,
       },
     });
 
     const savedPayment = await this.paymentRepository.save(payment);
 
+    const organization = await this.organizationRepository.findOne({
+      where: {
+        id: invoice.issuer_org_id,
+      },
+    });
+
+    if (!organization?.paystack_subaccount_code) {
+      throw new BadRequestException(
+        'Organization does not have a paystack subaccount',
+      );
+    }
+
     // Initialize Paystack transaction
     const amountInKobo = this.paystackService.convertToKobo(invoice.amount);
-    const callbackUrl = `${this.configService.get('frontend.url')}/enterprise/dashboard`;
+    const callbackUrl = `${this.configService.get('frontend.url')}/member/dashboard`;
+    const subaccount = organization.paystack_subaccount_code;
     console.log('callbackUrl', callbackUrl);
 
     const paystackResponse = await this.paystackService.initializeTransaction(
@@ -117,6 +135,7 @@ export class PaymentsService {
         ...initializePaymentDto.metadata,
       },
       callbackUrl,
+      subaccount,
     );
 
     if (!paystackResponse.status) {
@@ -184,7 +203,7 @@ export class PaymentsService {
 
     // Initialize Paystack transaction
     const amountInKobo = this.paystackService.convertToKobo(invoice.amount);
-    const callbackUrl = `${this.configService.get('frontend.url')}/enterprise/dashboard`;
+    const callbackUrl = `${this.configService.get('frontend.url')}/organization/dashboard`;
     console.log('callbackUrl', callbackUrl);
 
     const paystackResponse = await this.paystackService.initializeTransaction(
@@ -365,19 +384,19 @@ export class PaymentsService {
     organizationId: string,
     createSubaccountDto: CreateSubaccountDto,
   ) {
-    const organizationUser = await this.organizationUserRepository.findOne({
-      where: { user_id: userId, organization_id: organizationId },
+    const organization = await this.organizationRepository.findOne({
+      where: { id: organizationId },
     });
 
-    if (!organizationUser) {
-      throw new NotFoundException('Organization user not found');
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
     }
 
     const data =
       await this.paystackService.createSubaccount(createSubaccountDto);
 
-    organizationUser.paystack_subaccount_code = data.subaccount_code;
-    await this.organizationUserRepository.save(organizationUser);
+    organization.paystack_subaccount_code = data.subaccount_code;
+    await this.organizationRepository.save(organization);
 
     return data;
   }
@@ -388,12 +407,12 @@ export class PaymentsService {
     subaccountCode: string,
     updateData: Partial<CreateSubaccountDto>,
   ) {
-    const organizationUser = await this.organizationUserRepository.findOne({
-      where: { user_id: userId, organization_id: organizationId },
+    const organization = await this.organizationRepository.findOne({
+      where: { id: organizationId },
     });
 
-    if (!organizationUser) {
-      throw new NotFoundException('Organization user not found');
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
     }
 
     const data = await this.paystackService.updateSubaccount(
@@ -401,8 +420,8 @@ export class PaymentsService {
       updateData,
     );
 
-    organizationUser.paystack_subaccount_code = data.subaccount_code;
-    await this.organizationUserRepository.save(organizationUser);
+    organization.paystack_subaccount_code = data.subaccount_code;
+    await this.organizationRepository.save(organization);
 
     return data;
   }

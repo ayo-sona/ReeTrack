@@ -30,6 +30,18 @@ async function bootstrap() {
   const apiPrefix = configService.get('app.apiPrefix');
   app.setGlobalPrefix(apiPrefix);
 
+  // Configure JSON parser with raw body for webhooks
+  app.use(
+    json({
+      verify: (req: http.IncomingMessage, res: http.ServerResponse, buf) => {
+        // Store raw body for webhook signature verification
+        if (req.url?.includes('/webhooks')) {
+          req['rawBody'] = buf;
+        }
+      },
+    }),
+  );
+
   // CORS
   const frontendUrl = configService.get('frontend.url');
   // console.log('frontendUrl', typeof fontendUrl, frontendUrl);
@@ -57,18 +69,6 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
-
-  // Configure JSON parser with raw body for webhooks
-  app.use(
-    json({
-      verify: (req: http.IncomingMessage, res: http.ServerResponse, buf) => {
-        // Store raw body for webhook signature verification
-        if (req.url?.includes('/webhooks')) {
-          req['rawBody'] = buf;
-        }
-      },
-    }),
-  );
 
   // Force HTTPS
   if (configService.get('app.nodeEnv') === 'production') {

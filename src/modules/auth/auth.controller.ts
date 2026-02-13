@@ -25,7 +25,7 @@ import { MemberRegisterDto } from 'src/common/dto/member-register.dto';
 import { CurrentOrganization } from 'src/common/decorators/organization.decorator';
 import { UserRegisterDto } from 'src/common/dto/user-register.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail } from 'class-validator';
+import { IsEmail, IsString } from 'class-validator';
 import { StaffRegisterDto } from 'src/common/dto/staff-register.dto';
 
 type RequestUser = {
@@ -41,6 +41,34 @@ export class CustomRegisterDto {
   })
   @IsEmail()
   email: string;
+}
+
+class ForgetPasswordDto {
+  @ApiProperty({
+    example: 'kenny@life.com',
+  })
+  @IsEmail()
+  email: string;
+}
+
+class ResetPasswordDto {
+  @ApiProperty({
+    example: 'kenny@life.com',
+  })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({
+    example: '6A54B321',
+  })
+  @IsString()
+  token: string;
+
+  @ApiProperty({
+    example: '123456',
+  })
+  @IsString()
+  password: string;
 }
 
 @Controller('auth')
@@ -415,5 +443,35 @@ export class AuthController {
     @CurrentOrganization() organizationId: string,
   ) {
     return this.authService.getProfile(user.id, organizationId);
+  }
+
+  @Post('forgot-password')
+  @Throttle({ short: { limit: 10, ttl: 60000 } }) // 10 requests per minute
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Forgot password' })
+  @ApiResponse({
+    status: 200,
+    description: 'Forgot password email sent successfully',
+  })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async forgotPassword(@Body() body: ForgetPasswordDto) {
+    return this.authService.forgotPassword(body.email);
+  }
+
+  @Post('reset-password')
+  @Throttle({ short: { limit: 10, ttl: 60000 } }) // 10 requests per minute
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset password' })
+  @ApiResponse({
+    status: 200,
+    description: 'Password reset successfully',
+  })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async resetPassword(@Body() body: ResetPasswordDto) {
+    return this.authService.resetPassword(
+      body.email,
+      body.token,
+      body.password,
+    );
   }
 }

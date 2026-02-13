@@ -31,6 +31,7 @@ export class PaystackService {
     reference: string,
     metadata?: any,
     callbackUrl?: string,
+    subaccount?: string | null,
   ): Promise<PaystackInitializeResponse> {
     try {
       const response = await this.paystackClient.post(
@@ -40,8 +41,10 @@ export class PaystackService {
           amount, // Paystack expects amount in kobo (NGN x 100)
           reference,
           metadata,
-          // callback_url: callbackUrl,
+          ...(subaccount && { subaccount }),
+          ...(subaccount ? { bearer: 'subaccount' } : {}),
           channels: ['card'], // Only allow cards for recurring billing
+          // callback_url: callbackUrl,
         },
       );
 

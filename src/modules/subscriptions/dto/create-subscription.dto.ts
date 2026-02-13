@@ -1,13 +1,14 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsUUID, IsOptional, IsObject } from 'class-validator';
 
 export class CreateSubscriptionDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Member ID',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @IsUUID()
-  memberId: string;
+  @IsOptional()
+  memberId?: string;
 
   @ApiProperty({
     description: 'Plan ID',

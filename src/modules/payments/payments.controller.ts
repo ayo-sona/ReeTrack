@@ -50,11 +50,10 @@ export class PaymentsController {
   @ApiResponse({ status: 500, description: 'Internal server error' })
   initializePayment(
     @CurrentUser() user: any,
-    @CurrentOrganization() organizationId: string,
     @Body() initializePaymentDto: InitializePaymentDto,
   ) {
     return this.paymentsService.initializePayment(
-      organizationId,
+      user.id,
       initializePaymentDto,
     );
   }

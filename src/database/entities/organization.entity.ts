@@ -56,6 +56,9 @@ export class Organization {
   @Column({ type: 'text', nullable: true })
   description: string;
 
+  @Column({ type: 'text', nullable: true })
+  paystack_subaccount_code: string | null;
+
   @ApiProperty({
     description: 'Created At',
     example: '2025-01-01T00:00:00.000Z',

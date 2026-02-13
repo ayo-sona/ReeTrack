@@ -7,22 +7,48 @@ import {
   Param,
   Query,
   UseGuards,
+  Post,
 } from '@nestjs/common';
 import { MembersService } from './members.service';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentOrganization } from '../../common/decorators/organization.decorator';
 // import { PaginationDto } from '../../common/dto/pagination.dto';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiProperty,
+  ApiResponse,
+  ApiPropertyOptional,
+} from '@nestjs/swagger';
 import { Member } from '../../database/entities/member.entity';
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional } from 'class-validator';
+import { IsOptional, IsString, IsNotEmpty } from 'class-validator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { OrgRole } from 'src/common/enums/enums';
 
 class SearchDto {
   @ApiPropertyOptional()
   @IsOptional()
   search?: string;
+}
+
+export class CheckInDto {
+  @ApiProperty({
+    description: 'The ID of the member to check in',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsString()
+  @IsNotEmpty()
+  memberId: string;
+
+  @ApiProperty({
+    description: 'The check-in code',
+    example: 'A1B2C3',
+  })
+  @IsString()
+  @IsNotEmpty()
+  checkInCode: string;
 }
 
 @Controller('members')
@@ -71,6 +97,33 @@ export class MembersController {
   @Get('/stats')
   getStats(@CurrentUser() user: any) {
     return this.membersService.getMemberStats(user.id);
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get a member organizations' })
+  @ApiResponse({
+    status: 200,
+    description: 'Member organizations retrieved successfully',
+    type: [Member],
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Member not found' })
+  @Get('/orgs')
+  findMemberOrgs(@CurrentUser() user: any) {
+    return this.membersService.getMemberOrgs(user.id);
+  }
+
+  @Post('check-in')
+  @Roles(OrgRole.ADMIN, OrgRole.STAFF)
+  @ApiOperation({ summary: 'Check in a member using code' })
+  @ApiResponse({ status: 200, description: 'Successfully checked in member' })
+  @ApiResponse({ status: 400, description: 'Invalid check-in code' })
+  @ApiResponse({ status: 404, description: 'Member not found' })
+  async checkInMember(@Body() checkInDto: CheckInDto) {
+    return this.membersService.checkInMember(
+      checkInDto.memberId,
+      checkInDto.checkInCode,
+    );
   }
 
   @ApiBearerAuth('JWT-auth')

@@ -43,11 +43,11 @@ export class SubscriptionsController {
   })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 409, description: 'Subscription already exists' })
-  @Post('/members')
+  @Post('/members/subscribe/:organizationId')
   create(
-    @CurrentOrganization() organizationId: string,
     @CurrentUser() user: any,
     @Body() createSubscriptionDto: CreateSubscriptionDto,
+    @Param('organizationId') organizationId: string,
   ) {
     return this.subscriptionsService.createMemberSubscription(
       organizationId,

@@ -76,6 +76,9 @@ export class User {
   })
   last_login_at: Date;
 
+  @Column({ type: 'text', nullable: true })
+  reset_password_token?: string | null;
+
   @ApiProperty({
     description: 'Created at',
     example: '2023-01-01T00:00:00.000Z',
