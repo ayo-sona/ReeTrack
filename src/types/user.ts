@@ -4,7 +4,11 @@ export interface User {
   first_name: string;
   last_name: string;
   phone: string;
-  createdAt: string;
-  avatar?: string;
-  onboarding_completed?: boolean;
+  status: string;
+  email_verified: boolean;
+  date_of_birth: string | null;
+  address: string | null;
+  last_login_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
