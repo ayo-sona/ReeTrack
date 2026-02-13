@@ -5,8 +5,11 @@ import { ArrowLeft, Building2, Check, CreditCard, Shield } from "lucide-react";
 import Link from "next/link";
 import { useAvailablePlans } from "@/hooks/memberHook/useCommunity";
 import { memberApi } from "@/lib/memberAPI/memberAPI";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useProfile } from "@/hooks/memberHook/useMember";
+import { Spinner } from "@heroui/react";
+import apiClient from "@/lib/apiClient";
+import { usePaystack } from "@/hooks/usePaystack";
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -17,6 +20,12 @@ export default function CheckoutPage() {
   const { data: profile } = useProfile();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isReady, resumeTransaction } = usePaystack();
+  // const { paystack, initializePaystack } = usePaystack();
+
+  // useEffect(() => {
+  //   initializePaystack();
+  // }, []);
 
   // Find the specific plan
   const plan = allPlans?.find((p) => p.id === planId);
@@ -41,8 +50,8 @@ export default function CheckoutPage() {
               Plan Not Found
             </h3>
             <p className="text-gray-600 mb-6">
-              The plan you&apos;re trying to subscribe to doesn&apos;t exist or is no
-              longer available.
+              The plan you&apos;re trying to subscribe to doesn&apos;t exist or
+              is no longer available.
             </p>
             <Link href="/member/communities">
               <button className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
@@ -67,38 +76,39 @@ export default function CheckoutPage() {
   // Calculate next billing date
   const getNextBillingDate = (interval: string | null) => {
     if (!interval) return null;
-    
+
     const today = new Date();
     const nextDate = new Date(today);
-    
+
     switch (interval.toLowerCase()) {
-      case 'monthly':
+      case "monthly":
         nextDate.setMonth(today.getMonth() + 1);
         break;
-      case 'yearly':
-      case 'annual':
+      case "yearly":
+      case "annual":
         nextDate.setFullYear(today.getFullYear() + 1);
         break;
-      case 'weekly':
+      case "weekly":
         nextDate.setDate(today.getDate() + 7);
         break;
-      case 'quarterly':
+      case "quarterly":
         nextDate.setMonth(today.getMonth() + 3);
         break;
       default:
         return null;
     }
-    
-    return nextDate.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+
+    return nextDate.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   // Handle checkout
   const handleCheckout = async () => {
-    if (!profile?.user?.email || plan.price === null) {
+    console.log(profile?.email, plan.price);
+    if (!profile?.email || plan.price === null) {
       setError("Unable to process payment. Please try again.");
       return;
     }
@@ -107,26 +117,37 @@ export default function CheckoutPage() {
     setError(null);
 
     try {
-      // Initialize payment
-      const paymentData = {
-        email: profile.user.email,
-        amount: plan.price * 100, // Convert to kobo/cents
-        planId: plan.id,
-      };
-
-      const response = await memberApi.initializePayment(paymentData);
-
-      if (response.data?.authorization_url) {
-        // Redirect to payment gateway
-        window.location.href = response.data.authorization_url;
-      } else {
-        setError("Payment initialization failed. Please try again.");
-      }
-    } catch (err: any) {
-      console.error("Payment error:", err);
-      setError(
-        err.response?.data?.message || "Payment failed. Please try again."
+      // 1. Create subscription in your system
+      const {
+        data: {
+          data: { invoice },
+        },
+      } = await apiClient.post(
+        `/subscriptions/members/subscribe/${plan.organization_id}`,
+        {
+          planId: plan.id,
+        },
       );
+      console.log(invoice);
+
+      // 2. Initialize Paystack payment
+      const {
+        data: { data: paymentData },
+      } = await apiClient.post("/payments/paystack/initialize", {
+        invoiceId: invoice?.id,
+      });
+      console.log(paymentData);
+
+      // 3. Redirect to Paystack
+      if (!isReady) return;
+      resumeTransaction(paymentData.access_code);
+      // if (!paystack) return;
+      // paystack.resumeTransaction(paymentData.access_code);
+      router.refresh();
+      //   window.location.href = payment.authorization_url;
+    } catch (error) {
+      console.error("Subscription error:", error);
+      alert("Failed to start subscription");
     } finally {
       setIsProcessing(false);
     }
@@ -336,10 +357,7 @@ export default function CheckoutPage() {
                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors"
               >
                 {isProcessing ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Processing...
-                  </>
+                  <Spinner color="success" />
                 ) : (
                   <>
                     <CreditCard className="w-5 h-5" />

@@ -15,8 +15,11 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Manrope", "Source Sans 3", "sans-serif"],
-        body: ["Source Sans 3", "sans-serif"],
+        // sans: ["Manrope", "Source Sans 3", "sans-serif"],
+        // body: ["Source Sans 3", "sans-serif"],
+        sans: ["Cormorant Garamond", "serif"],
+        playfair: ["Playfair Display", "serif"],
+        display: ["DM Serif Display", "serif"],
       },
     },
   },

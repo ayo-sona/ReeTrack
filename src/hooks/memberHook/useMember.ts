@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { memberApi } from "@/lib/memberAPI/memberAPI";
 import type {
   Member,
@@ -29,6 +34,21 @@ interface SubscriptionApiResponse {
   data: MemberWithSubscriptions[];
 }
 
+interface UserProfile {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  status: string;
+  email_verified: boolean;
+  date_of_birth: string | null;
+  address: string | null;
+  last_login_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ============================================
 // PROFILE HOOKS
 // ============================================
@@ -38,7 +58,7 @@ interface SubscriptionApiResponse {
  * GET /api/v1/members/me
  */
 export const useProfile = () => {
-  return useQuery<Member, Error>({
+  return useQuery<UserProfile, Error>({
     queryKey: ["member", "profile"],
     queryFn: memberApi.getProfile,
     retry: 1,
@@ -48,7 +68,7 @@ export const useProfile = () => {
 /**
  * Update member profile
  * PUT /api/v1/members
- * 
+ *
  * Note: Updates user.date_of_birth and user.address
  */
 export const useUpdateProfile = () => {
@@ -90,6 +110,18 @@ export const useMemberStats = () => {
   });
 };
 
+/**
+ * Get member organizations
+ * GET /api/v1/members/orgs
+ */
+export const useMemberOrgs = () => {
+  return useQuery<Member[], Error>({
+    queryKey: ["member", "orgs"],
+    queryFn: memberApi.getMemberOrgs,
+    retry: 1,
+  });
+};
+
 // ============================================
 // SUBSCRIPTION HOOKS
 // ============================================
@@ -97,11 +129,11 @@ export const useMemberStats = () => {
 /**
  * Get current member's subscription
  * GET /api/v1/subscriptions/members/subscription
- * 
+ *
  * Response structure can be either:
  * 1. { data: [{ id: "member-id", subscriptions: [...] }] }
  * 2. [{ id: "member-id", subscriptions: [...] }]
- * 
+ *
  * This hook normalizes both formats
  */
 export const useMySubscription = () => {
@@ -120,7 +152,7 @@ export const useMySubscription = () => {
 export const useSubscriptions = (
   page: number = 1,
   limit: number = 10,
-  status?: string
+  status?: string,
 ) => {
   return useQuery<PaginatedResponse<MemberSubscription>, Error>({
     queryKey: ["member", "subscriptions", page, limit, status],
@@ -133,7 +165,7 @@ export const useSubscriptions = (
 /**
  * Get single subscription by ID
  * ✅ FIXED: Uses useMySubscription instead of admin-only endpoint
- * 
+ *
  * This version works for regular members by:
  * 1. Getting all member subscriptions via useMySubscription
  * 2. Flattening the nested structure
@@ -144,19 +176,22 @@ export const useSubscription = (subscriptionId: string) => {
 
   // Normalize the response to get member data array
   const memberData = normalizeSubscriptionResponse(rawResponse);
-  
+
   // Flatten all subscriptions across all members
-  const allSubscriptions = memberData.flatMap((member) => 
-    member.subscriptions?.filter((sub) => sub.plan) || []
+  const allSubscriptions = memberData.flatMap(
+    (member) => member.subscriptions?.filter((sub) => sub.plan) || [],
   );
-  
+
   // Find the specific subscription
-  const subscription = allSubscriptions.find((sub) => sub.id === subscriptionId);
+  const subscription = allSubscriptions.find(
+    (sub) => sub.id === subscriptionId,
+  );
 
   return {
     data: subscription || null,
     isLoading,
-    error: !subscription && !isLoading ? new Error("Subscription not found") : error,
+    error:
+      !subscription && !isLoading ? new Error("Subscription not found") : error,
     ...rest,
   };
 };
@@ -275,7 +310,7 @@ export const useVerifyPayment = () => {
  * GET /api/v1/invoices/member?status=...
  */
 export const useInvoices = (
-  status?: "pending" | "paid" | "cancelled" | "failed"
+  status?: "pending" | "paid" | "cancelled" | "failed",
 ) => {
   return useQuery<MemberInvoice[], Error>({
     queryKey: ["member", "invoices", status],
@@ -362,31 +397,31 @@ export const useCancelInvoice = () => {
  * 2. [...]
  */
 const normalizeSubscriptionResponse = (
-  response: SubscriptionApiResponse | MemberWithSubscriptions[] | undefined
+  response: SubscriptionApiResponse | MemberWithSubscriptions[] | undefined,
 ): MemberWithSubscriptions[] => {
   if (!response) return [];
-  
+
   // Check if response has a 'data' property (wrapped format)
-  if ('data' in response && Array.isArray(response.data)) {
+  if ("data" in response && Array.isArray(response.data)) {
     return response.data;
   }
-  
+
   // Response is already an array
   if (Array.isArray(response)) {
     return response;
   }
-  
+
   return [];
 };
 
 /**
  * Get all subscriptions as a flattened array
  * ✅ FIXED: Properly handles both possible API response structures
- * 
+ *
  * API Response can be either:
  * Format 1: { data: [{ id: "member1", subscriptions: [...] }] }
  * Format 2: [{ id: "member1", subscriptions: [...] }]
- * 
+ *
  * Returns: Flattened array of all subscriptions across all members
  */
 export const useAllSubscriptions = () => {
@@ -394,10 +429,10 @@ export const useAllSubscriptions = () => {
 
   // Normalize the response to always get an array of members
   const memberData = normalizeSubscriptionResponse(rawResponse);
-  
+
   // Flatten the nested structure
-  const flattenedSubscriptions = memberData.flatMap((member) => 
-    member.subscriptions?.filter((sub) => sub.plan) || []
+  const flattenedSubscriptions = memberData.flatMap(
+    (member) => member.subscriptions?.filter((sub) => sub.plan) || [],
   );
 
   return {
@@ -417,12 +452,13 @@ export const useActiveSubscriptions = () => {
 
   // Normalize the response to always get an array of members
   const memberData = normalizeSubscriptionResponse(rawResponse);
-  
+
   // Flatten and filter for active subscriptions
-  const activeSubscriptions = memberData.flatMap((member) => 
-    member.subscriptions?.filter((sub) => 
-      sub.plan && sub.status === 'active'
-    ) || []
+  const activeSubscriptions = memberData.flatMap(
+    (member) =>
+      member.subscriptions?.filter(
+        (sub) => sub.plan && sub.status === "active",
+      ) || [],
   );
 
   return {

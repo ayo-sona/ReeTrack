@@ -2,6 +2,8 @@
 // MEMBER TYPES - Based on Actual API Response
 // ============================================
 
+import { Organization } from "../organization";
+
 /**
  * User object (nested in Member)
  * Contains personal info including date_of_birth and address
@@ -34,19 +36,31 @@ export interface Member {
   metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
-
-  // ⚠️ REMOVED FIELDS (as per your instructions):
-  // - emergency_contact_phone
-  // - emergency_contact_name
-  // - medical_notes
-  // - date_of_birth (moved to user table)
-  // - address (moved to user table)
+  organization_user?: OrganizationUser;
 
   // Nested user object with personal info
   user: MemberUser;
 
   // Subscriptions array (if populated)
   subscriptions?: MemberSubscription[];
+}
+
+/**
+ * Member - OrganizationUser
+ */
+export interface OrganizationUser {
+  id: string;
+  user_id: string;
+  organization_id: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  role: string;
+  paystack_authorization_code?: string;
+  paystack_card_last4?: string;
+  paystack_card_brand?: string;
+  paystack_subaccount_code?: string;
+  organization?: Organization;
 }
 
 // ============================================
@@ -315,7 +329,7 @@ export interface PaymentDisplay {
 // ============================================
 
 export const isMemberSubscription = (
-  obj: unknown
+  obj: unknown,
 ): obj is MemberSubscription => {
   return (
     typeof obj === "object" &&
@@ -342,28 +356,28 @@ export const isMemberPayment = (obj: unknown): obj is MemberPayment => {
 
 /*
  * ⚠️ FEATURES NOT IN API (Referenced in old components but don't exist):
- * 
+ *
  * 1. WALLET - No wallet system
  *    - Old types: Wallet, Transaction
  *    - Components expect: balance, accountNumber, bankName, etc.
  *    - Action: Remove wallet-related components or mock the data
- * 
+ *
  * 2. CHECK-IN - No check-in system
  *    - Old types: CheckIn
  *    - Components expect: code, qrCode, expiresAt, etc.
  *    - Action: Remove check-in components or wait for backend
- * 
+ *
  * 3. NOTIFICATIONS - ✅ IMPLEMENTED AS SYNTHETIC
  *    - Using SyntheticNotification type
  *    - Generated from subscriptions, payments, profile data
  *    - Read status tracked in localStorage
  *    - See: hooks/memberHook/useSyntheticNotifications.ts
- * 
+ *
  * 4. REFERRALS - No referral system
  *    - Old types: Referral, ReferredMember
  *    - Components expect: code, qrCode, referredMembers, etc.
  *    - Action: Remove referral components or wait for backend
- * 
+ *
  * 5. PAUSE/RESUME - Not in subscription endpoints
  *    - Components expect: pauseSubscription(), resumeSubscription()
  *    - Available: cancelSubscription(), renewSubscription()

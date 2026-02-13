@@ -42,7 +42,6 @@ interface UserProfile {
   last_login_at: string | null;
   created_at: string;
   updated_at: string;
-  check_in_count?: number;
 }
 
 export default function ProfileSettingsPage() {
@@ -52,7 +51,7 @@ export default function ProfileSettingsPage() {
   const deleteMember = useDeleteMember();
 
   // Debug logging
-  console.log('Profile Debug:', {
+  console.log("Profile Debug:", {
     profile,
     isLoading,
     error,
@@ -63,12 +62,17 @@ export default function ProfileSettingsPage() {
 
   // ✅ Handle wrapped API response - the actual user data is in profile.data
   // The API returns { statusCode: 200, message: "Success", data: {...actual user data} }
-  const wrappedProfile = profile as unknown as ApiResponse<UserProfile> | undefined;
-  const actualProfile = wrappedProfile?.data || (profile as unknown as UserProfile);
+  const wrappedProfile = profile as unknown as
+    | ApiResponse<UserProfile>
+    | undefined;
+  const actualProfile =
+    wrappedProfile?.data || (profile as unknown as UserProfile);
 
   const [activeTab, setActiveTab] = useState<"profile" | "account">("profile");
   const [isEditing, setIsEditing] = useState(false);
-  const [editedDateOfBirth, setEditedDateOfBirth] = useState<string | null>(null);
+  const [editedDateOfBirth, setEditedDateOfBirth] = useState<string | null>(
+    null,
+  );
   const [editedAddress, setEditedAddress] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
@@ -87,7 +91,7 @@ export default function ProfileSettingsPage() {
       setEditedDateOfBirth(null);
       setEditedAddress(null);
       setShowSuccessMessage(true);
-      
+
       // Hide success message after 3 seconds
       setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (error) {
@@ -268,8 +272,8 @@ export default function ProfileSettingsPage() {
                 {/* Avatar */}
                 <div className="flex items-center gap-6 mb-8 pb-8 border-b border-gray-200">
                   <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center text-white text-3xl font-bold">
-                    {actualProfile.first_name?.charAt(0) || ''}
-                    {actualProfile.last_name?.charAt(0) || ''}
+                    {actualProfile.first_name?.charAt(0) || ""}
+                    {actualProfile.last_name?.charAt(0) || ""}
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900 text-lg">
@@ -278,11 +282,14 @@ export default function ProfileSettingsPage() {
                     <p className="text-gray-600">{actualProfile.email}</p>
                     <p className="text-sm text-gray-500 mt-1">
                       Member since{" "}
-                      {new Date(actualProfile.created_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      {new Date(actualProfile.created_at).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        },
+                      )}
                     </p>
                   </div>
                 </div>
@@ -433,21 +440,18 @@ export default function ProfileSettingsPage() {
                         {actualProfile.status || "Active"}
                       </p>
                     </div>
-                    <div className="p-4 bg-purple-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Total Check-ins</p>
-                      <p className="text-lg font-bold text-purple-600">
-                        {actualProfile.check_in_count || 0}
-                      </p>
-                    </div>
+
                     <div className="p-4 bg-blue-50 rounded-lg">
                       <p className="text-sm text-gray-600">Last Login</p>
                       <p className="text-lg font-bold text-blue-600">
-                        {actualProfile.last_login_at 
-                          ? new Date(actualProfile.last_login_at).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric'
+                        {actualProfile.last_login_at
+                          ? new Date(
+                              actualProfile.last_login_at,
+                            ).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
                             })
-                          : 'Never'}
+                          : "Never"}
                       </p>
                     </div>
                   </div>
@@ -459,7 +463,8 @@ export default function ProfileSettingsPage() {
                     Sign Out
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    Sign out of your account on this device. You can sign back in anytime.
+                    Sign out of your account on this device. You can sign back
+                    in anytime.
                   </p>
                   <button
                     onClick={handleLogout}
@@ -477,7 +482,8 @@ export default function ProfileSettingsPage() {
                   </h3>
                   <p className="text-gray-600 mb-4">
                     Once you delete your account, there is no going back. All
-                    your data, subscriptions, and payment history will be permanently deleted.
+                    your data, subscriptions, and payment history will be
+                    permanently deleted.
                   </p>
                   <button
                     onClick={() => setShowDeleteConfirm(true)}
