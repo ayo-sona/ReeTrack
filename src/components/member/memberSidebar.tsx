@@ -12,20 +12,11 @@ import {
   Building2, // Add this import
 } from "lucide-react";
 import { Spinner } from "@heroui/react";
-
-interface User {
-  first_name: string;
-  last_name: string;
-  email: string;
-}
-
-interface Profile {
-  user: User;
-}
+import { User } from "@/types/user";
 
 interface MemberSidebarProps {
   pathname: string;
-  profile: Profile | undefined;
+  profile: User | undefined;
   unreadCount: number;
   handleLogout: () => void;
   loading: boolean;
@@ -61,15 +52,15 @@ export function MemberSidebar({
           <div className="mb-8 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                {profile.user?.first_name?.charAt(0)}
-                {profile.user?.last_name?.charAt(0)}
+                {profile?.first_name?.charAt(0)}
+                {profile?.last_name?.charAt(0)}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-900 truncate">
-                  {profile.user?.first_name} {profile.user?.last_name}
+                  {profile?.first_name} {profile?.last_name}
                 </p>
                 <p className="text-xs text-gray-600 truncate">
-                  {profile.user?.email}
+                  {profile?.email}
                 </p>
               </div>
             </div>

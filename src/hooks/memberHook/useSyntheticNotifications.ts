@@ -1,9 +1,5 @@
 import { useMemo } from "react";
-import {
-  useAllSubscriptions,
-  useAllPayments,
-  useProfile,
-} from "./useMember";
+import { useAllSubscriptions, useAllPayments, useProfile } from "./useMember";
 import type { MemberPayment } from "@/types/memberTypes/member";
 
 // ============================================
@@ -81,7 +77,7 @@ export const useSyntheticNotifications = () => {
       if (sub.status === "active" && isWithinDays(sub.expires_at, 7)) {
         const daysLeft = Math.ceil(
           (new Date(sub.expires_at).getTime() - new Date().getTime()) /
-            (1000 * 60 * 60 * 24)
+            (1000 * 60 * 60 * 24),
         );
 
         notifs.push({
@@ -137,7 +133,8 @@ export const useSyntheticNotifications = () => {
     // Recent successful payments (last 7 days)
     payments
       ?.filter(
-        (p: MemberPayment) => p.status === "success" && isInPastDays(p.created_at, 7)
+        (p: MemberPayment) =>
+          p.status === "success" && isInPastDays(p.created_at, 7),
       )
       .forEach((payment: MemberPayment) => {
         const planName =
@@ -157,7 +154,8 @@ export const useSyntheticNotifications = () => {
     // Recent failed payments (last 7 days)
     payments
       ?.filter(
-        (p: MemberPayment) => p.status === "failed" && isInPastDays(p.created_at, 7)
+        (p: MemberPayment) =>
+          p.status === "failed" && isInPastDays(p.created_at, 7),
       )
       .forEach((payment: MemberPayment) => {
         const planName =
@@ -178,7 +176,8 @@ export const useSyntheticNotifications = () => {
     // 3. ACHIEVEMENT NOTIFICATIONS
     // ========================================
 
-    const checkInCount = profile?.check_in_count || 0;
+    // const checkInCount = profile?.check_in_count || 0;
+    const checkInCount = profile?.id || 0;
 
     // Check-in milestones
     const milestones = [10, 25, 50, 100, 250, 500, 1000];
@@ -206,7 +205,7 @@ export const useSyntheticNotifications = () => {
         type: "info",
         category: "system",
         title: "👋 Welcome to ReeTrack!",
-        message: `Hi ${profile.user.first_name}! We're excited to have you. Explore your subscriptions and start checking in!`,
+        message: `Hi ${profile.first_name}! We're excited to have you. Explore your subscriptions and start checking in!`,
         link: "/member/dashboard",
         createdAt: profile.created_at,
       });
@@ -236,7 +235,7 @@ export const useSyntheticNotifications = () => {
     // Sort by date (newest first)
     return notifs.sort(
       (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
   }, [subscriptions, payments, profile]);
 
@@ -257,7 +256,7 @@ export const useUnreadCount = () => {
   if (typeof window === "undefined") return 0;
 
   const readNotifications = JSON.parse(
-    localStorage.getItem("readNotifications") || "[]"
+    localStorage.getItem("readNotifications") || "[]",
   ) as string[];
 
   return notifications.filter((n) => !readNotifications.includes(n.id)).length;
@@ -271,14 +270,14 @@ export const useMarkAsRead = () => {
     if (typeof window === "undefined") return;
 
     const readNotifications = JSON.parse(
-      localStorage.getItem("readNotifications") || "[]"
+      localStorage.getItem("readNotifications") || "[]",
     ) as string[];
 
     if (!readNotifications.includes(notificationId)) {
       readNotifications.push(notificationId);
       localStorage.setItem(
         "readNotifications",
-        JSON.stringify(readNotifications)
+        JSON.stringify(readNotifications),
       );
     }
   };
@@ -305,7 +304,7 @@ export const useIsRead = (notificationId: string): boolean => {
   if (typeof window === "undefined") return false;
 
   const readNotifications = JSON.parse(
-    localStorage.getItem("readNotifications") || "[]"
+    localStorage.getItem("readNotifications") || "[]",
   ) as string[];
 
   return readNotifications.includes(notificationId);
