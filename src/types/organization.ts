@@ -7,12 +7,10 @@ export interface Organization {
   email: string;
   phone: string;
   address: string;
+  description?: string;
   logo?: string;
   website?: string;
-  currency: Currency;
-  preferred_gateway: PaymentGateway;
   created_at: string;
-  owner_id: string;
 }
 
 // Plan Types

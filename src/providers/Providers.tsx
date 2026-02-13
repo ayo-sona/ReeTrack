@@ -3,6 +3,7 @@
 import { HeroUIProvider } from "@heroui/system";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { QueryProvider } from "./QueryProvider";
+import { PaystackProvider } from "./PaymentProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -13,7 +14,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
     >
       <HeroUIProvider>
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <PaystackProvider>{children}</PaystackProvider>
+        </QueryProvider>
       </HeroUIProvider>
     </NextThemesProvider>
   );

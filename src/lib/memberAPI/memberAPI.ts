@@ -9,7 +9,9 @@ import apiClient from "../apiClient";
  * GET /api/v1/members/me
  */
 export const getProfile = async () => {
-  const { data } = await apiClient.get("/members/me");
+  const {
+    data: { data },
+  } = await apiClient.get("/members/me");
   return data;
 };
 
@@ -54,6 +56,17 @@ export const getStats = async () => {
   return data;
 };
 
+/**
+ * Get member organizations
+ * GET /api/v1/members/orgs
+ */
+export const getMemberOrgs = async () => {
+  const {
+    data: { data },
+  } = await apiClient.get("/members/orgs");
+  return data;
+};
+
 // ============================================
 // SUBSCRIPTION API - Member Subscriptions
 // ============================================
@@ -74,7 +87,7 @@ export const getMySubscription = async () => {
 export const getSubscriptions = async (
   page: number = 1,
   limit: number = 10,
-  status?: string
+  status?: string,
 ) => {
   const { data } = await apiClient.get("/subscriptions/members", {
     params: { page, limit, status },
@@ -88,7 +101,7 @@ export const getSubscriptions = async (
  */
 export const cancelSubscription = async (subscriptionId: string) => {
   const { data } = await apiClient.patch(
-    `/subscriptions/members/${subscriptionId}/cancel`
+    `/subscriptions/members/${subscriptionId}/cancel`,
   );
   return data;
 };
@@ -99,7 +112,7 @@ export const cancelSubscription = async (subscriptionId: string) => {
  */
 export const renewSubscription = async (subscriptionId: string) => {
   const { data } = await apiClient.post(
-    `/subscriptions/members/${subscriptionId}/renew`
+    `/subscriptions/members/${subscriptionId}/renew`,
   );
   return data;
 };
@@ -110,11 +123,11 @@ export const renewSubscription = async (subscriptionId: string) => {
  */
 export const changeSubscriptionPlan = async (
   subscriptionId: string,
-  newPlanId: string
+  newPlanId: string,
 ) => {
   const { data } = await apiClient.post(
     `/subscriptions/members/${subscriptionId}/change-plan`,
-    { newPlanId }
+    { newPlanId },
   );
   return data;
 };
@@ -146,7 +159,7 @@ export const initializePayment = async (paymentData: {
 }) => {
   const { data } = await apiClient.post(
     "/payments/paystack/initialize",
-    paymentData
+    paymentData,
   );
   return data;
 };
@@ -201,7 +214,7 @@ export const getPlanStats = async () => {
  */
 export const verifyPayment = async (reference: string) => {
   const { data } = await apiClient.get(
-    `/payments/paystack/verify/${reference}`
+    `/payments/paystack/verify/${reference}`,
   );
   return data;
 };
@@ -215,7 +228,7 @@ export const verifyPayment = async (reference: string) => {
  * GET /api/v1/invoices/member?status=...
  */
 export const getInvoices = async (
-  status?: "pending" | "paid" | "cancelled" | "failed"
+  status?: "pending" | "paid" | "cancelled" | "failed",
 ) => {
   const { data } = await apiClient.get("/invoices/member", {
     params: { status },
@@ -256,7 +269,7 @@ export const getInvoiceById = async (invoiceId: string) => {
  */
 export const markInvoiceAsPaid = async (invoiceId: string) => {
   const { data } = await apiClient.patch(
-    `/invoices/member/${invoiceId}/mark-paid`
+    `/invoices/member/${invoiceId}/mark-paid`,
   );
   return data;
 };
@@ -267,7 +280,7 @@ export const markInvoiceAsPaid = async (invoiceId: string) => {
  */
 export const cancelInvoice = async (invoiceId: string) => {
   const { data } = await apiClient.patch(
-    `/invoices/member/${invoiceId}/cancel`
+    `/invoices/member/${invoiceId}/cancel`,
   );
   return data;
 };
@@ -283,6 +296,7 @@ export const memberApi = {
   updateProfile,
   deleteMember,
   getStats,
+  getMemberOrgs,
 
   // Subscriptions
   getMySubscription,
@@ -317,24 +331,20 @@ export const memberApi = {
 
 /*
  * ⚠️ ENDPOINTS NOT IN API (Components reference these but they don't exist):
- * 
+ *
  * 1. WALLET - No wallet endpoints exist
  *    - Components use: getWallet, createWallet, topUpWallet, getTransactions
  *    - These will need to be mocked or the feature needs to be added to backend
- * 
+ *
  * 2. CHECK-IN - No check-in endpoints exist
  *    - Components use: generateCheckInCode
  *    - This feature needs backend implementation
- * 
+ *
  * 3. NOTIFICATIONS - No notification endpoints exist
  *    - Components use: getNotifications, markNotificationRead, markAllNotificationsRead
  *    - This feature needs backend implementation
- * 
+ *
  * 4. REFERRALS - No referral endpoints exist
  *    - Components use: getReferral, getReferredMembers
  *    - This feature needs backend implementation
- * 
- * 5. PAUSE/RESUME SUBSCRIPTION - Not in API
- *    - Components use: pauseSubscription, resumeSubscription
- *    - Only cancel and renew are available
  */
