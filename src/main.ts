@@ -99,7 +99,7 @@ async function bootstrap() {
     .setTitle('ReeTrack API')
     .setDescription('The ReeTrack API documentation')
     .setVersion('1.0')
-    .setContact('ReeTrack', 'https://paypips.vercel.app', 'keneusih@gmail.com')
+    .setContact('ReeTrack', 'https://www.reetrack.com', 'keneusih@gmail.com')
     .addBearerAuth(
       {
         type: 'http',
