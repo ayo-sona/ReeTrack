@@ -1,3 +1,4 @@
+import { deleteCookie } from "cookies-next/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function proxy(request: NextRequest) {
@@ -27,6 +28,9 @@ export async function proxy(request: NextRequest) {
 
   // If user is not authenticated and trying to access protected routes
   if (!token && privatePaths.some((path) => pathname.startsWith(path))) {
+    deleteCookie("current_role");
+    deleteCookie("user_roles");
+    deleteCookie("access_token");
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     url.search = `redirect=${pathname}`;

@@ -22,7 +22,6 @@ export default function MemberDashboard() {
 
   // ✅ Calculate stats from real data
   const activeSubscriptionsCount = subscriptions?.length || 0;
-  const checkInCount = profile?.check_in_count || 0;
 
   // ✅ Calculate upcoming payments (active subscriptions with auto-renew)
   const upcomingPayments =
@@ -32,7 +31,7 @@ export default function MemberDashboard() {
   const sortedSubscriptions = subscriptions
     ? [...subscriptions].sort(
         (a, b) =>
-          new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime()
+          new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime(),
       )
     : [];
 
@@ -41,7 +40,7 @@ export default function MemberDashboard() {
     const now = new Date();
     const expiry = new Date(expiresAt);
     const daysUntilExpiry = Math.ceil(
-      (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
     );
     return daysUntilExpiry <= 7 && daysUntilExpiry > 0;
   };
@@ -53,7 +52,7 @@ export default function MemberDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Welcome back, {profile?.user?.first_name}! 👋
+              Welcome back, {profile?.first_name}! 👋
             </h1>
             <p className="text-gray-600 mt-1">
               Manage your subscriptions and payments
@@ -89,21 +88,6 @@ export default function MemberDashboard() {
                 <p className="text-gray-600 text-sm">Active Subscriptions</p>
                 <p className="text-2xl font-bold text-gray-900">
                   {activeSubscriptionsCount}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Check-in Count */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-gray-600 text-sm">Check-ins</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {checkInCount}
                 </p>
               </div>
             </div>

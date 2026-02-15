@@ -18,12 +18,7 @@ import {
   Spinner,
   Image,
 } from "@heroui/react";
-import {
-  Check,
-  CheckCircle,
-
-  ArrowRight,
-} from "lucide-react";
+import { Check, CheckCircle, ArrowRight } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { usePaystack } from "@/hooks/usePaystack";
 import { useRouter } from "next/navigation";
@@ -65,7 +60,8 @@ export default function EnterprisePlansPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(false);
-  const { paystack, initializePaystack } = usePaystack();
+  // const { paystack, initializePaystack } = usePaystack();
+  const { isReady, resumeTransaction } = usePaystack();
 
   useEffect(() => {
     (async () => {
@@ -75,7 +71,7 @@ export default function EnterprisePlansPage() {
       setPlans(plans.data.data);
       setLoading(false);
     })();
-    initializePaystack();
+    // initializePaystack();
   }, []);
 
   const handlePlanSelect = (plan: Plan) => {
@@ -93,7 +89,7 @@ export default function EnterprisePlansPage() {
     if (method === "paystack") {
       await handleSubscribe();
     }
-    onClose();
+    // onClose();
   };
 
   const handleSubscribe = async () => {
@@ -119,9 +115,9 @@ export default function EnterprisePlansPage() {
       });
       console.log(paymentData);
 
-      // // 3. Redirect to Paystack
-      if (!paystack) return;
-      paystack.resumeTransaction(paymentData.access_code);
+      // 3. Redirect to Paystack
+      if (!isReady) return;
+      resumeTransaction(paymentData.access_code);
       router.refresh();
       //   window.location.href = payment.authorization_url;
     } catch (error) {
@@ -309,7 +305,7 @@ export default function EnterprisePlansPage() {
 
         <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="md">
           <ModalContent className="bg-white">
-            {() => (
+            {(onClose) => (
               <>
                 <ModalHeader className="flex flex-col gap-1">
                   <div className="flex justify-center items-center">

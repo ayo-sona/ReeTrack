@@ -18,6 +18,11 @@ interface QRCodeScannerProps {
   onCheckInSuccess: (member: any) => void;
 }
 
+interface CameraDevice {
+  id: string;
+  label: string;
+}
+
 export default function QRCodeScanner({
   isOpen,
   onOpenChange,
@@ -32,9 +37,10 @@ export default function QRCodeScanner({
   } | null>(null);
   const [scannerState, setScannerState] = useState("initial"); // 'initial', 'requesting', 'scanning', 'denied'
   const html5QrcodeRef = useRef<Html5Qrcode | null>(null);
-  const [availableCameras, setAvailableCameras] = useState([]);
-  const [selectedCamera, setSelectedCamera] = useState("");
+  const [availableCameras, setAvailableCameras] = useState<CameraDevice[]>([]);
+  const [selectedCamera, setSelectedCamera] = useState<string>("");
   const scannerElementId = "qr-reader";
+  //   console.log(scannerState);
 
   // Handle QR code scan
   const handleScanSuccess = async (decodedText: string) => {
@@ -73,35 +79,38 @@ export default function QRCodeScanner({
     }
   };
 
-  // Start/stop scanner when modal opens/closes
-  useEffect(() => {
-    if (isOpen) {
-      startScanner();
-    } else {
-      stopScanner();
-      setError(null);
-      setSuccess(null);
-    }
-    return () => stopScanner();
-  }, [isOpen]);
-
   // Scanner setup and cleanup
   const startScanner = async () => {
+    if (!selectedCamera) {
+      setError("No camera selected. Please check your device settings.");
+      return;
+    }
+
+    setScannerState("requesting");
+    setError(null);
+
     try {
       setIsLoading(true);
       setScannerState("scanning");
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const container = document.getElementById(scannerElementId);
+      if (!container) {
+        throw new Error("Scanner container not found");
+      }
 
+      // Create new scanner instance
       const html5QrCode = new Html5Qrcode(scannerElementId);
       html5QrcodeRef.current = html5QrCode;
 
       await html5QrCode.start(
-        { facingMode: "environment" },
+        selectedCamera,
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
         },
         (decodedText) => {
-          handleScanSuccess(decodedText);
+          //   handleScanSuccess(decodedText);
+          console.log(decodedText);
         },
         (errorMessage) => {
           // Ignore "not found" errors
@@ -179,10 +188,10 @@ export default function QRCodeScanner({
   const switchCamera = async () => {
     if (availableCameras.length > 1) {
       const currentIndex = availableCameras.findIndex(
-        (cam: any) => cam.id === selectedCamera,
+        (cam: CameraDevice) => cam.id === selectedCamera,
       );
       const nextIndex = (currentIndex + 1) % availableCameras.length;
-      //   setSelectedCamera(availableCameras[nextIndex].id);
+      setSelectedCamera(availableCameras[nextIndex].id);
 
       // If currently scanning, restart with new camera
       if (scannerState === "scanning") {
@@ -190,22 +199,42 @@ export default function QRCodeScanner({
         // Wait a bit before starting with new camera
         setTimeout(() => {
           startScanner();
-        }, 500);
+        }, 1000);
       }
     }
   };
+
+  // Initialize cameras when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      checkCameras();
+    } else {
+      resetScanner();
+    }
+  }, [isOpen]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (html5QrcodeRef.current) {
+        stopScanner();
+      }
+      setError(null);
+      setSuccess(null);
+    };
+  }, []);
 
   return (
     <Modal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      size="2xl"
+      size="lg"
       scrollBehavior="inside"
     >
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className="flex justify-between items-center">
+            <ModalHeader className="flex justify-between items-center mt-4">
               <span>Scan Member QR Code</span>
               <Button
                 size="sm"
@@ -218,13 +247,15 @@ export default function QRCodeScanner({
               </Button>
             </ModalHeader>
             <ModalBody>
-              <div className="relative">
+              <div className="relative w-full h-full bg-gray-100 dark:bg-black rounded-lg overflow-hidden">
                 {/* Scanner View */}
                 {scannerState === "scanning" && (
                   <div className="relative">
                     <div
                       id={scannerElementId}
-                      className="w-full h-[400px] bg-black rounded-lg"
+                      className={`w-full h-full min-h-[300px] flex items-center justify-center ${
+                        scannerState === "scanning" ? "block" : "hidden"
+                      }`}
                     />
                     <div className="absolute inset-0 border-4 border-emerald-500 rounded-lg pointer-events-none animate-pulse" />
                   </div>
@@ -232,14 +263,14 @@ export default function QRCodeScanner({
 
                 {/* Loading State */}
                 {isLoading && (
-                  <div className="flex items-center justify-center h-[400px]">
+                  <div className="absolute inset-0 flex items-center justify-center">
                     <Spinner size="lg" />
                   </div>
                 )}
 
                 {/* Success Message */}
                 {success && (
-                  <div className="flex flex-col items-center justify-center h-[400px] text-center p-4">
+                  <div className="flex flex-col items-center justify-center h-full text-center p-4">
                     <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
                     <h3 className="text-xl font-semibold">
                       Check-in Successful!
@@ -253,7 +284,7 @@ export default function QRCodeScanner({
 
                 {/* Error Message */}
                 {error && (
-                  <div className="flex flex-col items-center justify-center h-[400px] text-center p-4">
+                  <div className="flex flex-col items-center justify-center h-full text-center p-4">
                     <XCircle className="w-16 h-16 text-red-500 mb-4" />
                     <h3 className="text-xl font-semibold">Error</h3>
                     <p className="text-gray-600 mt-2">{error}</p>
@@ -269,7 +300,7 @@ export default function QRCodeScanner({
                 )}
 
                 {scannerState === "initial" && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4">
+                  <div className="w-full h-full p-6 flex flex-col items-center justify-center space-y-4">
                     <Camera size={48} className="text-gray-400" />
                     <div className="text-center">
                       <h3 className="font-semibold text-lg mb-2">
@@ -289,7 +320,7 @@ export default function QRCodeScanner({
                 )}
 
                 {scannerState === "requesting" && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4">
+                  <div className="w-full h-full p-6 flex flex-col items-center justify-center space-y-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
                     <div className="text-center">
                       <h3 className="font-semibold text-lg mb-2">
@@ -303,7 +334,7 @@ export default function QRCodeScanner({
                 )}
 
                 {scannerState === "denied" && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 p-4">
+                  <div className="w-full h-full p-6 flex flex-col items-center justify-center space-y-4">
                     <X size={48} className="text-red-400" />
                     <div className="text-center">
                       <h3 className="font-semibold text-lg mb-2 text-red-600">
@@ -323,67 +354,66 @@ export default function QRCodeScanner({
                   </div>
                 )}
 
-                {/* Scanner Controls */}
-                {/* {scannerState === "scanning" && (
-                  <div className="flex justify-center gap-4 mt-4">
-                    <Button
-                      color="danger"
-                      variant="flat"
-                      onPress={() => {
-                        stopScanner();
-                        onClose();
-                      }}
-                      startContent={<X size={16} />}
+                {/* Camera Selection */}
+                {availableCameras.length > 1 && scannerState !== "scanning" && (
+                  <div className="w-full space-y-2">
+                    <label className="text-sm font-medium">
+                      Select Camera:
+                    </label>
+                    <select
+                      value={selectedCamera || ""}
+                      onChange={(e) => setSelectedCamera(e.target.value)}
+                      className="w-full p-2 border rounded-lg bg-white dark:bg-black border-gray-300 dark:border-gray-600"
                     >
-                      Cancel
-                    </Button>
-                    <Button
-                      color="primary"
-                      variant="flat"
-                      onPress={() => html5QrcodeRef.current?.resume()}
-                      startContent={<RotateCcw size={16} />}
-                    >
-                      Rescan
-                    </Button>
+                      {availableCameras.map((camera: CameraDevice) => (
+                        <option
+                          key={camera.id}
+                          value={camera.id}
+                          className="capitalize"
+                        >
+                          {camera.label || `Camera ${camera.id}`}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                )} */}
-
-                <ModalFooter className="flex justify-between">
-                  <Button
-                    variant="light"
-                    onPress={() => {
-                      if (success) {
-                        resetScanner();
-                      } else if (scannerState === "scanning") {
-                        stopScanner();
-                      } else {
-                        onClose();
-                      }
-                    }}
-                  >
-                    {success
-                      ? "Scan Again"
-                      : scannerState === "scanning"
-                        ? "Stop Scanning"
-                        : "Cancel"}
-                  </Button>
-
-                  <div className="flex space-x-2">
-                    {!success && (
-                      <Button
-                        color="success"
-                        isLoading={isLoading}
-                        disabled={isLoading || availableCameras.length === 0}
-                        onPress={startScanner}
-                        startContent={<Camera size={16} />}
-                      >
-                        Start Scanning
-                      </Button>
-                    )}
-                  </div>
-                </ModalFooter>
+                )}
               </div>
             </ModalBody>
+
+            <ModalFooter className="flex justify-between">
+              <Button
+                variant="light"
+                onPress={() => {
+                  if (success) {
+                    resetScanner();
+                  } else if (scannerState === "scanning") {
+                    stopScanner();
+                  } else {
+                    onClose();
+                  }
+                }}
+              >
+                {success
+                  ? "Scan Again"
+                  : scannerState === "scanning"
+                    ? "Stop Scanning"
+                    : "Cancel"}
+              </Button>
+
+              <div className="flex space-x-2">
+                {!success && (
+                  <Button
+                    color="success"
+                    isLoading={isLoading}
+                    disabled={isLoading || availableCameras.length === 0}
+                    onPress={startScanner}
+                    startContent={<Camera size={16} />}
+                  >
+                    Start Scanning
+                  </Button>
+                )}
+              </div>
+            </ModalFooter>
           </>
         )}
       </ModalContent>

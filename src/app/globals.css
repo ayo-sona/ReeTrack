@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;500;600;700;800;900&display=swap");
+=======
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=DM+Serif+Display:ital@0;1&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap");
+/* @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap"); */
+>>>>>>> cd0a7017e5eadf7fdee1fa9268727a83b9706997
 
 @tailwind base;
 @tailwind components;
@@ -49,7 +54,24 @@
     --muted: #1e293b;
     --muted-foreground: #94a3b8;
   }
+<<<<<<< HEAD
   
+=======
+
+  html {
+    font-family: "Cormorant Garamond", serif;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Playfair Display", serif;
+    font-weight: 600;
+  }
+
+>>>>>>> cd0a7017e5eadf7fdee1fa9268727a83b9706997
   body {
     @apply antialiased;
     background-color: var(--background);
@@ -98,6 +120,16 @@
     background-color: var(--muted);
     padding: 1rem;
     border-radius: 8px;
+  }
+
+  .font-display {
+    font-family: 'DM Serif Display', serif;
+  }
+  .font-playfair {
+    font-family: 'Playfair Display', serif;
+  }
+  .font-cormorant {
+    font-family: 'Cormorant Garamond', serif;
   }
 }
 

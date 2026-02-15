@@ -1,17 +1,14 @@
-import type { Currency, PaymentGateway } from './common';
-
 export interface User {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    businessName: string;
-    phone: string;
-    country: string;
-    currency: Currency;
-    preferredGateway: PaymentGateway;
-    role: 'organizaiton' | 'owner';
-    avatar?: string;
-    createdAt: string;
-    onboardingCompleted: boolean;
-  }
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  status: string;
+  email_verified: boolean;
+  date_of_birth: string | null;
+  address: string | null;
+  last_login_at: string | null;
+  created_at: string;
+  updated_at: string;
+}

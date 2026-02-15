@@ -34,7 +34,6 @@ interface CheckInRecord {
   id: string;
   memberId: string;
   memberName: string;
-  planName: string;
   checkedInAt: string;
   photoUrl?: string;
 }
@@ -42,7 +41,6 @@ interface CheckInRecord {
 interface MemberStats {
   memberId: string;
   memberName: string;
-  planName: string;
   totalCheckIns: number;
   lastCheckIn: string;
   photoUrl?: string;
@@ -54,7 +52,6 @@ const MOCK_RECENT_CHECKINS: CheckInRecord[] = [
     id: "1",
     memberId: "m1",
     memberName: "Chidi Okonkwo",
-    planName: "Premium Membership",
     checkedInAt: new Date().toISOString(),
     photoUrl: undefined,
   },
@@ -62,7 +59,6 @@ const MOCK_RECENT_CHECKINS: CheckInRecord[] = [
     id: "2",
     memberId: "m2",
     memberName: "Amara Nwosu",
-    planName: "Basic Membership",
     checkedInAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
     photoUrl: undefined,
   },
@@ -72,21 +68,18 @@ const MOCK_MEMBER_STATS: MemberStats[] = [
   {
     memberId: "m1",
     memberName: "Chidi Okonkwo",
-    planName: "Premium Membership",
     totalCheckIns: 24,
     lastCheckIn: new Date().toISOString(),
   },
   {
     memberId: "m2",
     memberName: "Amara Nwosu",
-    planName: "Basic Membership",
     totalCheckIns: 18,
     lastCheckIn: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
   },
   {
     memberId: "m3",
     memberName: "Funke Ajayi",
-    planName: "VIP Membership",
     totalCheckIns: 30,
     lastCheckIn: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
   },
@@ -116,9 +109,7 @@ export default function OrganizationCheckInPage() {
       id: `checkin-${Date.now()}`,
       memberId: member.id,
       memberName: member.name,
-      planName: member.planName || "N/A",
       checkedInAt: new Date().toISOString(),
-      photoUrl: member.photoUrl,
     };
 
     setRecentCheckIns((prev) => [newCheckIn, ...prev]);
@@ -166,7 +157,6 @@ export default function OrganizationCheckInPage() {
         id: "c" + Date.now(),
         memberId: mockMember.id,
         memberName: mockMember.name,
-        planName: mockMember.planName,
         checkedInAt: new Date().toISOString(),
       };
 
@@ -456,9 +446,6 @@ export default function OrganizationCheckInPage() {
                         <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
                           {checkIn.memberName}
                         </p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                          {checkIn.planName}
-                        </p>
                       </div>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 flex items-center gap-1">
@@ -523,9 +510,6 @@ export default function OrganizationCheckInPage() {
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                       Member
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                      Plan
-                    </th>
                     <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                       Check-Ins
                     </th>
@@ -554,11 +538,6 @@ export default function OrganizationCheckInPage() {
                             </p>
                           </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400">
-                          {stat.planName}
-                        </span>
                       </td>
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-2">
