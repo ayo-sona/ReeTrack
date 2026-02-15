@@ -1,13 +1,21 @@
 "use client";
 import ParallaxBackground from "../ui/parallaxBackground";
-import { Button } from "../ui/Button";
+import { Button } from "../ui/button";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 const HeroSection = () => {
-  const words = ["manage", "grow", "scale", "retain", "power", "unify", "engage"];
+  const words = [
+    "manage",
+    "grow",
+    "scale",
+    "retain",
+    "power",
+    "unify",
+    "engage",
+  ];
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
 
   useEffect(() => {
@@ -62,30 +70,21 @@ const HeroSection = () => {
 
           {/* Sub-headline */}
           <p className="text-lg sm:text-xl lg:text-2xl text-[#1F2937]/70 mb-12 max-w-3xl mx-auto font-light">
-            From your first member to global scale everything you need to build, engage, and grow flows seamlessly in one space.
+            From your first member to global scale everything you need to build,
+            engage, and grow flows seamlessly in one space.
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button
-              asChild
-              size="lg"
-              className="group"
-            >
+            <Button asChild size="lg" className="group">
               <Link href="/auth" className="flex items-center gap-2">
                 Get Started
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
 
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-            >
-              <Link href="/features">
-                Learn More
-              </Link>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/features">Learn More</Link>
             </Button>
           </div>
         </motion.div>

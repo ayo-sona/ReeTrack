@@ -1,11 +1,14 @@
 "use client";
 import { motion } from "framer-motion";
 import { ArrowRight, MessageSquare, Calendar, Mail } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 const ContactSection = () => {
   return (
-    <section id="contact" className="relative py-24 bg-gradient-to-b from-gray-50/50 to-white overflow-hidden">
+    <section
+      id="contact"
+      className="relative py-24 bg-gradient-to-b from-gray-50/50 to-white overflow-hidden"
+    >
       {/* Subtle background pattern */}
       <div
         className="absolute inset-0 opacity-[0.015] pointer-events-none"
@@ -43,7 +46,8 @@ const ContactSection = () => {
             your community?
           </h2>
           <p className="text-lg text-[#1F2937]/60 max-w-2xl mx-auto leading-relaxed">
-            Let&apos;s discuss how Reetrack can help you automate billing, grow your membership, and focus on what matters most.
+            Let&apos;s discuss how Reetrack can help you automate billing, grow
+            your membership, and focus on what matters most.
           </p>
         </motion.div>
 
@@ -135,7 +139,10 @@ const ContactSection = () => {
                 Let&apos;s Talk
               </h3>
               <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
-                Whether you have questions, need a demo, or want to discuss custom solutions.<br/>We&apos;re here to help you succeed.
+                Whether you have questions, need a demo, or want to discuss
+                custom solutions.
+                <br />
+                We&apos;re here to help you succeed.
               </p>
 
               {/* CTA Buttons */}
@@ -157,9 +164,7 @@ const ContactSection = () => {
                   className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#0D9488] font-bold"
                   asChild
                 >
-                  <a href="mailto:hello@reetrack.com">
-                    Email Us Directly
-                  </a>
+                  <a href="mailto:hello@reetrack.com">Email Us Directly</a>
                 </Button>
               </div>
 

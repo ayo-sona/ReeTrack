@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@heroui/react";
 import { Mail, Building } from "lucide-react";
 import apiClient from "@/lib/apiClient";
@@ -62,13 +62,17 @@ export default function AdminRegisterPage() {
       };
 
       await apiClient.post("/auth/register-organization", payload);
-      toast.success("Organization created! Please check your email to complete setup.");
+      toast.success(
+        "Organization created! Please check your email to complete setup.",
+      );
       router.push("/auth/login");
     } catch (err: unknown) {
       console.error("Registration error:", err);
-      const errorMessage = err instanceof Error && 'response' in err 
-        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to register. Please try again."
-        : "Failed to register. Please try again.";
+      const errorMessage =
+        err instanceof Error && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response
+              ?.data?.message || "Failed to register. Please try again."
+          : "Failed to register. Please try again.";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -81,17 +85,17 @@ export default function AdminRegisterPage() {
       {/* Diagonal Split Background */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Top Coral Section */}
-        <div 
+        <div
           className="absolute inset-0 bg-gradient-to-br from-[#F06543] to-[#D85436]"
           style={{
-            clipPath: 'polygon(0 0, 100% 0, 100% 45%, 0 55%)',
+            clipPath: "polygon(0 0, 100% 0, 100% 45%, 0 55%)",
           }}
         />
         {/* Bottom Teal Section */}
-        <div 
+        <div
           className="absolute inset-0 bg-gradient-to-br from-[#0D9488] to-[#0B7A70]"
           style={{
-            clipPath: 'polygon(0 55%, 100% 45%, 100% 100%, 0 100%)',
+            clipPath: "polygon(0 55%, 100% 45%, 100% 100%, 0 100%)",
           }}
         />
       </div>
@@ -100,80 +104,80 @@ export default function AdminRegisterPage() {
       <div className="absolute inset-0 pointer-events-none">
         {/* Top left - Analytics */}
         <div className="hidden md:block absolute top-[8%] left-[10%] w-26 h-26 sm:w-32 sm:h-32 opacity-90">
-          <Image 
-            src="/undraw/analytics.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/analytics.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
 
         {/* Top center - Organizing */}
         <div className="hidden md:block absolute top-[5%] left-[42%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image 
-            src="/undraw/organizing.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/organizing.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
 
         {/* Top right - Shared dashboard */}
         <div className="hidden md:block absolute top-[12%] right-[8%] w-28 h-28 sm:w-36 sm:h-36 opacity-90">
-          <Image 
-            src="/undraw/shared_dashboard.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/shared_dashboard.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
 
         {/* Middle left - Data */}
         <div className="hidden md:block absolute top-[40%] left-[12%] w-24 h-24 sm:w-30 sm:h-30 opacity-90">
-          <Image 
-            src="/undraw/data.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/data.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
 
         {/* Middle right - Observe */}
         <div className="hidden md:block absolute top-[45%] right-[10%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image 
-            src="/undraw/observe.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/observe.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
 
         {/* Bottom left - Working together */}
         <div className="hidden md:block absolute bottom-[12%] left-[15%] w-22 h-22 sm:w-28 sm:h-28 opacity-85">
-          <Image 
-            src="/undraw/working_together.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/working_together.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
 
         {/* Bottom center - Sit on screen */}
         <div className="hidden md:block absolute bottom-[8%] left-[40%] w-24 h-24 sm:w-30 sm:h-30 opacity-90">
-          <Image 
-            src="/undraw/sit_on_screen.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/sit_on_screen.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
 
         {/* Bottom right - Trend */}
         <div className="hidden md:block absolute bottom-[15%] right-[12%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image 
-            src="/undraw/trend.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/trend.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
@@ -217,8 +221,8 @@ export default function AdminRegisterPage() {
 
                 {/* Organization Name */}
                 <div>
-                  <label 
-                    htmlFor="organizationName" 
+                  <label
+                    htmlFor="organizationName"
                     className="block text-sm font-semibold text-[#1F2937] mb-2"
                   >
                     Organization Name *
@@ -232,18 +236,21 @@ export default function AdminRegisterPage() {
                     value={formData.organizationName}
                     onChange={handleChange}
                     disabled={isLoading}
-                    startContent={<Building className="w-4 h-4 text-gray-400" />}
+                    startContent={
+                      <Building className="w-4 h-4 text-gray-400" />
+                    }
                     classNames={{
                       input: "outline-none",
-                      inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                      inputWrapper:
+                        "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
                     }}
                   />
                 </div>
 
                 {/* Organization Email */}
                 <div>
-                  <label 
-                    htmlFor="organizationEmail" 
+                  <label
+                    htmlFor="organizationEmail"
                     className="block text-sm font-semibold text-[#1F2937] mb-2"
                   >
                     Organization Email *
@@ -260,7 +267,8 @@ export default function AdminRegisterPage() {
                     startContent={<Mail className="w-4 h-4 text-gray-400" />}
                     classNames={{
                       input: "outline-none",
-                      inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                      inputWrapper:
+                        "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
                     }}
                   />
                 </div>
@@ -277,8 +285,8 @@ export default function AdminRegisterPage() {
 
                 {/* Admin Email */}
                 <div>
-                  <label 
-                    htmlFor="email" 
+                  <label
+                    htmlFor="email"
                     className="block text-sm font-semibold text-[#1F2937] mb-2"
                   >
                     Your Email Address *
@@ -296,7 +304,8 @@ export default function AdminRegisterPage() {
                     startContent={<Mail className="w-4 h-4 text-gray-400" />}
                     classNames={{
                       input: "outline-none",
-                      inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                      inputWrapper:
+                        "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
                     }}
                   />
                   <p className="mt-2 text-xs text-[#1F2937]/50">
@@ -314,13 +323,22 @@ export default function AdminRegisterPage() {
                   required
                   className="mt-1 h-4 w-4 text-[#0D9488] focus:ring-[#0D9488] border-gray-300 rounded"
                 />
-                <label htmlFor="terms" className="text-sm text-[#1F2937]/70 leading-relaxed">
+                <label
+                  htmlFor="terms"
+                  className="text-sm text-[#1F2937]/70 leading-relaxed"
+                >
                   I agree to the{" "}
-                  <Link href="/terms" className="text-[#0D9488] hover:underline font-semibold">
+                  <Link
+                    href="/terms"
+                    className="text-[#0D9488] hover:underline font-semibold"
+                  >
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link href="/privacy" className="text-[#0D9488] hover:underline font-semibold">
+                  <Link
+                    href="/privacy"
+                    className="text-[#0D9488] hover:underline font-semibold"
+                  >
                     Privacy Policy
                   </Link>
                 </label>
@@ -358,7 +376,7 @@ export default function AdminRegisterPage() {
               >
                 Sign in instead →
               </Link>
-              
+
               {/* Member Registration Link */}
               <div className="pt-2 border-t border-gray-100">
                 <p className="text-xs text-[#1F2937]/50 mb-2">

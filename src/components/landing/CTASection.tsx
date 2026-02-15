@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { ArrowRight, Shield, Zap, Users } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 const FinalCTASection = () => {
   return (
@@ -42,7 +42,7 @@ const FinalCTASection = () => {
       />
 
       {/* Floating images in different shapes - Bigger & Randomized */}
-      
+
       {/* Large circular image - top left */}
       <motion.div
         className="absolute top-16 left-[6%] w-32 h-32 sm:w-48 sm:h-48 lg:w-56 lg:h-56 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl"
@@ -207,7 +207,8 @@ const FinalCTASection = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-lg sm:text-xl text-white/90 mb-12 max-w-2xl mx-auto leading-relaxed"
         >
-          Stop managing spreadsheets. Start building meaningful connections with the infrastructure that scales.
+          Stop managing spreadsheets. Start building meaningful connections with
+          the infrastructure that scales.
         </motion.p>
 
         {/* CTA Button */}
@@ -247,15 +248,21 @@ const FinalCTASection = () => {
         >
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-white/80 rounded-full" />
-            <span className="text-sm sm:text-base font-semibold">No credit card required</span>
+            <span className="text-sm sm:text-base font-semibold">
+              No credit card required
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-white/80 rounded-full" />
-            <span className="text-sm sm:text-base font-semibold">14-day free trial</span>
+            <span className="text-sm sm:text-base font-semibold">
+              14-day free trial
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 bg-white/80 rounded-full" />
-            <span className="text-sm sm:text-base font-semibold">Cancel anytime</span>
+            <span className="text-sm sm:text-base font-semibold">
+              Cancel anytime
+            </span>
           </div>
         </motion.div>
 
@@ -271,7 +278,8 @@ const FinalCTASection = () => {
             {
               icon: Shield,
               title: "Bank-grade Security",
-              description: "Your data is protected with enterprise-level encryption",
+              description:
+                "Your data is protected with enterprise-level encryption",
             },
             {
               icon: Zap,
