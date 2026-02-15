@@ -1,7 +1,7 @@
 "use client";
 
-import { Navigation } from "@/components/landing/Navigation";
-import { Footer } from "@/components/landing/Footer";
+import { Navigation } from "@/components/ui/Navigation";
+import { Footer } from "@/components/ui/Footer";
 import { Card, CardBody, Button } from "@heroui/react";
 import {
   CreditCard,

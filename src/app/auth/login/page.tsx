@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import apiClient from "@/lib/apiClient";
 import { getCookie, setCookie } from "cookies-next";
 import { getUserRoles } from "@/utils/role-utils";
-import { Button, Spinner } from "@heroui/react";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@heroui/react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,23 +18,22 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    email: "levi@life.com",
-    password: "Password123",
+    email: "",
+    password: "",
   });
-  // console.log("env", process.env.NODE_ENV);
 
   useEffect(() => {
     if (token) {
       router.push("/");
     }
-  }, [router]);
+  }, [router, token]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
@@ -42,7 +43,6 @@ export default function LoginPage() {
         email: formData.email,
         password: formData.password,
       });
-      // console.log(response.data);
 
       if (response.data.statusCode === 200) {
         setCookie("access_token", response.data.data.access_token);
@@ -56,7 +56,7 @@ export default function LoginPage() {
         );
         localStorage.setItem("userData", JSON.stringify(response.data.data));
         const roles = getUserRoles(response.data.data);
-        // console.log(roles);
+        
         if (roles.isMember && roles.isStaff) {
           router.push("/select-role");
         } else if (!roles.isMember && roles.isStaff) {
@@ -76,141 +76,240 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
-          </h2>
+    <div className="min-h-screen relative overflow-hidden bg-white">
+      {/* Diagonal Split Background */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Top Coral Section */}
+        <div 
+          className="absolute inset-0 bg-gradient-to-br from-[#F06543] to-[#D85436]"
+          style={{
+            clipPath: 'polygon(0 0, 100% 0, 100% 45%, 0 55%)',
+          }}
+        />
+        {/* Bottom Teal Section */}
+        <div 
+          className="absolute inset-0 bg-gradient-to-br from-[#0D9488] to-[#0B7A70]"
+          style={{
+            clipPath: 'polygon(0 55%, 100% 45%, 100% 100%, 0 100%)',
+          }}
+        />
+      </div>
+
+      {/* Scattered Avatar Illustrations */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Top center - Relaxing */}
+        <div className="absolute top-[5%] left-[40%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
+          <Image 
+            src="/undraw/relaxing_hammock.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
         </div>
 
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4">
-            <div className="flex">
-              <div className="shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-500"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
+        {/* Top left - Eating together */}
+        <div className="absolute bottom-[35%] right-[25%] w-26 h-26 sm:w-32 sm:h-32 opacity-90">
+          <Image 
+            src="/undraw/eating_together.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
+        </div>
+
+        {/* Upper right - Hot air balloon */}
+        <div className="absolute top-[3%] right-[35%] w-20 h-20 sm:w-24 sm:h-24 opacity-85">
+          <Image 
+            src="/undraw/hot_air_balloon.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
+        </div>
+
+        {/* Middle right - Skateboarding */}
+        <div className="absolute top-[30%] right-[20%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
+          <Image 
+            src="/undraw/skateboarding.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
+        </div>
+
+        {/* Middle left - Fitness */}
+        <div className="absolute top-[44%] left-[27%] w-24 h-24 opacity-90">
+          <Image 
+            src="/undraw/fitness.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
+        </div>
+
+        {/* Middle left lower - Floating love */}
+        <div className="absolute top-[25%] left-[22%] w-22 h-22 sm:w-28 sm:h-28 opacity-85">
+          <Image 
+            src="/undraw/floating_balloon.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
+        </div>
+
+        {/* Bottom center - Walking with dog */}
+        <div className="absolute bottom-[10%] left-[25%] w-20 h-20 sm:w-28 sm:h-28 opacity-90">
+          <Image 
+            src="/undraw/playing_with_dog.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
+        </div>
+
+        {/* Bottom right - Bike riding */}
+        <div className="absolute bottom-[10%] right-[24%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
+          <Image 
+            src="/undraw/bike_driving.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          {/* Form Card */}
+          <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 backdrop-blur-sm bg-white/95">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-[#1F2937] mb-2">
+                Welcome Back
+              </h1>
+              <p className="text-[#1F2937]/60">
+                Sign in to continue to ReeTrack
+              </p>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
                 <p className="text-sm text-red-700">{error}</p>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Email Input */}
+              <div>
+                <label 
+                  htmlFor="email" 
+                  className="block text-sm font-semibold text-[#1F2937] mb-2"
+                >
+                  Email Address
+                </label>
+                <Input
                   id="email"
                   name="email"
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="Email address"
+                  placeholder="you@example.com"
                   value={formData.email}
                   onChange={handleChange}
                   disabled={isLoading}
+                  startContent={<Mail className="w-4 h-4 text-gray-400" />}
+                  classNames={{
+                    input: "outline-none",
+                    inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                  }}
                 />
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
+              {/* Password Input */}
+              <div>
+                <label 
+                  htmlFor="password" 
+                  className="block text-sm font-semibold text-[#1F2937] mb-2"
+                >
+                  Password
+                </label>
+                <Input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
-                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="Password"
+                  placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
                   disabled={isLoading}
+                  startContent={<Lock className="w-4 h-4 text-gray-400" />}
+                  endContent={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="focus:outline-none"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                      ) : (
+                        <Eye className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                      )}
+                    </button>
+                  }
+                  classNames={{
+                    input: "outline-none",
+                    inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                  }}
                 />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
+              </div>
+
+              {/* Forgot Password */}
+              <div className="flex justify-end">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-500" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-500" />
-                  )}
-                </button>
+                  Forgot password?
+                </Link>
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                variant="secondary"
+                size="lg"
+                disabled={isLoading}
+                className="w-full"
+              >
+                {isLoading ? "Signing in..." : "Sign In"}
+              </Button>
+            </form>
+
+            {/* Divider */}
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-[#1F2937]/60">
+                  Don't have an account?
+                </span>
               </div>
             </div>
-          </div>
 
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <Link
-                href="/auth/forgot-password"
-                className="font-medium text-primary hover:text-primary/80"
-              >
-                Forgot your password?
-              </Link>
-            </div>
-          </div>
-
-          <div>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className={
-                isLoading
-                  ? "opacity-70 cursor-not-allowed text-black w-full"
-                  : "text-black w-full"
-              }
-              color="success"
-              variant="solid"
-              isLoading={isLoading}
-            >
-              Sign in
-            </Button>
-          </div>
-        </form>
-
-        <div className="relative mt-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">
-              Already have an account?{" "}
+            {/* Register Link */}
+            <div className="text-center">
               <Link
                 href="/auth/register"
-                className="font-medium text-primary hover:text-primary/80"
+                className="text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors"
               >
-                Register
+                Create an account →
               </Link>
-            </span>
+            </div>
           </div>
         </div>
       </div>
