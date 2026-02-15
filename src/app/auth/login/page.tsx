@@ -16,6 +16,7 @@ export default function LoginPage() {
   const token = getCookie("access_token");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false); // NEW FLAG
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
@@ -23,10 +24,11 @@ export default function LoginPage() {
   });
 
   useEffect(() => {
-    if (token) {
+    // Only redirect if already logged in AND not currently logging in
+    if (token && !isRedirecting) {
       router.push("/");
     }
-  }, [router, token]);
+  }, [router, token, isRedirecting]); // ADD isRedirecting dependency
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -36,6 +38,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setIsRedirecting(true); // PREVENT useEffect interference
     setError(null);
 
     try {
@@ -57,12 +60,13 @@ export default function LoginPage() {
         localStorage.setItem("userData", JSON.stringify(response.data.data));
         const roles = getUserRoles(response.data.data);
 
+        // Use router.replace instead of router.push for better UX
         if (roles.isMember && roles.isStaff) {
-          router.push("/select-role");
+          router.replace("/select-role");
         } else if (!roles.isMember && roles.isStaff) {
-          router.push("/select-org");
+          router.replace("/select-org");
         } else {
-          router.push("/member/dashboard");
+          router.replace("/member/dashboard");
         }
       }
     } catch (err: any) {
@@ -70,6 +74,7 @@ export default function LoginPage() {
       setError(
         err.response?.data?.message || "Failed to login. Please try again.",
       );
+      setIsRedirecting(false); // RESET on error
     } finally {
       setIsLoading(false);
     }
@@ -298,7 +303,7 @@ export default function LoginPage() {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-4 bg-white text-[#1F2937]/60">
-                  Don't have an account?
+                  Don&apos;t have an account?
                 </span>
               </div>
             </div>
@@ -318,3 +323,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
