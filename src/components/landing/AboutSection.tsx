@@ -3,33 +3,41 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import Image from "next/image";
 
+// Define the content keys as a type
+type ContentKey = "who-we-are" | "what-we-do" | "the-problem" | "our-solution";
+
 const AboutSection = () => {
-  const [activeTab, setActiveTab] = useState("what-we-do");
+  const [activeTab, setActiveTab] = useState<ContentKey>("what-we-do");
 
   const tabs = [
     {
-      id: "who-we-are",
+      id: "who-we-are" as const,
       label: "Who We Are",
       color: "#0D9488",
     },
     {
-      id: "what-we-do",
+      id: "what-we-do" as const,
       label: "What We Do",
       color: "#F06543",
     },
     {
-      id: "the-problem",
+      id: "the-problem" as const,
       label: "The Problem",
       color: "#0D9488",
     },
     {
-      id: "our-solution",
+      id: "our-solution" as const,
       label: "Our Solution",
       color: "#F06543",
     },
   ];
 
-  const content = {
+  const content: Record<ContentKey, {
+    title: string;
+    description: string;
+    image: string;
+    imagePosition: "left" | "right";
+  }> = {
     "who-we-are": {
       title: "Built by Community Builders",
       description:
