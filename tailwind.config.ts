@@ -15,11 +15,46 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        // sans: ["Manrope", "Source Sans 3", "sans-serif"],
-        // body: ["Source Sans 3", "sans-serif"],
-        sans: ["Cormorant Garamond", "serif"],
-        playfair: ["Playfair Display", "serif"],
-        display: ["DM Serif Display", "serif"],
+        sans: ["Manrope", "Source Sans 3", "sans-serif"],
+        body: ["Source Sans 3", "sans-serif"],
+        // Brutalist Graffiti fonts
+        heading: ["Inter Tight", "Syne", "Manrope", "sans-serif"],
+        stencil: ["Impact", "Arial Black", "sans-serif"],
+        marker: ["Permanent Marker", "Comic Sans MS", "cursive"],
+      },
+      colors: {
+        // Brutalist Graffiti color palette
+        coral: {
+          DEFAULT: "#F06543",
+          dark: "#D85436",
+        },
+        teal: {
+          DEFAULT: "#0D9488",
+          dark: "#0B7A70",
+        },
+        ink: {
+          DEFAULT: "#1F2937",
+        },
+        ghost: {
+          DEFAULT: "#F9FAFB",
+        },
+      },
+      boxShadow: {
+        // Brutalist hard shadows
+        brutal: "8px 8px 0px 0px rgba(31, 41, 55, 1)",
+        "brutal-sm": "4px 4px 0px 0px rgba(31, 41, 55, 1)",
+        "brutal-lg": "12px 12px 0px 0px rgba(31, 41, 55, 1)",
+        "brutal-coral": "8px 8px 0px 0px rgba(240, 101, 67, 1)",
+        "brutal-teal": "8px 8px 0px 0px rgba(13, 148, 136, 1)",
+      },
+      animation: {
+        "marker-draw": "marker-draw 0.6s ease-out forwards",
+      },
+      keyframes: {
+        "marker-draw": {
+          from: { width: "0" },
+          to: { width: "100%" },
+        },
       },
     },
   },

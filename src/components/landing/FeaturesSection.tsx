@@ -1,99 +1,194 @@
 "use client";
-
-import { Card, CardBody } from "@heroui/react";
-import { CreditCard, BarChart3, Users, Zap, Shield, Bell } from "lucide-react";
 import { motion } from "framer-motion";
+import { Crown, TrendingUp, CheckCircle, Users } from "lucide-react";
 
-const features = [
-  {
-    icon: CreditCard,
-    title: "Automated Billing",
-    description: "Set up recurring payments and let our system handle the rest. Never miss a payment cycle again.",
-    gradient: "from-primary/20 to-secondary/10",
-  },
-  {
-    icon: BarChart3,
-    title: "Analytics Dashboard",
-    description: "Real-time insights into your revenue, member growth, and payment trends with beautiful visualizations.",
-    gradient: "from-secondary/20 to-primary/10",
-  },
-  {
-    icon: Users,
-    title: "Member Management",
-    description: "Effortlessly manage your member database, track subscriptions, and handle renewals in one place.",
-    gradient: "from-success/20 to-primary/10",
-  },
-  {
-    icon: Zap,
-    title: "Payment Tracking",
-    description: "Monitor all transactions in real-time with detailed payment history and automatic reconciliation.",
-    gradient: "from-primary/20 to-success/10",
-  },
-  {
-    icon: Shield,
-    title: "Secure & Compliant",
-    description: "Bank-level encryption and PCI DSS compliance to keep your data and payments secure.",
-    gradient: "from-warning/20 to-primary/10",
-  },
-  {
-    icon: Bell,
-    title: "Smart Notifications",
-    description: "Automated reminders for upcoming payments, renewals, and important account updates.",
-    gradient: "from-primary/20 to-warning/10",
-  },
-];
+const FeaturesSection = () => {
+  const features = [
+    {
+      id: "memberships",
+      title: "Effortless Subscriptions",
+      description:
+        "Configure your pricing once, and let Reetrack handle the rest. From payment collection to renewal tracking, access management to automated reminders—your entire membership operation flows without manual intervention. No spreadsheets, no chasing payments, just seamless automation.",
+      pic: "reports",
+      accentColor: "#F06543",
+      Icon: Crown,
+      highlight: "Effortless",
+      reverse: false,
+    },
+    {
+      id: "crm",
+      title: "Know Your People",
+      description:
+        "Transform raw data into real understanding. See who your members are, group them by what matters, and track how your community evolves over time. Every interaction tells a story—Reetrack helps you read it. Smart segmentation meets intuitive analytics.",
+      pic: "community",
+      accentColor: "#0D9488",
+      Icon: TrendingUp,
+      highlight: "People",
+      reverse: true,
+    },
+    {
+      id: "payments",
+      title: "Borderless Payments",
+      description:
+        "Geography doesn't limit your reach anymore. Reetrack Pay opens the door to worldwide transactions—credit cards, direct bank transfers, cryptocurrency, and local payment methods all in one platform. Your members choose their preferred way to pay, you receive funds without friction.",
+      pic: "payment",
+      accentColor: "#F06543",
+      Icon: CheckCircle,
+      highlight: "Borderless",
+      reverse: false,
+    },
+    {
+      id: "chat",
+      title: "Community That Connects",
+      description:
+        "Build something deeper than a member list. Reetrack creates spaces where people actually feel like they belong—where conversations flow, connections form, and members become friends. It's not about managing users; it's about nurturing relationships that keep people coming back.",
+      pic: "rewards",
+      accentColor: "#0D9488",
+      Icon: Users,
+      highlight: "Connects",
+      reverse: true,
+    },
+  ];
 
-export function FeaturesSection() {
   return (
-    <section className="relative py-24 px-4 sm:px-6 lg:px-8 bg-content1/30">
-      <div className="max-w-7xl mx-auto">
+    <section className="relative py-32 bg-[#F9FAFB] overflow-hidden">
+      {/* Grain texture - concrete wall */}
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+        }}
+      />
+
+      {/* Parallax paint drips */}
+      <motion.div
+        className="absolute top-0 left-[10%] w-2 h-32 bg-[#0D9488]/20 rounded-b-full"
+        initial={{ y: -100 }}
+        whileInView={{ y: 0 }}
+        transition={{ duration: 1.5, ease: "easeOut" }}
+      />
+      <motion.div
+        className="absolute top-20 right-[15%] w-2 h-24 bg-[#F06543]/20 rounded-b-full"
+        initial={{ y: -80 }}
+        whileInView={{ y: 0 }}
+        transition={{ duration: 1.2, delay: 0.2, ease: "easeOut" }}
+      />
+
+      <div className="max-w-7xl mx-auto px-6 relative">
+        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-24"
         >
-          <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">
-            Everything you need to manage subscriptions
+
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#1F2937] relative inline-block">
+            Everything your community needs
+            {/* Marker underline */}
+            <motion.div
+              initial={{ width: 0 }}
+              whileInView={{ width: "100%" }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.3, ease: "circOut" }}
+              className="absolute bottom-0 left-0 h-3 bg-[#0D9488]/30 -z-10"
+            />
           </h2>
-          <p className="text-xl text-foreground/70 max-w-3xl mx-auto">
-            Powerful features designed to streamline your membership organization's billing and payment processes.
-          </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-              >
-                <Card
-                  className="bg-content1/80 backdrop-blur-md border border-divider hover:border-primary/50 transition-all duration-300 group hover:scale-105"
-                  isPressable
+        {/* Features Grid - Zig-Zag */}
+        <div className="space-y-40">
+          {features.map((feature, index) => (
+            <motion.div
+              key={feature.id}
+              initial={{ opacity: 0, y: 60 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.7, delay: index * 0.1 }}
+              className={`grid lg:grid-cols-2 gap-20 items-center ${
+                feature.reverse ? "lg:grid-flow-dense" : ""
+              }`}
+            >
+              {/* Text Content */}
+              <div className={feature.reverse ? "lg:col-start-2" : ""}>
+                {/* Accent paint stroke */}
+                <motion.div
+                  initial={{ width: 0 }}
+                  whileInView={{ width: "4rem" }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="h-1.5 mb-8"
+                  style={{ backgroundColor: feature.accentColor }}
+                />
+
+                <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1F2937] mb-6 leading-tight relative">
+                  {/* Split title to highlight key word */}
+                  {feature.title.split(feature.highlight)[0]}
+                  <span className="relative inline-block mx-2">
+                    {feature.highlight}
+                    {/* Hand-drawn circle highlight */}
+                  </span>
+                  {feature.title.split(feature.highlight)[1]}
+                </h3>
+
+                <p className="text-lg text-[#1F2937]/70 leading-relaxed mb-8">
+                  {feature.description}
+                </p>
+
+                {/* Draggable icon sticker */}
+                <motion.div
+                  drag
+                  dragConstraints={{ left: 0, right: 100, top: 0, bottom: 100 }}
+                  whileDrag={{ scale: 1.1, rotate: 10 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white border-4 border-[#1F2937] rotate-3 cursor-grab active:cursor-grabbing"
+                  style={{
+                    boxShadow: "6px 6px 0px 0px rgba(31, 41, 55, 1)",
+                  }}
                 >
-                  <CardBody className="p-6">
-                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                      <Icon className="w-7 h-7 text-primary" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-foreground mb-2">
-                      {feature.title}
-                    </h3>
-                    <p className="text-foreground/70">
-                      {feature.description}
-                    </p>
-                  </CardBody>
-                </Card>
-              </motion.div>
-            );
-          })}
+                  <feature.Icon
+                    className="w-10 h-10"
+                    style={{ color: feature.accentColor }}
+                    strokeWidth={2.5}
+                  />
+                </motion.div>
+              </div>
+
+              {/* Circular Image */}
+              <div
+                className={
+                  feature.reverse ? "lg:col-start-1 lg:row-start-1" : ""
+                }
+              >
+                <div className="relative mx-auto w-80 h-80 lg:w-[480px] lg:h-[480px]">
+                  {/* Main brutalist circle - HARD SHADOW, NO BLUR */}
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    whileInView={{ scale: 1, opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, ease: "backOut" }}
+                    className="w-full h-full rounded-full border-4 border-[#1F2937] bg-white overflow-hidden"
+                    style={{
+                      boxShadow: "12px 12px 0px 0px rgba(31, 41, 55, 1)",
+                    }}
+                  >
+                    {/* Image */}
+                    <img
+                      src={`./${feature.pic}.jpg`}
+                      alt={feature.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
   );
-}
+};
+
+export default FeaturesSection;

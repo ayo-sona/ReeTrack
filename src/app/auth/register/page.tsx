@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button, Input } from "@heroui/react";
+import Image from "next/image";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@heroui/react";
 import { Mail, Lock, User, Phone, Eye, EyeOff } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
@@ -36,14 +38,13 @@ export default function RegisterPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // console.log(formData);
 
     try {
       const response = await apiClient.post("auth/register-user", formData);
-      console.log(response.data);
+      
       if (response.data.statusCode === 201) {
         toast.success("Registration successful! Please log in.");
         router.push("/auth/login");
@@ -60,168 +61,321 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-md">
-        {error && (
-          <div>
-            <p className="bg-red-300 text-red-600 rounded-full p-4 text-center">
-              {error}
-            </p>
-          </div>
-        )}
-        <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
+    <div className="min-h-screen relative overflow-hidden bg-white">
+      {/* Diagonal Split Background */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Top Coral Section */}
+        <div 
+          className="absolute inset-0 bg-gradient-to-br from-[#F06543] to-[#D85436]"
+          style={{
+            clipPath: 'polygon(0 0, 100% 0, 100% 45%, 0 55%)',
+          }}
+        />
+        {/* Bottom Teal Section */}
+        <div 
+          className="absolute inset-0 bg-gradient-to-br from-[#0D9488] to-[#0B7A70]"
+          style={{
+            clipPath: 'polygon(0 55%, 100% 45%, 100% 100%, 0 100%)',
+          }}
+        />
+      </div>
+
+       {/* Scattered Avatar Illustrations - Different Set */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Top left - Walking call */}
+        <div className="absolute top-[10%] left-[25%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
+          <Image 
+            src="/undraw/walking_call.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="firstName" className="sr-only">
-                  First name
-                </label>
-                <Input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  required
-                  placeholder="First name"
-                  startContent={<User className="h-4 w-4 text-gray-400" />}
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  classNames={{
-                    input: "outline-none",
-                  }}
-                />
+        {/* Top right - Knowledge sharing */}
+        <div className="absolute bottom-[8%] right-[19%] w-28 h-28 sm:w-36 sm:h-36 opacity-90">
+          <Image 
+            src="/undraw/knowledge_sharing.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
+        </div>
+
+        {/* Middle left - Working */}
+        <div className="absolute bottom-[34%] left-[23%] w-20 h-20 sm:w-28 sm:h-28 opacity-90">
+          <Image 
+            src="/undraw/working.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
+        </div>
+
+        {/* Middle right - Mindfulness */}
+        <div className="absolute bottom-[15%] left-[16%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
+          <Image 
+            src="/undraw/mindfulness.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
+        </div>
+
+        {/* Bottom left - Accept task */}
+        <div className="absolute top-[30%] right-[20%] w-20 h-20 sm:w-28 sm:h-28 opacity-90">
+          <Image 
+            src="/undraw/accept_task.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
+        </div>
+
+        {/* Bottom right - Processing */}
+        <div className="absolute top-[8%] right-[23%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
+          <Image 
+            src="/undraw/processing.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
+        </div>
+
+        {/* Extra - Walking email (desktop only) */}
+        <div className="hidden lg:block absolute top-[28%] left-[18%] w-28 h-28 opacity-80">
+          <Image 
+            src="/undraw/walking_email.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
+        </div>
+
+        {/* Extra - Absorbed (desktop only) */}
+        <div className="hidden lg:block absolute bottom-[32%] right-[25%] w-24 h-24 opacity-80">
+          <Image 
+            src="/undraw/absorbed.svg" 
+            alt="" 
+            fill 
+            className="object-contain"
+          />
+        </div>
+      </div>
+
+
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-lg">
+          {/* Form Card */}
+          <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 backdrop-blur-sm bg-white/95">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-[#1F2937] mb-2">
+                Create Your Account
+              </h1>
+              <p className="text-[#1F2937]/60">
+                Join the community and start building
+              </p>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                <p className="text-sm text-red-700">{error}</p>
               </div>
-              <div>
-                <label htmlFor="lastName" className="sr-only">
-                  Last name
-                </label>
-                <Input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  required
-                  placeholder="Last name"
-                  startContent={<User className="h-4 w-4 text-gray-400" />}
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  classNames={{
-                    input: "outline-none",
-                  }}
-                />
-              </div>
-            </div>
+            )}
 
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                placeholder="Email address"
-                startContent={<Mail className="h-4 w-4 text-gray-400" />}
-                value={formData.email}
-                onChange={handleChange}
-                disabled={isLoading}
-                classNames={{
-                  input: "outline-none",
-                }}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="phone" className="sr-only">
-                Phone number
-              </label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                required
-                placeholder="Phone number"
-                startContent={<Phone className="h-4 w-4 text-gray-400" />}
-                value={formData.phone}
-                onChange={handleChange}
-                disabled={isLoading}
-                classNames={{
-                  input: "outline-none",
-                }}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <Input
-                id="password"
-                name="password"
-                autoComplete="new-password"
-                required
-                placeholder="Enter your password"
-                startContent={<Lock className="h-4 w-4 text-gray-400" />}
-                value={formData.password}
-                onChange={handleChange}
-                disabled={isLoading}
-                classNames={{
-                  input: "outline-none",
-                }}
-                isInvalid={formData.password.length < 8}
-                errorMessage="Password should be 8 characters long"
-                type={isVisible ? "text" : "password"}
-                endContent={
-                  <div
-                    className="outline-none cursor-pointer"
-                    onClick={toggleVisibility}
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* First Name & Last Name */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label 
+                    htmlFor="firstName" 
+                    className="block text-sm font-semibold text-[#1F2937] mb-2"
                   >
-                    {isVisible ? (
-                      <Eye className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    )}
-                  </div>
-                }
-              />
-            </div>
-          </div>
+                    First Name
+                  </label>
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    required
+                    placeholder="John"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    startContent={<User className="w-4 h-4 text-gray-400" />}
+                    classNames={{
+                      input: "outline-none",
+                      inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                    }}
+                  />
+                </div>
 
-          <div>
-            <Button
-              type="submit"
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-700"
-              disabled={isLoading}
-              isLoading={isLoading}
-            >
-              Create account
-            </Button>
-          </div>
-        </form>
+                <div>
+                  <label 
+                    htmlFor="lastName" 
+                    className="block text-sm font-semibold text-[#1F2937] mb-2"
+                  >
+                    Last Name
+                  </label>
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    required
+                    placeholder="Doe"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    startContent={<User className="w-4 h-4 text-gray-400" />}
+                    classNames={{
+                      input: "outline-none",
+                      inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                    }}
+                  />
+                </div>
+              </div>
 
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">
-                Already have an account?{" "}
-                <Link
-                  href="/auth/login"
-                  className="font-medium text-primary hover:text-primary/80"
+              {/* Email Input */}
+              <div>
+                <label 
+                  htmlFor="email" 
+                  className="block text-sm font-semibold text-[#1F2937] mb-2"
                 >
-                  Sign in
+                  Email Address
+                </label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  placeholder="you@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  startContent={<Mail className="w-4 h-4 text-gray-400" />}
+                  classNames={{
+                    input: "outline-none",
+                    inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                  }}
+                />
+              </div>
+
+              {/* Phone Input */}
+              <div>
+                <label 
+                  htmlFor="phone" 
+                  className="block text-sm font-semibold text-[#1F2937] mb-2"
+                >
+                  Phone Number
+                </label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  required
+                  placeholder="+1 (555) 000-0000"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  startContent={<Phone className="w-4 h-4 text-gray-400" />}
+                  classNames={{
+                    input: "outline-none",
+                    inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                  }}
+                />
+              </div>
+
+              {/* Password Input */}
+              <div>
+                <label 
+                  htmlFor="password" 
+                  className="block text-sm font-semibold text-[#1F2937] mb-2"
+                >
+                  Password
+                </label>
+                <Input
+                  id="password"
+                  name="password"
+                  type={isVisible ? "text" : "password"}
+                  autoComplete="new-password"
+                  required
+                  placeholder="Create a strong password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  startContent={<Lock className="w-4 h-4 text-gray-400" />}
+                  endContent={
+                    <button
+                      type="button"
+                      onClick={toggleVisibility}
+                      className="focus:outline-none"
+                    >
+                      {isVisible ? (
+                        <EyeOff className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                      ) : (
+                        <Eye className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                      )}
+                    </button>
+                  }
+                  isInvalid={formData.password.length > 0 && formData.password.length < 8}
+                  errorMessage={formData.password.length > 0 && formData.password.length < 8 ? "Password should be at least 8 characters long" : ""}
+                  classNames={{
+                    input: "outline-none",
+                    inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                  }}
+                />
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                variant="default"
+                size="lg"
+                disabled={isLoading}
+                className="w-full mt-6"
+              >
+                {isLoading ? "Creating account..." : "Create Account"}
+              </Button>
+            </form>
+
+            {/* Divider */}
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-[#1F2937]/60">
+                  Already have an account?
+                </span>
+              </div>
+            </div>
+
+            {/* Login Link */}
+            <div className="text-center space-y-3">
+              <Link
+                href="/auth/login"
+                className="text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors block"
+              >
+                Sign in instead →
+              </Link>
+              
+              {/* Organization Registration Link */}
+              <div className="pt-2 border-t border-gray-100">
+                <p className="text-xs text-[#1F2937]/50 mb-2">
+                  Building a community?
+                </p>
+                <Link
+                  href="/auth/org/register"
+                  className="text-xs font-semibold text-[#F06543] hover:text-[#D85436] transition-colors"
+                >
+                  Register as an organization →
                 </Link>
-              </span>
+              </div>
             </div>
           </div>
         </div>
