@@ -10,7 +10,7 @@ import { getCookie, deleteCookie } from "cookies-next/client";
 import { Spinner } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { label: "Features", href: "/features" },
@@ -332,7 +332,6 @@ const ClientOnlyNavigation = () => {
                 blur={24}
                 backgroundOpacity={0.1}
                 saturation={1.3}
-
               >
                 <div className="h-full flex flex-col justify-center px-8 py-16">
                   {/* Nav Items - Left Aligned */}

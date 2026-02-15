@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@heroui/react";
 import { Mail, Lock, User, Phone, Eye, EyeOff } from "lucide-react";
 import apiClient from "@/lib/apiClient";
@@ -44,7 +44,7 @@ export default function RegisterPage() {
 
     try {
       const response = await apiClient.post("auth/register-user", formData);
-      
+
       if (response.data.statusCode === 201) {
         toast.success("Registration successful! Please log in.");
         router.push("/auth/login");
@@ -65,104 +65,103 @@ export default function RegisterPage() {
       {/* Diagonal Split Background */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Top Coral Section */}
-        <div 
+        <div
           className="absolute inset-0 bg-gradient-to-br from-[#F06543] to-[#D85436]"
           style={{
-            clipPath: 'polygon(0 0, 100% 0, 100% 45%, 0 55%)',
+            clipPath: "polygon(0 0, 100% 0, 100% 45%, 0 55%)",
           }}
         />
         {/* Bottom Teal Section */}
-        <div 
+        <div
           className="absolute inset-0 bg-gradient-to-br from-[#0D9488] to-[#0B7A70]"
           style={{
-            clipPath: 'polygon(0 55%, 100% 45%, 100% 100%, 0 100%)',
+            clipPath: "polygon(0 55%, 100% 45%, 100% 100%, 0 100%)",
           }}
         />
       </div>
 
-       {/* Scattered Avatar Illustrations - Different Set */}
+      {/* Scattered Avatar Illustrations - Different Set */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Top left - Walking call */}
         <div className="absolute top-[10%] left-[25%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image 
-            src="/undraw/walking_call.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/walking_call.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
 
         {/* Top right - Knowledge sharing */}
         <div className="absolute bottom-[8%] right-[19%] w-28 h-28 sm:w-36 sm:h-36 opacity-90">
-          <Image 
-            src="/undraw/knowledge_sharing.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/knowledge_sharing.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
 
         {/* Middle left - Working */}
         <div className="absolute bottom-[34%] left-[23%] w-20 h-20 sm:w-28 sm:h-28 opacity-90">
-          <Image 
-            src="/undraw/working.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/working.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
 
         {/* Middle right - Mindfulness */}
         <div className="absolute bottom-[15%] left-[16%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image 
-            src="/undraw/mindfulness.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/mindfulness.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
 
         {/* Bottom left - Accept task */}
         <div className="absolute top-[30%] right-[20%] w-20 h-20 sm:w-28 sm:h-28 opacity-90">
-          <Image 
-            src="/undraw/accept_task.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/accept_task.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
 
         {/* Bottom right - Processing */}
         <div className="absolute top-[8%] right-[23%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image 
-            src="/undraw/processing.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/processing.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
 
         {/* Extra - Walking email (desktop only) */}
         <div className="hidden lg:block absolute top-[28%] left-[18%] w-28 h-28 opacity-80">
-          <Image 
-            src="/undraw/walking_email.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/walking_email.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
 
         {/* Extra - Absorbed (desktop only) */}
         <div className="hidden lg:block absolute bottom-[32%] right-[25%] w-24 h-24 opacity-80">
-          <Image 
-            src="/undraw/absorbed.svg" 
-            alt="" 
-            fill 
+          <Image
+            src="/undraw/absorbed.svg"
+            alt=""
+            fill
             className="object-contain"
           />
         </div>
       </div>
-
 
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
@@ -191,8 +190,8 @@ export default function RegisterPage() {
               {/* First Name & Last Name */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label 
-                    htmlFor="firstName" 
+                  <label
+                    htmlFor="firstName"
                     className="block text-sm font-semibold text-[#1F2937] mb-2"
                   >
                     First Name
@@ -209,14 +208,15 @@ export default function RegisterPage() {
                     startContent={<User className="w-4 h-4 text-gray-400" />}
                     classNames={{
                       input: "outline-none",
-                      inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                      inputWrapper:
+                        "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
                     }}
                   />
                 </div>
 
                 <div>
-                  <label 
-                    htmlFor="lastName" 
+                  <label
+                    htmlFor="lastName"
                     className="block text-sm font-semibold text-[#1F2937] mb-2"
                   >
                     Last Name
@@ -233,7 +233,8 @@ export default function RegisterPage() {
                     startContent={<User className="w-4 h-4 text-gray-400" />}
                     classNames={{
                       input: "outline-none",
-                      inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                      inputWrapper:
+                        "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
                     }}
                   />
                 </div>
@@ -241,8 +242,8 @@ export default function RegisterPage() {
 
               {/* Email Input */}
               <div>
-                <label 
-                  htmlFor="email" 
+                <label
+                  htmlFor="email"
                   className="block text-sm font-semibold text-[#1F2937] mb-2"
                 >
                   Email Address
@@ -260,15 +261,16 @@ export default function RegisterPage() {
                   startContent={<Mail className="w-4 h-4 text-gray-400" />}
                   classNames={{
                     input: "outline-none",
-                    inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                    inputWrapper:
+                      "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
                   }}
                 />
               </div>
 
               {/* Phone Input */}
               <div>
-                <label 
-                  htmlFor="phone" 
+                <label
+                  htmlFor="phone"
                   className="block text-sm font-semibold text-[#1F2937] mb-2"
                 >
                   Phone Number
@@ -285,15 +287,16 @@ export default function RegisterPage() {
                   startContent={<Phone className="w-4 h-4 text-gray-400" />}
                   classNames={{
                     input: "outline-none",
-                    inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                    inputWrapper:
+                      "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
                   }}
                 />
               </div>
 
               {/* Password Input */}
               <div>
-                <label 
-                  htmlFor="password" 
+                <label
+                  htmlFor="password"
                   className="block text-sm font-semibold text-[#1F2937] mb-2"
                 >
                   Password
@@ -322,11 +325,18 @@ export default function RegisterPage() {
                       )}
                     </button>
                   }
-                  isInvalid={formData.password.length > 0 && formData.password.length < 8}
-                  errorMessage={formData.password.length > 0 && formData.password.length < 8 ? "Password should be at least 8 characters long" : ""}
+                  isInvalid={
+                    formData.password.length > 0 && formData.password.length < 8
+                  }
+                  errorMessage={
+                    formData.password.length > 0 && formData.password.length < 8
+                      ? "Password should be at least 8 characters long"
+                      : ""
+                  }
                   classNames={{
                     input: "outline-none",
-                    inputWrapper: "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                    inputWrapper:
+                      "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
                   }}
                 />
               </div>
@@ -363,7 +373,7 @@ export default function RegisterPage() {
               >
                 Sign in instead →
               </Link>
-              
+
               {/* Organization Registration Link */}
               <div className="pt-2 border-t border-gray-100">
                 <p className="text-xs text-[#1F2937]/50 mb-2">
