@@ -60,7 +60,7 @@ export class MembersService {
     });
 
     if (!member) {
-      throw new NotFoundException(`Member not found in any organization`);
+      throw new NotFoundException(`User not found in any organization`);
     }
     return member;
   }
@@ -97,6 +97,7 @@ export class MembersService {
     const updated = this.userRepository.merge(member, {
       date_of_birth: updateDto.date_of_birth,
       address: updateDto.address,
+      phone: updateDto.phone,
     });
 
     return this.userRepository.save(updated);

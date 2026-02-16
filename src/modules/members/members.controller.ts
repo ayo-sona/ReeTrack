@@ -147,11 +147,11 @@ export class MembersController {
   @ApiOperation({ summary: 'Update a member' })
   @ApiResponse({
     status: 200,
-    description: 'Member updated successfully',
+    description: 'User updated successfully',
     type: Member,
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Member not found' })
+  @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 409, description: 'Email already in use' })
   @Put('/')
   update(@CurrentUser() user: any, @Body() UpdateMemberDto: UpdateMemberDto) {
@@ -160,10 +160,10 @@ export class MembersController {
 
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Delete a member' })
-  @ApiResponse({ status: 200, description: 'Member deleted successfully' })
+  @ApiResponse({ status: 200, description: 'User deleted successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Member not found' })
-  @ApiResponse({ status: 409, description: 'Member has active subscription' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 409, description: 'User has active subscription' })
   @Delete('/')
   delete(@CurrentUser() user: any) {
     return this.membersService.delete(user.id);

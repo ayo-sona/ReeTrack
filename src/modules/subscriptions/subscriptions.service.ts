@@ -6,7 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, MoreThan } from 'typeorm';
+import { Repository, LessThan, MoreThan, In } from 'typeorm';
 import { Member } from '../../database/entities/member.entity';
 import { Invoice } from '../../database/entities/invoice.entity';
 import {
@@ -107,19 +107,35 @@ export class SubscriptionsService {
       throw new NotFoundException('Plan not found or inactive');
     }
 
-    // Check if member already has an active subscription to this plan
+    // Check if member already has a subscription to this plan
     const existingSubscription =
       await this.memberSubscriptionRepository.findOne({
         where: {
           member_id: member.id,
           plan_id: createSubscriptionDto.planId,
-          status: SubscriptionStatus.ACTIVE,
+          status: In([SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING]),
         },
       });
 
     if (existingSubscription) {
       throw new BadRequestException(
-        'Member already has an active subscription to this plan',
+        'Member already has an active/pending subscription to this plan',
+      );
+    }
+
+    // Check if member already has an active subscription to this organization
+    const existingActiveSubscription =
+      await this.memberSubscriptionRepository.findOne({
+        where: {
+          member_id: member.id,
+          organization_id: organizationId,
+          status: In([SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING]),
+        },
+      });
+
+    if (existingActiveSubscription) {
+      throw new BadRequestException(
+        'Member already has an active/pending subscription to this organization.',
       );
     }
 
@@ -361,14 +377,10 @@ export class SubscriptionsService {
   /**
    * Cancel member subscription - stops recurring billing
    */
-  async cancelSubscription(
-    subscriptionId: string,
-    userId: string,
-    organizationId: string,
-  ) {
+  async cancelSubscription(subscriptionId: string, userId: string) {
     const subscription = await this.memberSubscriptionRepository.findOne({
-      where: { id: subscriptionId, organization_id: organizationId },
-      relations: ['member', 'member.user'],
+      where: { id: subscriptionId, member: { user_id: userId } },
+      relations: ['member.user'],
     });
 
     if (!subscription) {
@@ -385,23 +397,23 @@ export class SubscriptionsService {
     // Get organization user
     const orgUser = await this.organizationUserRepository.findOne({
       where: {
-        organization_id: organizationId,
+        organization_id: subscription.organization_id,
         user_id: subscription.member.user_id,
       },
     });
 
     // Deactivate Paystack authorization
-    if (orgUser?.paystack_authorization_code) {
-      await this.paystackService.deactivateAuthorization(
-        orgUser.paystack_authorization_code,
-      );
+    // if (orgUser?.paystack_authorization_code) {
+    //   await this.paystackService.deactivateAuthorization(
+    //     orgUser.paystack_authorization_code,
+    //   );
 
-      // Clear authorization from database
-      orgUser.paystack_authorization_code = null;
-      orgUser.paystack_card_last4 = null;
-      orgUser.paystack_card_brand = null;
-      await this.organizationUserRepository.save(orgUser);
-    }
+    //   // Clear authorization from database
+    //   orgUser.paystack_authorization_code = null;
+    //   orgUser.paystack_card_last4 = null;
+    //   orgUser.paystack_card_brand = null;
+    //   await this.organizationUserRepository.save(orgUser);
+    // }
 
     // Update subscription
     subscription.auto_renew = false;
@@ -425,16 +437,28 @@ export class SubscriptionsService {
   }
 
   /**
-   * Reactivate subscription if it has been cancelled or expired
+   * Reactivate subscription if it has been cancelled
    */
   async reactivateSubscription(subscriptionId: string, userId: string) {
     const subscription = await this.memberSubscriptionRepository.findOne({
       where: { id: subscriptionId },
-      relations: ['member', 'member.user', 'plan'],
+      relations: ['member.user', 'plan'],
     });
 
     if (!subscription) {
       throw new NotFoundException('Subscription not found');
+    }
+
+    if (subscription.status !== 'canceled') {
+      throw new BadRequestException(
+        'Only canceled subscriptions can be reactivated',
+      );
+    }
+
+    if (subscription.expires_at < new Date()) {
+      throw new BadRequestException(
+        "You can only reactivate a subscription that hasn't expired",
+      );
     }
 
     subscription.auto_renew = true;
@@ -551,7 +575,9 @@ export class SubscriptionsService {
     const existingSubscription = await this.organizationSubscriptionRepository
       .createQueryBuilder('sub')
       .where('sub.organization_id = :orgId', { orgId: organizationId })
-      .andWhere('sub.status = :status', { status: SubscriptionStatus.ACTIVE })
+      .andWhere('sub.status = :status', {
+        status: In([SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING]),
+      })
       .andWhere('sub.expires_at > :now', { now: new Date() })
       .getOne();
 
@@ -603,16 +629,16 @@ export class SubscriptionsService {
     const savedInvoice = await this.invoiceRepository.save(invoice);
 
     // 9. Send confirmation email
-    // await this.notificationsService.sendSubscriptionCreatedNotification({
-    //   email: organization.email,
-    //   memberName: organization.name,
-    //   planName: plan.name,
-    //   amount: plan.price,
-    //   currency: plan.currency,
-    //   interval: plan.interval,
-    //   startDate: now,
-    //   nextBilling: expiresAt,
-    // });
+    await this.notificationsService.sendSubscriptionCreatedNotification({
+      email: organization.email,
+      memberName: organization.name,
+      planName: plan.name,
+      amount: plan.price,
+      currency: plan.currency,
+      interval: plan.interval,
+      startDate: now,
+      nextBilling: expiresAt,
+    });
 
     return {
       message: 'Enterprise subscription created successfully',
@@ -734,6 +760,7 @@ export class SubscriptionsService {
   ) {
     const subscription = await this.organizationSubscriptionRepository.findOne({
       where: { id: subscriptionId, organization_id: organizationId },
+      relations: ['plan'],
     });
 
     if (!subscription) {
@@ -759,17 +786,17 @@ export class SubscriptionsService {
     if (!orgUser) throw new NotFoundException('User not found');
 
     // Deactivate Paystack authorization
-    if (orgUser?.paystack_authorization_code) {
-      await this.paystackService.deactivateAuthorization(
-        orgUser.paystack_authorization_code,
-      );
+    // if (orgUser?.paystack_authorization_code) {
+    //   await this.paystackService.deactivateAuthorization(
+    //     orgUser.paystack_authorization_code,
+    //   );
 
-      // Clear authorization from database
-      orgUser.paystack_authorization_code = null;
-      orgUser.paystack_card_last4 = null;
-      orgUser.paystack_card_brand = null;
-      await this.organizationUserRepository.save(orgUser);
-    }
+    //   // Clear authorization from database
+    //   orgUser.paystack_authorization_code = null;
+    //   orgUser.paystack_card_last4 = null;
+    //   orgUser.paystack_card_brand = null;
+    //   await this.organizationUserRepository.save(orgUser);
+    // }
 
     // Update subscription
     subscription.auto_renew = false;
@@ -779,12 +806,12 @@ export class SubscriptionsService {
     await this.organizationSubscriptionRepository.save(subscription);
 
     // Send cancellation email
-    // await this.notificationsService.sendSubscriptionCanceledNotification({
-    //   email: orgUser.user.email,
-    //   memberName: `${orgUser.user.first_name} ${orgUser.user.last_name}`,
-    //   subscriptionName: subscription.plan.name,
-    //   expiresAt: subscription.expires_at,
-    // });
+    await this.notificationsService.sendSubscriptionCanceledNotification({
+      email: orgUser.user.email,
+      memberName: `${orgUser.user.first_name} ${orgUser.user.last_name}`,
+      subscriptionName: subscription.plan.name,
+      expiresAt: subscription.expires_at,
+    });
 
     return {
       message: 'Subscription canceled successfully',

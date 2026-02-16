@@ -114,13 +114,31 @@ export class SubscriptionsController {
   @Patch('/members/:subscriptionId/cancel')
   cancel(
     @CurrentUser() user: any,
-    @CurrentOrganization() organizationId: string,
     @Param('subscriptionId') subscriptionId: string,
   ) {
     return this.subscriptionsService.cancelSubscription(
       subscriptionId,
       user.id,
-      organizationId,
+    );
+  }
+
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Reactivate a member subscription' })
+  @ApiResponse({
+    status: 200,
+    description: 'Subscription reactivated successfully',
+    type: MemberSubscription,
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 404, description: 'Subscription not found' })
+  @Post('/members/:subscriptionId/reactivate')
+  reactivate(
+    @CurrentUser() user: any,
+    @Param('subscriptionId') subscriptionId: string,
+  ) {
+    return this.subscriptionsService.reactivateSubscription(
+      subscriptionId,
+      user.id,
     );
   }
 

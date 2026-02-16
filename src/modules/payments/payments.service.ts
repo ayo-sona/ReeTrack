@@ -429,11 +429,15 @@ export class PaymentsService {
   async chargeRecurring(subscriptionId: string, invoiceId: string) {
     const subscription = await this.memberSubscriptionRepository.findOne({
       where: { id: subscriptionId },
-      relations: ['member', 'member.user', 'plan'],
+      relations: ['member.user', 'plan'],
     });
 
     if (!subscription) {
       throw new NotFoundException('Subscription not found');
+    }
+
+    if (subscription.canceled_at) {
+      throw new BadRequestException('Subscription is canceled');
     }
 
     const invoice = await this.invoiceRepository.findOne({

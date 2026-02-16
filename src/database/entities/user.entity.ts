@@ -57,7 +57,7 @@ export class User {
   @Column({ type: 'text', default: 'active' })
   status: string;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ type: 'boolean', default: true })
   email_verified: boolean;
 
   @ApiProperty({

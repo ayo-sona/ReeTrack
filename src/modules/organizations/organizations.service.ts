@@ -86,9 +86,12 @@ export class OrganizationsService {
     }
 
     // Check if email is being changed and is unique
-    if (updateDto.email && updateDto.email !== orgUser.organization.email) {
+    if (
+      updateDto.organizationEmail &&
+      updateDto.organizationEmail !== orgUser.organization.email
+    ) {
       const existingOrg = await this.organizationRepository.findOne({
-        where: { email: updateDto.email },
+        where: { email: updateDto.organizationEmail },
       });
 
       if (existingOrg) {

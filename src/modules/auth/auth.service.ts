@@ -543,6 +543,8 @@ export class AuthService {
       first_name: orgUser.first_name,
       last_name: orgUser.last_name,
       phone: orgUser.phone,
+      address: orgUser.address,
+      date_of_birth: orgUser.date_of_birth,
       organizations: orgUser.organization_users.map((orgUser) => ({
         id: orgUser.organization.id,
         name: orgUser.organization.name,
