@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { 
-  LineChart, 
-  Line, 
+import { useState, useMemo, act } from "react";
+import {
+  LineChart,
+  Line,
   AreaChart,
   Area,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
-} from 'recharts';
-import { useTeamMembers } from '../../hooks/useOrganisations';
-import clsx from 'clsx';
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { useTeamMembers } from "../../hooks/useOrganisations";
+import clsx from "clsx";
 
-type ChartType = 'line' | 'area';
-type TimeRange = '3m' | '6m' | '12m';
+type ChartType = "line" | "area";
+type TimeRange = "3m" | "6m" | "12m";
 
 // Custom Tooltip Component with proper types - Defined outside
 interface TooltipPayload {
@@ -38,13 +38,18 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
         <p className="text-gray-400 text-xs font-light mb-3">{label}</p>
         <div className="space-y-2">
           {payload.map((entry, index) => (
-            <div key={index} className="flex items-center justify-between gap-4">
+            <div
+              key={index}
+              className="flex items-center justify-between gap-4"
+            >
               <div className="flex items-center gap-2">
-                <div 
-                  className="w-2 h-2 rounded-full" 
+                <div
+                  className="w-2 h-2 rounded-full"
                   style={{ backgroundColor: entry.color }}
                 />
-                <span className="text-xs text-gray-300 capitalize">{entry.name}</span>
+                <span className="text-xs text-gray-300 capitalize">
+                  {entry.name}
+                </span>
               </div>
               <span className="text-sm font-medium text-white">
                 {entry.value}
@@ -59,37 +64,57 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 };
 
 export function MembersGrowthChart() {
-  const [chartType, setChartType] = useState<ChartType>('area');
-  const [timeRange, setTimeRange] = useState<TimeRange>('6m');
-  
+  const [chartType, setChartType] = useState<ChartType>("area");
+  const [timeRange, setTimeRange] = useState<TimeRange>("6m");
+
   const { data: teamMembers, isLoading } = useTeamMembers();
+  const actualMembers = teamMembers?.filter((m) => m.role === "MEMBER");
+  console.log(actualMembers);
 
   const chartData = useMemo(() => {
-    if (!teamMembers || teamMembers.length === 0) return [];
+    if (!actualMembers || actualMembers.length === 0) return [];
 
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth();
-    
+
     // Determine number of months based on time range
-    const monthsToShow = timeRange === '3m' ? 3 : timeRange === '6m' ? 6 : 12;
-    
+    const monthsToShow = timeRange === "3m" ? 3 : timeRange === "6m" ? 6 : 12;
+
     const data = [];
     for (let i = monthsToShow - 1; i >= 0; i--) {
       const monthIndex = (currentMonth - i + 12) % 12;
       const year = currentMonth - i < 0 ? currentYear - 1 : currentYear;
-      
-      const totalMembers = teamMembers.filter(m => {
+
+      const totalMembers = actualMembers?.filter((m) => {
         const joinedDate = new Date(m.user.created_at);
-        return (joinedDate.getFullYear() < year) || 
-               (joinedDate.getFullYear() === year && joinedDate.getMonth() <= monthIndex);
+        return (
+          joinedDate.getFullYear() < year ||
+          (joinedDate.getFullYear() === year &&
+            joinedDate.getMonth() <= monthIndex)
+        );
       }).length;
 
-      const activeMembers = teamMembers.filter(m => {
+      const activeMembers = actualMembers?.filter((m) => {
         const joinedDate = new Date(m.user.created_at);
-        const joinedByThisMonth = (joinedDate.getFullYear() < year) || 
-                                  (joinedDate.getFullYear() === year && joinedDate.getMonth() <= monthIndex);
-        return joinedByThisMonth && m.status === 'active';
+        const joinedByThisMonth =
+          joinedDate.getFullYear() < year ||
+          (joinedDate.getFullYear() === year &&
+            joinedDate.getMonth() <= monthIndex);
+        return joinedByThisMonth && m.status === "active";
       }).length;
 
       data.push({
@@ -99,18 +124,18 @@ export function MembersGrowthChart() {
         inactive: totalMembers - activeMembers,
       });
     }
-    
+
     return data;
-  }, [teamMembers, timeRange]);
+  }, [actualMembers, timeRange]);
 
   // Calculate stats
   const stats = useMemo(() => {
-    if (!teamMembers || teamMembers.length === 0) {
+    if (!actualMembers || actualMembers.length === 0) {
       return { total: 0, active: 0, inactive: 0, growthRate: 0 };
     }
 
-    const total = teamMembers.length;
-    const active = teamMembers.filter(m => m.status === 'active').length;
+    const total = actualMembers?.length;
+    const active = actualMembers?.filter((m) => m.status === "active").length;
     const inactive = total - active;
 
     // Calculate growth rate (comparing first and last month)
@@ -124,7 +149,7 @@ export function MembersGrowthChart() {
     }
 
     return { total, active, inactive, growthRate };
-  }, [teamMembers, chartData]);
+  }, [actualMembers, chartData]);
 
   if (isLoading) {
     return (
@@ -157,7 +182,7 @@ export function MembersGrowthChart() {
       margin: { top: 10, right: 10, left: 0, bottom: 0 },
     };
 
-    if (chartType === 'area') {
+    if (chartType === "area") {
       return (
         <AreaChart {...commonProps}>
           <defs>
@@ -174,7 +199,11 @@ export function MembersGrowthChart() {
               <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-gray-200/20 dark:text-gray-700/20" />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="currentColor"
+            className="text-gray-200/20 dark:text-gray-700/20"
+          />
           <XAxis
             dataKey="month"
             stroke="currentColor"
@@ -224,7 +253,11 @@ export function MembersGrowthChart() {
 
     return (
       <LineChart {...commonProps}>
-        <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-gray-200/20 dark:text-gray-700/20" />
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke="currentColor"
+          className="text-gray-200/20 dark:text-gray-700/20"
+        />
         <XAxis
           dataKey="month"
           stroke="currentColor"
@@ -279,7 +312,7 @@ export function MembersGrowthChart() {
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/40 to-white/20 dark:from-gray-900/40 dark:to-gray-800/20 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 shadow-2xl">
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 pointer-events-none" />
-      
+
       {/* Content */}
       <div className="relative p-8">
         {/* Header */}
@@ -297,7 +330,7 @@ export function MembersGrowthChart() {
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Chart Type Selector */}
             <div className="inline-flex items-center rounded-xl bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 p-1">
-              {(['line', 'area'] as ChartType[]).map((type) => (
+              {(["line", "area"] as ChartType[]).map((type) => (
                 <button
                   key={type}
                   onClick={() => setChartType(type)}
@@ -305,7 +338,7 @@ export function MembersGrowthChart() {
                     "px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-300 capitalize",
                     chartType === type
                       ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-lg"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
                   )}
                 >
                   {type}
@@ -315,7 +348,7 @@ export function MembersGrowthChart() {
 
             {/* Time Range Selector */}
             <div className="inline-flex items-center rounded-xl bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 p-1">
-              {(['3m', '6m', '12m'] as TimeRange[]).map((range) => (
+              {(["3m", "6m", "12m"] as TimeRange[]).map((range) => (
                 <button
                   key={range}
                   onClick={() => setTimeRange(range)}
@@ -323,10 +356,14 @@ export function MembersGrowthChart() {
                     "px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-300 whitespace-nowrap",
                     timeRange === range
                       ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-lg"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
                   )}
                 >
-                  {range === '3m' ? '3 Months' : range === '6m' ? '6 Months' : '12 Months'}
+                  {range === "3m"
+                    ? "3 Months"
+                    : range === "6m"
+                      ? "6 Months"
+                      : "12 Months"}
                 </button>
               ))}
             </div>
@@ -354,13 +391,20 @@ export function MembersGrowthChart() {
               </p>
               {stats.growthRate !== 0 && (
                 <div className="flex items-center gap-1 text-xs">
-                  <span className={clsx(
-                    "font-medium",
-                    stats.growthRate > 0 ? "text-blue-600 dark:text-blue-400" : "text-red-600 dark:text-red-400"
-                  )}>
-                    {stats.growthRate > 0 ? "↑" : "↓"} {Math.abs(stats.growthRate).toFixed(1)}%
+                  <span
+                    className={clsx(
+                      "font-medium",
+                      stats.growthRate > 0
+                        ? "text-blue-600 dark:text-blue-400"
+                        : "text-red-600 dark:text-red-400",
+                    )}
+                  >
+                    {stats.growthRate > 0 ? "↑" : "↓"}{" "}
+                    {Math.abs(stats.growthRate).toFixed(1)}%
                   </span>
-                  <span className="text-gray-400 dark:text-gray-500 font-light">growth</span>
+                  <span className="text-gray-400 dark:text-gray-500 font-light">
+                    growth
+                  </span>
                 </div>
               )}
             </div>
@@ -377,7 +421,10 @@ export function MembersGrowthChart() {
                 {stats.active}
               </p>
               <p className="text-xs text-gray-400 dark:text-gray-500 font-light">
-                {stats.total > 0 ? ((stats.active / stats.total) * 100).toFixed(0) : 0}% of total
+                {stats.total > 0
+                  ? ((stats.active / stats.total) * 100).toFixed(0)
+                  : 0}
+                % of total
               </p>
             </div>
           </div>
@@ -393,7 +440,10 @@ export function MembersGrowthChart() {
                 {stats.inactive}
               </p>
               <p className="text-xs text-gray-400 dark:text-gray-500 font-light">
-                {stats.total > 0 ? ((stats.inactive / stats.total) * 100).toFixed(0) : 0}% of total
+                {stats.total > 0
+                  ? ((stats.inactive / stats.total) * 100).toFixed(0)
+                  : 0}
+                % of total
               </p>
             </div>
           </div>
@@ -403,10 +453,13 @@ export function MembersGrowthChart() {
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/5 group-hover:from-purple-500/10 group-hover:to-purple-500/5 transition-all duration-300" />
             <div className="relative">
               <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-light mb-2">
-                Activity Rate
+                Active Rate
               </p>
               <p className="text-3xl font-light text-gray-900 dark:text-white mb-1">
-                {stats.total > 0 ? ((stats.active / stats.total) * 100).toFixed(0) : 0}%
+                {stats.total > 0
+                  ? ((stats.active / stats.total) * 100).toFixed(0)
+                  : 0}
+                %
               </p>
               <p className="text-xs text-gray-400 dark:text-gray-500 font-light">
                 Member engagement
@@ -419,15 +472,21 @@ export function MembersGrowthChart() {
         <div className="mt-6 flex flex-wrap items-center justify-center gap-6">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-blue-500" />
-            <span className="text-xs text-gray-600 dark:text-gray-400 font-light">Total Members</span>
+            <span className="text-xs text-gray-600 dark:text-gray-400 font-light">
+              Total Members
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-emerald-500" />
-            <span className="text-xs text-gray-600 dark:text-gray-400 font-light">Active Members</span>
+            <span className="text-xs text-gray-600 dark:text-gray-400 font-light">
+              Active Members
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-amber-500" />
-            <span className="text-xs text-gray-600 dark:text-gray-400 font-light">Inactive Members</span>
+            <span className="text-xs text-gray-600 dark:text-gray-400 font-light">
+              Inactive Members
+            </span>
           </div>
         </div>
       </div>

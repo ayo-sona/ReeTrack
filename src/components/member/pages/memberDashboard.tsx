@@ -65,7 +65,9 @@ export default function MemberDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-emerald-100 text-sm">Wallet Balance</p>
-              <h2 className="text-4xl font-bold mt-2">Coming Soon</h2>
+              <h2 className="text-emerald-100 text-4xl font-bold mt-2">
+                Coming Soon
+              </h2>
               <p className="text-emerald-100 text-sm mt-2">
                 Wallet feature will be available soon
               </p>
@@ -193,7 +195,7 @@ export default function MemberDashboard() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <Link href="/member/check-in">
+          <Link href="/member/check-ins">
             <button className="w-full p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-emerald-300 hover:shadow-md transition-all h-full">
               <div className="bg-emerald-100 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
                 <QrCode className="w-6 h-6 text-emerald-600" />

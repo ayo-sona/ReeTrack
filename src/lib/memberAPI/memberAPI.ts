@@ -33,6 +33,7 @@ export const getMembers = async (search?: string) => {
 export const updateProfile = async (updateData: {
   date_of_birth?: string;
   address?: string;
+  phone?: string;
 }) => {
   const { data } = await apiClient.put("/members", updateData);
   return data;
@@ -102,6 +103,17 @@ export const getSubscriptions = async (
 export const cancelSubscription = async (subscriptionId: string) => {
   const { data } = await apiClient.patch(
     `/subscriptions/members/${subscriptionId}/cancel`,
+  );
+  return data;
+};
+
+/**
+ * Reactivate a subscription
+ * POST /api/v1/subscriptions/members/:subscriptionId/reactivate
+ */
+export const reactivateSubscription = async (subscriptionId: string) => {
+  const { data } = await apiClient.post(
+    `/subscriptions/members/${subscriptionId}/reactivate`,
   );
   return data;
 };
@@ -302,6 +314,7 @@ export const memberApi = {
   getMySubscription,
   getSubscriptions,
   cancelSubscription,
+  reactivateSubscription,
   renewSubscription,
   changeSubscriptionPlan,
 

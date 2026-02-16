@@ -194,20 +194,20 @@ export default function MemberRegisterPage() {
               name="terms"
               type="checkbox"
               required
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              className="mt-1 h-4 w-4 text-[#0D9488] focus:ring-[#0D9488] border-gray-300 rounded"
             />
             <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
               I agree to the{" "}
               <a
                 href="/terms"
-                className="text-indigo-600 hover:text-indigo-500"
+                className="text-[#0D9488] hover:underline font-semibold"
               >
                 Terms of Service
               </a>{" "}
               and{" "}
               <a
                 href="/privacy"
-                className="text-indigo-600 hover:text-indigo-500"
+                className="text-[#0D9488] hover:underline font-semibold"
               >
                 Privacy Policy
               </a>
@@ -222,7 +222,7 @@ export default function MemberRegisterPage() {
                 isLoading ? "opacity-70 cursor-not-allowed" : ""
               }`}
             >
-              {isLoading ? "Creating account..." : "Create account"}
+              {isLoading ? "Joining..." : "Join Organization"}
             </button>
           </div>
         </form>

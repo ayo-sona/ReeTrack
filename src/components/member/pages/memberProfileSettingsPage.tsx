@@ -20,6 +20,7 @@ import {
   useDeleteMember,
 } from "@/hooks/memberHook/useMember";
 import { deleteCookie } from "cookies-next";
+import { Spinner } from "@heroui/react";
 
 // Interface for the wrapped API response
 interface ApiResponse<T> {
@@ -48,19 +49,20 @@ export default function ProfileSettingsPage() {
   const router = useRouter();
   const { data: profile, isLoading, error } = useProfile();
   const updateProfile = useUpdateProfile();
-  const deleteMember = useDeleteMember();
+  // const deleteMember = useDeleteMember();
 
   // Debug logging
-  console.log("Profile Debug:", {
-    profile,
-    isLoading,
-    error,
-    hasProfile: !!profile,
-    hasData: !!(profile as unknown as ApiResponse<UserProfile>)?.data,
-    profileStructure: profile ? Object.keys(profile) : [],
-  });
+  // console.log("Profile Debug:", {
+  //   profile,
+  //   isLoading,
+  //   error,
+  //   hasProfile: !!profile,
+  //   hasData: !!(profile as unknown as ApiResponse<UserProfile>)?.data,
+  //   profileStructure: profile ? Object.keys(profile) : [],
+  // });
 
-  // ✅ Handle wrapped API response - the actual user data is in profile.data
+  // Co-founder just changed this. You can adjust this!
+  // ✅ Handle wrapped API response - the actual user data is in profile
   // The API returns { statusCode: 200, message: "Success", data: {...actual user data} }
   const wrappedProfile = profile as unknown as
     | ApiResponse<UserProfile>
@@ -70,22 +72,26 @@ export default function ProfileSettingsPage() {
 
   const [activeTab, setActiveTab] = useState<"profile" | "account">("profile");
   const [isEditing, setIsEditing] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [editedDateOfBirth, setEditedDateOfBirth] = useState<string | null>(
     null,
   );
   const [editedAddress, setEditedAddress] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editedPhone, setEditedPhone] = useState<string | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  // const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // ✅ Compute values using actualProfile
   const dateOfBirth = editedDateOfBirth ?? (actualProfile?.date_of_birth || "");
   const address = editedAddress ?? (actualProfile?.address || "");
+  const phone = editedPhone ?? (actualProfile?.phone || "");
 
   const handleSaveProfile = async () => {
     try {
       await updateProfile.mutateAsync({
         date_of_birth: dateOfBirth || undefined,
         address: address || undefined,
+        phone: phone || undefined,
       });
       setIsEditing(false);
       setEditedDateOfBirth(null);
@@ -107,6 +113,7 @@ export default function ProfileSettingsPage() {
   };
 
   const handleLogout = () => {
+    setLoggingOut(true);
     // Clear cookies and local storage
     deleteCookie("access_token");
     deleteCookie("current_role");
@@ -115,24 +122,25 @@ export default function ProfileSettingsPage() {
 
     // Redirect to login
     router.push("/auth/login");
+    setLoggingOut(false);
   };
 
-  const handleDeleteAccount = async () => {
-    try {
-      await deleteMember.mutateAsync();
+  // const handleDeleteAccount = async () => {
+  //   try {
+  //     await deleteMember.mutateAsync();
 
-      // Clear session
-      deleteCookie("access_token");
-      deleteCookie("current_role");
-      deleteCookie("user_roles");
-      localStorage.clear();
+  //     // Clear session
+  //     deleteCookie("access_token");
+  //     deleteCookie("current_role");
+  //     deleteCookie("user_roles");
+  //     localStorage.clear();
 
-      // Redirect to login
-      router.push("/auth/login");
-    } catch (error) {
-      console.error("Failed to delete account:", error);
-    }
-  };
+  //     // Redirect to login
+  //     router.push("/auth/login");
+  //   } catch (error) {
+  //     console.error("Failed to delete account:", error);
+  //   }
+  // };
 
   if (isLoading) {
     return (
@@ -347,6 +355,7 @@ export default function ProfileSettingsPage() {
                       <input
                         type="tel"
                         value={actualProfile.phone || ""}
+                        onChange={(e) => setEditedPhone(e.target.value)}
                         disabled
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                       />
@@ -470,13 +479,17 @@ export default function ProfileSettingsPage() {
                     onClick={handleLogout}
                     className="w-full md:w-auto px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
                   >
-                    <LogOut className="w-5 h-5" />
+                    {loggingOut ? (
+                      <Spinner color="danger" />
+                    ) : (
+                      <LogOut className="w-5 h-5" />
+                    )}
                     Log Out
                   </button>
                 </div>
 
                 {/* Delete Account */}
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-red-200">
+                {/* <div className="bg-white rounded-xl p-6 shadow-sm border border-red-200">
                   <h3 className="text-lg font-bold text-red-900 mb-4">
                     Danger Zone
                   </h3>
@@ -492,7 +505,7 @@ export default function ProfileSettingsPage() {
                     <Trash2 className="w-5 h-5" />
                     Delete Account
                   </button>
-                </div>
+                </div> */}
               </div>
             )}
           </div>
@@ -500,7 +513,7 @@ export default function ProfileSettingsPage() {
       </div>
 
       {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
+      {/* {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full">
             <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -531,7 +544,7 @@ export default function ProfileSettingsPage() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
