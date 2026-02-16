@@ -23,7 +23,7 @@ import {
 import { mapApiPaymentsToUiPayments } from "../../../utils/paymentMapper";
 
 export default function PaymentsPage() {
-  const [showManualPaymentModal, setShowManualPaymentModal] = useState(false);
+  // const [showManualPaymentModal, setShowManualPaymentModal] = useState(false);
 
   // Filter state
   const [searchTerm, setSearchTerm] = useState("");
@@ -82,7 +82,6 @@ export default function PaymentsPage() {
   });
   // console.log("filteredPayments", filteredPayments);
 
-  // UI-only: Calculate stats from fetched data or use backend stats
   const displayStats = stats
     ? [
         {
@@ -99,29 +98,29 @@ export default function PaymentsPage() {
           color: "bg-blue-500",
           subtext: "All time",
         },
+        // {
+        //   title: "Total Profit",
+        //   value: `₦${((stats.total_revenue - stats.total_expenses) / 1000).toFixed(1)}K`,
+        //   icon: CreditCard,
+        //   color: "bg-purple-500",
+        //   subtext: "All time",
+        // },
         {
-          title: "Total Profit",
-          value: `₦${((stats.total_revenue - stats.total_expenses) / 1000).toFixed(1)}K`,
-          icon: CreditCard,
-          color: "bg-purple-500",
-          subtext: "All time",
-        },
-        {
-          title: "Successful Payments",
+          title: "Successful Member Payments",
           value: stats.successful_payments,
           icon: Users,
           color: "bg-green-500",
           subtext: "All time",
         },
         {
-          title: "Failed Payments",
+          title: "Failed Member Payments",
           value: stats.failed_payments,
           icon: Users,
           color: "bg-red-500",
           subtext: "All time",
         },
         {
-          title: "Pending Payments",
+          title: "Pending Member Payments",
           value: stats.pending_payments,
           icon: Users,
           color: "bg-yellow-500",
@@ -204,13 +203,13 @@ export default function PaymentsPage() {
             View all payments and manually log transactions
           </p>
         </div>
-        <button
+        {/* <button
           onClick={() => setShowManualPaymentModal(true)}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
         >
           <Plus className="h-4 w-4" />
           Log Payment
-        </button>
+        </button> */}
       </div>
 
       {/* Stats Grid */}

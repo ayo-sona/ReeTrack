@@ -10,6 +10,7 @@ import { useProfile } from "@/hooks/memberHook/useMember";
 import { Spinner } from "@heroui/react";
 import apiClient from "@/lib/apiClient";
 import { usePaystack } from "@/hooks/usePaystack";
+import { toast } from "sonner";
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -144,10 +145,51 @@ export default function CheckoutPage() {
       // if (!paystack) return;
       // paystack.resumeTransaction(paymentData.access_code);
       router.refresh();
-      //   window.location.href = payment.authorization_url;
-    } catch (error) {
-      console.error("Subscription error:", error);
-      alert("Failed to start subscription");
+    } catch (error: any) {
+      // console.error("Subscription error:", error.data);
+      // toast("Failed to start subscription");
+
+      // Handle Axios error response
+      if (error.response) {
+        const { data, status, statusText } = error.response;
+
+        console.error("Response error:", {
+          status,
+          statusText,
+          data,
+        });
+
+        // Handle specific error statuses
+        if (status === 400) {
+          // Bad Request
+          setError(
+            data.message ||
+              "Invalid request. Please check your details and try again.",
+          );
+        } else if (status === 403) {
+          // Forbidden
+          setError("You don't have permission to perform this action.");
+        } else if (status === 404) {
+          // Not Found
+          setError("The requested resource was not found.");
+        } else if (status >= 500) {
+          // Server Error
+          setError("A server error occurred. Please try again later.");
+        } else {
+          // Other errors
+          setError(data.message || "An error occurred. Please try again.");
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error("No response received:", error.request);
+        setError(
+          "No response from server. Please check your connection and try again.",
+        );
+      } else {
+        // Something happened in setting up the request
+        console.error("Request setup error:", error.message);
+        setError(error.message || "An error occurred. Please try again.");
+      }
     } finally {
       setIsProcessing(false);
     }

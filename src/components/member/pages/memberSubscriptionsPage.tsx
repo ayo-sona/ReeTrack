@@ -18,7 +18,7 @@ export default function SubscriptionsPage() {
     if (!sub.plan || !sub.plan.name) {
       return false;
     }
-    
+
     const matchesSearch =
       sub.plan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       sub.plan.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -30,7 +30,7 @@ export default function SubscriptionsPage() {
   const sortedSubscriptions = filteredSubscriptions
     ? [...filteredSubscriptions].sort(
         (a, b) =>
-          new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime()
+          new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime(),
       )
     : [];
 
@@ -39,7 +39,7 @@ export default function SubscriptionsPage() {
     const now = new Date();
     const expiry = new Date(expiresAt);
     const daysUntilExpiry = Math.ceil(
-      (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
     );
     return daysUntilExpiry <= 7 && daysUntilExpiry > 0;
   };
@@ -109,7 +109,7 @@ export default function SubscriptionsPage() {
                           | "active"
                           | "expired"
                           | "canceled"
-                          | "pending"
+                          | "pending",
                       )
                     }
                     className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
@@ -120,13 +120,11 @@ export default function SubscriptionsPage() {
                   >
                     {status.charAt(0).toUpperCase() + status.slice(1)}
                   </button>
-                )
+                ),
               )}
             </div>
           </div>
         </div>
-
-        
 
         {/* Subscriptions List */}
         {isLoading ? (
@@ -172,7 +170,7 @@ export default function SubscriptionsPage() {
                       </div>
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(
-                          sub.status
+                          sub.status,
                         )}`}
                       >
                         {getStatusIcon(sub.status)}
@@ -186,20 +184,24 @@ export default function SubscriptionsPage() {
                       <span className="text-3xl font-bold text-gray-900">
                         ₦{sub.plan.price.toLocaleString()}
                       </span>
-                      <span className="text-gray-600">/{sub.plan.interval}</span>
+                      <span className="text-gray-600">
+                        /{sub.plan.interval}
+                      </span>
                     </div>
 
                     {/* Features - ✅ FIXED: Use featuresArray instead of sub.plan.features */}
                     <div className="space-y-2 mb-4">
-                      {featuresArray.slice(0, 3).map((feature: string, idx: number) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-2 text-sm text-gray-600"
-                        >
-                          <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full"></div>
-                          {feature}
-                        </div>
-                      ))}
+                      {featuresArray
+                        .slice(0, 3)
+                        .map((feature: string, idx: number) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2 text-sm text-gray-600"
+                          >
+                            <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full"></div>
+                            {feature}
+                          </div>
+                        ))}
                       {featuresArray.length > 3 && (
                         <p className="text-sm text-gray-500">
                           +{featuresArray.length - 3} more features
@@ -239,7 +241,7 @@ export default function SubscriptionsPage() {
                     )}
 
                     {/* Check-in Button for Active Subs - 🔜 Placeholder */}
-                    {sub.status === "active" && (
+                    {/* {sub.status === "active" && (
                       <button
                         onClick={(e) => {
                           e.preventDefault();
@@ -250,7 +252,7 @@ export default function SubscriptionsPage() {
                         <QrCode className="w-4 h-4" />
                         Check In
                       </button>
-                    )}
+                    )} */}
                   </div>
                 </Link>
               );

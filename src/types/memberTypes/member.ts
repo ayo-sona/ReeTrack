@@ -257,6 +257,7 @@ export interface ApiResponse<T> {
 export interface UpdateMemberDto {
   date_of_birth?: string; // ⭐ Will update user.date_of_birth
   address?: string; // ⭐ Will update user.address
+  phone?: string; // ⭐ Will update user.phone
 }
 
 /**
