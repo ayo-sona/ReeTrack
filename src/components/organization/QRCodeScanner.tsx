@@ -58,6 +58,7 @@ export default function QRCodeScanner({
       });
       console.log(response.data.data);
       if (response.data.statusCode === 201) {
+        setScannerState("initial");
         setSuccess({
           member: response.data.data.fullName,
           message: "Check-in successful!",
@@ -71,7 +72,6 @@ export default function QRCodeScanner({
       setIsProcessing(false);
       setTimeout(() => {
         setSuccess(null);
-        setScannerState("initial");
       }, 3000);
       //   if (html5QrcodeRef.current) {
       //     html5QrcodeRef.current.resume();
