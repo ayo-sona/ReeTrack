@@ -3,41 +3,27 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import Image from "next/image";
 
-// Define the content keys as a type
 type ContentKey = "who-we-are" | "what-we-do" | "the-problem" | "our-solution";
 
 const AboutSection = () => {
   const [activeTab, setActiveTab] = useState<ContentKey>("who-we-are");
 
   const tabs = [
-    {
-      id: "who-we-are" as const,
-      label: "Who We Are",
-      color: "#0D9488",
-    },
-    {
-      id: "what-we-do" as const,
-      label: "What We Do",
-      color: "#F06543",
-    },
-    {
-      id: "the-problem" as const,
-      label: "The Problem",
-      color: "#0D9488",
-    },
-    {
-      id: "our-solution" as const,
-      label: "Our Solution",
-      color: "#F06543",
-    },
+    { id: "who-we-are" as const, label: "Who We Are", color: "#0D9488" },
+    { id: "what-we-do" as const, label: "What We Do", color: "#F06543" },
+    { id: "the-problem" as const, label: "The Problem", color: "#0D9488" },
+    { id: "our-solution" as const, label: "Our Solution", color: "#F06543" },
   ];
 
-  const content: Record<ContentKey, {
-    title: string;
-    description: string;
-    image: string;
-    imagePosition: "left" | "right";
-  }> = {
+  const content: Record<
+    ContentKey,
+    {
+      title: string;
+      description: string;
+      image: string;
+      imagePosition: "left" | "right";
+    }
+  > = {
     "who-we-are": {
       title: "Built by Community Builders",
       description:
@@ -71,7 +57,9 @@ const AboutSection = () => {
   const activeContent = content[activeTab];
 
   return (
-    <section className="relative py-20 bg-gradient-to-b from-white to-gray-50/30 overflow-hidden">
+    // Lock background gradient to light-mode colors in dark mode
+    // Lock background gradient to light-mode colors in dark mode
+    <section className="relative py-20 bg-white overflow-hidden">
       <div className="max-w-6xl mx-auto px-6 relative">
         {/* Section Header */}
         <motion.div
@@ -85,7 +73,6 @@ const AboutSection = () => {
             Built by community builders,{" "}
             <span className="relative inline-block">
               <span className="relative z-10">for communities</span>
-              {/* Soft underline accent */}
               <motion.span
                 initial={{ scaleX: 0 }}
                 whileInView={{ scaleX: 1 }}
@@ -106,37 +93,37 @@ const AboutSection = () => {
           className="flex flex-wrap justify-center gap-3 mb-16"
         >
           {tabs.map((tab) => (
-           <button
-           key={tab.id}
-           onClick={() => setActiveTab(tab.id)}
-           className={`px-6 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
-             activeTab === tab.id
-               ? "text-white shadow-lg scale-105"
-               : "text-[#1F2937] bg-white border-2 border-gray-200"
-           }`}
-           style={{
-             backgroundColor: activeTab === tab.id ? tab.color : "white",
-             boxShadow:
-               activeTab === tab.id
-                 ? `0 10px 30px ${tab.color}30`
-                 : undefined,
-             color: activeTab === tab.id ? "white" : undefined,
-           }}
-           onMouseEnter={(e) => {
-             if (activeTab !== tab.id) {
-               e.currentTarget.style.borderColor = tab.color;
-               e.currentTarget.style.color = tab.color;
-             }
-           }}
-           onMouseLeave={(e) => {
-             if (activeTab !== tab.id) {
-               e.currentTarget.style.borderColor = "#e5e7eb";
-               e.currentTarget.style.color = "#1F2937";
-             }
-           }}
-         >
-           {tab.label}
-         </button>
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              // Lock inactive tab to white bg + gray-200 border (not dark variants)
+              className={`px-6 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
+                activeTab === tab.id
+                  ? "text-white shadow-lg scale-105"
+                  : "text-[#1F2937] bg-white border-2 border-gray-200"
+              }`}
+              style={{
+                backgroundColor: activeTab === tab.id ? tab.color : undefined,
+                boxShadow:
+                  activeTab === tab.id
+                    ? `0 10px 30px ${tab.color}30`
+                    : undefined,
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== tab.id) {
+                  e.currentTarget.style.borderColor = tab.color;
+                  e.currentTarget.style.color = tab.color;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== tab.id) {
+                  e.currentTarget.style.borderColor = "#e5e7eb";
+                  e.currentTarget.style.color = "#1F2937";
+                }
+              }}
+            >
+              {tab.label}
+            </button>
           ))}
         </motion.div>
 
@@ -171,8 +158,6 @@ const AboutSection = () => {
                   className="object-cover"
                 />
               </div>
-
-    
             </motion.div>
 
             {/* Text Content */}
@@ -207,7 +192,7 @@ const AboutSection = () => {
                   {activeContent.description}
                 </p>
 
-                {/* Optional CTA */}
+                {/* CTA */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}

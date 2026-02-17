@@ -14,7 +14,7 @@ import { ScrollReveal } from "@/components/effects/scrollReveal";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <Navigation />
       
       {/* Hero shows immediately - no animation needed */}

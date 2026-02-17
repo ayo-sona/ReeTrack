@@ -38,7 +38,7 @@
       ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   }
 
-  /* Dark Theme */
+  /* Dark Theme
   .dark {
     --background: #0f172a;
     --foreground: #f8fafc;
@@ -50,7 +50,7 @@
     --ring: #0d9488;
     --muted: #1e293b;
     --muted-foreground: #94a3b8;
-  }
+  } */
 
   body {
     @apply antialiased;

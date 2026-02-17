@@ -46,7 +46,7 @@ const EnhancedCTASection = () => {
   ];
 
   return (
-    <section className="relative py-24 sm:py-32 bg-gradient-to-br from-[#0D9488] via-[#0D9488] to-[#0B7A70] overflow-hidden">
+    <section className="relative py-24 sm:py-32 bg-[#0D9488] overflow-hidden">
       {/* Subtle pattern overlay */}
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"

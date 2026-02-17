@@ -57,7 +57,7 @@ export function ScrollReveal({
           }
         },
       }}
-      className={className}
+      className={`bg-background ${className}`}  // add bg-background here
     >
       {children}
     </motion.div>

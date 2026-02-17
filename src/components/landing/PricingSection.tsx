@@ -53,7 +53,7 @@ const PricingSection = () => {
   ];
 
   return (
-    <section className="relative py-24 bg-gradient-to-b from-white to-gray-50/30 overflow-hidden">
+    <section className="relative py-24 bg-white overflow-hidden">
       {/* Subtle background pattern */}
       <div
         className="absolute inset-0 opacity-[0.015] pointer-events-none"

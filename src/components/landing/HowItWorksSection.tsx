@@ -33,7 +33,7 @@ const steps = [
 
 export function HowItWorksSection() {
   return (
-    <section className="relative py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50/30 to-white overflow-hidden">
+    <section className="relative py-24 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">
       {/* Subtle background pattern */}
       <div
         className="absolute inset-0 opacity-[0.015] pointer-events-none"
@@ -68,7 +68,7 @@ export function HowItWorksSection() {
             </span>
           </h2>
           <p className="text-lg text-[#1F2937]/60 max-w-2xl mx-auto leading-relaxed">
-            From setup to growth, we've made the process simple and intuitive.
+            From setup to growth, we&apos;ve made the process simple and intuitive.
           </p>
         </motion.div>
 
@@ -200,7 +200,7 @@ export function HowItWorksSection() {
           className="text-center mt-16"
         >
           <p className="text-sm text-[#1F2937]/50">
-            Ready to transform your organization's subscription management?
+            Ready to transform your organization&apos;s subscription management?
           </p>
         </motion.div>
       </div>
