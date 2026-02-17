@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, Button, Chip, Spinner } from "@heroui/react";
 import apiClient from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 // Add proper types
 interface Plan {
@@ -39,6 +40,7 @@ export default function BillingPage() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -67,17 +69,20 @@ export default function BillingPage() {
   };
 
   const handleCancel = async () => {
-    if (!confirm("Cancel subscription? You can use it until expiry.")) return;
+    if (!confirm("Are you sure you want to cancel your subscription?")) return;
 
     try {
+      setIsCancelling(true);
       await apiClient.patch(
         `/subscriptions/organizations/${subscription?.id}/cancel`,
       );
-      alert("Subscription canceled");
+      toast("Subscription canceled");
       loadData();
     } catch (err) {
       console.error("Failed to cancel subscription:", err);
-      alert("Failed to cancel");
+      toast("Failed to cancel");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -86,8 +91,8 @@ export default function BillingPage() {
   return (
     <div className="container mx-auto py-12">
       {/* Current Subscription */}
-      <Card className="mb-6">
-        <h1 className="text-2xl font-bold">Current Subscription</h1>
+      <Card className="mb-6 p-6">
+        <h1 className="text-2xl font-bold mb-2">Current Subscription</h1>
         {subscription ? (
           <>
             <p className="text-2xl font-bold">{subscription.plan.name}</p>
@@ -118,7 +123,13 @@ export default function BillingPage() {
 
             {/* Actions */}
             <div className="mt-4 flex gap-2">
-              <Button color="danger" variant="light" onPress={handleCancel}>
+              <Button
+                color="danger"
+                isLoading={isCancelling}
+                disabled={isCancelling}
+                variant="flat"
+                onPress={handleCancel}
+              >
                 Cancel Subscription
               </Button>
             </div>
@@ -129,8 +140,8 @@ export default function BillingPage() {
       </Card>
 
       {/* Invoices */}
-      <Card>
-        <h1 className="text-2xl font-bold">Billing History</h1>
+      <Card className="mb-6 p-6">
+        <h1 className="text-2xl font-bold mb-2">Billing History</h1>
         <div className="space-y-2">
           {invoices.map((invoice) => (
             <div

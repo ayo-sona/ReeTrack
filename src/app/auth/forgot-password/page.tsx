@@ -191,7 +191,7 @@ export default function ForgotPasswordPage() {
                       }}
                       className="w-full px-3 py-2 text-center text-xl tracking-widest"
                       classNames={{
-                        input: "outline-none",
+                        input: "outline-none focus-visible:outline-none",
                       }}
                     />
                   </div>
@@ -210,7 +210,7 @@ export default function ForgotPasswordPage() {
                       onChange={(e) => setNewPassword(e.target.value)}
                       className="w-full px-3 py-2"
                       classNames={{
-                        input: "outline-none",
+                        input: "outline-none focus-visible:outline-none",
                       }}
                     />
                   </div>
@@ -229,7 +229,7 @@ export default function ForgotPasswordPage() {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className="w-full px-3 py-2"
                       classNames={{
-                        input: "outline-none",
+                        input: "outline-none focus-visible:outline-none",
                       }}
                     />
                   </div>

@@ -8,6 +8,7 @@ import {
   Loader2,
   UserPlus,
   Landmark,
+  Pen,
 } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { Button } from "@heroui/react";
@@ -22,6 +23,8 @@ export default function SettingsPage() {
     address: "",
     website: "",
     role: "",
+    phone: "",
+    description: "",
   });
 
   const [profileData, setProfileData] = useState({
@@ -29,8 +32,12 @@ export default function SettingsPage() {
     lastName: "",
     email: "",
     phone: "",
+    dob: "",
+    address: "",
   });
   const [loading, setLoading] = useState(false);
+  const [editingOrg, setEditingOrg] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isAddSubaccountModalOpen, setIsAddSubaccountModalOpen] =
     useState(false);
@@ -45,6 +52,8 @@ export default function SettingsPage() {
           lastName: response.data.data.last_name,
           email: response.data.data.email,
           phone: response.data.data.phone,
+          dob: response.data.data.date_of_birth,
+          address: response.data.data.address,
         });
         setOrgData({
           name: response.data.data.organizations[0].name,
@@ -52,8 +61,10 @@ export default function SettingsPage() {
           address: response.data.data.organizations[0].address,
           website: response.data.data.organizations[0].website,
           role: response.data.data.organizations[0].role,
+          phone: response.data.data.organizations[0].phone,
+          description: response.data.data.organizations[0].description,
         });
-        console.log("Profile fetched:", response.data);
+        console.log("Profile fetched:", response.data.data);
       } catch (error) {
         console.error("Error fetching profile:", error);
       } finally {
@@ -63,16 +74,46 @@ export default function SettingsPage() {
     fetchProfile();
   }, []);
 
-  const handleOrgSubmit = (e: React.SubmitEvent) => {
-    e.preventDefault();
+  const handleOrgSubmit = async () => {
     console.log("Organization updated:", orgData);
-    // TODO: Implement API call
+
+    try {
+      setLoading(true);
+      const response = await apiClient.put("/organizations/me", {
+        organizationName: orgData.name,
+        address: orgData.address,
+        website: orgData.website,
+        phone: orgData.phone,
+        description: orgData.description,
+      });
+      console.log("Organization updated:", response.data.data);
+      toast.success("Organization updated successfully");
+    } catch (error) {
+      console.error("Error updating organization:", error);
+    } finally {
+      setLoading(false);
+      setEditingOrg(false);
+    }
   };
 
-  const handleProfileSubmit = (e: React.SubmitEvent) => {
-    e.preventDefault();
+  const handleProfileSubmit = async () => {
     console.log("Profile updated:", profileData);
-    // TODO: Implement API call
+
+    try {
+      setLoading(true);
+      const response = await apiClient.put("/members", {
+        phone: profileData.phone,
+        date_of_birth: profileData.dob,
+        address: profileData.address,
+      });
+      console.log("Profile updated:", response.data.data);
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    } finally {
+      setLoading(false);
+      setEditingProfile(false);
+    }
   };
 
   const handleInviteSuccess = () => {
@@ -121,7 +162,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <form onSubmit={handleOrgSubmit} className="space-y-4">
+          <form className="space-y-4">
             <div>
               <label
                 htmlFor="org-name"
@@ -151,9 +192,10 @@ export default function SettingsPage() {
                 id="org-email"
                 type="email"
                 value={orgData.email}
-                onChange={(e) =>
-                  setOrgData({ ...orgData, email: e.target.value })
-                }
+                // onChange={(e) =>
+                //   setOrgData({ ...orgData, email: e.target.value })
+                // }
+                disabled
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
@@ -184,10 +226,50 @@ export default function SettingsPage() {
               <textarea
                 id="org-address"
                 value={orgData.address}
+                placeholder="Organization Address"
                 onChange={(e) =>
                   setOrgData({ ...orgData, address: e.target.value })
                 }
+                disabled={!editingOrg}
                 rows={2}
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="org-phone"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Phone
+              </label>
+              <input
+                id="org-phone"
+                type="text"
+                value={orgData.phone}
+                onChange={(e) =>
+                  setOrgData({ ...orgData, phone: e.target.value })
+                }
+                disabled={!editingOrg}
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="org-description"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Description
+              </label>
+              <input
+                id="org-description"
+                type="text"
+                value={orgData.description}
+                onChange={(e) =>
+                  setOrgData({ ...orgData, description: e.target.value })
+                }
+                disabled={!editingOrg}
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
@@ -206,17 +288,36 @@ export default function SettingsPage() {
                 onChange={(e) =>
                   setOrgData({ ...orgData, website: e.target.value })
                 }
+                disabled={!editingOrg}
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
-            <button
-              type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-            >
-              <Save className="h-4 w-4" />
-              Save Changes
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setEditingOrg(!editingOrg);
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-green-900 transition-colors"
+              >
+                <Pen className="h-4 w-4" />
+                Edit
+              </button>
+
+              <button
+                disabled={!editingOrg}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleOrgSubmit();
+                }}
+                className={`flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors ${editingOrg ? "hover:bg-green-900" : "cursor-not-allowed opacity-50"}`}
+              >
+                <Save className="h-4 w-4" />
+                Save Changes
+              </button>
+            </div>
           </form>
         </div>
 
@@ -228,7 +329,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Admin Profile
+                Profile
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Manage your personal information
@@ -236,7 +337,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <form onSubmit={handleProfileSubmit} className="space-y-4">
+          <form className="space-y-4">
             <div>
               <label
                 htmlFor="first-name"
@@ -248,9 +349,10 @@ export default function SettingsPage() {
                 id="first-name"
                 type="text"
                 value={profileData.firstName}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, firstName: e.target.value })
-                }
+                // onChange={(e) =>
+                //   setProfileData({ ...profileData, firstName: e.target.value })
+                // }
+                disabled
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
@@ -266,9 +368,10 @@ export default function SettingsPage() {
                 id="last-name"
                 type="text"
                 value={profileData.lastName}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, lastName: e.target.value })
-                }
+                // onChange={(e) =>
+                //   setProfileData({ ...profileData, lastName: e.target.value })
+                // }
+                disabled
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
@@ -284,9 +387,10 @@ export default function SettingsPage() {
                 id="profile-email"
                 type="email"
                 value={profileData.email}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, email: e.target.value })
-                }
+                // onChange={(e) =>
+                //   setProfileData({ ...profileData, email: e.target.value })
+                // }
+                disabled
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
@@ -305,17 +409,71 @@ export default function SettingsPage() {
                 onChange={(e) =>
                   setProfileData({ ...profileData, phone: e.target.value })
                 }
+                disabled={!editingProfile}
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
 
-            <button
-              type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-            >
-              <Save className="h-4 w-4" />
-              Save Changes
-            </button>
+            <div>
+              <label
+                htmlFor="profile-dob"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                D.O.B
+              </label>
+              <input
+                id="profile-dob"
+                type="date"
+                value={profileData.dob}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, dob: e.target.value })
+                }
+                disabled={!editingProfile}
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="profile-address"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Address
+              </label>
+              <input
+                id="profile-address"
+                type="text"
+                value={profileData.address}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, address: e.target.value })
+                }
+                disabled={!editingProfile}
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setEditingProfile(!editingProfile)}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-green-900 transition-colors"
+              >
+                <Pen className="h-4 w-4" />
+                Edit
+              </button>
+
+              <button
+                disabled={!editingProfile}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleProfileSubmit();
+                }}
+                className={`flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors ${editingProfile ? "hover:bg-green-900" : "cursor-not-allowed opacity-50"}`}
+              >
+                <Save className="h-4 w-4" />
+                Save Changes
+              </button>
+            </div>
           </form>
 
           <div className="flex justify-center items-center gap-2 mt-6">

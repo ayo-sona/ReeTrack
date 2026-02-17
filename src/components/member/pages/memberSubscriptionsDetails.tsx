@@ -14,35 +14,43 @@ import {
 import {
   useSubscription,
   useCancelSubscription,
-  useRenewSubscription,
+  useReactivateSubscription,
 } from "@/hooks/memberHook/useMember";
 import Link from "next/link";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function SubscriptionDetailsPage() {
   const params = useParams();
-  // const router = useRouter();
+  const router = useRouter();
   const subscriptionId = params.id as string;
 
   const { data: subscription, isLoading } = useSubscription(subscriptionId);
   const cancelSub = useCancelSubscription();
-  const renewSub = useRenewSubscription();
+  const reactivateSub = useReactivateSubscription();
 
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const handleCancel = async () => {
     try {
       await cancelSub.mutateAsync(subscriptionId);
-      setShowCancelConfirm(false);
+      toast("Subscription canceled successfully");
     } catch (error) {
       console.error("Failed to cancel subscription:", error);
+    } finally {
+      setShowCancelConfirm(false);
+      router.refresh();
     }
   };
 
   const handleRenew = async () => {
     try {
-      await renewSub.mutateAsync(subscriptionId);
+      await reactivateSub.mutateAsync(subscriptionId);
+      toast("Subscription renewed successfully");
     } catch (error) {
       console.error("Failed to renew subscription:", error);
+    } finally {
+      router.refresh();
     }
   };
 
@@ -93,7 +101,7 @@ export default function SubscriptionDetailsPage() {
     const now = new Date();
     const expiry = new Date(subscription.expires_at);
     const daysUntilExpiry = Math.ceil(
-      (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+      (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
     );
     return daysUntilExpiry <= 7 && daysUntilExpiry > 0;
   };
@@ -128,7 +136,7 @@ export default function SubscriptionDetailsPage() {
             </div>
             <span
               className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(
-                subscription.status
+                subscription.status,
               )}`}
             >
               {subscription.status.charAt(0).toUpperCase() +
@@ -265,26 +273,29 @@ export default function SubscriptionDetailsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Check In - 🔜 Placeholder */}
-            {subscription.status === "active" && (
-              <Link href={`/member/check-in?subscription=${subscription.id}`}>
+            {/* {subscription.status === "active" && (
+              <Link href={`/member/check-ins?subscription=${subscription.id}`}>
                 <button className="w-full p-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2">
                   <QrCode className="w-5 h-5" />
                   Check In Now
                 </button>
               </Link>
-            )}
+            )} */}
 
             {/* Renew */}
             {(subscription.status === "expired" ||
               subscription.status === "canceled" ||
-              (subscription.status === "active" && !subscription.auto_renew)) && (
+              (subscription.status === "active" &&
+                !subscription.auto_renew)) && (
               <button
                 onClick={handleRenew}
-                disabled={renewSub.isPending}
+                disabled={reactivateSub.isPending}
                 className="w-full p-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <RefreshCw className="w-5 h-5" />
-                {renewSub.isPending ? "Renewing..." : "Renew Subscription"}
+                {reactivateSub.isPending
+                  ? "Reactivating..."
+                  : "Reactivate Subscription"}
               </button>
             )}
 

@@ -69,7 +69,7 @@ export const useProfile = () => {
  * Update member profile
  * PUT /api/v1/members
  *
- * Note: Updates user.date_of_birth and user.address
+ * Note: Updates user date_of_birth, address, phone
  */
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
@@ -206,6 +206,23 @@ export const useCancelSubscription = () => {
   return useMutation({
     mutationFn: (subscriptionId: string) =>
       memberApi.cancelSubscription(subscriptionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["member", "subscriptions"] });
+      queryClient.invalidateQueries({ queryKey: ["member", "stats"] });
+    },
+  });
+};
+
+/**
+ * Reactivate subscription
+ * POST /api/v1/subscriptions/members/:subscriptionId/reactivate
+ */
+export const useReactivateSubscription = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (subscriptionId: string) =>
+      memberApi.reactivateSubscription(subscriptionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["member", "subscriptions"] });
       queryClient.invalidateQueries({ queryKey: ["member", "stats"] });

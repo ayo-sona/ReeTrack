@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { usePlans } from '../../hooks/usePlans';
-import { useMembers } from '../../hooks/useMembers';
-import { Member } from '../../types/organization';
-import clsx from 'clsx';
+import { useState, useMemo } from "react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { usePlans } from "../../hooks/usePlans";
+import { useMembers } from "../../hooks/useMembers";
+import { Member } from "../../types/organization";
+import clsx from "clsx";
 
-type ViewMode = 'chart' | 'list';
+type ViewMode = "chart" | "list";
 
 // Custom Tooltip Component with proper types - Defined outside
 interface TooltipPayload {
@@ -36,7 +36,9 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-4">
             <span className="text-xs text-gray-400">Members</span>
-            <span className="text-sm font-semibold text-white">{data.count}</span>
+            <span className="text-sm font-semibold text-white">
+              {data.count}
+            </span>
           </div>
           <div className="flex items-center justify-between gap-4">
             <span className="text-xs text-gray-400">Share</span>
@@ -52,13 +54,13 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
 };
 
 export function PlanDistributionChart() {
-  const [viewMode, setViewMode] = useState<ViewMode>('chart');
-  
+  const [viewMode, setViewMode] = useState<ViewMode>("chart");
+
   const { data: plansResponse, isLoading: isLoadingPlans } = usePlans();
-  const { data: membersData, isLoading: isLoadingMembers } = useMembers('');
+  const { data: membersData, isLoading: isLoadingMembers } = useMembers("");
 
   const plans = useMemo(() => plansResponse?.data || [], [plansResponse?.data]);
-  
+
   const members = useMemo(() => {
     if (!membersData) return [];
     if (Array.isArray(membersData)) return membersData as Member[];
@@ -70,52 +72,53 @@ export function PlanDistributionChart() {
   // Enhanced color palette with gradients
   const getColorForPlan = (planName: string, index: number) => {
     const colorPalette = [
-      { solid: '#3b82f6', gradient: 'from-blue-500 to-blue-600' },      // Blue
-      { solid: '#10b981', gradient: 'from-emerald-500 to-emerald-600' }, // Emerald
-      { solid: '#8b5cf6', gradient: 'from-violet-500 to-violet-600' },   // Violet
-      { solid: '#f59e0b', gradient: 'from-amber-500 to-amber-600' },     // Amber
-      { solid: '#ec4899', gradient: 'from-pink-500 to-pink-600' },       // Pink
-      { solid: '#14b8a6', gradient: 'from-teal-500 to-teal-600' },       // Teal
-      { solid: '#ef4444', gradient: 'from-red-500 to-red-600' },         // Red
-      { solid: '#f97316', gradient: 'from-orange-500 to-orange-600' },   // Orange
+      { solid: "#3b82f6", gradient: "from-blue-500 to-blue-600" }, // Blue
+      { solid: "#10b981", gradient: "from-emerald-500 to-emerald-600" }, // Emerald
+      { solid: "#8b5cf6", gradient: "from-violet-500 to-violet-600" }, // Violet
+      { solid: "#f59e0b", gradient: "from-amber-500 to-amber-600" }, // Amber
+      { solid: "#ec4899", gradient: "from-pink-500 to-pink-600" }, // Pink
+      { solid: "#14b8a6", gradient: "from-teal-500 to-teal-600" }, // Teal
+      { solid: "#ef4444", gradient: "from-red-500 to-red-600" }, // Red
+      { solid: "#f97316", gradient: "from-orange-500 to-orange-600" }, // Orange
     ];
-    
-    const predefinedColors: { [key: string]: typeof colorPalette[0] } = {
-      'basic': colorPalette[0],
-      'premium': colorPalette[2],
-      'vip': colorPalette[3],
-      'student': colorPalette[1],
-      'corporate': colorPalette[6],
-      'family': colorPalette[4],
-      'trial': colorPalette[5],
+
+    const predefinedColors: { [key: string]: (typeof colorPalette)[0] } = {
+      basic: colorPalette[0],
+      premium: colorPalette[2],
+      vip: colorPalette[3],
+      student: colorPalette[1],
+      corporate: colorPalette[6],
+      family: colorPalette[4],
+      trial: colorPalette[5],
     };
-    
+
     for (const key in predefinedColors) {
       if (planName.toLowerCase().includes(key)) {
         return predefinedColors[key];
       }
     }
-    
+
     return colorPalette[index % colorPalette.length];
   };
 
   const planDistribution = useMemo(() => {
     return plans.map((plan, index) => {
-      const membersOnPlan = members.filter(member => {
+      const membersOnPlan = members.filter((member) => {
         return member.subscriptions?.some(
-          sub => sub.status === 'active' && sub.plan_id === plan.id
+          (sub) => sub.status === "active" && sub.plan_id === plan.id,
         );
       });
-      
+
       const count = membersOnPlan.length;
-      
-      const totalMembersWithActiveSubscriptions = members.filter(m => 
-        m.subscriptions?.some(sub => sub.status === 'active')
+
+      const totalMembersWithActiveSubscriptions = members.filter((m) =>
+        m.subscriptions?.some((sub) => sub.status === "active"),
       ).length;
-      
-      const percentage = totalMembersWithActiveSubscriptions > 0 
-        ? (count / totalMembersWithActiveSubscriptions) * 100 
-        : 0;
+
+      const percentage =
+        totalMembersWithActiveSubscriptions > 0
+          ? (count / totalMembersWithActiveSubscriptions) * 100
+          : 0;
 
       const colors = getColorForPlan(plan.name, index);
 
@@ -130,13 +133,20 @@ export function PlanDistributionChart() {
     });
   }, [plans, members]);
 
-  const plansWithMembers = planDistribution.filter(p => p.count > 0);
-  const plansWithoutMembers = planDistribution.filter(p => p.count === 0);
-  
-  const totalActiveMembers = plansWithMembers.reduce((sum, p) => sum + p.count, 0);
-  const mostPopularPlan = plansWithMembers.length > 0 
-    ? plansWithMembers.reduce((max, p) => p.count > max.count ? p : max, plansWithMembers[0])
-    : null;
+  const plansWithMembers = planDistribution.filter((p) => p.count > 0);
+  const plansWithoutMembers = planDistribution.filter((p) => p.count === 0);
+
+  const totalActiveMembers = plansWithMembers.reduce(
+    (sum, p) => sum + p.count,
+    0,
+  );
+  const mostPopularPlan =
+    plansWithMembers.length > 0
+      ? plansWithMembers.reduce(
+          (max, p) => (p.count > max.count ? p : max),
+          plansWithMembers[0],
+        )
+      : null;
 
   const renderLabel = (props: {
     cx?: number;
@@ -147,13 +157,19 @@ export function PlanDistributionChart() {
     percent?: number;
   }) => {
     const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
-    
+
     // Return null if required props are missing
-    if (cx === undefined || cy === undefined || midAngle === undefined || 
-        innerRadius === undefined || outerRadius === undefined || percent === undefined) {
+    if (
+      cx === undefined ||
+      cy === undefined ||
+      midAngle === undefined ||
+      innerRadius === undefined ||
+      outerRadius === undefined ||
+      percent === undefined
+    ) {
       return null;
     }
-    
+
     const RADIAN = Math.PI / 180;
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -166,7 +182,7 @@ export function PlanDistributionChart() {
         x={x}
         y={y}
         fill="white"
-        textAnchor={x > cx ? 'start' : 'end'}
+        textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
         className="text-xs font-semibold drop-shadow-lg"
       >
@@ -191,7 +207,7 @@ export function PlanDistributionChart() {
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/40 to-white/20 dark:from-gray-900/40 dark:to-gray-800/20 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 shadow-2xl">
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-pink-500/5 pointer-events-none" />
-      
+
       {/* Content */}
       <div className="relative p-8">
         {/* Header */}
@@ -207,7 +223,7 @@ export function PlanDistributionChart() {
 
           {/* View Mode Toggle */}
           <div className="inline-flex items-center rounded-xl bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 p-1">
-            {(['chart', 'list'] as ViewMode[]).map((mode) => (
+            {(["chart", "list"] as ViewMode[]).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
@@ -215,21 +231,46 @@ export function PlanDistributionChart() {
                   "px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-300 capitalize",
                   viewMode === mode
                     ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-lg"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
                 )}
               >
-                {mode === 'chart' ? (
+                {mode === "chart" ? (
                   <span className="flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
+                      />
                     </svg>
                     Chart
                   </span>
                 ) : (
                   <span className="flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 6h16M4 12h16M4 18h16"
+                      />
                     </svg>
                     List
                   </span>
@@ -242,20 +283,30 @@ export function PlanDistributionChart() {
         {plansWithMembers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-pink-500/20 flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              <svg
+                className="w-8 h-8 text-violet-600 dark:text-violet-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
               </svg>
             </div>
             <p className="text-lg font-light text-gray-900 dark:text-white mb-2">
               No Active Subscriptions
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {plans.length} plan{plans.length !== 1 ? 's' : ''} available
+              {plans.length} plan{plans.length !== 1 ? "s" : ""} available
             </p>
           </div>
         ) : (
           <>
-            {viewMode === 'chart' ? (
+            {viewMode === "chart" ? (
               <>
                 {/* Chart View */}
                 <div className="mb-6">
@@ -275,8 +326,8 @@ export function PlanDistributionChart() {
                         animationDuration={1000}
                       >
                         {plansWithMembers.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
+                          <Cell
+                            key={`cell-${index}`}
                             fill={entry.color}
                             className="hover:opacity-80 transition-opacity cursor-pointer"
                           />
@@ -294,10 +345,13 @@ export function PlanDistributionChart() {
                       key={item.planId}
                       className="group relative overflow-hidden rounded-xl bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 p-4 hover:scale-[1.02] transition-all duration-300"
                     >
-                      <div className={clsx(
-                        "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-                        item.gradient
-                      )} style={{ opacity: 0.05 }} />
+                      <div
+                        className={clsx(
+                          "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+                          item.gradient,
+                        )}
+                        style={{ opacity: 0.05 }}
+                      />
                       <div className="relative flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div
@@ -330,10 +384,13 @@ export function PlanDistributionChart() {
                       key={item.planId}
                       className="group relative overflow-hidden rounded-xl bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 p-5 hover:scale-[1.01] transition-all duration-300"
                     >
-                      <div className={clsx(
-                        "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-                        item.gradient
-                      )} style={{ opacity: 0.05 }} />
+                      <div
+                        className={clsx(
+                          "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+                          item.gradient,
+                        )}
+                        style={{ opacity: 0.05 }}
+                      />
                       <div className="relative">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3">
@@ -348,7 +405,8 @@ export function PlanDistributionChart() {
                                 {item.planName}
                               </h4>
                               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                {item.count} active member{item.count !== 1 ? 's' : ''}
+                                {item.count} active member
+                                {item.count !== 1 ? "s" : ""}
                               </p>
                             </div>
                           </div>
@@ -365,7 +423,7 @@ export function PlanDistributionChart() {
                         <div className="h-2 bg-gray-200/50 dark:bg-gray-700/50 rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-1000 ease-out"
-                            style={{ 
+                            style={{
                               width: `${item.percentage}%`,
                               backgroundColor: item.color,
                             }}
@@ -390,7 +448,8 @@ export function PlanDistributionChart() {
                     {totalActiveMembers}
                   </p>
                   <p className="text-xs text-gray-400 dark:text-gray-500 font-light mt-1">
-                    Across {plansWithMembers.length} plan{plansWithMembers.length !== 1 ? 's' : ''}
+                    Across {plansWithMembers.length} plan
+                    {plansWithMembers.length !== 1 ? "s" : ""}
                   </p>
                 </div>
               </div>
@@ -411,7 +470,8 @@ export function PlanDistributionChart() {
                         style={{ backgroundColor: mostPopularPlan.color }}
                       />
                       <p className="text-xs text-gray-400 dark:text-gray-500 font-light">
-                        {mostPopularPlan.count} members ({mostPopularPlan.percentage.toFixed(0)}%)
+                        {mostPopularPlan.count} members (
+                        {mostPopularPlan.percentage.toFixed(0)}%)
                       </p>
                     </div>
                   </div>

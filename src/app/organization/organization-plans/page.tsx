@@ -22,6 +22,7 @@ import { Check, CheckCircle, ArrowRight } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { usePaystack } from "@/hooks/usePaystack";
 import { useRouter } from "next/navigation";
+import { toast, Toaster } from "sonner";
 
 type BillingCycle = "monthly" | "annually";
 
@@ -120,9 +121,63 @@ export default function EnterprisePlansPage() {
       resumeTransaction(paymentData.access_code);
       router.refresh();
       //   window.location.href = payment.authorization_url;
-    } catch (error) {
-      console.error("Subscription error:", error);
-      alert("Failed to start subscription");
+    } catch (error: any) {
+      // console.error("Subscription error:", error);
+      // toast("Failed to start subscription");
+
+      // Handle Axios error response
+      if (error.response) {
+        const { data, status, statusText } = error.response;
+
+        console.error("Response error:", {
+          status,
+          statusText,
+          data,
+        });
+
+        // Handle specific error statuses
+        if (status === 400) {
+          // Bad Request
+          // setError(
+          //   data.message ||
+          //     "Invalid request. Please check your details and try again.",
+          // );
+          toast(
+            data.message ||
+              "Invalid request. Please check your details and try again.",
+          );
+        } else if (status === 403) {
+          // Forbidden
+          // setError("You don't have permission to perform this action.");
+          toast("You don't have permission to perform this action.");
+        } else if (status === 404) {
+          // Not Found
+          // setError("The requested resource was not found.");
+          toast("The requested resource was not found.");
+        } else if (status >= 500) {
+          // Server Error
+          // setError("A server error occurred. Please try again later.");
+          toast("A server error occurred. Please try again later.");
+        } else {
+          // Other errors
+          // setError(data.message || "An error occurred. Please try again.");
+          toast(data.message || "An error occurred. Please try again.");
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        // console.error("No response received:", error.request);
+        // setError(
+        //   "No response from server. Please check your connection and try again.",
+        // );
+        toast(
+          "No response from server. Please check your connection and try again.",
+        );
+      } else {
+        // Something happened in setting up the request
+        // console.error("Request setup error:", error.message);
+        // setError(error.message || "An error occurred. Please try again.");
+        toast(error.message || "An error occurred. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

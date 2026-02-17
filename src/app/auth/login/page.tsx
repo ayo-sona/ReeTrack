@@ -227,9 +227,7 @@ export default function LoginPage() {
                   disabled={isLoading}
                   startContent={<Mail className="w-4 h-4 text-gray-400" />}
                   classNames={{
-                    input: "outline-none",
-                    inputWrapper:
-                      "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                    input: "outline-none focus-visible:outline-none ",
                   }}
                 />
               </div>
@@ -267,9 +265,7 @@ export default function LoginPage() {
                     </button>
                   }
                   classNames={{
-                    input: "outline-none",
-                    inputWrapper:
-                      "bg-gray-50 border border-gray-200 hover:border-[#0D9488] rounded-xl",
+                    input: "outline-none focus-visible:outline-none ",
                   }}
                 />
               </div>
@@ -323,4 +319,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
