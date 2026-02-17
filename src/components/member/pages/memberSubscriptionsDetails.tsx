@@ -18,11 +18,9 @@ import {
 } from "@/hooks/memberHook/useMember";
 import Link from "next/link";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 export default function SubscriptionDetailsPage() {
   const params = useParams();
-  const router = useRouter();
   const subscriptionId = params.id as string;
 
   const { data: subscription, isLoading } = useSubscription(subscriptionId);
@@ -33,24 +31,31 @@ export default function SubscriptionDetailsPage() {
 
   const handleCancel = async () => {
     try {
-      await cancelSub.mutateAsync(subscriptionId);
-      toast("Subscription canceled successfully");
+      const data = await cancelSub.mutateAsync(subscriptionId);
+      console.log(data);
+      if (data.statusCode === 200) {
+        toast("Subscription cancelled successfully");
+        window.location.reload();
+      }
     } catch (error) {
       console.error("Failed to cancel subscription:", error);
+      toast("Failed to cancel subscription");
     } finally {
       setShowCancelConfirm(false);
-      router.refresh();
     }
   };
 
   const handleRenew = async () => {
     try {
-      await reactivateSub.mutateAsync(subscriptionId);
-      toast("Subscription renewed successfully");
+      const data = await reactivateSub.mutateAsync(subscriptionId);
+      console.log(data);
+      if (data.statusCode === 201) {
+        toast("Subscription reactivated successfully");
+        window.location.reload();
+      }
     } catch (error) {
-      console.error("Failed to renew subscription:", error);
-    } finally {
-      router.refresh();
+      console.error("Failed to reactivated subscription:", error);
+      toast("Failed to reactivated subscription");
     }
   };
 

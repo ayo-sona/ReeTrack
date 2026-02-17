@@ -4,71 +4,36 @@ import { useState, useEffect } from "react";
 import { Clock, CheckCircle, Calendar } from "lucide-react";
 import { Button } from "@heroui/react";
 import MemberQRCodeModal from "../memberQRCodeModal";
-import { useProfile } from "@/hooks/memberHook/useMember";
-import { addDays } from "date-fns";
+import { addHours } from "date-fns";
 import { useMemberStore } from "@/store/memberStore";
 import { useParams } from "next/navigation";
+import apiClient from "@/lib/apiClient";
+import { toast } from "sonner";
 
 // Check-in code interface
 interface CheckInCode {
   id: string;
-  code: string;
+  checkInCode: string;
   createdAt: string;
   expiresAt: string;
 }
 
 export default function CheckInPage() {
   const [checkInCode, setCheckInCode] = useState<CheckInCode | null>(null);
+  const [generatingCode, setGeneratingCode] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
-  const { data: profile } = useProfile();
+  const [isHydrated, setIsHydrated] = useState(false);
   const { getMember } = useMemberStore();
   const params = useParams();
+
   const orgId = params.id;
   const memberData = getMember(orgId as string);
   console.log(memberData);
 
   useEffect(() => {
-    if (!memberData) {
-      console.error("Member data not found");
-    }
-  }, [memberData]);
-
-  if (!memberData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold">Loading member data...</h2>
-          <p className="text-gray-600 mt-2">
-            Please wait while we load your information.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Generate check-in code
-  const handleGenerateCode = () => {
-    const generateCode = (): CheckInCode => {
-      // Generate random 6-digit code
-      const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-      // Set expiry to 24 hours from now
-      const now = new Date();
-      const expiry = addDays(now, 1);
-
-      return {
-        id: `checkin-${Date.now()}`,
-        code: randomCode,
-        createdAt: now.toISOString(),
-        expiresAt: expiry.toISOString(),
-      };
-    };
-
-    const codeData = generateCode();
-    setCheckInCode(codeData);
-    // console.log(codeData);
-  };
+    setIsHydrated(true);
+  }, []);
 
   // Update timer countdown
   useEffect(() => {
@@ -97,6 +62,69 @@ export default function CheckInPage() {
     return () => clearInterval(interval);
   }, [checkInCode]);
 
+  const handleGenerateCode = async () => {
+    const generateCode = async (): Promise<CheckInCode> => {
+      const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+      // Set expiry to 1 hour from now
+      const now = new Date();
+      const expiry = addHours(now, 1);
+
+      try {
+        setGeneratingCode(true);
+        const response = await apiClient.post(`members/check-in/`, {
+          memberId: memberData.id,
+          checkInCode: randomCode,
+          expiresAt: expiry.toISOString(),
+        });
+        console.log(response);
+        if (response.data.statusCode === 201) {
+          toast("Check-in code generated successfully", {
+            duration: 5000,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to generate check-in code:", error);
+      } finally {
+        setGeneratingCode(false);
+      }
+
+      return {
+        id: `checkin-${Date.now()}`,
+        checkInCode: randomCode,
+        createdAt: now.toISOString(),
+        expiresAt: expiry.toISOString(),
+      };
+    };
+
+    const codeData = await generateCode();
+    setCheckInCode(codeData);
+    // console.log(codeData);
+  };
+
+  if (!isHydrated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold">Loading...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (!memberData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold">Loading member data...</h2>
+          <p className="text-gray-600 mt-2">
+            Please wait while we load your information.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -120,7 +148,7 @@ export default function CheckInPage() {
                     Valid for {timeLeft}
                   </div>
                   <h2 className="text-xl font-bold text-gray-900">
-                    {checkInCode?.code}
+                    {checkInCode?.checkInCode}
                   </h2>
                 </div>
               )}
@@ -132,7 +160,7 @@ export default function CheckInPage() {
                 </p>
                 <div className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200">
                   <span className="text-4xl font-mono font-bold text-emerald-900 tracking-wider">
-                    {checkInCode?.code || ""}
+                    {checkInCode?.checkInCode || ""}
                   </span>
                 </div>
               </div>
@@ -151,7 +179,7 @@ export default function CheckInPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-bold">2.</span>
-                  <span>Staff will verify your code manually</span>
+                  <span>Staff will verify your code</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-bold">3.</span>
@@ -206,18 +234,28 @@ export default function CheckInPage() {
                 setCheckInCode(null);
                 handleGenerateCode();
               }}
+              disabled={generatingCode}
+              isLoading={generatingCode}
               className="w-full py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
             >
               Generate New Code
             </Button>
-            <Button onPress={() => setIsOpen(true)} className="w-full">
+            <Button
+              onPress={() => {
+                setCheckInCode(null);
+                setIsOpen(true);
+              }}
+              className="w-full"
+            >
               Show My QR Code
             </Button>
-            <MemberQRCodeModal
-              isOpen={isOpen}
-              onOpenChange={setIsOpen}
-              memberId={memberData?.id}
-            />
+            {isOpen && (
+              <MemberQRCodeModal
+                isOpen={isOpen}
+                onOpenChange={setIsOpen}
+                memberId={memberData?.id}
+              />
+            )}
           </div>
         }
 

@@ -4,8 +4,10 @@ import { useState } from "react";
 import { Search, CreditCard, X, QrCode, CheckCircle } from "lucide-react";
 import { useAllSubscriptions } from "@/hooks/memberHook/useMember";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function SubscriptionsPage() {
+  const router = useRouter();
   const { data: subscriptions, isLoading } = useAllSubscriptions();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<
@@ -272,7 +274,10 @@ export default function SubscriptionsPage() {
                 : "Subscribe to a plan to get started"}
             </p>
             {!searchQuery && statusFilter === "all" && (
-              <button className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+              <button
+                onClick={() => router.push("/communities")}
+                className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+              >
                 Browse Plans
               </button>
             )}

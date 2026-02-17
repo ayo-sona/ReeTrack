@@ -1,13 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   Button,
+  Spinner,
 } from "@heroui/react";
 import { Download, X } from "lucide-react";
 import StyledQRCode from "./StyledQRCode";
+import apiClient from "@/lib/apiClient";
+import { addHours } from "date-fns";
+import { toast } from "sonner";
 
 interface MemberQRCodeModalProps {
   isOpen: boolean;
@@ -20,18 +24,53 @@ export default function MemberQRCodeModal({
   onOpenChange,
   memberId,
 }: MemberQRCodeModalProps) {
-  const [qrData, setQrData] = useState("");
+  const [qrData, setQrData] = useState<string>("");
+  const [generatingCode, setGeneratingCode] = useState(false);
+  // const effectRan = useRef(false);
 
   useEffect(() => {
-    if (memberId) {
-      // You can customize what data to encode in the QR code
-      const data = JSON.stringify({
-        type: "member_checkin",
-        memberId: memberId,
-        timestamp: new Date().toISOString(),
-      });
-      setQrData(data);
-    }
+    // if (effectRan.current === true || !memberId) return;
+    if (!memberId) return;
+
+    const generateCode = async () => {
+      // effectRan.current = true
+      const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+      // Set expiry to 1 hour from now
+      const now = new Date();
+      const expiry = addHours(now, 1);
+
+      try {
+        setGeneratingCode(true);
+        const response = await apiClient.post(`members/check-in/`, {
+          memberId: memberId,
+          checkInCode: randomCode,
+          expiresAt: expiry.toISOString(),
+        });
+        console.log(response);
+        if (response.data.statusCode === 201) {
+          toast("Check-in code generated successfully", {
+            duration: 5000,
+          });
+          const data = JSON.stringify({
+            id: `checkin-${Date.now()}`,
+            checkInCode: randomCode,
+            createdAt: now.toISOString(),
+            expiresAt: expiry.toISOString(),
+          });
+          setQrData(data);
+        }
+      } catch (error) {
+        console.error("Failed to generate check-in code:", error);
+      } finally {
+        setGeneratingCode(false);
+      }
+    };
+    generateCode();
+
+    //   return () => {
+    //   effectRan.current = false;
+    // };
   }, [memberId]);
 
   const handleDownload = () => {
@@ -68,28 +107,26 @@ export default function MemberQRCodeModal({
       <ModalContent>
         <ModalHeader className="flex justify-between items-center">
           <h3 className="text-lg font-semibold">Member QR Code</h3>
-          <Button
-            isIconOnly
-            variant="light"
-            size="sm"
-            onPress={() => onOpenChange(false)}
-          >
-            <X size={20} />
-          </Button>
         </ModalHeader>
-        <ModalBody className="flex flex-col items-center py-6">
-          <div id="member-qr-code" className="mb-6">
-            <StyledQRCode
-              value={qrData}
-              size={200}
-              level="H"
-              className="p-4 border border-gray-200 rounded-lg"
-            />
-          </div>
+        <ModalBody className="flex flex-col justify-center items-center py-6">
+          {generatingCode ? (
+            <Spinner color="success" size="lg" />
+          ) : (
+            <>
+              <div id="member-qr-code" className="mb-6">
+                <StyledQRCode
+                  value={qrData}
+                  size={200}
+                  level="H"
+                  className="p-4 border border-gray-200 rounded-lg"
+                />
+              </div>
 
-          <div className="text-center mb-6">
-            <p className="text-sm text-gray-500">Member ID: {memberId}</p>
-          </div>
+              <div className="text-center mb-6">
+                <p className="text-sm text-gray-500">Member ID: {memberId}</p>
+              </div>
+            </>
+          )}
 
           <Button
             color="primary"

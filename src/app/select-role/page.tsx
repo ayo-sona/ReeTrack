@@ -32,11 +32,8 @@ export default function SelectRolePage() {
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-md">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Select Your Role
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
             Choose how you want to continue
-          </p>
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 gap-4 mt-8">

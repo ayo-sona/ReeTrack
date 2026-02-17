@@ -49,28 +49,29 @@ export default function QRCodeScanner({
       setError(null);
 
       // Parse the QR code data (assuming it contains member ID)
-      const memberId = decodedText; // or parse from JSON if needed
+      const data = JSON.parse(decodedText); // or parse from JSON if needed
+      console.log(data);
 
       // Call check-in API
-      const response = await apiClient.post("/members/check-in", { memberId });
+      // const response = await apiClient.post("/members/check-in", { memberId });
+      // console.log(response.data.data)
+      // // Handle success
+      // setSuccess({
+      //   member: response.data.member,
+      //   message: "Check-in successful!",
+      // });
 
-      // Handle success
-      setSuccess({
-        member: response.data.member,
-        message: "Check-in successful!",
-      });
+      // // Notify parent component
+      // onCheckInSuccess(response.data.member);
 
-      // Notify parent component
-      onCheckInSuccess(response.data.member);
-
-      // Reset after delay
-      setTimeout(() => {
-        setSuccess(null);
-        // Restart scanner
-        if (html5QrcodeRef.current) {
-          html5QrcodeRef.current.resume();
-        }
-      }, 2000);
+      // // Reset after delay
+      // setTimeout(() => {
+      //   setSuccess(null);
+      //   // Restart scanner
+      //   if (html5QrcodeRef.current) {
+      //     html5QrcodeRef.current.resume();
+      //   }
+      // }, 2000);
     } catch (error: any) {
       console.error("Check-in failed:", error);
       setError(error.response?.data?.message || "Failed to process check-in");
@@ -109,7 +110,7 @@ export default function QRCodeScanner({
           qrbox: { width: 250, height: 250 },
         },
         (decodedText) => {
-          //   handleScanSuccess(decodedText);
+          handleScanSuccess(decodedText);
           console.log(decodedText);
         },
         (errorMessage) => {
