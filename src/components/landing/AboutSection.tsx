@@ -7,7 +7,7 @@ import Image from "next/image";
 type ContentKey = "who-we-are" | "what-we-do" | "the-problem" | "our-solution";
 
 const AboutSection = () => {
-  const [activeTab, setActiveTab] = useState<ContentKey>("what-we-do");
+  const [activeTab, setActiveTab] = useState<ContentKey>("who-we-are");
 
   const tabs = [
     {
@@ -42,28 +42,28 @@ const AboutSection = () => {
       title: "Built by Community Builders",
       description:
         "We're a team of community builders who got tired of juggling multiple tools and fighting with spreadsheets. We've been in the trenches, managing memberships manually, dealing with failed payments at 2 AM, and wishing for better infrastructure. So we built it.",
-      image: "/about/who_we_are.jpg",
+      image: "/about/who_we_are.webP",
       imagePosition: "right",
     },
     "what-we-do": {
       title: "Subscription Management Made Effortless",
       description:
         "We automate subscription management for communities, turning billing chaos into effortless revenue. From payment processing to member notifications, we handle the infrastructure so you can focus on building relationships, not spreadsheets.",
-      image: "/about/what_we_do.jpg",
+      image: "/about/what_we_do.webP",
       imagePosition: "left",
     },
     "the-problem": {
       title: "The Manual Membership Nightmare",
       description:
         "Communities waste countless hours on manual billing, chasing failed payments, and tracking members across scattered tools. Instead of building meaningful connections and growing their impact, founders are stuck playing accountant, dealing with payment processors, and managing spreadsheets.",
-      image: "/about/the_problem.jpg",
+      image: "/about/the_problem.webP",
       imagePosition: "left",
     },
     "our-solution": {
       title: "Infrastructure That Just Works",
       description:
         "Automated billing cycles, intelligent payment retries, seamless integrations with Telegram and WhatsApp, and real-time analytics that actually help you grow. We give you the infrastructure of a Fortune 500 company with the simplicity your community deserves.",
-      image: "/about/the_solution.jpg",
+      image: "/about/the_solution.webP",
       imagePosition: "right",
     },
   };
@@ -164,10 +164,11 @@ const AboutSection = () => {
               }`}
             >
               <div className="relative aspect-[4/3] rounded-3xl overflow-hidden">
-                <img
+                <Image
                   src={activeContent.image}
                   alt={activeContent.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               </div>
 

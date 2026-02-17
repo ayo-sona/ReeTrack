@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { Crown, TrendingUp, CheckCircle, Users } from "lucide-react";
+import Image from "next/image";
 
 const FeaturesSection = () => {
   const features = [
@@ -169,16 +170,17 @@ const FeaturesSection = () => {
                     whileInView={{ scale: 1, opacity: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, ease: "backOut" }}
-                    className="w-full h-full rounded-full border-4 border-[#1F2937] bg-white overflow-hidden"
+                    className="relative w-full h-full rounded-full border-4 border-[#1F2937] bg-white overflow-hidden"
                     style={{
                       boxShadow: "12px 12px 0px 0px rgba(31, 41, 55, 1)",
                     }}
                   >
                     {/* Image */}
-                    <img
-                      src={`./${feature.pic}.jpg`}
+                    <Image
+                      src={`/features/${feature.pic}.webP`}
                       alt={feature.title}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                   </motion.div>
                 </div>
