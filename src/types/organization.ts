@@ -64,6 +64,8 @@ export interface Member {
   emergency_contact_phone: string | null;
   medical_notes: string | null;
   check_in_count: number;
+  check_in_code: string;
+  checked_in_at: string;
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
