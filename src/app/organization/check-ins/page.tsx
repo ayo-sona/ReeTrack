@@ -146,8 +146,10 @@ export default function OrganizationCheckInPage() {
   });
 
   // Filter member stats
-  const filteredStats = MOCK_MEMBER_STATS.filter((stat) =>
-    stat.memberName.toLowerCase().includes(searchQuery.toLowerCase()),
+  const filteredStats = members?.filter(
+    (stat) =>
+      stat.user?.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      stat.user?.last_name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   // Format time ago
@@ -453,22 +455,22 @@ export default function OrganizationCheckInPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {filteredStats.map((stat, index) => (
+                  {filteredStats?.map((stat, index) => (
                     <tr
-                      key={stat.memberId}
+                      key={stat.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0">
-                            {stat.memberName
+                            {`${stat.user.first_name} ${stat.user.last_name}`
                               .split(" ")
                               .map((n) => n[0])
                               .join("")}
                           </div>
                           <div>
                             <p className="font-medium text-gray-900 dark:text-gray-100">
-                              {stat.memberName}
+                              {`${stat.user.first_name} ${stat.user.last_name}`}
                             </p>
                           </div>
                         </div>
@@ -476,7 +478,7 @@ export default function OrganizationCheckInPage() {
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                            {stat.totalCheckIns}
+                            {stat.check_in_count}
                           </span>
                           {index === 0 && (
                             <Award className="w-5 h-5 text-yellow-500" />
@@ -485,7 +487,7 @@ export default function OrganizationCheckInPage() {
                       </td>
                       <td className="px-6 py-4">
                         <p className="text-sm text-gray-900 dark:text-gray-100">
-                          {formatTimeAgo(stat.lastCheckIn)}
+                          {formatTimeAgo(stat.checked_in_at)}
                         </p>
                       </td>
                     </tr>
@@ -494,7 +496,7 @@ export default function OrganizationCheckInPage() {
               </table>
             </div>
 
-            {filteredStats.length === 0 && (
+            {filteredStats?.length === 0 && (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
                 <p className="text-gray-500 dark:text-gray-400">
