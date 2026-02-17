@@ -52,10 +52,10 @@ export default function QRCodeScanner({
       const data = JSON.parse(decodedText); // or parse from JSON if needed
       console.log(data);
 
-      const response = await apiClient.post(
-        `/members/organization/check-in`,
-        data,
-      );
+      const response = await apiClient.post(`/members/organization/check-in`, {
+        memberId: data.memberId,
+        checkInCode: data.checkInCode,
+      });
       console.log(response.data.data);
       if (response.data.statusCode === 201) {
         setSuccess({
@@ -69,7 +69,10 @@ export default function QRCodeScanner({
       setError(error.response?.data?.message || "Failed to process check-in");
     } finally {
       setIsProcessing(false);
-      setSuccess(null);
+      setTimeout(() => {
+        setSuccess(null);
+        setScannerState("initial");
+      }, 3000);
       //   if (html5QrcodeRef.current) {
       //     html5QrcodeRef.current.resume();
       //   }
