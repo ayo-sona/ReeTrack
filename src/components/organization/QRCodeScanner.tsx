@@ -52,31 +52,27 @@ export default function QRCodeScanner({
       const data = JSON.parse(decodedText); // or parse from JSON if needed
       console.log(data);
 
-      // Call check-in API
-      // const response = await apiClient.post("/members/check-in", { memberId });
-      // console.log(response.data.data)
-      // // Handle success
-      // setSuccess({
-      //   member: response.data.member,
-      //   message: "Check-in successful!",
-      // });
-
-      // // Notify parent component
-      // onCheckInSuccess(response.data.member);
-
-      // // Reset after delay
-      // setTimeout(() => {
-      //   setSuccess(null);
-      //   // Restart scanner
-      //   if (html5QrcodeRef.current) {
-      //     html5QrcodeRef.current.resume();
-      //   }
-      // }, 2000);
+      const response = await apiClient.post(
+        `/members/organization/check-in`,
+        data,
+      );
+      console.log(response.data.data);
+      if (response.data.statusCode === 201) {
+        setSuccess({
+          member: response.data.data.fullName,
+          message: "Check-in successful!",
+        });
+        onCheckInSuccess(response.data.data.fullName);
+      }
     } catch (error: any) {
       console.error("Check-in failed:", error);
       setError(error.response?.data?.message || "Failed to process check-in");
     } finally {
       setIsProcessing(false);
+      setSuccess(null);
+      //   if (html5QrcodeRef.current) {
+      //     html5QrcodeRef.current.resume();
+      //   }
     }
   };
 
@@ -111,7 +107,7 @@ export default function QRCodeScanner({
         },
         (decodedText) => {
           handleScanSuccess(decodedText);
-          console.log(decodedText);
+          // console.log(decodedText);
         },
         (errorMessage) => {
           // Ignore "not found" errors
@@ -276,7 +272,7 @@ export default function QRCodeScanner({
                     <h3 className="text-xl font-semibold">
                       Check-in Successful!
                     </h3>
-                    <p className="text-gray-600 mt-2">{success.member?.name}</p>
+                    <p className="text-gray-600 mt-2">{success.member}</p>
                     <p className="text-sm text-gray-500 mt-1">
                       {success.message}
                     </p>

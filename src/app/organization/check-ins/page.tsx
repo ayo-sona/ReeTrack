@@ -192,16 +192,11 @@ export default function OrganizationCheckInPage() {
 
   // Handle successful check-in
   const handleCheckInSuccess = async (member: any) => {
-    // Add to recent check-ins
-    const newCheckIn: CheckInRecord = {
-      id: `checkin-${Date.now()}`,
-      memberId: member.id,
-      memberName: member.name,
-      checkedInAt: new Date().toISOString(),
-    };
-
+    // setIsScannerOpen(false);
+    toast("Member checked-in successfully", {
+      duration: 5000,
+    });
     // Refresh member stats
-    // await fetchMemberStats();
   };
 
   if (isLoading) {

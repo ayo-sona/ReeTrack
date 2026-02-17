@@ -53,7 +53,7 @@ export default function MemberQRCodeModal({
             duration: 5000,
           });
           const data = JSON.stringify({
-            id: `checkin-${Date.now()}`,
+            memberId: memberId,
             checkInCode: randomCode,
             createdAt: now.toISOString(),
             expiresAt: expiry.toISOString(),
@@ -73,34 +73,34 @@ export default function MemberQRCodeModal({
     // };
   }, [memberId]);
 
-  const handleDownload = () => {
-    if (!qrData) return;
+  // const handleDownload = () => {
+  //   if (!qrData) return;
 
-    const svg = document.getElementById("member-qr-code")?.querySelector("svg");
-    if (!svg) return;
+  //   const svg = document.getElementById("member-qr-code")?.querySelector("svg");
+  //   if (!svg) return;
 
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    const img = new Image();
+  //   const svgData = new XMLSerializer().serializeToString(svg);
+  //   const canvas = document.createElement("canvas");
+  //   const ctx = canvas.getContext("2d");
+  //   const img = new Image();
 
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx?.drawImage(img, 0, 0);
-      const pngFile = canvas.toDataURL("image/png");
-      const downloadLink = document.createElement("a");
-      downloadLink.download = `member-${new Date()}-qrcode.png`;
-      downloadLink.href = pngFile;
-      downloadLink.click();
-    };
+  //   img.onload = () => {
+  //     canvas.width = img.width;
+  //     canvas.height = img.height;
+  //     ctx?.drawImage(img, 0, 0);
+  //     const pngFile = canvas.toDataURL("image/png");
+  //     const downloadLink = document.createElement("a");
+  //     downloadLink.download = `member-${new Date()}-qrcode.png`;
+  //     downloadLink.href = pngFile;
+  //     downloadLink.click();
+  //   };
 
-    const svgBlob = new Blob([svgData], {
-      type: "image/svg+xml;charset=utf-8",
-    });
-    const url = URL.createObjectURL(svgBlob);
-    img.src = url;
-  };
+  //   const svgBlob = new Blob([svgData], {
+  //     type: "image/svg+xml;charset=utf-8",
+  //   });
+  //   const url = URL.createObjectURL(svgBlob);
+  //   img.src = url;
+  // };
 
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="md">
@@ -128,7 +128,7 @@ export default function MemberQRCodeModal({
             </>
           )}
 
-          <Button
+          {/* <Button
             color="primary"
             variant="solid"
             onPress={handleDownload}
@@ -136,7 +136,7 @@ export default function MemberQRCodeModal({
             className="w-full max-w-xs"
           >
             Download QR Code
-          </Button>
+          </Button> */}
         </ModalBody>
       </ModalContent>
     </Modal>
