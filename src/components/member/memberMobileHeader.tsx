@@ -15,6 +15,7 @@ import {
   Building2, // Add this import
 } from "lucide-react";
 import { Spinner } from "@heroui/react";
+import { ThemeToggle } from "../layout/ThemeToggle";
 
 interface MemberMobileHeaderProps {
   pathname: string;
@@ -50,6 +51,8 @@ export function MemberMobileHeader({
         </Link>
 
         <div className="flex items-center gap-3">
+          <ThemeToggle />
+
           <Link href="/member/notifications">
             <button className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
               <Bell className="w-6 h-6 text-gray-700" />
