@@ -262,7 +262,7 @@ export default function PlansPage() {
         <div className="text-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Total Members
+              Subscribed Members
             </p>
             <Users className="w-4 h-4 text-purple-600" />
           </div>

@@ -16,18 +16,32 @@ import {
   Award,
   Filter,
 } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Button, Input } from "@heroui/react";
 import QRCodeScanner from "@/components/organization/QRCodeScanner";
+import apiClient from "@/lib/apiClient";
+import { LoadingSkeleton } from "@/components/ui";
+import { toast } from "sonner";
+import { useMembers } from "@/hooks/useMembers";
 
-interface Member {
+interface ActualMembers {
+  check_in_code: string;
+  check_in_count: number;
+  checked_in_at: string;
+  created_at: string;
   id: string;
-  name: string;
-  email: string;
-  phone: string;
-  planName: string;
-  membershipNumber: string;
-  photoUrl?: string;
-  status: "active" | "expired" | "expiring_soon";
+  metadata: string;
+  organization_user_id: string;
+  updated_at: string;
+  user: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone: string;
+    photo_url: string;
+    status: string;
+  };
+  user_id: string;
 }
 
 interface CheckInRecord {
@@ -87,91 +101,49 @@ const MOCK_MEMBER_STATS: MemberStats[] = [
 
 export default function OrganizationCheckInPage() {
   const [activeTab, setActiveTab] = useState<"scan" | "stats">("scan");
-  const [scanMode, setScanMode] = useState<"qr" | "manual">("qr");
+  const [scanMode, setScanMode] = useState<"qr" | "manual" | "">("");
   const [manualCode, setManualCode] = useState("");
-  const [recentCheckIns, setRecentCheckIns] =
-    useState<CheckInRecord[]>(MOCK_RECENT_CHECKINS);
-  const [checkInResult, setCheckInResult] = useState<{
-    success: boolean;
-    member?: Member;
-    message: string;
-  } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [timeFilter, setTimeFilter] = useState<"today" | "week" | "month">(
     "month",
   );
+  const { data: members, isLoading, error } = useMembers(searchQuery);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+  const [currentMember, setCurrentMember] = useState("");
+  // const [members, setMembers] = useState<ActualMembers[] | []>([]);
+  // const [isLoading, setIsLoading] = useState(true);
+  // const [recentCheckIns, setRecentCheckIns] = useState<CheckInRecord[]>([]);
 
-  // Handle successful check-in
-  const handleCheckInSuccess = async (member: any) => {
-    // Add to recent check-ins
-    const newCheckIn: CheckInRecord = {
-      id: `checkin-${Date.now()}`,
-      memberId: member.id,
-      memberName: member.name,
-      checkedInAt: new Date().toISOString(),
-    };
-
-    setRecentCheckIns((prev) => [newCheckIn, ...prev]);
-
-    // Refresh member stats
-    // await fetchMemberStats();
-  };
+  // useEffect(() => {
+  //   const fetchMembers = async () => {
+  //     try {
+  //       const response = await apiClient.get("members/");
+  //       console.log(response);
+  //       if (response.data.statusCode === 200) {
+  //         setMembers(response.data.data);
+  //       }
+  //     } catch (error) {
+  //       console.error("Failed to fetch members:", error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+  //   fetchMembers();
+  // }, []);
 
   // Stats
-  const todayCheckIns = recentCheckIns.filter((c) => {
-    const checkInDate = new Date(c.checkedInAt);
+  const totalMembers = members?.length;
+  const todayCheckIns = members?.filter((m) => {
+    const checkInDate = new Date(m?.checked_in_at);
     const today = new Date();
     return checkInDate.toDateString() === today.toDateString();
   }).length;
-
-  const totalMembers = MOCK_MEMBER_STATS.length;
-  const activeToday = new Set(
-    recentCheckIns
-      .filter((c) => {
-        const checkInDate = new Date(c.checkedInAt);
-        const today = new Date();
-        return checkInDate.toDateString() === today.toDateString();
-      })
-      .map((c) => c.memberId),
-  ).size;
-
-  // Handle Manual Code Submit
-  const handleManualCheckIn = async () => {
-    if (!manualCode.trim()) return;
-
-    // Simulate API call
-    setTimeout(() => {
-      // Mock successful check-in
-      const mockMember: Member = {
-        id: "m" + Date.now(),
-        name: "John Doe",
-        email: "john@example.com",
-        phone: "+234 801 234 5678",
-        planName: "Premium Membership",
-        membershipNumber: manualCode,
-        status: "active",
-      };
-
-      const newCheckIn: CheckInRecord = {
-        id: "c" + Date.now(),
-        memberId: mockMember.id,
-        memberName: mockMember.name,
-        checkedInAt: new Date().toISOString(),
-      };
-
-      setRecentCheckIns([newCheckIn, ...recentCheckIns]);
-      setCheckInResult({
-        success: true,
-        member: mockMember,
-        message: "Check-in successful!",
-      });
-      setManualCode("");
-
-      // Clear result after 5 seconds
-      setTimeout(() => setCheckInResult(null), 5000);
-    }, 500);
-  };
+  const recentCheckIns = members?.sort((a, b) => {
+    const checkInDateA = new Date(a?.checked_in_at);
+    const checkInDateB = new Date(b?.checked_in_at);
+    return checkInDateB.getTime() - checkInDateA.getTime();
+  });
 
   // Filter member stats
   const filteredStats = MOCK_MEMBER_STATS.filter((stat) =>
@@ -191,6 +163,58 @@ export default function OrganizationCheckInPage() {
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
+
+  // Handle Manual Code Submit
+  const handleManualCheckIn = async () => {
+    if (!manualCode.trim()) return;
+
+    try {
+      setIsChecking(true);
+      const response = await apiClient.post(`members/organization/check-in/`, {
+        memberId: currentMember,
+        checkInCode: manualCode,
+      });
+      console.log(response);
+      if (response.data.statusCode === 201) {
+        toast("Checked in member successfully", {
+          duration: 5000,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to check-in code:", error);
+      toast("Failed to check-in member");
+    } finally {
+      setIsChecking(false);
+      setManualCode("");
+      setScanMode("");
+    }
+  };
+
+  // Handle successful check-in
+  const handleCheckInSuccess = async (member: any) => {
+    // Add to recent check-ins
+    const newCheckIn: CheckInRecord = {
+      id: `checkin-${Date.now()}`,
+      memberId: member.id,
+      memberName: member.name,
+      checkedInAt: new Date().toISOString(),
+    };
+
+    // Refresh member stats
+    // await fetchMemberStats();
+  };
+
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
+
+  if (members?.length === 0) {
+    return (
+      <div className="flex items-center justify-center p-6 space-y-6 max-w-7xl mx-auto">
+        <p className="text-gray-600 dark:text-gray-400">No members found</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
@@ -233,7 +257,7 @@ export default function OrganizationCheckInPage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-5 border border-blue-200 dark:border-blue-800">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-medium text-blue-900 dark:text-blue-300">
@@ -243,18 +267,6 @@ export default function OrganizationCheckInPage() {
           </div>
           <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
             {todayCheckIns}
-          </p>
-        </div>
-
-        <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-5 border border-green-200 dark:border-green-800">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-green-900 dark:text-green-300">
-              Active Today
-            </p>
-            <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
-          </div>
-          <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-            {activeToday}
           </p>
         </div>
 
@@ -281,7 +293,7 @@ export default function OrganizationCheckInPage() {
                 Select Check-In Method
               </h2>
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 gap-4 mb-6">
                 <Button
                   onPress={() => {
                     setScanMode("qr");
@@ -292,14 +304,6 @@ export default function OrganizationCheckInPage() {
                   Scan QR Code
                 </Button>
 
-                <Button
-                  onPress={() => {
-                    setScanMode("manual");
-                  }}
-                  startContent={<Hash size={20} />}
-                >
-                  Enter Code
-                </Button>
                 <QRCodeScanner
                   isOpen={isScannerOpen}
                   onOpenChange={setIsScannerOpen}
@@ -314,111 +318,35 @@ export default function OrganizationCheckInPage() {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Enter Check-In Code
                     </label>
-                    <input
+                    <Input
                       type="text"
                       value={manualCode}
-                      onChange={(e) =>
-                        setManualCode(e.target.value.toUpperCase())
-                      }
+                      onChange={(e) => setManualCode(e.target.value)}
                       onKeyUp={(e) =>
                         e.key === "Enter" && handleManualCheckIn()
                       }
-                      placeholder="e.g., ABC123XYZ"
-                      className="w-full px-4 py-3 text-center text-2xl font-mono font-bold tracking-wider border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="ABC123XYZ"
                       maxLength={9}
+                      classNames={{
+                        input:
+                          "text-center outline-none focus-visible:outline-none",
+                      }}
                     />
                   </div>
 
                   <Button
                     onPress={handleManualCheckIn}
-                    isDisabled={!manualCode.trim()}
-                    className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    isDisabled={!manualCode.trim() || isChecking}
+                    isLoading={isChecking}
+                    color="success"
+                    variant="solid"
+                    className="w-full"
                   >
                     Check In Member
                   </Button>
                 </div>
               )}
             </div>
-
-            {/* Check-In Result */}
-            {checkInResult && (
-              <div
-                className={`rounded-xl p-6 border-2 ${
-                  checkInResult.success
-                    ? "bg-green-50 dark:bg-green-900/20 border-green-500"
-                    : "bg-red-50 dark:bg-red-900/20 border-red-500"
-                }`}
-              >
-                <div className="flex items-start gap-4">
-                  <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      checkInResult.success ? "bg-green-500" : "bg-red-500"
-                    }`}
-                  >
-                    {checkInResult.success ? (
-                      <CheckCircle className="w-6 h-6 text-white" />
-                    ) : (
-                      <XCircle className="w-6 h-6 text-white" />
-                    )}
-                  </div>
-
-                  <div className="flex-1">
-                    <h3
-                      className={`font-bold text-lg mb-1 ${
-                        checkInResult.success
-                          ? "text-green-900 dark:text-green-300"
-                          : "text-red-900 dark:text-red-300"
-                      }`}
-                    >
-                      {checkInResult.message}
-                    </h3>
-
-                    {checkInResult.member && (
-                      <div className="mt-3 space-y-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
-                            {checkInResult.member.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">
-                              {checkInResult.member.name}
-                            </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {checkInResult.member.planName}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 mt-3">
-                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                            <p className="text-xs text-gray-600 dark:text-gray-400">
-                              Status
-                            </p>
-                            <p className="font-semibold text-green-600 dark:text-green-400 capitalize">
-                              {checkInResult.member.status.replace("_", " ")}
-                            </p>
-                          </div>
-                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                            <p className="text-xs text-gray-600 dark:text-gray-400">
-                              Time
-                            </p>
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">
-                              {new Date().toLocaleTimeString("en-NG", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Recent Check-Ins */}
@@ -428,30 +356,41 @@ export default function OrganizationCheckInPage() {
               Recent Check-Ins
             </h2>
 
-            {recentCheckIns.length > 0 ? (
+            {recentCheckIns?.length! > 0 ? (
               <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                {recentCheckIns.map((checkIn) => (
+                {recentCheckIns?.map((checkIn) => (
                   <div
                     key={checkIn.id}
                     className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold flex-shrink-0">
-                        {checkIn.memberName
+                        {`${checkIn.user.first_name} ${checkIn.user.last_name}`
                           .split(" ")
                           .map((n) => n[0])
                           .join("")}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                          {checkIn.memberName}
+                          {`${checkIn.user.first_name} ${checkIn.user.last_name}`}
                         </p>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {formatTimeAgo(checkIn.checkedInAt)}
-                    </p>
+                    <div className="w-full flex items-center justify-between">
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {formatTimeAgo(checkIn.checked_in_at)}
+                      </p>
+                      <Button
+                        onPress={() => {
+                          setScanMode("manual");
+                          setCurrentMember(checkIn.id);
+                        }}
+                        startContent={<Hash size={20} />}
+                      >
+                        Enter Code
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -459,7 +398,7 @@ export default function OrganizationCheckInPage() {
               <div className="text-center py-8">
                 <Users className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
                 <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  No check-ins yet today
+                  No check-ins yet
                 </p>
               </div>
             )}
