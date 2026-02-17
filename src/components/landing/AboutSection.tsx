@@ -42,28 +42,28 @@ const AboutSection = () => {
       title: "Built by Community Builders",
       description:
         "We're a team of community builders who got tired of juggling multiple tools and fighting with spreadsheets. We've been in the trenches, managing memberships manually, dealing with failed payments at 2 AM, and wishing for better infrastructure. So we built it.",
-      image: "/about/who_we_are.webP",
+      image: "/about/who_we_are.webp",
       imagePosition: "right",
     },
     "what-we-do": {
       title: "Subscription Management Made Effortless",
       description:
         "We automate subscription management for communities, turning billing chaos into effortless revenue. From payment processing to member notifications, we handle the infrastructure so you can focus on building relationships, not spreadsheets.",
-      image: "/about/what_we_do.webP",
+      image: "/about/what_we_do.webp",
       imagePosition: "left",
     },
     "the-problem": {
       title: "The Manual Membership Nightmare",
       description:
         "Communities waste countless hours on manual billing, chasing failed payments, and tracking members across scattered tools. Instead of building meaningful connections and growing their impact, founders are stuck playing accountant, dealing with payment processors, and managing spreadsheets.",
-      image: "/about/the_problem.webP",
+      image: "/about/the_problem.webp",
       imagePosition: "left",
     },
     "our-solution": {
       title: "Infrastructure That Just Works",
       description:
         "Automated billing cycles, intelligent payment retries, seamless integrations with Telegram and WhatsApp, and real-time analytics that actually help you grow. We give you the infrastructure of a Fortune 500 company with the simplicity your community deserves.",
-      image: "/about/the_solution.webP",
+      image: "/about/the_solution.webp",
       imagePosition: "right",
     },
   };
