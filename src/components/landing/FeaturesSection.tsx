@@ -177,7 +177,7 @@ const FeaturesSection = () => {
                   >
                     {/* Image */}
                     <Image
-                      src={`/features/${feature.pic}.webP`}
+                      src={`/features/${feature.pic}.webp`}
                       alt={feature.title}
                       fill
                       className="object-cover"
