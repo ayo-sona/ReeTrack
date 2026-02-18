@@ -39,12 +39,11 @@ export interface Payment {
 }
 
 export interface PaymentStats {
-  total_revenue: number;
+  total_member_revenue: number;
   total_expenses: number;
-  total_profit: number;
-  successful_payments: number;
-  failed_payments: number;
-  pending_payments: number;
+  successful_member_payments: number;
+  failed_member_payments: number;
+  pending_member_payments: number;
 }
 
 export interface PaginatedResponse<T> {

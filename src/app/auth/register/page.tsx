@@ -170,6 +170,12 @@ export default function RegisterPage() {
           <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 backdrop-blur-sm bg-white/95">
             {/* Header */}
             <div className="text-center mb-8">
+              <Link
+                href="/"
+                className="mb-2 text-2xl font-extrabold bg-gradient-to-r from-[#0D9488] to-[#0B7A70] bg-clip-text text-transparent tracking-tight"
+              >
+                ReeTrack
+              </Link>
               <h1 className="text-3xl font-bold text-[#1F2937] mb-2">
                 Create Your Account
               </h1>

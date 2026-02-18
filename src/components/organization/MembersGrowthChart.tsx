@@ -69,7 +69,7 @@ export function MembersGrowthChart() {
 
   const { data: teamMembers, isLoading } = useTeamMembers();
   const actualMembers = teamMembers?.filter((m) => m.role === "MEMBER");
-  console.log(actualMembers);
+  // console.log(actualMembers);
 
   const chartData = useMemo(() => {
     if (!actualMembers || actualMembers.length === 0) return [];

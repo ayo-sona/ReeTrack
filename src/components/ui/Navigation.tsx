@@ -20,7 +20,7 @@ const navItems = [
 const ClientOnlyNavigation = () => {
   const token = getCookie("access_token");
   const [scrolled, setScrolled] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("Features");
+  const [activeTab, setActiveTab] = useState<string>("");
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const [pillStyle, setPillStyle] = useState({ left: 0, width: 0 });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -259,7 +259,7 @@ const ClientOnlyNavigation = () => {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 z-40 md:hidden bg-black/20"
+              className="fixed inset-0 z-20 md:hidden bg-black/20"
             />
             <motion.div
               initial={{ y: "100%" }}
@@ -268,7 +268,7 @@ const ClientOnlyNavigation = () => {
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="fixed inset-0 z-30 md:hidden overflow-y-auto rounded-[30px]"
               style={{
-                background: "rgba(255,255,255,0.97)",
+                // background: "rgba(255,255,255,0.97)",
                 backdropFilter: "blur(24px)",
                 WebkitBackdropFilter: "blur(24px)",
               }}
@@ -294,7 +294,7 @@ const ClientOnlyNavigation = () => {
                           setActiveTab(item.label);
                           setIsMobileMenuOpen(false);
                         }}
-                        className={`block text-left py-4 px-6 text-3xl font-bold transition-all rounded-2xl ${activeTab === item.label ? "text-[#0D9488] bg-gray-50" : "text-[#1F2937]/70 hover:text-[#0D9488] hover:bg-gray-50"}`}
+                        className={`block dark:text-white text-left py-4 px-6 text-3xl font-bold transition-all rounded-2xl ${activeTab === item.label ? "text-[#0D9488] bg-gray-300" : "text-[#1F2937]/70"}`}
                       >
                         {item.label}
                       </Link>

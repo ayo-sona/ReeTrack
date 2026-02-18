@@ -85,7 +85,7 @@ export default function AddSubaccountModal({
         business_name: formData.businessName,
         account_number: formData.accountNumber,
         bank_code: formData.bankCode,
-        percentage_charge: 3,
+        percentage_charge: 8.5,
         primary_contact_name: `${profile.firstName} ${profile.lastName}`,
         primary_contact_email: profile.email,
       });

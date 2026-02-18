@@ -7,7 +7,7 @@ import { Users } from "lucide-react";
 
 export function RecentMembersTable() {
   const { data: teamMembers, isLoading } = useTeamMembers();
-  console.log("teamMembers", teamMembers);
+  // console.log("teamMembers", teamMembers);
 
   const recentTeamMembers = useMemo(() => {
     if (!teamMembers) return [];

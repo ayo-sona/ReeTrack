@@ -30,7 +30,7 @@ export default function PaymentsPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [selectedSource, setSelectedSource] = useState<string>("all");
-  const [selectedStatus, setSelectedStatus] = useState<string>("success");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
 
   // Hooks handle ALL business logic
   const {
@@ -72,6 +72,7 @@ export default function PaymentsPage() {
 
     // Gateway filter
     if (selectedSource === "all") return true;
+    if (selectedStatus === "all") return true;
     if (selectedSource === "paystack" && payment.provider !== "paystack")
       return false;
     if (selectedSource === "kora" && payment.provider !== "kora") return false;
@@ -86,7 +87,7 @@ export default function PaymentsPage() {
     ? [
         {
           title: "Total Revenue",
-          value: `₦${(stats.total_revenue / 1000).toFixed(1)}K`,
+          value: `₦${(stats.total_member_revenue / 1000).toFixed(1)}K`,
           icon: DollarSign,
           color: "bg-green-500",
           subtext: "All time",
@@ -107,21 +108,21 @@ export default function PaymentsPage() {
         // },
         {
           title: "Successful Member Payments",
-          value: stats.successful_payments,
+          value: stats.successful_member_payments,
           icon: Users,
           color: "bg-green-500",
           subtext: "All time",
         },
         {
           title: "Failed Member Payments",
-          value: stats.failed_payments,
+          value: stats.failed_member_payments,
           icon: Users,
           color: "bg-red-500",
           subtext: "All time",
         },
         {
           title: "Pending Member Payments",
-          value: stats.pending_payments,
+          value: stats.pending_member_payments,
           icon: Users,
           color: "bg-yellow-500",
           subtext: "All time",
