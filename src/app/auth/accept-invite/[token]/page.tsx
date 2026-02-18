@@ -189,7 +189,7 @@ export default function AcceptInvitationPage() {
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none block w-full pl-10 px-3 py-2 text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="appearance-none block w-full pl-10 px-3 py-2 text-black border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#0D9488] focus:border-[#0D9488] sm:text-sm"
                   value={formData.email}
                   disabled
                 />
@@ -201,7 +201,7 @@ export default function AcceptInvitationPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#0D9488] hover:bg-[#0D9488]/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0D9488] ${
                 isSubmitting ? "opacity-70 cursor-not-allowed" : ""
               }`}
             >

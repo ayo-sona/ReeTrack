@@ -193,6 +193,12 @@ export default function AdminRegisterPage() {
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#0D9488]/10 mb-4">
                 <Building className="w-8 h-8 text-[#0D9488]" />
               </div>
+              <Link
+                href="/"
+                className="text-2xl font-extrabold bg-gradient-to-r from-[#0D9488] to-[#0B7A70] bg-clip-text text-transparent tracking-tight"
+              >
+                ReeTrack
+              </Link>
               <h1 className="text-3xl font-bold text-[#1F2937] mb-2">
                 Create Your Organization
               </h1>

@@ -84,7 +84,7 @@ export function RevenueChart() {
       : { period: selectedPeriod };
 
   const { data: chartData, isLoading, error } = useRevenueChart(params);
-  console.log("chartData", chartData);
+  // console.log("chartData", chartData);
 
   const handlePeriodChange = (period: string) => {
     setSelectedPeriod(period);

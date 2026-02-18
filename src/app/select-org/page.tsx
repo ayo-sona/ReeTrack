@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Card,
   CardHeader,
@@ -17,6 +18,7 @@ import { Building2, Plus, ArrowRight, Search, Crown } from "lucide-react";
 import { useToast } from "@/features/notifications/useToast";
 import apiClient from "@/lib/apiClient";
 import { setCookie } from "cookies-next";
+import { toast } from "sonner";
 
 interface Organization {
   id: string;
@@ -36,6 +38,7 @@ interface OrganizationWithRole extends Organization {
 export default function OrganizationSelectPage() {
   const router = useRouter();
   const { addToast } = useToast();
+  const queryClient = useQueryClient();
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
@@ -72,12 +75,22 @@ export default function OrganizationSelectPage() {
       if (response.data.statusCode === 200) {
         setCookie("access_token", response.data.data.accessToken);
         setCookie("current_role", role);
+
+        // Invalidate all organization-related queries
+        await queryClient.invalidateQueries({ queryKey: ["organizations"] });
+        await queryClient.invalidateQueries({ queryKey: ["analytics"] });
+        await queryClient.invalidateQueries({ queryKey: ["plans"] });
+        await queryClient.invalidateQueries({ queryKey: ["payments"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["members"],
+        });
+
         router.push("/organization/dashboard");
-        // addToast("success", "Success", "Switched organization successfully");
+        toast("Switched organization successfully");
       }
     } catch (error) {
       console.error("Failed to switch organization:", error);
-      addToast("error", "Error", "Failed to switch organization");
+      toast("Failed to switch organization");
       setSelectedOrg(null);
     }
   };

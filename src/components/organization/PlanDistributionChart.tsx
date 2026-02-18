@@ -60,7 +60,8 @@ export function PlanDistributionChart() {
   const { data: membersData, isLoading: isLoadingMembers } = useMembers("");
 
   const plans = useMemo(() => plansResponse?.data || [], [plansResponse?.data]);
-
+  // console.log("plans", plans);
+  // console.log("membersData", membersData);
   const members = useMemo(() => {
     if (!membersData) return [];
     if (Array.isArray(membersData)) return membersData as Member[];
@@ -135,6 +136,10 @@ export function PlanDistributionChart() {
 
   const plansWithMembers = planDistribution.filter((p) => p.count > 0);
   const plansWithoutMembers = planDistribution.filter((p) => p.count === 0);
+  // console.log("planswithmembers", plansWithMembers);
+  // console.log("planswithoutmembers", plansWithoutMembers);
+  // console.log("plandistribution", planDistribution);
+  // console.log("members", members);
 
   const totalActiveMembers = plansWithMembers.reduce(
     (sum, p) => sum + p.count,

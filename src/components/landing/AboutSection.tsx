@@ -9,10 +9,10 @@ const AboutSection = () => {
   const [activeTab, setActiveTab] = useState<ContentKey>("who-we-are");
 
   const tabs = [
-    { id: "who-we-are" as const, label: "Who We Are", color: "#0D9488" },
-    { id: "what-we-do" as const, label: "What We Do", color: "#F06543" },
-    { id: "the-problem" as const, label: "The Problem", color: "#0D9488" },
-    { id: "our-solution" as const, label: "Our Solution", color: "#F06543" },
+    { id: "who-we-are" as const, label: "Who We Are", color: "#144d3a" },
+    { id: "what-we-do" as const, label: "What We Do", color: "#97462b" },
+    { id: "the-problem" as const, label: "The Problem", color: "#144d3a" },
+    { id: "our-solution" as const, label: "Our Solution", color: "#97462b" },
   ];
 
   const content: Record<

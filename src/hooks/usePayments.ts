@@ -1,10 +1,18 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { paymentsApi, InitializePaymentDto } from '../lib/organizationAPI/paymentsApi';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  paymentsApi,
+  InitializePaymentDto,
+} from "../lib/organizationAPI/paymentsApi";
 
 // Get all payments
-export const usePayments = (page: number = 1, limit: number = 10, status?: string) => {
+export const usePayments = (
+  page: number = 1,
+  limit: number = 10,
+  status?: string,
+) => {
+  if (status === "all") status = undefined;
   return useQuery({
-    queryKey: ['payments', page, limit, status],
+    queryKey: ["payments", page, limit, status],
     queryFn: () => paymentsApi.getAll(page, limit, status),
   });
 };
@@ -12,7 +20,7 @@ export const usePayments = (page: number = 1, limit: number = 10, status?: strin
 // Get payment by ID
 export const usePayment = (id: string) => {
   return useQuery({
-    queryKey: ['payments', id],
+    queryKey: ["payments", id],
     queryFn: () => paymentsApi.getById(id),
     enabled: !!id,
   });
@@ -21,15 +29,19 @@ export const usePayment = (id: string) => {
 // Get payment stats
 export const usePaymentStats = () => {
   return useQuery({
-    queryKey: ['payments', 'stats'],
+    queryKey: ["payments", "stats"],
     queryFn: () => paymentsApi.getStats(),
   });
 };
 
 // Get member payments
-export const useMemberPayments = (memberId: string, page: number = 1, limit: number = 10) => {
+export const useMemberPayments = (
+  memberId: string,
+  page: number = 1,
+  limit: number = 10,
+) => {
   return useQuery({
-    queryKey: ['payments', 'member', memberId, page, limit],
+    queryKey: ["payments", "member", memberId, page, limit],
     queryFn: () => paymentsApi.getMemberPayments(memberId, page, limit),
     enabled: !!memberId,
   });
@@ -38,11 +50,11 @@ export const useMemberPayments = (memberId: string, page: number = 1, limit: num
 // Initialize payment
 export const useInitializePayment = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: InitializePaymentDto) => paymentsApi.initialize(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
     },
   });
 };
@@ -50,11 +62,11 @@ export const useInitializePayment = () => {
 // Verify payment
 export const useVerifyPayment = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (reference: string) => paymentsApi.verify(reference),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
     },
   });
 };
