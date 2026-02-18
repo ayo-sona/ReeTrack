@@ -13,9 +13,10 @@ import {
 } from "@/hooks/memberHook/useMember";
 import RecentActivity from "@/components/member/memberRecentActivity";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function MemberDashboard() {
-  // ✅ Real data from API
+  const router = useRouter();
   const { data: profile } = useProfile();
   const { data: subscriptions, isLoading: subsLoading } =
     useActiveSubscriptions();
@@ -52,7 +53,12 @@ export default function MemberDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Welcome back, {profile?.first_name}! 👋
+              Welcome back{" "}
+              {profile?.first_name
+                ? profile.first_name.charAt(0).toUpperCase() +
+                  profile.first_name.slice(1).toLowerCase()
+                : ""}
+              ! 👋
             </h1>
             <p className="text-gray-600 mt-1">
               Manage your subscriptions and payments
@@ -183,7 +189,10 @@ export default function MemberDashboard() {
             <div className="text-center py-12">
               <CreditCard className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-600">No active subscriptions</p>
-              <button className="mt-4 px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+              <button
+                onClick={() => router.push("/member/communities")}
+                className="mt-4 px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+              >
                 Browse Plans
               </button>
             </div>
@@ -201,7 +210,6 @@ export default function MemberDashboard() {
                 <QrCode className="w-6 h-6 text-emerald-600" />
               </div>
               <p className="text-sm font-medium text-gray-900">Check In</p>
-              <p className="text-xs text-gray-500 mt-1">Coming soon</p>
             </button>
           </Link>
 
