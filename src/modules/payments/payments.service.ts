@@ -436,8 +436,8 @@ export class PaymentsService {
       throw new NotFoundException('Subscription not found');
     }
 
-    if (subscription.canceled_at) {
-      throw new BadRequestException('Subscription is canceled');
+    if (subscription.cancelled_at) {
+      throw new BadRequestException('Subscription is cancelled');
     }
 
     const invoice = await this.invoiceRepository.findOne({

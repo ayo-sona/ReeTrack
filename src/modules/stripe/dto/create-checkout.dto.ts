@@ -18,7 +18,7 @@ export class CreateCheckoutSessionDto {
   successUrl?: string;
 
   @ApiProperty({
-    description: 'The URL to redirect to on canceled payment',
+    description: 'The URL to redirect to on cancelled payment',
     example: 'https://example.com/cancel',
   })
   @IsOptional()

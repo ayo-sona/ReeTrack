@@ -106,7 +106,7 @@ export class SubscriptionsController {
   @ApiOperation({ summary: 'Cancel a member subscription' })
   @ApiResponse({
     status: 200,
-    description: 'Subscription canceled successfully',
+    description: 'Subscription cancelled successfully',
     type: MemberSubscription,
   })
   @ApiResponse({ status: 400, description: 'Bad Request' })
@@ -287,7 +287,7 @@ export class SubscriptionsController {
   @ApiOperation({ summary: 'Cancel a organization subscription' })
   @ApiResponse({
     status: 200,
-    description: 'Subscription canceled successfully',
+    description: 'Subscription cancelled successfully',
     type: OrganizationSubscription,
   })
   @ApiResponse({ status: 400, description: 'Bad Request' })

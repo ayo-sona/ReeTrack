@@ -18,7 +18,7 @@ export enum NotificationType {
   SUBSCRIPTION_RENEWED = 'subscription_renewed',
   SUBSCRIPTION_EXPIRING = 'subscription_expiring',
   SUBSCRIPTION_EXPIRED = 'subscription_expired',
-  SUBSCRIPTION_CANCELED = 'subscription_canceled',
+  SUBSCRIPTION_CANCELLED = 'subscription_cancelled',
   RENEWAL_FAILED = 'renewal_failed',
   INVOICE_CREATED = 'invoice_created',
   INVOICE_OVERDUE = 'invoice_overdue',

@@ -426,7 +426,7 @@ export class NotificationsService {
     this.stats.emailsSent++;
   }
 
-  async sendSubscriptionCanceledNotification(data: {
+  async sendSubscriptionCancelledNotification(data: {
     email: string;
     memberName: string;
     subscriptionName: string;
@@ -434,16 +434,18 @@ export class NotificationsService {
   }) {
     await this.emailService.sendEmail({
       to: data.email,
-      subject: 'Your subscription has been canceled',
-      template: 'subscription_canceled',
+      subject: 'Your subscription has been cancelled',
+      template: 'subscription_cancelled',
       context: data,
     });
 
-    this.logger.log(`Subscription canceled notification sent to ${data.email}`);
+    this.logger.log(
+      `Subscription cancelled notification sent to ${data.email}`,
+    );
     this.stats.emailsSent++;
   }
 
-  async sendOrgSubscriptionCanceledNotification(data: {
+  async sendOrgSubscriptionCancelledNotification(data: {
     email: string;
     memberName: string;
     subscriptionName: string;
@@ -451,12 +453,14 @@ export class NotificationsService {
   }) {
     await this.emailService.sendEmail({
       to: data.email,
-      subject: 'Your subscription has been canceled',
-      template: 'subscription_canceled',
+      subject: 'Your subscription has been cancelled',
+      template: 'subscription_cancelled',
       context: data,
     });
 
-    this.logger.log(`Subscription canceled notification sent to ${data.email}`);
+    this.logger.log(
+      `Subscription cancelled notification sent to ${data.email}`,
+    );
     this.stats.emailsSent++;
   }
 }

@@ -278,10 +278,10 @@ export class SubscriptionsService {
     }
     // If canceling an active subscription
     else if (
-      updateDto.status === 'canceled' &&
+      updateDto.status === SubscriptionStatus.CANCELLED &&
       subscription.status === SubscriptionStatus.ACTIVE
     ) {
-      subscription.canceled_at = new Date();
+      subscription.cancelled_at = new Date();
     }
     subscription.status = updateDto.status as SubscriptionStatus;
     subscription.metadata = updateDto.metadata || subscription.metadata;
@@ -368,8 +368,8 @@ export class SubscriptionsService {
           await transactionalEntityManager.save(newSubscription);
 
         // Cancel the old subscription
-        currentSubscription.status = SubscriptionStatus.CANCELED;
-        currentSubscription.canceled_at = new Date();
+        currentSubscription.status = SubscriptionStatus.CANCELLED;
+        currentSubscription.cancelled_at = new Date();
         currentSubscription.metadata = {
           ...currentSubscription.metadata,
           ...changePlanDto.metadata,
@@ -400,10 +400,12 @@ export class SubscriptionsService {
     }
 
     if (
-      subscription.status === SubscriptionStatus.CANCELED ||
+      subscription.status === SubscriptionStatus.CANCELLED ||
       subscription.status === SubscriptionStatus.EXPIRED
     ) {
-      throw new BadRequestException('Subscription already canceled or expired');
+      throw new BadRequestException(
+        'Subscription already cancelled or expired',
+      );
     }
 
     // Get organization user
@@ -429,13 +431,13 @@ export class SubscriptionsService {
 
     // Update subscription
     subscription.auto_renew = false;
-    subscription.status = SubscriptionStatus.CANCELED;
-    subscription.canceled_at = new Date();
+    subscription.status = SubscriptionStatus.CANCELLED;
+    subscription.cancelled_at = new Date();
 
     await this.memberSubscriptionRepository.save(subscription);
 
     // Send cancellation email
-    await this.notificationsService.sendSubscriptionCanceledNotification({
+    await this.notificationsService.sendSubscriptionCancelledNotification({
       email: subscription.member.user.email,
       memberName: `${subscription.member.user.first_name} ${subscription.member.user.last_name}`,
       subscriptionName: subscription.plan.name,
@@ -443,7 +445,7 @@ export class SubscriptionsService {
     });
 
     return {
-      message: 'Subscription canceled successfully',
+      message: 'Subscription cancelled successfully',
       data: subscription,
     };
   }
@@ -461,9 +463,9 @@ export class SubscriptionsService {
       throw new NotFoundException('Subscription not found');
     }
 
-    if (subscription.status !== 'canceled') {
+    if (subscription.status !== SubscriptionStatus.CANCELLED) {
       throw new BadRequestException(
-        'Only canceled subscriptions can be reactivated',
+        'Only cancelled subscriptions can be reactivated',
       );
     }
 
@@ -475,7 +477,7 @@ export class SubscriptionsService {
 
     subscription.auto_renew = true;
     subscription.status = SubscriptionStatus.ACTIVE;
-    subscription.canceled_at = null;
+    subscription.cancelled_at = null;
 
     await this.memberSubscriptionRepository.save(subscription);
 
@@ -502,7 +504,7 @@ export class SubscriptionsService {
       throw new NotFoundException('Subscription not found');
     }
 
-    if (subscription.status !== 'active') {
+    if (subscription.status !== SubscriptionStatus.ACTIVE) {
       throw new BadRequestException('Only active subscriptions can be renewed');
     }
 
@@ -699,9 +701,9 @@ export class SubscriptionsService {
     if (!subscription) throw new NotFoundException('Subscription not found');
 
     // Handle status transitions
-    if (updateDto.status === SubscriptionStatus.CANCELED) {
-      subscription.status = SubscriptionStatus.CANCELED;
-      subscription.canceled_at = new Date();
+    if (updateDto.status === SubscriptionStatus.CANCELLED) {
+      subscription.status = SubscriptionStatus.CANCELLED;
+      subscription.cancelled_at = new Date();
     } else if (
       updateDto.status === SubscriptionStatus.ACTIVE ||
       updateDto.status === SubscriptionStatus.PENDING
@@ -713,7 +715,7 @@ export class SubscriptionsService {
         );
       }
       subscription.status = SubscriptionStatus.ACTIVE;
-      subscription.canceled_at = null;
+      subscription.cancelled_at = null;
     } else {
       subscription.status = updateDto.status;
     }
@@ -754,8 +756,8 @@ export class SubscriptionsService {
     });
 
     // Cancel the old subscription
-    subscription!.status = SubscriptionStatus.CANCELED;
-    subscription!.canceled_at = new Date();
+    subscription!.status = SubscriptionStatus.CANCELLED;
+    subscription!.cancelled_at = new Date();
     await this.organizationSubscriptionRepository.save([
       subscription!,
       newSubscription,
@@ -781,10 +783,12 @@ export class SubscriptionsService {
     }
 
     if (
-      subscription.status === SubscriptionStatus.CANCELED ||
+      subscription.status === SubscriptionStatus.CANCELLED ||
       subscription.status === SubscriptionStatus.EXPIRED
     ) {
-      throw new BadRequestException('Subscription already canceled or expired');
+      throw new BadRequestException(
+        'Subscription already cancelled or expired',
+      );
     }
 
     // Get organization user
@@ -813,13 +817,13 @@ export class SubscriptionsService {
 
     // Update subscription
     subscription.auto_renew = false;
-    subscription.status = SubscriptionStatus.CANCELED;
-    subscription.canceled_at = new Date();
+    subscription.status = SubscriptionStatus.CANCELLED;
+    subscription.cancelled_at = new Date();
 
     await this.organizationSubscriptionRepository.save(subscription);
 
     // Send cancellation email
-    await this.notificationsService.sendSubscriptionCanceledNotification({
+    await this.notificationsService.sendSubscriptionCancelledNotification({
       email: orgUser.user.email,
       memberName: `${orgUser.user.first_name} ${orgUser.user.last_name}`,
       subscriptionName: subscription.plan.name,
@@ -827,7 +831,7 @@ export class SubscriptionsService {
     });
 
     return {
-      message: 'Subscription canceled successfully',
+      message: 'Subscription cancelled successfully',
       data: subscription,
     };
   }
@@ -857,7 +861,7 @@ export class SubscriptionsService {
     subscription.status = SubscriptionStatus.ACTIVE;
     subscription.started_at = newPeriodStart;
     subscription.expires_at = newPeriodEnd;
-    subscription.canceled_at = null;
+    subscription.cancelled_at = null;
     return this.organizationSubscriptionRepository.save(subscription);
   }
 

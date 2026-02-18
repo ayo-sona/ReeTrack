@@ -204,7 +204,7 @@ export class InvoicesService {
     await this.invoiceRepository.save(invoice);
 
     return {
-      message: 'Member invoice canceled successfully',
+      message: 'Member invoice cancelled successfully',
       data: invoice,
     };
   }

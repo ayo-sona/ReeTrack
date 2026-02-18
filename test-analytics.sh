@@ -106,7 +106,7 @@ cat << 'EOF'
     "active_subscriptions": 487,
     "trialing_subscriptions": 12,
     "expired_subscriptions": 15,
-    "canceled_subscriptions": 9
+    "cancelled_subscriptions": 9
   },
   "payments": {
     "total_payments": 102,
@@ -206,7 +206,7 @@ interface DashboardData {
     active_subscriptions: number;
     trialing_subscriptions: number;
     expired_subscriptions: number;
-    canceled_subscriptions: number;
+    cancelled_subscriptions: number;
   };
 }
 ```

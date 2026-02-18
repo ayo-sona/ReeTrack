@@ -174,8 +174,8 @@ export class AnalyticsService {
     const churnedSubscriptions = await this.memberSubscriptionRepository.count({
       where: {
         organization_id: organizationId,
-        status: SubscriptionStatus.CANCELED,
-        canceled_at: Between(startDate, endDate),
+        status: SubscriptionStatus.CANCELLED,
+        cancelled_at: Between(startDate, endDate),
       },
     });
 
@@ -289,12 +289,12 @@ export class AnalyticsService {
       relations: ['organization_user'],
     });
 
-    // Churned members (canceled subscriptions)
+    // Churned members (cancelled subscriptions)
     const churnedMembers = await this.memberSubscriptionRepository.count({
       where: {
         organization_id: organizationId,
-        status: SubscriptionStatus.CANCELED,
-        canceled_at: Between(startDate, endDate),
+        status: SubscriptionStatus.CANCELLED,
+        cancelled_at: Between(startDate, endDate),
       },
     });
 
@@ -371,7 +371,7 @@ export class AnalyticsService {
     startDate: Date,
     endDate: Date,
   ) {
-    const [total, active, expired, canceled] = await Promise.all([
+    const [total, active, expired, cancelled] = await Promise.all([
       this.memberSubscriptionRepository.count({
         where: { organization_id: organizationId },
       }),
@@ -390,7 +390,7 @@ export class AnalyticsService {
       this.memberSubscriptionRepository.count({
         where: {
           organization_id: organizationId,
-          status: SubscriptionStatus.CANCELED,
+          status: SubscriptionStatus.CANCELLED,
         },
       }),
     ]);
@@ -407,7 +407,7 @@ export class AnalyticsService {
       total_subscriptions: total,
       active_subscriptions: active,
       expired_subscriptions: expired,
-      canceled_subscriptions: canceled,
+      cancelled_subscriptions: cancelled,
       new_subscriptions: newSubscriptions,
     };
   }

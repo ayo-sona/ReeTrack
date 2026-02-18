@@ -42,7 +42,7 @@ export class OrganizationSubscription {
   expires_at: Date;
 
   @Column({ type: 'timestamp with time zone', nullable: true })
-  canceled_at: Date | null;
+  cancelled_at: Date | null;
 
   @Column({ type: 'jsonb', nullable: true })
   metadata: Record<string, any>;

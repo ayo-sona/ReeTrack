@@ -409,8 +409,8 @@ export class WebhooksService {
   //         await this.handlePaymentIntentFailed(event.data.object);
   //         break;
 
-  //       case 'payment_intent.canceled':
-  //         await this.handlePaymentIntentCanceled(
+  //       case 'payment_intent.cancelled':
+  //         await this.handlePaymentIntentCancelled(
   //           event.data.object as Stripe.PaymentIntent,
   //         );
   //         break;
@@ -651,10 +651,10 @@ export class WebhooksService {
   //   this.logger.log(`Payment ${payment.id} marked as failed`);
   // }
 
-  // private async handlePaymentIntentCanceled(
+  // private async handlePaymentIntentCancelled(
   //   paymentIntent: Stripe.PaymentIntent,
   // ) {
-  //   this.logger.log(`Payment canceled: ${paymentIntent.id}`);
+  //   this.logger.log(`Payment cancelled: ${paymentIntent.id}`);
 
   //   const payment = await this.paymentRepository.findOne({
   //     where: { provider_reference: paymentIntent.id },
@@ -664,8 +664,8 @@ export class WebhooksService {
   //     payment.status = PaymentStatus.FAILED;
   //     payment.metadata = {
   //       ...payment.metadata,
-  //       canceled: true,
-  //       canceled_at: new Date().toISOString(),
+  //       cancelled: true,
+  //       cancelled_at: new Date().toISOString(),
   //     };
   //     await this.paymentRepository.save(payment);
   //   }

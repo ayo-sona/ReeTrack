@@ -297,7 +297,7 @@ export class CronService {
   // }
 
   // CLEANUP OLD RECORDS
-  // Delete very old canceled/expired subscriptions and invoices
+  // Delete very old cancelled/expired subscriptions and invoices
   // Also cleanup expired refresh tokens
   // Runs weekly on Sunday at 2 AM
   @Cron('0 2 * * 0') // 2 AM every Sunday
@@ -307,7 +307,7 @@ export class CronService {
     const now = new Date();
     const twoMonthsAgo = subMonths(now, 2);
 
-    // Delete old canceled invoices
+    // Delete old cancelled invoices
     const deletedInvoices = await this.invoiceRepository
       .createQueryBuilder()
       .delete()

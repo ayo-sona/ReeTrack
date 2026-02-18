@@ -236,7 +236,7 @@
 //       await this.stripeService.cancelPaymentIntent(paymentIntentId);
 
 //     return {
-//       message: 'Payment intent canceled',
+//       message: 'Payment intent cancelled',
 //       data: result,
 //     };
 //   }

@@ -126,7 +126,7 @@ export class InvoicesController {
 
   @Patch('member/:invoiceId/cancel')
   @ApiOperation({ summary: 'Cancel invoice' })
-  @ApiResponse({ status: 200, description: 'Invoice canceled' })
+  @ApiResponse({ status: 200, description: 'Invoice cancelled' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Not found' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
