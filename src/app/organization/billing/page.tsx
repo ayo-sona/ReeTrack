@@ -5,6 +5,7 @@ import { Card, Button, Chip, Spinner } from "@heroui/react";
 import apiClient from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { LoadingSkeleton } from "@/components/ui";
 
 // Add proper types
 interface Plan {
@@ -86,13 +87,15 @@ export default function BillingPage() {
     }
   };
 
-  if (loading) return <Spinner size="lg" />;
+  if (loading) return <LoadingSkeleton />;
 
   return (
     <div className="container mx-auto py-12">
       {/* Current Subscription */}
-      <Card className="mb-6 p-6">
-        <h1 className="text-2xl font-bold mb-2">Current Subscription</h1>
+      <Card className="mb-6 p-6 bg-default-100">
+        <h1 className="text-2xl text-foreground font-bold mb-2">
+          Current Subscription
+        </h1>
         {subscription ? (
           <>
             <p className="text-2xl font-bold">{subscription.plan.name}</p>
@@ -140,17 +143,21 @@ export default function BillingPage() {
       </Card>
 
       {/* Invoices */}
-      <Card className="mb-6 p-6">
-        <h1 className="text-2xl font-bold mb-2">Billing History</h1>
+      <Card className="mb-6 p-6 bg-default-100">
+        <h1 className="text-2xl text-foreground font-bold mb-2">
+          Billing History
+        </h1>
         <div className="space-y-2">
           {invoices.map((invoice) => (
             <div
               key={invoice.id}
-              className="flex justify-between items-center p-3 border rounded"
+              className="flex justify-between items-center rounded-3xl p-3 border border-default-300"
             >
               <div>
-                <p className="font-semibold">{invoice.invoice_number}</p>
-                <p className="text-sm text-gray-600">
+                <p className="font-semibold text-foreground">
+                  {invoice.invoice_number}
+                </p>
+                <p className="text-sm text-foreground">
                   {new Date(invoice.created_at).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
@@ -159,7 +166,7 @@ export default function BillingPage() {
                 </p>
               </div>
               <div className="text-right">
-                <p className="font-bold">₦{invoice.amount}</p>
+                <p className="font-bold text-foreground">₦{invoice.amount}</p>
                 <Chip
                   size="sm"
                   color={invoice.status === "paid" ? "success" : "warning"}

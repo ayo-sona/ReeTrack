@@ -3,45 +3,47 @@ import { motion } from "framer-motion";
 import { ArrowRight, Shield, Zap, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import InfiniteMenu from "@/components/effects/infiniteMenu";
+import { useRouter } from "next/navigation";
 
 const EnhancedCTASection = () => {
-  // Items for the 3D sphere - using your CTA images
+  const router = useRouter();
+  // Items for the 3D sphere - using CTA images
   const sphereItems = [
     {
       image: "/CTA/CTA1.jpg",
       link: "#",
       title: "Unite & Grow",
-      description: "Build authentic connections that last"
+      description: "Build authentic connections that last",
     },
     {
       image: "/CTA/CTA2.jpg",
       link: "#",
       title: "Team Power",
-      description: "Collaborate like never before"
+      description: "Collaborate like never before",
     },
     {
       image: "/CTA/CTA3.jpg",
       link: "#",
       title: "Scale Smart",
-      description: "From startup to enterprise seamlessly"
+      description: "From startup to enterprise seamlessly",
     },
     {
       image: "/CTA/CTA4.jpg",
       link: "#",
       title: "Win Together",
-      description: "Celebrate every milestone achieved"
+      description: "Celebrate every milestone achieved",
     },
     {
       image: "/CTA/CTA5.jpg",
       link: "#",
       title: "Stay Active",
-      description: "Keep your community buzzing daily"
+      description: "Keep your community buzzing daily",
     },
     {
       image: "/CTA/CTA6.jpg",
       link: "#",
       title: "Track Growth",
-      description: "See your impact in real-time"
+      description: "See your impact in real-time",
     },
   ];
 
@@ -94,11 +96,11 @@ const EnhancedCTASection = () => {
           >
             {/* Glow effect behind sphere */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#F06543]/30 to-[#F06543]/10 rounded-3xl blur-3xl" />
-            
+
             {/* 3D Sphere Menu Container with border and shadow */}
             <div className="relative h-full rounded-3xl overflow-hidden border-4 border-white/20 shadow-2xl bg-gradient-to-br from-[#0D9488] to-[#0B7A70]">
               <InfiniteMenu items={sphereItems} scale={1.2} />
-              
+
               {/* Subtle inner glow */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#0B7A70]/50 via-transparent to-transparent pointer-events-none" />
             </div>
@@ -170,10 +172,11 @@ const EnhancedCTASection = () => {
               className="flex mb-8"
             >
               <Button
+                onClick={() => router.push("/auth/login")}
                 size="lg"
                 className="group bg-white text-[#1F2937] hover:bg-white/95 text-lg font-bold py-6 px-10 h-auto shadow-2xl hover:shadow-[#F06543]/20 transition-all duration-300"
               >
-                Start Your Free Trial
+                Start today
                 <motion.div
                   className="inline-block ml-2"
                   animate={{ x: [0, 4, 0] }}

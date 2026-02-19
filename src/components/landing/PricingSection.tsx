@@ -2,50 +2,55 @@
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 const PricingSection = () => {
+  const router = useRouter();
   const plans = [
     {
-      name: "Starter",
-      price: "49",
-      description: "For growing communities",
+      name: "Basic",
+      price: "",
+      description: "Perfect for small organizations just getting started",
       features: [
-        { text: "Up to 100 members", included: true },
-        { text: "Basic analytics", included: true },
-        { text: "Payment processing", included: true },
-        { text: "Email support", included: true },
-        { text: "Custom branding", included: false },
+        { text: "1 admin/staff account", included: true },
+        { text: "2 custom emails/month", included: true },
+        { text: "10% transaction fees", included: true },
+        { text: "Basic analytics service", included: true },
+        { text: "1 member plan access", included: true },
+        { text: "Check-in service", included: false },
+        { text: "Organization reports generation", included: false },
         { text: "Priority support", included: false },
       ],
       accent: "#F06543",
       popular: false,
     },
     {
-      name: "Pro Engine",
-      price: "149",
-      description: "For serious communities",
+      name: "Platinum",
+      price: "100",
+      description: "For growing organizations that need more power",
       features: [
-        { text: "Unlimited members", included: true },
-        { text: "Advanced analytics & CRM", included: true },
-        { text: "Global payment methods", included: true },
+        { text: "3 admin/staff accounts", included: true },
+        { text: "50 custom emails/month", included: true },
+        { text: "7% transaction fees", included: true },
+        { text: "Advanced analytics service", included: true },
+        { text: "Access to 3 member plans", included: true },
+        { text: "Access to check-in service", included: true },
+        { text: "Access to organization reports generation", included: true },
         { text: "Priority support", included: true },
-        { text: "Custom branding", included: true },
-        { text: "Telegram & WhatsApp integration", included: true },
       ],
       accent: "#0D9488",
       popular: true,
     },
     {
-      name: "Custom",
-      price: "Let's talk",
-      description: "For organizations at scale",
+      name: "Gold",
+      price: "200",
+      description: "For large organizations with heavy requirements",
       features: [
-        { text: "Everything in Pro", included: true },
-        { text: "Dedicated account manager", included: true },
-        { text: "Custom integrations", included: true },
-        { text: "White-label options", included: true },
-        { text: "Custom SLA", included: true },
-        { text: "On-site training", included: true },
+        { text: "Everything in Platinum plan", included: true },
+        { text: "Multiple admin/staff accounts", included: true },
+        { text: "200 custom emails/month", included: true },
+        { text: "4% transaction fees", included: true },
+        { text: "Access to multiple member plans", included: true },
       ],
       accent: "#1F2937",
       popular: false,
@@ -161,17 +166,17 @@ const PricingSection = () => {
                   ) : (
                     <div className="flex items-baseline">
                       <span className="text-5xl font-bold text-[#1F2937]">
-                        ${plan.price}
+                        {`${plan.price === "" ? "Free" : "$"}${plan.price}`}
                       </span>
                       <span className="text-lg text-[#1F2937]/50 ml-2">
-                        /month
+                        {`${plan.price === "" ? "" : "/month"}`}
                       </span>
                     </div>
                   )}
                 </div>
 
                 {/* Features */}
-                <ul className="space-y-4 mb-8">
+                <ul className="space-y-4 mb-16">
                   {plan.features.map((feature, i) => (
                     <motion.li
                       key={i}
@@ -213,17 +218,12 @@ const PricingSection = () => {
 
                 {/* CTA Button */}
                 <Button
-                  variant={
-                    plan.popular
-                      ? "secondary"
-                      : plan.name === "Custom"
-                        ? "outline"
-                        : "default"
-                  }
+                  variant={plan.popular ? "secondary" : "outline"}
                   size="lg"
-                  className="w-full"
+                  className="absolute bottom-4 left-8 right-8"
+                  onClick={() => router.push("/auth/login")}
                 >
-                  {plan.name === "Custom" ? "Contact Sales" : "Get Started"}
+                  Get Started
                 </Button>
               </motion.div>
             </motion.div>
