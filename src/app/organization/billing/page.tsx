@@ -5,7 +5,6 @@ import apiClient from "@/lib/apiClient";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { CreditCard, FileText, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import clsx from "clsx";
 
 interface Plan {
@@ -39,11 +38,20 @@ interface Invoice {
 const getInvoiceStatusConfig = (status: string) => {
   switch (status) {
     case "paid":
-      return { icon: <CheckCircle className="w-3 h-3" />, className: "bg-emerald-50 text-emerald-700 border border-emerald-100" };
+      return { 
+        className: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+        label: "Paid"
+      };
     case "failed":
-      return { icon: <AlertCircle className="w-3 h-3" />, className: "bg-red-50 text-red-600 border border-red-100" };
+      return { 
+        className: "bg-red-50 text-red-600 border border-red-200",
+        label: "Failed"
+      };
     default:
-      return { icon: <Clock className="w-3 h-3" />, className: "bg-amber-50 text-amber-700 border border-amber-100" };
+      return { 
+        className: "bg-amber-50 text-amber-700 border border-amber-200",
+        label: "Pending"
+      };
   }
 };
 
@@ -56,13 +64,19 @@ export default function BillingPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [subRes, invRes] = await Promise.all([
-      apiClient.get("/subscriptions/organizations"),
-      apiClient.get("/invoices/organization"),
-    ]);
-    setSubscription(subRes.data.data || null);
-    setInvoices(invRes.data.data);
-    setLoading(false);
+    try {
+      const [subRes, invRes] = await Promise.all([
+        apiClient.get("/subscriptions/organizations"),
+        apiClient.get("/invoices/organization"),
+      ]);
+      setSubscription(subRes.data.data || null);
+      setInvoices(invRes.data.data || []);
+    } catch (error) {
+      console.error("Failed to load billing data:", error);
+      toast.error("Failed to load billing information");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -70,11 +84,11 @@ export default function BillingPage() {
   }, []);
 
   const handleCancel = async () => {
-    if (!confirm("Are you sure you want to cancel your subscription?")) return;
+    if (!confirm("Are you sure you want to cancel your subscription? This action cannot be undone.")) return;
     try {
       setIsCancelling(true);
       await apiClient.patch(`/subscriptions/organizations/${subscription?.id}/cancel`);
-      toast.success("Subscription cancelled");
+      toast.success("Subscription cancelled successfully");
       loadData();
     } catch (err) {
       console.error("Failed to cancel subscription:", err);
@@ -86,10 +100,15 @@ export default function BillingPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24" style={{ fontFamily: "Nunito, sans-serif" }}>
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-gray-100 border-t-[#0D9488] rounded-full animate-spin" />
-          <p className="text-sm text-[#9CA3AF]">Loading billing details...</p>
+      <div 
+        className="flex items-center justify-center min-h-[60vh] py-12 px-4" 
+        style={{ fontFamily: "Nunito, sans-serif" }}
+      >
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-gray-100 border-t-[#0D9488] rounded-full animate-spin" />
+          </div>
+          <p className="text-sm font-semibold text-[#9CA3AF]">Loading billing details...</p>
         </div>
       </div>
     );
@@ -97,116 +116,214 @@ export default function BillingPage() {
 
   return (
     <div
-      className="max-w-3xl mx-auto py-10 px-4 sm:px-6 space-y-6"
+      className="w-full max-w-4xl mx-auto py-6 sm:py-8 lg:py-12 px-4 sm:px-6 lg:px-8 space-y-6 lg:space-y-8"
       style={{ fontFamily: "Nunito, sans-serif" }}
     >
-      {/* Current Subscription */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-5 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-[#1F2937]">Current Subscription</h2>
-          <p className="text-sm text-[#9CA3AF] mt-0.5">Your active plan and billing details</p>
+      {/* Page Header */}
+      <div className="space-y-1">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1F2937]">
+          Billing & Subscription
+        </h1>
+        <p className="text-sm sm:text-base text-[#9CA3AF]">
+          Manage your subscription and view billing history
+        </p>
+      </div>
+
+      {/* Current Subscription Card */}
+      <div className="card">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-[#E5E7EB]">
+          <h2 className="text-base sm:text-lg font-bold text-[#0D9488]">
+            Current Subscription
+          </h2>
         </div>
 
-        <div className="px-6 py-5">
+        <div className="px-4 sm:px-6 py-5 sm:py-6">
           {subscription ? (
-            <div className="space-y-5">
-              {/* Plan info */}
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xl font-extrabold text-[#1F2937]">{subscription.plan.name}</p>
-                  <p className="text-sm text-[#9CA3AF] mt-0.5">
-                    ₦{subscription.plan.price.toLocaleString()}
-                    <span className="ml-0.5">/{subscription.plan.interval}</span>
+            <div className="space-y-6">
+              {/* Plan Info */}
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 pb-6 border-b border-[#E5E7EB]">
+                <div className="flex-1">
+                  <p className="text-xl sm:text-2xl font-extrabold text-[#1F2937]">
+                    {subscription.plan.name}
+                  </p>
+                  <p className="text-sm sm:text-base text-[#9CA3AF] mt-1">
+                    <span className="font-bold text-[#1F2937]">
+                      ₦{subscription.plan.price.toLocaleString()}
+                    </span>
+                    <span className="ml-1">/{subscription.plan.interval}</span>
                   </p>
                 </div>
                 <span
                   className={clsx(
-                    "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize flex-shrink-0",
+                    "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold capitalize flex-shrink-0 self-start",
                     subscription.status === "active"
-                      ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                      : "bg-amber-50 text-amber-700 border border-amber-100"
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      : "bg-amber-50 text-amber-700 border border-amber-200"
                   )}
+                  style={{ borderRadius: "8px" }}
                 >
-                  <span className={clsx("w-1.5 h-1.5 rounded-full", subscription.status === "active" ? "bg-emerald-500" : "bg-amber-400")} />
+                  <span 
+                    className={clsx(
+                      "w-2 h-2 rounded-full", 
+                      subscription.status === "active" ? "bg-emerald-500" : "bg-amber-400"
+                    )} 
+                  />
                   {subscription.status}
                 </span>
               </div>
 
-              {/* Billing date */}
-              <div className="bg-[#F9FAFB] border border-gray-100 rounded-lg px-4 py-3">
-                <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide mb-0.5">
-                  {subscription.auto_renew ? "Next Billing Date" : "Expires On"}
-                </p>
-                <p className="text-sm font-bold text-[#1F2937]">
-                  {new Date(subscription.expires_at).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
+              {/* Info Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                {/* Billing Date */}
+                <div>
+                  <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2">
+                    {subscription.auto_renew ? "Next Billing Date" : "Expires On"}
+                  </p>
+                  <p className="text-sm sm:text-base font-bold text-[#1F2937]">
+                    {new Date(subscription.expires_at).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
 
-              {/* Saved card */}
-              {subscription.organizationUser?.paystack_card_last4 && (
-                <div className="flex items-center gap-3 bg-[#F9FAFB] border border-gray-100 rounded-lg px-4 py-3">
-                  <CreditCard className="w-4 h-4 text-[#9CA3AF] flex-shrink-0" />
-                  <div>
-                    <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide">Payment Method</p>
-                    <p className="text-sm font-bold text-[#1F2937]">
+                {/* Auto-Renew */}
+                <div>
+                  <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2">
+                    Auto-Renewal
+                  </p>
+                  <p className="text-sm sm:text-base font-bold text-[#1F2937]">
+                    {subscription.auto_renew ? "Enabled" : "Disabled"}
+                  </p>
+                </div>
+
+                {/* Payment Method */}
+                {subscription.organizationUser?.paystack_card_last4 && (
+                  <div className="sm:col-span-2">
+                    <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2">
+                      Payment Method
+                    </p>
+                    <p className="text-sm sm:text-base font-bold text-[#1F2937]">
                       {subscription.organizationUser.paystack_card_brand} ···· {subscription.organizationUser.paystack_card_last4}
                     </p>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Actions */}
-              <div className="flex justify-end pt-1">
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-[#E5E7EB]">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="default"
+                  className="w-full sm:w-auto"
+                  onClick={() => router.push("/organization/subscription/upgrade")}
+                >
+                  Upgrade Plan
+                </Button>
                 <Button
                   type="button"
                   variant="destructive"
-                  size="sm"
+                  size="default"
                   onClick={handleCancel}
                   disabled={isCancelling}
+                  className="w-full sm:w-auto sm:ml-auto"
                 >
                   {isCancelling ? "Cancelling..." : "Cancel Subscription"}
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="w-14 h-14 bg-[#0D9488]/10 rounded-full flex items-center justify-center mb-4">
-                <CreditCard className="w-7 h-7 text-[#0D9488]" />
-              </div>
-              <p className="text-base font-bold text-[#1F2937] mb-1">No active subscription</p>
-              <p className="text-sm text-[#9CA3AF]">You don't have an active plan yet.</p>
+            <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center px-4">
+              <p className="text-base sm:text-lg font-extrabold text-[#1F2937] mb-2">
+                No active subscription
+              </p>
+              <p className="text-sm sm:text-base text-[#9CA3AF] mb-6 max-w-sm">
+                You don't have an active plan yet. Choose a plan to get started.
+              </p>
+              <Button
+                type="button"
+                variant="default"
+                size="lg"
+                onClick={() => router.push("/pricing")}
+                className="shadow-lg shadow-[#F06543]/20"
+              >
+                View Plans
+              </Button>
             </div>
           )}
         </div>
       </div>
 
       {/* Billing History */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-5 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-[#1F2937]">Billing History</h2>
-          <p className="text-sm text-[#9CA3AF] mt-0.5">All your past invoices</p>
+      <div className="card">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-[#E5E7EB]">
+          <h2 className="text-base sm:text-lg font-bold text-[#0D9488]">
+            Billing History
+          </h2>
         </div>
 
-        <div className="divide-y divide-gray-50">
+        <div className="divide-y divide-[#E5E7EB]">
           {invoices.length > 0 ? (
             invoices.map((invoice) => {
               const statusCfg = getInvoiceStatusConfig(invoice.status);
               return (
                 <div
                   key={invoice.id}
-                  className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-[#F9FAFB] transition-colors"
+                  className="px-4 sm:px-6 py-4 sm:py-5 hover:bg-[#F9FAFB] transition-colors"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-[#0D9488]/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <FileText className="w-4 h-4 text-[#0D9488]" />
+                  {/* Mobile Layout */}
+                  <div className="flex flex-col sm:hidden gap-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-[#1F2937] truncate">
+                          {invoice.invoice_number}
+                        </p>
+                        <p className="text-xs text-[#9CA3AF] mt-1">
+                          {new Date(invoice.created_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </p>
+                      </div>
+                      <p className="text-base font-extrabold text-[#1F2937] flex-shrink-0">
+                        ₦{invoice.amount.toLocaleString()}
+                      </p>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-[#1F2937]">{invoice.invoice_number}</p>
-                      <p className="text-xs text-[#9CA3AF]">
+                    
+                    <div className="flex items-center gap-2">
+                      <span 
+                        className={clsx(
+                          "inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold flex-1",
+                          statusCfg.className
+                        )}
+                        style={{ borderRadius: "8px" }}
+                      >
+                        {statusCfg.label}
+                      </span>
+                      {invoice.status === "failed" && (
+                        <Button
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          onClick={() => router.push(`/organization/invoices/${invoice.id}/pay`)}
+                          className="flex-shrink-0"
+                        >
+                          Pay Now
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Desktop Layout */}
+                  <div className="hidden sm:flex items-center justify-between gap-6">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-[#1F2937] truncate">
+                        {invoice.invoice_number}
+                      </p>
+                      <p className="text-xs text-[#9CA3AF] mt-1">
                         {new Date(invoice.created_at).toLocaleDateString("en-US", {
                           year: "numeric",
                           month: "long",
@@ -214,37 +331,43 @@ export default function BillingPage() {
                         })}
                       </p>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <p className="text-sm font-bold text-[#1F2937]">
-                      ₦{invoice.amount.toLocaleString()}
-                    </p>
-                    <span className={clsx("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize", statusCfg.className)}>
-                      {statusCfg.icon}
-                      {invoice.status}
-                    </span>
-                    {invoice.status === "failed" && (
-                      <Button
-                        type="button"
-                        variant="default"
-                        size="sm"
-                        onClick={() => router.push(`/organization/invoices/${invoice.id}/pay`)}
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                      <p className="text-base font-extrabold text-[#1F2937] min-w-[120px] text-right">
+                        ₦{invoice.amount.toLocaleString()}
+                      </p>
+                      <span 
+                        className={clsx(
+                          "inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold min-w-[90px] justify-center",
+                          statusCfg.className
+                        )}
+                        style={{ borderRadius: "8px" }}
                       >
-                        Pay Now
-                      </Button>
-                    )}
+                        {statusCfg.label}
+                      </span>
+                      {invoice.status === "failed" && (
+                        <Button
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          onClick={() => router.push(`/organization/invoices/${invoice.id}/pay`)}
+                        >
+                          Pay Now
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
             })
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-14 h-14 bg-[#0D9488]/10 rounded-full flex items-center justify-center mb-4">
-                <FileText className="w-7 h-7 text-[#0D9488]" />
-              </div>
-              <p className="text-base font-bold text-[#1F2937] mb-1">No invoices yet</p>
-              <p className="text-sm text-[#9CA3AF]">Your billing history will appear here.</p>
+            <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center px-4">
+              <p className="text-base sm:text-lg font-extrabold text-[#1F2937] mb-2">
+                No invoices yet
+              </p>
+              <p className="text-sm sm:text-base text-[#9CA3AF] max-w-sm">
+                Your billing history will appear here once you have transactions.
+              </p>
             </div>
           )}
         </div>
