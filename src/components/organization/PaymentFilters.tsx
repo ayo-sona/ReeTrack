@@ -34,7 +34,7 @@ export function PaymentFilters({
     setDateFrom("");
     setDateTo("");
     setSelectedSource("paystack");
-    setSelectedStatus("success");
+    setSelectedStatus("all");
   };
 
   const hasActiveFilters =
@@ -42,7 +42,7 @@ export function PaymentFilters({
     dateFrom ||
     dateTo ||
     selectedSource !== "paystack" ||
-    selectedStatus !== "success";
+    selectedStatus !== "all";
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 space-y-4">
