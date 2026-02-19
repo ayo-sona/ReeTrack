@@ -98,15 +98,15 @@ const mainFeatures = [
 const additionalFeatures = [
   { icon: Globe, title: "Multi-currency Support" },
   { icon: FileText, title: "Invoice Generation" },
-  { icon: Smartphone, title: "Mobile Apps" },
+  { icon: Smartphone, title: "Mobile App" },
   { icon: Clock, title: "24/7 Support" },
-  { icon: TrendingUp, title: "Revenue Forecasting" },
+  { icon: TrendingUp, title: "Revenue analytics" },
   { icon: Lock, title: "Two-factor Authentication" },
 ];
 
 export default function FeaturesPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#F9FAFB]">
       <Navigation />
 
       {/* Hero Section */}
@@ -121,13 +121,13 @@ export default function FeaturesPage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h1 className="text-5xl sm:text-6xl font-bold text-foreground mb-4">
+            <h1 className="text-5xl sm:text-6xl font-bold text-foreground dark:text-background mt-12">
               Powerful features for
               <span className="block text-primary mt-2">
                 subscription management
               </span>
             </h1>
-            <p className="text-xl text-foreground/70 max-w-3xl mx-auto">
+            <p className="text-xl text-foreground dark:text-background max-w-3xl mx-auto">
               Everything you need to manage memberships, automate billing, and
               grow your organization.
             </p>
@@ -180,7 +180,7 @@ export default function FeaturesPage() {
             transition={{ duration: 0.6, delay: 0.6 }}
             className="mb-16"
           >
-            <h2 className="text-3xl font-bold text-foreground mb-8 text-center">
+            <h2 className="text-3xl font-bold text-foreground dark:text-background mb-8 text-center">
               And much more...
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -189,7 +189,7 @@ export default function FeaturesPage() {
                 return (
                   <Card
                     key={index}
-                    className="bg-content1/50 backdrop-blur-md border border-divider hover:border-primary/50 transition-all"
+                    className="bg-content1/80 backdrop-blur-md border border-divider hover:border-primary/50 transition-all"
                   >
                     <CardBody className="p-4 flex flex-col items-center text-center gap-2">
                       <Icon className="w-6 h-6 text-primary" />
@@ -210,12 +210,12 @@ export default function FeaturesPage() {
             transition={{ duration: 0.6, delay: 0.8 }}
             className="text-center"
           >
-            <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20 backdrop-blur-md">
+            <Card className="bg-gradient-to-br from-primary/60 to-secondary/10 border border-primary/20 backdrop-blur-md">
               <CardBody className="p-12">
-                <h2 className="text-3xl font-bold text-foreground mb-4">
+                <h2 className="text-3xl font-bold text-foreground dark:text-background mb-4">
                   Ready to get started?
                 </h2>
-                <p className="text-foreground/70 mb-8 max-w-2xl mx-auto">
+                <p className="text-foreground/70 dark:text-background/70 mb-8 max-w-2xl mx-auto">
                   Join hundreds of organizations using ReeTrack to streamline
                   their subscription management.
                 </p>
@@ -227,16 +227,16 @@ export default function FeaturesPage() {
                     color="primary"
                     className="bg-primary text-primary-foreground text-lg px-8"
                   >
-                    Start Free Plan
+                    Start Now
                   </Button>
                   <Button
                     as={Link}
-                    href="/pricing"
+                    href="/"
                     size="lg"
                     variant="bordered"
-                    className="border-foreground/20 text-foreground text-lg px-8"
+                    className="border-background/20 text-foreground dark:text-background text-lg px-8"
                   >
-                    View Pricing
+                    Learn More
                   </Button>
                 </div>
               </CardBody>

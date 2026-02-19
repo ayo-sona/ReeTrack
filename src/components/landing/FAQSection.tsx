@@ -10,12 +10,12 @@ const FAQSection = () => {
     {
       question: "Is my money safe?",
       answer:
-        "100%. We use bank-grade encryption and same-day settlements so your cash flow never stops. Your funds are processed through secure payment gateways with industry-leading security standards.",
+        "100%. We use bank-grade encryption and next-day settlements so your cash flow never stops. Your funds are processed through secure payment gateways with industry-leading security standards.",
     },
     {
       question: "Can I add members manually?",
       answer:
-        "Yes. Whether they pay offline or you're gifting access, you control the gate. Manual member management gives you complete flexibility over who joins your community and how.",
+        "Yes, you control the gate!. Manual member management gives you complete flexibility over who joins your community and how.",
     },
     {
       question: "Does Reetrack handle failed payments?",
@@ -25,7 +25,7 @@ const FAQSection = () => {
     {
       question: "What platforms do you integrate with?",
       answer:
-        "Reetrack works seamlessly with Telegram and WhatsApp, bringing professional community management directly into the apps your members already use every day. No new platform to learn.",
+        "Reetrack is working on integrating seamlessly with Telegram and WhatsApp, bringing professional community management directly into the apps your members already use every day. No new platform to learn.",
     },
     {
       question: "Can I export my data?",
@@ -35,7 +35,7 @@ const FAQSection = () => {
     {
       question: "What kind of support do you offer?",
       answer:
-        "Email support for all plans, priority support for Pro subscribers, and dedicated account managers for Custom plans. Real humans who actually understand community management.",
+        "Email support for all plans, priority support for Pro subscribers. Real people who actually understand community management.",
     },
   ];
 
@@ -101,9 +101,7 @@ const FAQSection = () => {
               >
                 {/* Question Bar */}
                 <button
-                  onClick={() =>
-                    setOpenIndex(openIndex === index ? -1 : index)
-                  }
+                  onClick={() => setOpenIndex(openIndex === index ? -1 : index)}
                   className="w-full flex items-center justify-between p-6 text-left transition-colors"
                 >
                   <h3 className="text-lg sm:text-xl font-bold text-[#1F2937] pr-4 leading-snug">

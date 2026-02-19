@@ -12,13 +12,20 @@ import { motion, AnimatePresence } from "framer-motion";
 interface OrganizationHeaderProps {
   onToggleSidebar?: () => void;
   isSidebarCollapsed?: boolean;
+  onToggleMobile?: (value: boolean) => void;
+  onSetCollapse?: (value: boolean) => void;
 }
 
-export function OrganizationHeader({ onToggleSidebar, isSidebarCollapsed }: OrganizationHeaderProps) {
+export function OrganizationHeader({
+  onToggleSidebar,
+  isSidebarCollapsed,
+  onToggleMobile,
+  onSetCollapse,
+}: OrganizationHeaderProps) {
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   const unreadCount = 3;
 
   const handleLogout = async () => {
@@ -43,24 +50,40 @@ export function OrganizationHeader({ onToggleSidebar, isSidebarCollapsed }: Orga
   };
 
   return (
-    <header className="sticky top-0 z-30 h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50">
+    <header className="sticky top-0 z-30 h-16 bg-default-50 dark:bg-background backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50">
       <div className="h-full px-6 flex items-center justify-between gap-6">
         {/* Left side - Sidebar Toggle (only visible when collapsed) */}
         <div className="flex items-center gap-4">
-          {onToggleSidebar && isSidebarCollapsed && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={onToggleSidebar}
-              className="p-2 rounded-xl bg-gray-100/50 dark:bg-gray-800/50 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 transition-colors duration-200"
-              title="Expand Sidebar"
-            >
-              <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-            </motion.button>
-          )}
+          {/* Destop view */}
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onToggleSidebar}
+            className="hidden lg:block p-4 rounded-xl bg-default-50 dark:bg-background hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 transition-colors duration-200"
+            title="Expand Sidebar"
+          >
+            <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          </motion.button>
+
+          {/* Mobile view */}
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              onSetCollapse?.(false);
+              onToggleMobile?.(true);
+            }}
+            className="lg:hidden p-2 rounded-xl bg-default-50 dark:bg-background hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 transition-colors duration-200"
+            title="Expand Sidebar"
+          >
+            <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          </motion.button>
         </div>
 
         {/* Right Actions */}

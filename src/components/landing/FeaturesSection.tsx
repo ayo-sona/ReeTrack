@@ -85,7 +85,6 @@ const FeaturesSection = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-24"
         >
-
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#1F2937] relative inline-block">
             Everything your community needs
             {/* Marker underline */}

@@ -86,11 +86,11 @@ export default function OrganizationSelectPage() {
         });
 
         router.push("/organization/dashboard");
-        toast("Switched organization successfully");
+        toast("Organization selected");
       }
     } catch (error) {
-      console.error("Failed to switch organization:", error);
-      toast("Failed to switch organization");
+      console.error("Failed to select organization:", error);
+      toast("Failed to select organization");
       setSelectedOrg(null);
     }
   };
@@ -115,12 +115,12 @@ export default function OrganizationSelectPage() {
   };
 
   return (
-    <div className="min-h-screen text-white p-4 md:p-8">
+    <div className="min-h-screen bg-default-50 dark:bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <header className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-default-600 mb-3">
-            Select an Organization
+            Select your Organization
           </h1>
           <p className="text-default-600 text-lg">
             Choose an organization to continue to your dashboard

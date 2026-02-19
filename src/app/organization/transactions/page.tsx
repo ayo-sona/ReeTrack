@@ -21,6 +21,7 @@ import {
   // useInitializePayment,
 } from "../../../hooks/usePayments";
 import { mapApiPaymentsToUiPayments } from "../../../utils/paymentMapper";
+import { LoadingSkeleton } from "@/components/ui";
 
 export default function PaymentsPage() {
   // const [showManualPaymentModal, setShowManualPaymentModal] = useState(false);
@@ -151,13 +152,7 @@ export default function PaymentsPage() {
   // };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-500 dark:text-gray-400">
-          Loading payments...
-        </div>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   if (error) {

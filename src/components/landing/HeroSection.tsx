@@ -77,7 +77,7 @@ const HeroSection = () => {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button asChild size="lg" className="group">
-              <Link href="/auth" className="flex items-center gap-2">
+              <Link href="/auth/register" className="flex items-center gap-2">
                 Get Started
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>

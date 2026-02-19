@@ -53,41 +53,45 @@ interface User {
 interface OrganizationSidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  isMobileOpen: boolean;
+  onToggleMobile: (value: boolean) => void;
 }
 
 export function OrganizationSidebar({
   isCollapsed,
   onToggleCollapse,
+  isMobileOpen,
+  onToggleMobile,
 }: OrganizationSidebarProps) {
   const pathname = usePathname();
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  // const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   /// Load user data on mount
-useEffect(() => {
-  try {
-    const userData = localStorage.getItem("userData");
-    if (userData) {
-      const parsed = JSON.parse(userData);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setUser(parsed.user);
+  useEffect(() => {
+    try {
+      const userData = localStorage.getItem("userData");
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setUser(parsed.user);
+      }
+    } catch (error) {
+      console.error("Error loading user data:", error);
     }
-  } catch (error) {
-    console.error("Error loading user data:", error);
-  }
-}, []);
+  }, []);
 
   return (
     <>
       {/* Mobile Toggle Button */}
-      <button
+      {/* <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-2xl border border-white/20 dark:border-gray-700/20 shadow-lg shadow-emerald-500/5 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300"
+        className="lg:hidden fixed top-2 left-4 p-2.5 rounded-xl bg-default-50 dark:bg-background backdrop-blur-2xl border border-white/20 dark:border-gray-700/20 shadow-lg shadow-emerald-500/5 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300"
       >
         {!isMobileOpen && (
           <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
         )}
-      </button>
+      </button> */}
 
       {/* Mobile Overlay */}
       <AnimatePresence>
@@ -97,7 +101,7 @@ useEffect(() => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            onClick={() => setIsMobileOpen(false)}
+            onClick={() => onToggleMobile(false)}
             className="lg:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
           />
         )}
@@ -112,9 +116,9 @@ useEffect(() => {
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className={`
           hidden lg:sticky lg:flex top-0 left-0 h-screen flex-col
-          bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl
+          bg-default-50 dark:bg-background backdrop-blur-2xl
           border-r border-white/20 dark:border-gray-700/20
-          shadow-xl shadow-emerald-500/5
+          shadow-xl shadow-emerald-500/5 p-2 overflow-auto no-scrollbar
           z-0
           ${isMobileOpen ? "fixed !flex translate-x-0 z-40" : ""}
         `}
@@ -156,7 +160,7 @@ useEffect(() => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={onToggleCollapse}
-                className="hidden lg:flex items-center justify-center w-9 h-9 rounded-xl bg-gray-100/50 dark:bg-gray-800/50 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 transition-colors duration-200"
+                className="hidden lg:flex items-center justify-center w-9 h-9 rounded-xl bg-default-50 dark:bg-background hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 transition-colors duration-200"
               >
                 <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </motion.button>
