@@ -267,7 +267,9 @@ export function PlanMembersModal({
                             ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
                             : subscription.status === "pending"
                               ? "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
-                              : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                              : subscription.status === "cancelled"
+                                ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                                : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
                         }`}
                       >
                         {subscription.status === "active" && (
@@ -279,11 +281,16 @@ export function PlanMembersModal({
                         {subscription.status === "expired" && (
                           <AlertCircle className="w-3 h-3" />
                         )}
+                        {subscription.status === "cancelled" && (
+                          <X className="w-3 h-3" />
+                        )}
                         {subscription.status === "active"
                           ? "Active"
                           : subscription.status === "pending"
                             ? "Pending"
-                            : "Expired"}
+                            : subscription.status === "cancelled"
+                              ? "Cancelled"
+                              : "Expired"}
                       </div>
                       <p className="text-xs text-gray-500 dark:text-gray-500">
                         {subscription.status === "expired"
