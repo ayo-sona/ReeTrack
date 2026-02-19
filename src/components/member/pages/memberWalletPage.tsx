@@ -2,50 +2,69 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { 
-  Wallet, 
-  Plus, 
-  Copy, 
-  Check, 
-  CreditCard, 
-  Building, 
-  ArrowDownToLine, 
-  ArrowUpFromLine,
-  AlertCircle 
-} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Copy, Check, CreditCard, Building, ArrowUpFromLine, AlertCircle, Wallet } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-// Mock wallet interface (placeholder until backend implements)
-interface MockWallet {
-  balance: number;
-  accountNumber: string;
-  bankName: string;
-}
+const C = {
+  teal:     '#0D9488',
+  snow:     '#F9FAFB',
+  white:    '#FFFFFF',
+  ink:      '#1F2937',
+  coolGrey: '#9CA3AF',
+  border:   '#E5E7EB',
+};
 
-// Mock transaction interface
-interface MockTransaction {
-  id: string;
-  type: 'credit' | 'debit';
-  amount: number;
-  description: string;
-  status: 'completed' | 'pending' | 'failed';
-  createdAt: string;
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i = 0) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.5, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] },
+  }),
+};
+
+interface MockWallet { balance: number; accountNumber: string; bankName: string; }
+interface MockTransaction { id: string; type: 'credit' | 'debit'; amount: number; description: string; status: 'completed' | 'pending' | 'failed'; createdAt: string; }
+
+function QuickActionCard({ icon, title, description, onClick }: any) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <motion.button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      style={{
+        width: '100%', padding: '24px', background: C.white, borderRadius: '12px',
+        border: `1px solid ${hovered ? C.teal : C.border}`,
+        boxShadow: hovered ? '0 8px 24px rgba(13,148,136,0.12)' : '0 1px 4px rgba(0,0,0,0.05)',
+        textAlign: 'left', cursor: 'pointer',
+        transition: 'border-color 300ms, box-shadow 300ms',
+        fontFamily: 'Nunito, sans-serif',
+      }}
+    >
+      <div style={{
+        width: '44px', height: '44px', borderRadius: '10px',
+        background: hovered ? 'rgba(13,148,136,0.1)' : C.snow,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginBottom: '12px', color: C.teal, transition: 'background 300ms',
+      }}>
+        {icon}
+      </div>
+      <p style={{ fontWeight: 700, fontSize: '15px', color: C.ink, marginBottom: '4px' }}>{title}</p>
+      <p style={{ fontWeight: 400, fontSize: '13px', color: C.coolGrey, lineHeight: 1.5 }}>{description}</p>
+    </motion.button>
+  );
 }
 
 export default function WalletPage() {
-  // Mock wallet data
-  const [wallet] = useState<MockWallet>({
-    balance: 0,
-    accountNumber: '0000000000',
-    bankName: 'ReeTrack Wallet',
-  });
-
-  // Mock transactions
+  const [wallet] = useState<MockWallet>({ balance: 0, accountNumber: '0000000000', bankName: 'ReeTrack Wallet' });
   const [transactions] = useState<MockTransaction[]>([]);
-
   const [showTopUp, setShowTopUp] = useState(false);
   const [topUpMethod, setTopUpMethod] = useState<'card' | 'transfer'>('transfer');
   const [topUpAmount, setTopUpAmount] = useState('');
   const [copied, setCopied] = useState(false);
+  const [amountFocused, setAmountFocused] = useState(false);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -55,255 +74,231 @@ export default function WalletPage() {
 
   const handleTopUp = () => {
     if (!topUpAmount || parseFloat(topUpAmount) <= 0) return;
-    
-    // Mock top-up - just close modal
     setShowTopUp(false);
     setTopUpAmount('');
-    
-    // In real implementation, this would call API
-    alert('Top-up feature coming soon! This will be connected to payment gateway.');
+    alert('Top-up feature coming soon!');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Wallet</h1>
-          <p className="text-gray-600 mt-1">Manage your balance and transactions</p>
-        </div>
+    <div style={{ minHeight: '100vh', background: C.snow, fontFamily: 'Nunito, sans-serif', padding: '32px 24px 96px' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        * { box-sizing: border-box; }
+        input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+        input::placeholder { color: #9CA3AF; }
+      `}</style>
 
-        {/* Beta Notice */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-blue-900 mb-1">Wallet Feature Coming Soon</h3>
-              <p className="text-sm text-blue-800">
-                Virtual wallet, top-up, and transaction features are in development. Once the backend API is ready, you&apos;ll be able to fund your wallet and manage your balance here.
+      <div style={{ maxWidth: '880px', margin: '0 auto' }}>
+
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} style={{ marginBottom: '32px' }}>
+          <h1 style={{ fontWeight: 800, fontSize: '32px', color: C.ink, letterSpacing: '-0.4px' }}>Wallet</h1>
+          <p style={{ fontWeight: 400, fontSize: '15px', color: C.coolGrey, marginTop: '4px' }}>Manage your balance and transactions</p>
+        </motion.div>
+
+        {/* Beta notice */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1}
+          style={{ display: 'flex', gap: '12px', background: C.white, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '16px 20px', marginBottom: '24px' }}
+        >
+          <AlertCircle size={18} style={{ color: C.teal, flexShrink: 0, marginTop: '2px' }} />
+          <div>
+            <p style={{ fontWeight: 700, fontSize: '14px', color: C.ink, marginBottom: '4px' }}>Wallet Feature Coming Soon</p>
+            <p style={{ fontWeight: 400, fontSize: '13px', color: C.coolGrey, lineHeight: 1.6 }}>
+              Virtual wallet, top-up, and transaction features are in development.
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Balance card */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2} style={{ position: 'relative', background: C.teal, borderRadius: '16px', padding: '36px', marginBottom: '24px', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: '-6px', background: `linear-gradient(135deg, rgba(13,148,136,0.5), rgba(13,148,136,0.2))`, filter: 'blur(28px)', opacity: 0.7, zIndex: 0 }} />
+          <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%)', borderRadius: '16px' }} />
+
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <p style={{ fontWeight: 600, fontSize: '13px', color: 'rgba(255,255,255,0.7)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Available Balance
+                </p>
+                <h2 style={{ fontWeight: 800, fontSize: '44px', color: C.white, letterSpacing: '-1px', lineHeight: 1 }}>
+                  ₦{wallet.balance.toLocaleString()}
+                </h2>
+              </div>
+
+              {/* Coral CTA with glow */}
+              <div style={{ position: 'relative' }}>
+                <div style={{
+                  position: 'absolute', inset: '-4px', borderRadius: '12px',
+                  background: `linear-gradient(to right, rgba(240,101,67,0.5), rgba(240,101,67,0.3), rgba(240,101,67,0.5))`,
+                  filter: 'blur(14px)', opacity: 0.8, zIndex: 0,
+                }} />
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <Button variant="default" onClick={() => setShowTopUp(true)}>
+                    <Plus size={16} /> Top Up
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '10px', padding: '16px', backdropFilter: 'blur(8px)' }}>
+                <p style={{ fontWeight: 600, fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Account Number</p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <p style={{ fontWeight: 700, fontSize: '20px', color: C.white, letterSpacing: '1px' }}>{wallet.accountNumber}</p>
+                  <button onClick={() => handleCopy(wallet.accountNumber)}
+                    style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '6px', padding: '6px', color: C.white, cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                  </button>
+                </div>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '10px', padding: '16px', backdropFilter: 'blur(8px)' }}>
+                <p style={{ fontWeight: 600, fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bank Name</p>
+                <p style={{ fontWeight: 700, fontSize: '20px', color: C.white }}>{wallet.bankName}</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Quick actions */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}
+        >
+          <Link href="/member/subscriptions" style={{ textDecoration: 'none' }}>
+            <QuickActionCard icon={<CreditCard size={20} />} title="Pay Subscription" description="Use wallet balance for subscriptions" />
+          </Link>
+          <QuickActionCard icon={<Plus size={20} />} title="Add Money" description="Top up your wallet balance" onClick={() => setShowTopUp(true)} />
+          <Link href="/member/payments" style={{ textDecoration: 'none' }}>
+            <QuickActionCard icon={<ArrowUpFromLine size={20} />} title="Payment History" description="View all your payments" />
+          </Link>
+        </motion.div>
+
+        {/* Transactions */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4}
+          style={{ background: C.white, borderRadius: '16px', padding: '32px', border: `1px solid ${C.border}`, marginBottom: '24px' }}
+        >
+          <h3 style={{ fontWeight: 700, fontSize: '18px', color: C.teal, marginBottom: '24px' }}>Recent Transactions</h3>
+          {transactions.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '48px 0' }}>
+              <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: C.snow, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <Wallet size={28} style={{ color: C.coolGrey }} />
+              </div>
+              <p style={{ fontWeight: 700, fontSize: '16px', color: C.ink, marginBottom: '6px' }}>No transactions yet</p>
+              <p style={{ fontWeight: 400, fontSize: '14px', color: C.coolGrey, maxWidth: '300px', margin: '0 auto', lineHeight: 1.6 }}>
+                Your wallet transactions will appear here once you start using your wallet.
               </p>
             </div>
-          </div>
-        </div>
+          )}
+        </motion.div>
 
-        {/* Balance Card */}
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-8 text-white shadow-xl">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <p className="text-emerald-100 text-sm mb-2">Available Balance</p>
-              <h2 className="text-5xl font-bold">₦{wallet.balance.toLocaleString()}</h2>
-            </div>
-            <button
-              onClick={() => setShowTopUp(true)}
-              className="px-6 py-3 bg-white text-emerald-600 rounded-lg font-semibold hover:bg-emerald-50 transition-colors flex items-center gap-2"
-            >
-              <Plus className="w-5 h-5" />
-              Top Up
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-              <p className="text-emerald-100 text-sm mb-1">Account Number</p>
-              <div className="flex items-center justify-between">
-                <p className="text-xl font-bold">{wallet.accountNumber}</p>
-                <button
-                  onClick={() => handleCopy(wallet.accountNumber)}
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                  title="Copy account number"
-                >
-                  {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                </button>
+        {/* Features */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5}
+          style={{ background: C.white, borderRadius: '16px', padding: '28px 32px', border: `1px solid ${C.border}` }}
+        >
+          <h3 style={{ fontWeight: 700, fontSize: '16px', color: C.teal, marginBottom: '16px' }}>Wallet Features (Coming Soon)</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {[
+              'Virtual account number for easy bank transfers',
+              'Instant top-up via debit card or bank transfer',
+              'Pay for subscriptions directly from wallet balance',
+              'Real-time transaction notifications',
+              'Transaction history and downloadable statements',
+            ].map((item) => (
+              <div key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: C.teal, marginTop: '7px', flexShrink: 0 }} />
+                <p style={{ fontWeight: 400, fontSize: '14px', color: C.ink, lineHeight: 1.6 }}>{item}</p>
               </div>
-            </div>
-
-            <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
-              <p className="text-emerald-100 text-sm mb-1">Bank Name</p>
-              <p className="text-xl font-bold">{wallet.bankName}</p>
-            </div>
+            ))}
           </div>
-        </div>
+        </motion.div>
+      </div>
 
-        {/* Top-Up Modal */}
+      {/* Top-up modal */}
+      <AnimatePresence>
         {showTopUp && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl p-6 max-w-md w-full">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Top Up Wallet</h3>
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(31,41,55,0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', zIndex: 50 }}
+            onClick={(e) => e.target === e.currentTarget && setShowTopUp(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.97 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              style={{ background: C.white, borderRadius: '16px', padding: '36px', maxWidth: '420px', width: '100%', boxShadow: '0 24px 48px rgba(0,0,0,0.15)' }}
+            >
+              <h3 style={{ fontWeight: 800, fontSize: '22px', color: C.ink, marginBottom: '8px' }}>Top Up Wallet</h3>
+              <p style={{ fontWeight: 400, fontSize: '14px', color: C.coolGrey, marginBottom: '28px' }}>Choose a method and enter your amount.</p>
 
-              {/* Method Selection */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <button
-                  onClick={() => setTopUpMethod('transfer')}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    topUpMethod === 'transfer'
-                      ? 'border-emerald-600 bg-emerald-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <Building className="w-6 h-6 mx-auto mb-2 text-emerald-600" />
-                  <p className="text-sm font-medium text-gray-900">Bank Transfer</p>
-                </button>
-
-                <button
-                  onClick={() => setTopUpMethod('card')}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    topUpMethod === 'card'
-                      ? 'border-emerald-600 bg-emerald-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <CreditCard className="w-6 h-6 mx-auto mb-2 text-emerald-600" />
-                  <p className="text-sm font-medium text-gray-900">Debit Card</p>
-                </button>
+              {/* Method */}
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+                {(['transfer', 'card'] as const).map((method) => (
+                  <button key={method} onClick={() => setTopUpMethod(method)} style={{
+                    flex: 1, padding: '16px', borderRadius: '8px',
+                    border: `2px solid ${topUpMethod === method ? C.teal : C.border}`,
+                    background: topUpMethod === method ? 'rgba(13,148,136,0.06)' : C.white,
+                    cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
+                    color: topUpMethod === method ? C.teal : C.coolGrey,
+                    fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '14px',
+                    transition: 'all 300ms',
+                  }}>
+                    {method === 'transfer' ? <Building size={22} /> : <CreditCard size={22} />}
+                    {method === 'transfer' ? 'Bank Transfer' : 'Debit Card'}
+                  </button>
+                ))}
               </div>
 
-              {/* Amount Input */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">₦</span>
+              {/* Amount */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ fontWeight: 600, fontSize: '14px', color: C.ink, display: 'block', marginBottom: '6px' }}>Amount</label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', fontWeight: 600, fontSize: '15px', color: C.coolGrey }}>₦</span>
                   <input
-                    type="number"
-                    value={topUpAmount}
-                    onChange={(e) => setTopUpAmount(e.target.value)}
-                    className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    placeholder="0.00"
-                    min="0"
+                    type="number" value={topUpAmount} onChange={(e) => setTopUpAmount(e.target.value)}
+                    onFocus={() => setAmountFocused(true)} onBlur={() => setAmountFocused(false)}
+                    placeholder="0.00" min="0"
+                    style={{
+                      width: '100%', paddingLeft: '32px', paddingRight: '16px', paddingTop: '12px', paddingBottom: '12px',
+                      borderRadius: '8px', border: `1px solid ${amountFocused ? C.teal : C.border}`,
+                      boxShadow: amountFocused ? `0 0 0 3px rgba(13,148,136,0.12)` : 'none',
+                      fontFamily: 'Nunito, sans-serif', fontWeight: 600, fontSize: '16px', color: C.ink,
+                      background: C.white, outline: 'none', transition: 'border-color 300ms, box-shadow 300ms', minHeight: '48px',
+                    }}
                   />
                 </div>
               </div>
 
-              {/* Info Notice */}
-              <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-xs text-blue-800">
-                  This is a prototype. Real payment gateway integration coming soon.
-                </p>
+              {/* Notice */}
+              <div style={{ display: 'flex', gap: '10px', background: C.snow, border: `1px solid ${C.border}`, borderRadius: '8px', padding: '12px 14px', marginBottom: '28px' }}>
+                <AlertCircle size={16} style={{ color: C.teal, flexShrink: 0, marginTop: '1px' }} />
+                <p style={{ fontWeight: 400, fontSize: '13px', color: C.coolGrey, lineHeight: 1.5 }}>This is a prototype. Real payment gateway integration coming soon.</p>
               </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowTopUp(false)}
-                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                >
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <Button variant="outline" className="flex-1" onClick={() => setShowTopUp(false)}>
                   Cancel
-                </button>
-                <button
-                  onClick={handleTopUp}
-                  disabled={!topUpAmount || parseFloat(topUpAmount) <= 0}
-                  className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Continue
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link href="/member/subscriptions">
-            <button className="w-full p-6 bg-white rounded-xl border border-gray-200 hover:border-emerald-300 hover:shadow-md transition-all text-left">
-              <CreditCard className="w-8 h-8 text-emerald-600 mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-1">Pay Subscription</h3>
-              <p className="text-sm text-gray-600">Use wallet balance for subscriptions</p>
-            </button>
-          </Link>
-
-          <button 
-            onClick={() => setShowTopUp(true)}
-            className="w-full p-6 bg-white rounded-xl border border-gray-200 hover:border-emerald-300 hover:shadow-md transition-all text-left"
-          >
-            <Plus className="w-8 h-8 text-emerald-600 mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-1">Add Money</h3>
-            <p className="text-sm text-gray-600">Top up your wallet balance</p>
-          </button>
-
-          <Link href="/member/payments">
-            <button className="w-full p-6 bg-white rounded-xl border border-gray-200 hover:border-emerald-300 hover:shadow-md transition-all text-left">
-              <ArrowUpFromLine className="w-8 h-8 text-emerald-600 mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-1">Payment History</h3>
-              <p className="text-sm text-gray-600">View all your payments</p>
-            </button>
-          </Link>
-        </div>
-
-        {/* Transactions */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Recent Transactions</h3>
-
-          {transactions.length > 0 ? (
-            <div className="space-y-4">
-              {transactions.map((txn) => (
-                <div 
-                  key={txn.id} 
-                  className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                      txn.type === 'credit' ? 'bg-green-100' : 'bg-red-100'
-                    }`}>
-                      {txn.type === 'credit' ? (
-                        <ArrowDownToLine className="w-6 h-6 text-green-600" />
-                      ) : (
-                        <ArrowUpFromLine className="w-6 h-6 text-red-600" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{txn.description}</p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(txn.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right flex-shrink-0 ml-4">
-                    <p className={`text-xl font-bold ${
-                      txn.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {txn.type === 'credit' ? '+' : '-'}₦{txn.amount.toLocaleString()}
-                    </p>
-                    <p className="text-sm text-gray-500 capitalize">{txn.status}</p>
+                </Button>
+                {/* Coral CTA with glow */}
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <div style={{
+                    position: 'absolute', inset: '-4px', borderRadius: '12px',
+                    background: `linear-gradient(to right, rgba(240,101,67,0.4), rgba(240,101,67,0.2), rgba(240,101,67,0.4))`,
+                    filter: 'blur(12px)',
+                    opacity: !topUpAmount || parseFloat(topUpAmount) <= 0 ? 0.2 : 0.7,
+                    transition: 'opacity 300ms', zIndex: 0,
+                  }} />
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <Button
+                      variant="default" className="w-full"
+                      disabled={!topUpAmount || parseFloat(topUpAmount) <= 0}
+                      onClick={handleTopUp}
+                    >
+                      Continue
+                    </Button>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Wallet className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="font-semibold text-gray-900 mb-2">No transactions yet</h3>
-              <p className="text-gray-600 mb-6">
-                Your wallet transactions will appear here once you start using your wallet
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Features Info */}
-        <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-200">
-          <h3 className="font-bold text-emerald-900 mb-3">Wallet Features (Coming Soon)</h3>
-          <ul className="space-y-2 text-sm text-emerald-800">
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>Virtual account number for easy bank transfers</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>Instant top-up via debit card or bank transfer</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>Pay for subscriptions directly from wallet balance</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>Real-time transaction notifications</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-bold">•</span>
-              <span>Transaction history and downloadable statements</span>
-            </li>
-          </ul>
-        </div>
-      </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

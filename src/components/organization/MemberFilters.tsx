@@ -1,7 +1,8 @@
 "use client";
 
 import { Calendar, Filter, X } from "lucide-react";
-import { SearchBar } from "./MemberSearchBar";
+import { SearchBar } from "@/components/ui/SearchBar";
+import { Button } from "@/components/ui/button";
 
 interface MemberFiltersType {
   search: string;
@@ -16,7 +17,7 @@ interface MemberFiltersProps {
   onFiltersChange: (filters: MemberFiltersType) => void;
   filteredCount: number;
   totalCount: number;
-  isLoading?: boolean; // ⭐ NEW: Accept loading state
+  isLoading?: boolean;
 }
 
 export function MemberFilters({
@@ -24,23 +25,14 @@ export function MemberFilters({
   onFiltersChange,
   filteredCount,
   totalCount,
-  isLoading = false, // ⭐ NEW: Default to false
+  isLoading = false,
 }: MemberFiltersProps) {
   const updateFilter = (key: keyof MemberFiltersType, value: string) => {
-    onFiltersChange({
-      ...filters,
-      [key]: value,
-    });
+    onFiltersChange({ ...filters, [key]: value });
   };
 
   const clearFilters = () => {
-    onFiltersChange({
-      search: "",
-      dateFrom: "",
-      dateTo: "",
-      plan: "all",
-      status: "all",
-    });
+    onFiltersChange({ search: "", dateFrom: "", dateTo: "", plan: "all", status: "all" });
   };
 
   const hasActiveFilters =
@@ -50,9 +42,17 @@ export function MemberFilters({
     filters.plan !== "all" ||
     filters.status !== "all";
 
+  const inputClass =
+    "w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all appearance-none";
+
+  const labelClass = "block text-sm font-semibold text-[#1F2937] mb-1.5";
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 space-y-4">
-      {/* ⭐ Search Bar Component */}
+    <div
+      className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4"
+      style={{ fontFamily: "Nunito, sans-serif" }}
+    >
+      {/* Search */}
       <SearchBar
         value={filters.search}
         onChange={(value) => updateFilter("search", value)}
@@ -60,73 +60,60 @@ export function MemberFilters({
         isLoading={isLoading}
       />
 
-      {/* Filters Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Filters grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Date From */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Joined From
-          </label>
+          <label className={labelClass}>Joined From</label>
           <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF] pointer-events-none" />
             <input
               type="date"
               value={filters.dateFrom}
               onChange={(e) => updateFilter("dateFrom", e.target.value)}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`${inputClass} pl-10`}
             />
           </div>
         </div>
 
         {/* Date To */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Joined To
-          </label>
+          <label className={labelClass}>Joined To</label>
           <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF] pointer-events-none" />
             <input
               type="date"
               value={filters.dateTo}
               onChange={(e) => updateFilter("dateTo", e.target.value)}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`${inputClass} pl-10`}
             />
           </div>
         </div>
 
-        {/* Plan Filter - Dynamically populated from enterprise's plans */}
+        {/* Plan */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Subscription Plan
-          </label>
+          <label className={labelClass}>Subscription Plan</label>
           <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF] pointer-events-none" />
             <select
               value={filters.plan}
               onChange={(e) => updateFilter("plan", e.target.value)}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+              className={`${inputClass} pl-10 cursor-pointer`}
             >
               <option value="all">All Plans</option>
             </select>
           </div>
         </div>
 
-        {/* Status Filter */}
+        {/* Status */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Member Status
-          </label>
+          <label className={labelClass}>Member Status</label>
           <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF] pointer-events-none" />
             <select
               value={filters.status}
-              onChange={(e) =>
-                updateFilter(
-                  "status",
-                  e.target.value as MemberFiltersType["status"],
-                )
-              }
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+              onChange={(e) => updateFilter("status", e.target.value as MemberFiltersType["status"])}
+              className={`${inputClass} pl-10 cursor-pointer`}
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
@@ -136,45 +123,40 @@ export function MemberFilters({
         </div>
       </div>
 
-      {/* Status Descriptions */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-          <div>
-            <span className="font-semibold text-green-700 dark:text-green-400">
-              Active:
-            </span>
-            <span className="text-gray-700 dark:text-gray-300 ml-1">
-              Currently active
-            </span>
+      {/* Status legend */}
+      <div className="bg-[#F9FAFB] border border-gray-100 rounded-lg px-4 py-3">
+        <div className="flex flex-wrap gap-x-6 gap-y-1.5 text-xs">
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
+            <span className="font-semibold text-[#1F2937]">Active:</span>
+            <span className="text-[#9CA3AF]">Currently active subscription</span>
           </div>
-          <div>
-            <span className="font-semibold text-yellow-700 dark:text-yellow-400">
-              Inactive:
-            </span>
-            <span className="text-gray-700 dark:text-gray-300 ml-1">
-              Last login - 6 months
-            </span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+            <span className="font-semibold text-[#1F2937]">Inactive:</span>
+            <span className="text-[#9CA3AF]">Last login over 6 months ago</span>
           </div>
         </div>
       </div>
 
-      {/* Results Count & Clear Filters */}
+      {/* Results count & clear */}
       {hasActiveFilters && (
-        <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="flex items-center justify-between pt-1 border-t border-gray-100">
+          <p className="text-sm text-[#9CA3AF]">
             Showing{" "}
-            <span className="font-semibold text-gray-900 dark:text-white">
-              {filteredCount}
-            </span>{" "}
-            of <span className="font-semibold">{totalCount}</span> members
+            <span className="font-bold text-[#1F2937]">{filteredCount}</span>{" "}
+            of <span className="font-bold text-[#1F2937]">{totalCount}</span> members
           </p>
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
             onClick={clearFilters}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+            className="gap-1.5 text-[#9CA3AF] hover:text-[#1F2937]"
           >
-            <X className="w-4 h-4" />
-            Clear Filters
-          </button>
+            <X className="w-3.5 h-3.5" />
+            Clear
+          </Button>
         </div>
       )}
     </div>

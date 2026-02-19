@@ -3,10 +3,11 @@
 import { useState, useMemo } from "react";
 import { MembersTable } from "../../../components/organization/MembersTable";
 import { MemberFilters } from "../../../components/organization/MemberFilters";
-import { UserPlus } from "lucide-react";
+import { UserPlus, AlertCircle } from "lucide-react";
 import { useMembers } from "../../../hooks/useMembers";
 import { Member } from "../../../types/organization";
 import { CreateMemberModal } from "../../../components/organization/CreateMemberModal";
+import { Button } from "@/components/ui/button";
 
 export default function MembersPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -18,92 +19,85 @@ export default function MembersPage() {
     status: "all" as "all" | "active" | "inactive",
   });
 
-  // Fetch data
   const { data: membersData, isLoading, error } = useMembers(filters.search);
 
-  // Extract members array from response
   const members = useMemo(() => {
-    if (!membersData) {
-      return [];
-    }
-
-    // Handle both { data: [] } and [] formats
-    if (Array.isArray(membersData)) {
-      return membersData as Member[];
-    }
-
-    // Handle wrapped response
-    const wrappedData = membersData as { data?: Member[] };
-    return wrappedData.data || [];
+    if (!membersData) return [];
+    if (Array.isArray(membersData)) return membersData as Member[];
+    return (membersData as { data?: Member[] }).data || [];
   }, [membersData]);
 
-  // UPDATED: Filter members based on current filters
   const filteredMembers = useMemo(() => {
     return members.filter((member: Member) => {
-      // Date range filter - by joined date
       if (filters.dateFrom) {
         const joinedDate = new Date(member.created_at);
         const fromDate = new Date(filters.dateFrom);
         if (joinedDate < fromDate) return false;
       }
-
       if (filters.dateTo) {
         const joinedDate = new Date(member.created_at);
         const toDate = new Date(filters.dateTo + "T23:59:59");
         if (joinedDate > toDate) return false;
       }
-
-      // UPDATED: Status filter using direct user.status
       if (filters.status !== "all") {
         const memberStatus = member.user?.status;
-        if (filters.status === "active" && memberStatus !== "active")
-          return false;
-        if (filters.status === "inactive" && memberStatus !== "inactive")
-          return false;
+        if (filters.status === "active" && memberStatus !== "active") return false;
+        if (filters.status === "inactive" && memberStatus !== "inactive") return false;
       }
-
       return true;
     });
   }, [members, filters]);
 
+  // ── Error ────────────────────────────────────────────────────────────────
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <div className="text-red-500 dark:text-red-400 mb-4">
-          Failed to load members
+      <div
+        className="flex flex-col items-center justify-center py-24 px-4 text-center"
+        style={{ fontFamily: "Nunito, sans-serif" }}
+      >
+        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
+          <AlertCircle className="h-8 w-8 text-red-500" />
         </div>
-        <button
+        <h2 className="text-base font-bold text-[#1F2937] mb-1">Failed to load members</h2>
+        <p className="text-sm text-[#9CA3AF] mb-5">Something went wrong. Please try again.</p>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
           onClick={() => window.location.reload()}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           Retry
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div
+      className="space-y-6 px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto"
+      style={{ fontFamily: "Nunito, sans-serif" }}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Members Management
-          </h1>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <h1 className="text-xl font-bold text-[#1F2937]">Members</h1>
+          <p className="text-sm text-[#9CA3AF] mt-0.5">
             Manage and monitor all member subscriptions
           </p>
         </div>
-        <button
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          className="self-start sm:self-auto"
         >
-          <UserPlus className="h-4 w-4" />
+          <UserPlus className="h-4 w-4 mr-2" />
           Add Member
-        </button>
+        </Button>
       </div>
 
-      {/* Filters with SearchBar */}
+      {/* Filters */}
       <MemberFilters
         filters={filters}
         onFiltersChange={setFilters}
@@ -112,14 +106,14 @@ export default function MembersPage() {
         isLoading={isLoading}
       />
 
-      {/* Members Table */}
+      {/* Table */}
       <MembersTable
         members={filteredMembers}
         isSearching={filters.search.length > 0}
         isLoading={isLoading}
       />
 
-      {/* Create Member Modal */}
+      {/* Create modal */}
       <CreateMemberModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}

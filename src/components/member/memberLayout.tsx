@@ -9,6 +9,10 @@ import { deleteCookie } from "cookies-next";
 import { MemberSidebar } from "@/components/member/memberSidebar";
 import { MemberMobileHeader } from "@/components/member/memberMobileHeader";
 
+const C = {
+  snow: "#F9FAFB",
+};
+
 interface MemberLayoutProps {
   children: React.ReactNode;
 }
@@ -42,16 +46,22 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50">
+    <div style={{ minHeight: "100vh", background: C.snow }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        * { box-sizing: border-box; }
+      `}</style>
+
       {/* Mobile Header Component */}
       <MemberMobileHeader
         pathname={pathname}
+        profile={profile}
         unreadCount={unreadCount}
         handleLogout={handleLogout}
         loading={loading}
       />
 
-      <div className="lg:flex">
+      <div style={{ display: "flex" }}>
         {/* Desktop Sidebar Component */}
         <MemberSidebar
           pathname={pathname}
@@ -61,8 +71,8 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
           loading={loading}
         />
 
-        {/* Main Content */}
-        <main className="flex-1">{children}</main>
+        {/* Main Content - No desktop header */}
+        <main style={{ flex: 1 }}>{children}</main>
       </div>
     </div>
   );

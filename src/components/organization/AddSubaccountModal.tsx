@@ -1,19 +1,16 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import {
-  Button,
-  Input,
-  Select,
-  SelectItem,
   Modal,
   ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
-  useDisclosure,
 } from "@heroui/react";
-import { Landmark, X } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import axios from "axios";
+import { Button } from "@/components/ui/button";
 
 interface Bank {
   name: string;
@@ -56,7 +53,6 @@ export default function AddSubaccountModal({
       setIsLoading(true);
       const response = await axios.get("https://api.paystack.co/bank");
       setBanks(response.data.data);
-      console.log(response.data.data);
     } catch (error) {
       console.error("Failed to fetch banks:", error);
       setError("Failed to load banks. Please try again.");
@@ -65,19 +61,14 @@ export default function AddSubaccountModal({
     }
   };
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (
-      !formData.businessName ||
-      !formData.accountNumber ||
-      !formData.bankCode
-    ) {
+    if (!formData.businessName || !formData.accountNumber || !formData.bankCode) {
       setError("All fields are required");
       return;
     }
-    // console.log("formData", formData);
 
     try {
       setIsLoading(true);
@@ -89,9 +80,7 @@ export default function AddSubaccountModal({
         primary_contact_name: `${profile.firstName} ${profile.lastName}`,
         primary_contact_email: profile.email,
       });
-      console.log(response.data.data);
       setSubaccountData(response.data.data);
-
       onSuccess();
       setTimeout(() => {
         onOpenChange(false);
@@ -105,94 +94,119 @@ export default function AddSubaccountModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      classNames={{
+        base: "rounded-xl border border-gray-100 shadow-lg",
+        header: "border-b border-gray-100 px-6 py-5",
+        body: "px-6 py-5",
+        footer: "border-t border-gray-100 px-6 py-4",
+      }}
+    >
       <ModalContent>
-        <ModalHeader className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <Landmark className="w-5 h-5 text-emerald-600" />
-            <span>Add Bank Account</span>
+        <ModalHeader>
+          <div>
+            <h2 className="text-lg font-bold text-[#1F2937]" style={{ fontFamily: "Nunito, sans-serif" }}>
+              Add Bank Account
+            </h2>
+            <p className="text-sm font-normal text-[#9CA3AF] mt-0.5">
+              Link a bank account to receive payouts
+            </p>
           </div>
         </ModalHeader>
+
         <form onSubmit={handleSubmit}>
           <ModalBody>
             {error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm mb-4">
+              <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm mb-2">
                 {error}
               </div>
             )}
 
             <div className="space-y-4">
-              <Input
-                label="Business Name"
-                placeholder="Enter your business name"
-                value={formData.businessName}
-                onChange={(e) =>
-                  setFormData({ ...formData, businessName: e.target.value })
-                }
-                isRequired
-                classNames={{
-                  input: "outline-none",
-                }}
-              />
+              <div>
+                <label className="block text-sm font-semibold text-[#1F2937] mb-1.5" style={{ fontFamily: "Nunito, sans-serif" }}>
+                  Business Name <span className="text-[#F06543]">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.businessName}
+                  onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                  required
+                  className="w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-[#1F2937] text-sm focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all"
+                  style={{ fontFamily: "Nunito, sans-serif" }}
+                  placeholder="Your business name"
+                />
+              </div>
 
-              <Input
-                label="Account Number"
-                placeholder="Enter account number"
-                value={formData.accountNumber}
-                onChange={(e) =>
-                  setFormData({ ...formData, accountNumber: e.target.value })
-                }
-                isRequired
-                type="number"
-                classNames={{
-                  input: "outline-none",
-                }}
-              />
+              <div>
+                <label className="block text-sm font-semibold text-[#1F2937] mb-1.5" style={{ fontFamily: "Nunito, sans-serif" }}>
+                  Account Number <span className="text-[#F06543]">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={formData.accountNumber}
+                  onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                  required
+                  className="w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-[#1F2937] text-sm focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all"
+                  style={{ fontFamily: "Nunito, sans-serif" }}
+                  placeholder="0000000000"
+                />
+              </div>
 
-              <Select
-                label="Select Bank"
-                placeholder="Select your bank"
-                selectedKeys={formData.bankCode ? [formData.bankCode] : []}
-                onChange={(e) =>
-                  setFormData({ ...formData, bankCode: e.target.value })
-                }
-                isRequired
-                isLoading={isLoading && banks.length === 0}
-              >
-                {banks.map((bank) => (
-                  <SelectItem key={bank.code}>{bank.name}</SelectItem>
-                ))}
-              </Select>
+              <div>
+                <label className="block text-sm font-semibold text-[#1F2937] mb-1.5" style={{ fontFamily: "Nunito, sans-serif" }}>
+                  Bank <span className="text-[#F06543]">*</span>
+                </label>
+                <select
+                  value={formData.bankCode}
+                  onChange={(e) => setFormData({ ...formData, bankCode: e.target.value })}
+                  required
+                  disabled={isLoading && banks.length === 0}
+                  className="w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-[#1F2937] text-sm focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all disabled:opacity-50"
+                  style={{ fontFamily: "Nunito, sans-serif" }}
+                >
+                  <option value="">
+                    {isLoading && banks.length === 0 ? "Loading banks..." : "Select your bank"}
+                  </option>
+                  {banks.map((bank) => (
+                    <option key={bank.code} value={bank.code}>
+                      {bank.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               {subaccountData && (
-                <Input
-                  label="Account Name"
-                  placeholder="Account name"
-                  value={subaccountData.account_name}
-                  isReadOnly
-                  type="text"
-                  classNames={{
-                    input: "outline-none",
-                  }}
-                />
+                <div className="bg-[#F0FDF9] border border-[#0D9488]/20 rounded-lg px-4 py-3">
+                  <p className="text-xs font-semibold text-[#0D9488] uppercase tracking-wide mb-1">
+                    Account Verified
+                  </p>
+                  <p className="text-sm font-semibold text-[#1F2937]">
+                    {subaccountData.account_name}
+                  </p>
+                </div>
               )}
             </div>
           </ModalBody>
+
           <ModalFooter>
             <Button
-              color="default"
-              variant="flat"
-              onPress={() => onOpenChange(false)}
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onOpenChange(false)}
             >
               Cancel
             </Button>
             <Button
-              color="primary"
               type="submit"
-              isLoading={isLoading}
-              startContent={!isLoading && <Landmark className="w-4 h-4" />}
+              variant="secondary"
+              size="sm"
+              disabled={isLoading}
             >
-              Add Account
+              {isLoading ? "Processing..." : "Add Account"}
             </Button>
           </ModalFooter>
         </form>

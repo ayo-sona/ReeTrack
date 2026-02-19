@@ -1,7 +1,7 @@
 'use client';
 
 import { PaymentReminder } from '../../types/organization';
-import { Mail, MessageSquare, Phone, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Mail, MessageSquare, Phone, CheckCircle, XCircle, Clock } from 'lucide-react';
 import clsx from 'clsx';
 
 interface RemindersTableProps {
@@ -9,25 +9,23 @@ interface RemindersTableProps {
 }
 
 export function RemindersTable({ reminders }: RemindersTableProps) {
-  const getStatusIcon = (status: string) => {
+  const getStatusConfig = (status: string) => {
     switch (status) {
       case 'sent':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
+        return {
+          icon: <CheckCircle className="h-3.5 w-3.5" />,
+          className: 'bg-emerald-50 text-emerald-700 border border-emerald-100',
+        };
       case 'failed':
-        return <XCircle className="h-4 w-4 text-red-500" />;
+        return {
+          icon: <XCircle className="h-3.5 w-3.5" />,
+          className: 'bg-red-50 text-red-600 border border-red-100',
+        };
       default:
-        return <Clock className="h-4 w-4 text-orange-500" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'sent':
-        return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400';
-      case 'failed':
-        return 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400';
-      default:
-        return 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400';
+        return {
+          icon: <Clock className="h-3.5 w-3.5" />,
+          className: 'bg-amber-50 text-amber-700 border border-amber-100',
+        };
     }
   };
 
@@ -43,100 +41,148 @@ export function RemindersTable({ reminders }: RemindersTableProps) {
 
   const getChannelIcon = (channel: string) => {
     switch (channel) {
-      case 'email':
-        return <Mail className="h-3 w-3" />;
-      case 'sms':
-        return <Phone className="h-3 w-3" />;
-      case 'whatsapp':
-        return <MessageSquare className="h-3 w-3" />;
-      default:
-        return null;
+      case 'email': return <Mail className="h-3 w-3" />;
+      case 'sms': return <Phone className="h-3 w-3" />;
+      case 'whatsapp': return <MessageSquare className="h-3 w-3" />;
+      default: return null;
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-NG', {
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleString('en-NG', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
 
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
-      <div className="overflow-x-auto">
+    <div
+      className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+      style={{ fontFamily: 'Nunito, sans-serif' }}
+    >
+      {/* Desktop table */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 dark:bg-gray-700/50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Member
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Type
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Channels
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Scheduled
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Status
-              </th>
+          <thead>
+            <tr className="border-b border-gray-100 bg-[#F9FAFB]">
+              {['Member', 'Type', 'Channels', 'Scheduled', 'Status'].map((col) => (
+                <th
+                  key={col}
+                  className="px-6 py-3.5 text-left text-xs font-bold text-[#9CA3AF] uppercase tracking-wider"
+                >
+                  {col}
+                </th>
+              ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {reminders.map((reminder) => (
-              <tr key={reminder.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                <td className="px-6 py-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          <tbody className="divide-y divide-gray-50">
+            {reminders.map((reminder) => {
+              const status = getStatusConfig(reminder.status);
+              return (
+                <tr
+                  key={reminder.id}
+                  className="hover:bg-[#F9FAFB] transition-colors duration-150"
+                >
+                  {/* Member */}
+                  <td className="px-6 py-4">
+                    <p className="text-sm font-semibold text-[#1F2937]">
                       {reminder.payer_user?.first_name} {reminder.payer_user?.last_name}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-[#9CA3AF] mt-0.5">
                       {reminder.payer_user?.email}
                     </p>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="text-sm text-gray-900 dark:text-gray-100">
-                    {getTypeLabel(reminder.type)}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex gap-2">
-                    {reminder.channels.map((channel) => (
-                      <span
-                        key={channel}
-                        className="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900/20 px-2 py-0.5 text-xs text-blue-700 dark:text-blue-400"
-                      >
-                        {getChannelIcon(channel)}
-                        <span className="capitalize">{channel}</span>
-                      </span>
-                    ))}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                  {formatDate(reminder.scheduled_for)}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    {getStatusIcon(reminder.status)}
+                  </td>
+
+                  {/* Type */}
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-[#1F2937]">
+                      {getTypeLabel(reminder.type)}
+                    </span>
+                  </td>
+
+                  {/* Channels */}
+                  <td className="px-6 py-4">
+                    <div className="flex flex-wrap gap-1.5">
+                      {reminder.channels.map((channel) => (
+                        <span
+                          key={channel}
+                          className="inline-flex items-center gap-1 rounded-full bg-[#0D9488]/10 text-[#0D9488] px-2.5 py-0.5 text-xs font-semibold"
+                        >
+                          {getChannelIcon(channel)}
+                          <span className="capitalize">{channel}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+
+                  {/* Scheduled */}
+                  <td className="px-6 py-4 text-sm text-[#9CA3AF]">
+                    {formatDate(reminder.scheduled_for)}
+                  </td>
+
+                  {/* Status */}
+                  <td className="px-6 py-4">
                     <span
                       className={clsx(
-                        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize',
-                        getStatusColor(reminder.status)
+                        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold capitalize',
+                        status.className
                       )}
                     >
+                      {status.icon}
                       {reminder.status}
                     </span>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden divide-y divide-gray-50">
+        {reminders.map((reminder) => {
+          const status = getStatusConfig(reminder.status);
+          return (
+            <div key={reminder.id} className="p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-[#1F2937]">
+                    {reminder.payer_user?.first_name} {reminder.payer_user?.last_name}
+                  </p>
+                  <p className="text-xs text-[#9CA3AF]">{reminder.payer_user?.email}</p>
+                </div>
+                <span
+                  className={clsx(
+                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold capitalize flex-shrink-0',
+                    status.className
+                  )}
+                >
+                  {status.icon}
+                  {reminder.status}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
+                <span className="font-medium text-[#1F2937]">{getTypeLabel(reminder.type)}</span>
+                <span>{formatDate(reminder.scheduled_for)}</span>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5">
+                {reminder.channels.map((channel) => (
+                  <span
+                    key={channel}
+                    className="inline-flex items-center gap-1 rounded-full bg-[#0D9488]/10 text-[#0D9488] px-2.5 py-0.5 text-xs font-semibold"
+                  >
+                    {getChannelIcon(channel)}
+                    <span className="capitalize">{channel}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

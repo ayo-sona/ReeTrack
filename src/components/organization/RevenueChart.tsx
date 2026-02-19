@@ -2,96 +2,162 @@
 
 import { useState, useEffect } from "react";
 import {
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
+  AreaChart, Area, BarChart, Bar, LineChart, Line,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { useRevenueChart } from "../../hooks/useAnalytics";
-import clsx from "clsx";
 
-type PeriodOption = {
-  value: string;
-  label: string;
+// ─── Design tokens ───────────────────────────────────────────────────────────
+const C = {
+  teal:      "#0D9488",
+  tealAlpha: "rgba(13,148,136,0.08)",
+  coral:     "#F06543",
+  ink:       "#1F2937",
+  muted:     "#9CA3AF",
+  faint:     "#D1D5DB",
+  border:    "#E5E7EB",
+  light:     "#F3F4F6",
+  snow:      "#F9FAFB",
+  white:     "#FFFFFF",
+};
+
+// Locks native date inputs to light mode — prevents OS dark mode inversion
+const DATE_INPUT_STYLE: React.CSSProperties = {
+  colorScheme: "light",
+  backgroundColor: C.snow,
+  color: C.ink,
+  border: `1px solid ${C.border}`,
+  borderRadius: 8,
+  padding: "6px 12px",
+  fontSize: 13,
+  outline: "none",
+  width: "100%",
 };
 
 type ChartType = "area" | "bar" | "line";
 
-// Use the actual type from the API hook
-interface RevenueChartData {
-  date?: string;
-  revenue?: number;
-}
+interface RevenueChartData { date?: string; revenue?: number }
+interface TooltipPayload { value: number }
+interface CustomTooltipProps { active?: boolean; payload?: TooltipPayload[]; label?: string }
 
-// Custom Tooltip Component with proper types - Defined outside
-interface TooltipPayload {
-  value: number;
-}
-
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: TooltipPayload[];
-  label?: string;
-}
-
+// ─── Custom tooltip ──────────────────────────────────────────────────────────
 const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-xl p-4 shadow-2xl">
-        <p className="text-gray-400 text-xs font-light mb-2">{label}</p>
-        <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-semibold text-white">
-            ₦{Number(payload[0].value).toLocaleString()}
-          </span>
-          <span className="text-xs text-emerald-400">Revenue</span>
-        </div>
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, borderRadius: 10,
+      padding: "10px 14px", boxShadow: "0 4px 20px rgba(13,148,136,0.10)" }}>
+      <p style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>{label}</p>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+        <span style={{ fontSize: 18, fontWeight: 700, color: C.ink, letterSpacing: "-0.02em" }}>
+          ₦{Number(payload[0].value).toLocaleString()}
+        </span>
+        <span style={{ fontSize: 11, color: C.teal, fontWeight: 600 }}>Revenue</span>
       </div>
-    );
-  }
-  return null;
+    </div>
+  );
 };
 
-const PERIOD_OPTIONS: PeriodOption[] = [
-  { value: "week", label: "Week" },
-  { value: "month", label: "Month" },
+const PERIODS = [
+  { value: "week",    label: "Week"    },
+  { value: "month",   label: "Month"   },
   { value: "quarter", label: "Quarter" },
-  { value: "custom", label: "Custom" },
+  { value: "custom",  label: "Custom"  },
 ];
 
+// ─── Segment control ─────────────────────────────────────────────────────────
+function SegmentControl<T extends string>({
+  options, value, onChange,
+}: { options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+  return (
+    <div style={{ display: "inline-flex", alignItems: "center", backgroundColor: C.snow,
+      border: `1px solid ${C.border}`, borderRadius: 10, padding: 3, gap: 2 }}>
+      {options.map((opt) => {
+        const active = value === opt.value;
+        return (
+          <button key={opt.value} onClick={() => onChange(opt.value)}
+            style={{ padding: "5px 12px", fontSize: 12, fontWeight: active ? 700 : 500,
+              borderRadius: 8, border: "none", cursor: "pointer", whiteSpace: "nowrap",
+              transition: "all 150ms",
+              backgroundColor: active ? C.white : "transparent",
+              color: active ? C.teal : C.muted,
+              boxShadow: active ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}
+            onMouseEnter={(e) => { if (!active) e.currentTarget.style.color = C.ink; }}
+            onMouseLeave={(e) => { if (!active) e.currentTarget.style.color = C.muted; }}>
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Stat card ───────────────────────────────────────────────────────────────
+function StatCard({ label, value, sub, accent }: {
+  label: string; value: string; sub?: React.ReactNode; accent: string;
+}) {
+  return (
+    <div style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, borderRadius: 12,
+      padding: "16px 20px", borderLeft: `3px solid ${accent}` }}>
+      <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em",
+        color: C.muted, marginBottom: 8 }}>{label}</p>
+      <p style={{ fontSize: 22, fontWeight: 700, color: C.ink, letterSpacing: "-0.02em", lineHeight: 1 }}>
+        {value}
+      </p>
+      {sub && <div style={{ marginTop: 6, fontSize: 11 }}>{sub}</div>}
+    </div>
+  );
+}
+
+// ─── Skeleton ────────────────────────────────────────────────────────────────
+function Skeleton() {
+  return (
+    <div style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, borderRadius: 16,
+      padding: 28, boxShadow: "0 1px 4px rgba(0,0,0,0.04), 0 4px 24px rgba(13,148,136,0.06)" }}>
+      <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
+        <div style={{ height: 24, width: 160, backgroundColor: C.light, borderRadius: 8 }} className="animate-pulse" />
+        <div style={{ height: 24, width: 80, backgroundColor: C.light, borderRadius: 8, marginLeft: "auto" }} className="animate-pulse" />
+      </div>
+      <div style={{ height: 280, backgroundColor: C.snow, borderRadius: 12 }} className="animate-pulse" />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginTop: 20 }}>
+        {[1, 2, 3].map(i => (
+          <div key={i} style={{ height: 80, backgroundColor: C.light, borderRadius: 12 }} className="animate-pulse" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ErrorState() {
+  return (
+    <div style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, borderRadius: 16,
+      padding: 28, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 200 }}>
+      <p style={{ color: C.muted, fontSize: 14 }}>Unable to load revenue data</p>
+    </div>
+  );
+}
+
+// ─── Main ────────────────────────────────────────────────────────────────────
 export function RevenueChart() {
-  const [isMounted, setIsMounted] = useState(false);
+  const [isMounted,      setIsMounted]      = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("week");
-  const [chartType, setChartType] = useState<ChartType>("area");
+  const [chartType,      setChartType]      = useState<ChartType>("area");
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate,      setStartDate]      = useState("");
+  const [endDate,        setEndDate]        = useState("");
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMounted(true);
-  }, []);
+  useEffect(() => { setIsMounted(true); }, []);
 
-  const params =
-    selectedPeriod === "custom" && startDate && endDate
-      ? { period: "custom", startDate, endDate }
-      : { period: selectedPeriod };
+  const params = selectedPeriod === "custom" && startDate && endDate
+    ? { period: "custom", startDate, endDate }
+    : { period: selectedPeriod };
 
   const { data: chartData, isLoading, error } = useRevenueChart(params);
-  // console.log("chartData", chartData);
 
   const handlePeriodChange = (period: string) => {
     setSelectedPeriod(period);
     if (period === "custom") {
       setShowDatePicker(true);
-      const end = new Date();
-      const start = new Date();
+      const end = new Date(), start = new Date();
       start.setDate(start.getDate() - 30);
       setStartDate(start.toISOString().split("T")[0]);
       setEndDate(end.toISOString().split("T")[0]);
@@ -100,377 +166,164 @@ export function RevenueChart() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  };
+  const fmtDate = (ds: string) =>
+    new Date(ds).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-  // Don't render until mounted to avoid hydration mismatch
-  if (!isMounted) {
-    return (
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/40 to-white/20 dark:from-gray-900/40 dark:to-gray-800/20 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 p-8 shadow-2xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-cyan-500/5" />
-        <div className="relative space-y-4 animate-pulse">
-          <div className="h-6 w-48 bg-gray-200/50 dark:bg-gray-700/50 rounded-lg" />
-          <div className="h-80 bg-gray-200/30 dark:bg-gray-700/30 rounded-xl" />
-        </div>
-      </div>
-    );
-  }
+  if (!isMounted || isLoading) return <Skeleton />;
+  if (error || !chartData)     return <ErrorState />;
 
-  if (isLoading) {
-    return (
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/40 to-white/20 dark:from-gray-900/40 dark:to-gray-800/20 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 p-8 shadow-2xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-cyan-500/5" />
-        <div className="relative space-y-4 animate-pulse">
-          <div className="h-6 w-48 bg-gray-200/50 dark:bg-gray-700/50 rounded-lg" />
-          <div className="h-80 bg-gray-200/30 dark:bg-gray-700/30 rounded-xl" />
-        </div>
-      </div>
-    );
-  }
+  const totalRevenue  = chartData.reduce((s: number, d: RevenueChartData) => s + (Number(d.revenue) || 0), 0);
+  const avgRevenue    = chartData.length > 0 ? totalRevenue / chartData.length : 0;
+  const hasRevenue    = totalRevenue > 0;
 
-  if (error || !chartData) {
-    return (
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/40 to-white/20 dark:from-gray-900/40 dark:to-gray-800/20 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 p-8 shadow-2xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-orange-500/5" />
-        <div className="relative flex items-center justify-center h-64">
-          <p className="text-gray-600 dark:text-gray-400 font-light">
-            Unable to load revenue data
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const half          = Math.floor(chartData.length / 2);
+  const firstAvg      = chartData.slice(0, half).reduce((s: number, d: RevenueChartData) => s + (Number(d.revenue) || 0), 0) / (half || 1);
+  const secondAvg     = chartData.slice(half).reduce((s: number, d: RevenueChartData) => s + (Number(d.revenue) || 0), 0) / ((chartData.length - half) || 1);
+  const trend         = firstAvg > 0 ? ((secondAvg - firstAvg) / firstAvg) * 100 : 0;
 
-  const totalRevenue = chartData.reduce(
-    (sum: number, d: RevenueChartData) => sum + (Number(d.revenue) || 0),
-    0,
-  );
-  const avgRevenue = chartData.length > 0 ? totalRevenue / chartData.length : 0;
-  const hasRevenue = totalRevenue > 0;
-
-  // Calculate trend
-  const firstHalf = chartData.slice(0, Math.floor(chartData.length / 2));
-  const secondHalf = chartData.slice(Math.floor(chartData.length / 2));
-  const firstHalfAvg =
-    firstHalf.reduce(
-      (sum: number, d: RevenueChartData) => sum + (Number(d.revenue) || 0),
-      0,
-    ) / firstHalf.length;
-  const secondHalfAvg =
-    secondHalf.reduce(
-      (sum: number, d: RevenueChartData) => sum + (Number(d.revenue) || 0),
-      0,
-    ) / secondHalf.length;
-  const trendPercentage =
-    firstHalfAvg > 0
-      ? ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100
-      : 0;
-
-  const formattedData = chartData.map((item: RevenueChartData) => ({
+  const data = chartData.map((item: RevenueChartData) => ({
     ...item,
-    date: item.date || "",
-    revenue: item.revenue || 0,
-    displayDate: item.date ? formatDate(item.date) : "",
+    revenue:     item.revenue || 0,
+    displayDate: item.date ? fmtDate(item.date) : "",
   }));
 
+  const axisStyle = { fill: C.muted, fontSize: 11, fontWeight: 500 };
+  const cp        = { data, margin: { top: 10, right: 10, left: 0, bottom: 0 } };
+  const grid      = <CartesianGrid strokeDasharray="3 3" stroke={C.light} />;
+  const xAxis     = <XAxis dataKey="displayDate" tick={axisStyle} tickLine={false} axisLine={false} />;
+  const yAxis     = <YAxis tick={axisStyle} tickLine={false} axisLine={false}
+                      tickFormatter={(v) => `₦${(v / 1000).toFixed(0)}k`} />;
+  const tip       = <Tooltip content={<CustomTooltip />} cursor={{ stroke: C.tealAlpha, strokeWidth: 1 }} />;
+
+  const focusInput = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = C.teal;
+    e.currentTarget.style.boxShadow   = "0 0 0 3px rgba(13,148,136,0.12)";
+  };
+  const blurInput = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = C.border;
+    e.currentTarget.style.boxShadow   = "none";
+  };
+
   const renderChart = () => {
-    const commonProps = {
-      data: formattedData,
-      margin: { top: 10, right: 10, left: 0, bottom: 0 },
-    };
-
-    const chartComponents = {
-      area: (
-        <AreaChart {...commonProps}>
-          <defs>
-            <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="currentColor"
-            className="text-gray-200/20 dark:text-gray-700/20"
-          />
-          <XAxis
-            dataKey="displayDate"
-            stroke="currentColor"
-            className="text-gray-400 dark:text-gray-500"
-            tick={{ fill: "currentColor", fontSize: 11, fontWeight: 300 }}
-            tickLine={false}
-            axisLine={false}
-          />
-          <YAxis
-            stroke="currentColor"
-            className="text-gray-400 dark:text-gray-500"
-            tick={{ fill: "currentColor", fontSize: 11, fontWeight: 300 }}
-            tickLine={false}
-            axisLine={false}
-            tickFormatter={(value) => `₦${(value / 1000).toFixed(0)}k`}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Area
-            type="monotone"
-            dataKey="revenue"
-            stroke="#10b981"
-            strokeWidth={2}
-            fill="url(#revenueGradient)"
-            animationDuration={1500}
-            animationBegin={0}
-          />
-        </AreaChart>
-      ),
-      bar: (
-        <BarChart {...commonProps}>
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="currentColor"
-            className="text-gray-200/20 dark:text-gray-700/20"
-          />
-          <XAxis
-            dataKey="displayDate"
-            stroke="currentColor"
-            className="text-gray-400 dark:text-gray-500"
-            tick={{ fill: "currentColor", fontSize: 11, fontWeight: 300 }}
-            tickLine={false}
-            axisLine={false}
-          />
-          <YAxis
-            stroke="currentColor"
-            className="text-gray-400 dark:text-gray-500"
-            tick={{ fill: "currentColor", fontSize: 11, fontWeight: 300 }}
-            tickLine={false}
-            axisLine={false}
-            tickFormatter={(value) => `₦${(value / 1000).toFixed(0)}k`}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Bar
-            dataKey="revenue"
-            fill="#10b981"
-            radius={[6, 6, 0, 0]}
-            animationDuration={1500}
-            animationBegin={0}
-          />
-        </BarChart>
-      ),
-      line: (
-        <LineChart {...commonProps}>
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="currentColor"
-            className="text-gray-200/20 dark:text-gray-700/20"
-          />
-          <XAxis
-            dataKey="displayDate"
-            stroke="currentColor"
-            className="text-gray-400 dark:text-gray-500"
-            tick={{ fill: "currentColor", fontSize: 11, fontWeight: 300 }}
-            tickLine={false}
-            axisLine={false}
-          />
-          <YAxis
-            stroke="currentColor"
-            className="text-gray-400 dark:text-gray-500"
-            tick={{ fill: "currentColor", fontSize: 11, fontWeight: 300 }}
-            tickLine={false}
-            axisLine={false}
-            tickFormatter={(value) => `₦${(value / 1000).toFixed(0)}k`}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Line
-            type="monotone"
-            dataKey="revenue"
-            stroke="#10b981"
-            strokeWidth={2.5}
-            dot={{ fill: "#10b981", r: 4 }}
-            activeDot={{ r: 6 }}
-            animationDuration={1500}
-            animationBegin={0}
-          />
-        </LineChart>
-      ),
-    };
-
-    return chartComponents[chartType];
+    if (chartType === "area") return (
+      <AreaChart {...cp}>
+        <defs>
+          <linearGradient id="rg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"  stopColor={C.teal} stopOpacity={0.18} />
+            <stop offset="95%" stopColor={C.teal} stopOpacity={0}    />
+          </linearGradient>
+        </defs>
+        {grid}{xAxis}{yAxis}{tip}
+        <Area type="monotone" dataKey="revenue" stroke={C.teal} strokeWidth={2}
+          fill="url(#rg)" animationDuration={1200} />
+      </AreaChart>
+    );
+    if (chartType === "bar") return (
+      <BarChart {...cp}>
+        {grid}{xAxis}{yAxis}{tip}
+        <Bar dataKey="revenue" fill={C.teal} radius={[5, 5, 0, 0]} animationDuration={1200} />
+      </BarChart>
+    );
+    return (
+      <LineChart {...cp}>
+        {grid}{xAxis}{yAxis}{tip}
+        <Line type="monotone" dataKey="revenue" stroke={C.teal} strokeWidth={2.5}
+          dot={{ fill: C.teal, r: 3, strokeWidth: 0 }} activeDot={{ r: 5, fill: C.teal }}
+          animationDuration={1200} />
+      </LineChart>
+    );
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/40 to-white/20 dark:from-gray-900/40 dark:to-gray-800/20 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 shadow-2xl">
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-cyan-500/5 pointer-events-none" />
+    <div style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, borderRadius: 16,
+      overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.04), 0 4px 24px rgba(13,148,136,0.06)" }}>
 
-      {/* Content */}
-      <div className="relative p-8">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
-          <div className="space-y-1">
-            <h2 className="text-2xl font-light tracking-tight text-gray-900 dark:text-white">
-              Revenue Analytics
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 font-light">
-              Track payment performance over time
-            </p>
-          </div>
-
-          {/* Controls */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Chart Type Selector */}
-            <div className="inline-flex items-center rounded-xl bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 p-1">
-              {(["area", "bar", "line"] as ChartType[]).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setChartType(type)}
-                  className={clsx(
-                    "px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-300 capitalize",
-                    chartType === type
-                      ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-lg"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
-                  )}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-
-            {/* Period Selector */}
-            <div className="inline-flex items-center rounded-xl bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 p-1">
-              {PERIOD_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handlePeriodChange(option.value)}
-                  className={clsx(
-                    "px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-300 whitespace-nowrap",
-                    selectedPeriod === option.value
-                      ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-lg"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white",
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
+      {/* Header */}
+      <div style={{ padding: "24px 24px 20px", borderBottom: `1px solid ${C.border}`,
+        display: "flex", alignItems: "flex-start", justifyContent: "space-between",
+        flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: C.ink, letterSpacing: "-0.02em", margin: 0 }}>
+            Revenue Analytics
+          </h2>
+          <p style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>
+            Track payment performance over time
+          </p>
         </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <SegmentControl
+            options={[{ value: "area", label: "Area" }, { value: "bar", label: "Bar" }, { value: "line", label: "Line" }]}
+            value={chartType}
+            onChange={setChartType}
+          />
+          <SegmentControl options={PERIODS} value={selectedPeriod} onChange={handlePeriodChange} />
+        </div>
+      </div>
 
-        {/* Date Picker */}
+      {/* Body */}
+      <div style={{ padding: "20px 24px 24px" }}>
+
+        {/* Custom date range picker */}
         {showDatePicker && (
-          <div className="mb-6 flex gap-3 items-center p-4 rounded-xl bg-white/30 dark:bg-gray-800/30 backdrop-blur-sm border border-white/20 dark:border-gray-700/20">
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="flex-1 rounded-lg bg-white/50 dark:bg-gray-700/50 border border-gray-300/30 dark:border-gray-600/30 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-            />
-            <span className="text-gray-400 dark:text-gray-500 text-sm font-light">
-              to
-            </span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="flex-1 rounded-lg bg-white/50 dark:bg-gray-700/50 border border-gray-300/30 dark:border-gray-600/30 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-            />
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20,
+            padding: "12px 16px", backgroundColor: C.snow, border: `1px solid ${C.border}`,
+            borderRadius: 12, flexWrap: "wrap" }}>
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
+              style={DATE_INPUT_STYLE} onFocus={focusInput} onBlur={blurInput} />
+            <span style={{ color: C.muted, fontSize: 13, flexShrink: 0 }}>to</span>
+            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
+              style={DATE_INPUT_STYLE} onFocus={focusInput} onBlur={blurInput} />
           </div>
         )}
 
-        {/* Empty State */}
+        {/* Empty state */}
         {!hasRevenue && (
-          <div className="mb-6 p-4 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 backdrop-blur-sm border border-blue-500/20 dark:border-blue-400/20">
-            <div className="flex items-start gap-3">
-              <svg
-                className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p className="text-sm text-blue-900 dark:text-blue-100 font-light">
-                No revenue recorded yet. Your revenue will appear here once you
-                receive successful payments.
-              </p>
-            </div>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 20,
+            padding: "12px 16px", backgroundColor: "rgba(13,148,136,0.04)",
+            border: "1px solid rgba(13,148,136,0.15)", borderRadius: 12 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke={C.teal} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+              style={{ flexShrink: 0, marginTop: 1 }}>
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.5 }}>
+              No revenue recorded yet. Your revenue will appear here once you receive successful payments.
+            </p>
           </div>
         )}
 
         {/* Chart */}
-        <div className="mb-6">
-          <ResponsiveContainer width="100%" height={320}>
+        <div style={{ marginBottom: 20 }}>
+          <ResponsiveContainer width="100%" height={280}>
             {renderChart()}
           </ResponsiveContainer>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* Total Revenue */}
-          <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-white/30 to-white/10 dark:from-gray-800/30 dark:to-gray-700/10 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 p-5 hover:scale-[1.02] transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-emerald-500/5 group-hover:from-emerald-500/10 group-hover:to-emerald-500/5 transition-all duration-300" />
-            <div className="relative">
-              <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-light mb-2">
-                Total Revenue
-              </p>
-              <p className="text-3xl font-light text-gray-900 dark:text-white mb-1">
-                ₦{totalRevenue.toLocaleString()}
-              </p>
-              {trendPercentage !== 0 && (
-                <div className="flex items-center gap-1 text-xs">
-                  <span
-                    className={clsx(
-                      "font-medium",
-                      trendPercentage > 0
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-red-600 dark:text-red-400",
-                    )}
-                  >
-                    {trendPercentage > 0 ? "↑" : "↓"}{" "}
-                    {Math.abs(trendPercentage).toFixed(1)}%
-                  </span>
-                  <span className="text-gray-400 dark:text-gray-500 font-light">
-                    vs previous period
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Average Revenue */}
-          <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-white/30 to-white/10 dark:from-gray-800/30 dark:to-gray-700/10 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 p-5 hover:scale-[1.02] transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-cyan-500/5 group-hover:from-cyan-500/10 group-hover:to-cyan-500/5 transition-all duration-300" />
-            <div className="relative">
-              <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-light mb-2">
-                Average / Period
-              </p>
-              <p className="text-3xl font-light text-gray-900 dark:text-white">
-                ₦{Math.round(avgRevenue).toLocaleString()}
-              </p>
-            </div>
-          </div>
-
-          {/* Data Points */}
-          <div className="group relative overflow-hidden rounded-xl bg-gradient-to-br from-white/30 to-white/10 dark:from-gray-800/30 dark:to-gray-700/10 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 p-5 hover:scale-[1.02] transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/5 group-hover:from-purple-500/10 group-hover:to-purple-500/5 transition-all duration-300" />
-            <div className="relative">
-              <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-light mb-2">
-                Data Points
-              </p>
-              <p className="text-3xl font-light text-gray-900 dark:text-white">
-                {chartData.length}
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 font-light mt-1">
-                {selectedPeriod === "custom"
-                  ? "Custom range"
-                  : `Last ${selectedPeriod}`}
-              </p>
-            </div>
-          </div>
+        {/* Stats — auto-fit grid, 1-col on small, 3-col on wide */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12 }}>
+          <StatCard
+            label="Total Revenue"
+            value={`₦${totalRevenue.toLocaleString()}`}
+            accent={C.teal}
+            sub={trend !== 0 ? (
+              <span style={{ color: trend > 0 ? "#059669" : "#DC2626", fontWeight: 700 }}>
+                {trend > 0 ? "↑" : "↓"} {Math.abs(trend).toFixed(1)}%{" "}
+                <span style={{ color: C.muted, fontWeight: 400 }}>vs previous half</span>
+              </span>
+            ) : undefined}
+          />
+          <StatCard
+            label="Average / Period"
+            value={`₦${Math.round(avgRevenue).toLocaleString()}`}
+            accent={C.coral}
+          />
+          <StatCard
+            label="Data Points"
+            value={String(chartData.length)}
+            accent={C.faint}
+            sub={<span style={{ color: C.muted }}>{selectedPeriod === "custom" ? "Custom range" : `Last ${selectedPeriod}`}</span>}
+          />
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import {
   CreditCard,
   Calendar,
   QrCode,
-  CheckCircle,
+  ArrowRight,
 } from "lucide-react";
 import {
   useProfile,
@@ -13,10 +13,9 @@ import {
 } from "@/hooks/memberHook/useMember";
 import RecentActivity from "@/components/member/memberRecentActivity";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function MemberDashboard() {
-  const router = useRouter();
   const { data: profile } = useProfile();
   const { data: subscriptions, isLoading: subsLoading } =
     useActiveSubscriptions();
@@ -47,54 +46,49 @@ export default function MemberDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#F9FAFB] p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Welcome back{" "}
-              {profile?.first_name
-                ? profile.first_name.charAt(0).toUpperCase() +
-                  profile.first_name.slice(1).toLowerCase()
-                : ""}
-              ! 👋
+            <h1 className="text-4xl font-extrabold text-[#1F2937]">
+              Welcome back, {profile?.first_name}! 👋
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-[#9CA3AF] mt-2 font-medium">
               Manage your subscriptions and payments
             </p>
           </div>
         </div>
 
         {/* Wallet Card - 🔜 Coming Soon */}
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 text-white shadow-lg">
+        <div className="bg-gradient-to-br from-[#0D9488] to-[#0B7A70] rounded-xl p-8 text-white shadow-lg border-2 border-white/20">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-emerald-100 text-sm">Wallet Balance</p>
-              <h2 className="text-emerald-100 text-4xl font-bold mt-2">
+              <p className="text-white/80 text-sm font-semibold">Wallet Balance</p>
+              <h2 className="text-white text-4xl font-extrabold mt-2">
                 Coming Soon
               </h2>
-              <p className="text-emerald-100 text-sm mt-2">
+              <p className="text-white/90 text-sm mt-3 font-medium">
                 Wallet feature will be available soon
               </p>
             </div>
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
               <Wallet className="w-8 h-8" />
             </div>
           </div>
         </div>
 
-        {/* Quick Stats - 3 Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Quick Stats - 2 Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Active Subscriptions */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E5E7EB] hover:border-[#0D9488]/30 hover:shadow-md transition-all duration-300">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-blue-600" />
+              <div className="w-14 h-14 bg-[#0D9488]/10 rounded-xl flex items-center justify-center">
+                <CreditCard className="w-7 h-7 text-[#0D9488]" />
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Active Subscriptions</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-[#9CA3AF] text-sm font-semibold">Active Subscriptions</p>
+                <p className="text-3xl font-extrabold text-[#1F2937]">
                   {activeSubscriptionsCount}
                 </p>
               </div>
@@ -102,14 +96,14 @@ export default function MemberDashboard() {
           </div>
 
           {/* Upcoming Payments */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-[#E5E7EB] hover:border-[#0D9488]/30 hover:shadow-md transition-all duration-300">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-orange-600" />
+              <div className="w-14 h-14 bg-[#F06543]/10 rounded-xl flex items-center justify-center">
+                <Calendar className="w-7 h-7 text-[#F06543]" />
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Pending Payments</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-[#9CA3AF] text-sm font-semibold">Pending Payments</p>
+                <p className="text-3xl font-extrabold text-[#1F2937]">
                   {upcomingPayments}
                 </p>
               </div>
@@ -118,15 +112,16 @@ export default function MemberDashboard() {
         </div>
 
         {/* Active Subscriptions List */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm border border-[#E5E7EB]">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-[#0D9488]">
               Active Subscriptions
             </h2>
             <Link href="/member/subscriptions">
-              <span className="text-emerald-600 hover:text-emerald-700 text-sm font-medium">
+              <Button variant="ghost" size="sm" className="gap-1">
                 View All
-              </span>
+                <ArrowRight className="w-4 h-4" />
+              </Button>
             </Link>
           </div>
 
@@ -134,7 +129,7 @@ export default function MemberDashboard() {
             <div className="space-y-4">
               {[1, 2].map((i) => (
                 <div key={i} className="animate-pulse">
-                  <div className="h-24 bg-gray-100 rounded-lg"></div>
+                  <div className="h-24 bg-[#F9FAFB] rounded-xl"></div>
                 </div>
               ))}
             </div>
@@ -146,23 +141,23 @@ export default function MemberDashboard() {
                 return (
                   <Link key={sub.id} href={`/member/subscriptions/${sub.id}`}>
                     <div
-                      className={`flex items-center justify-between p-4 rounded-lg border transition-all cursor-pointer ${
+                      className={`flex items-center justify-between p-5 rounded-xl border transition-all duration-300 cursor-pointer ${
                         expiringSoon
-                          ? "border-orange-300 bg-orange-50 hover:bg-orange-100"
-                          : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50"
+                          ? "border-[#F06543]/40 bg-[#F06543]/5 hover:bg-[#F06543]/10 hover:border-[#F06543]/60"
+                          : "border-[#E5E7EB] hover:border-[#0D9488]/40 hover:bg-[#0D9488]/5"
                       }`}
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                        <div className="w-14 h-14 bg-gradient-to-br from-[#0D9488] to-[#0B7A70] rounded-xl flex items-center justify-center text-white font-extrabold text-xl shadow-sm">
                           {sub.plan.name.charAt(0)}
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">
+                          <h3 className="font-bold text-[#1F2937] text-base">
                             {sub.plan.name}
                           </h3>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-[#9CA3AF] mt-1 font-medium">
                             {expiringSoon ? (
-                              <span className="text-orange-600 font-medium">
+                              <span className="text-[#F06543] font-semibold">
                                 ⚠️ Expires{" "}
                                 {new Date(sub.expires_at).toLocaleDateString()}
                               </span>
@@ -173,10 +168,10 @@ export default function MemberDashboard() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-gray-900">
+                        <p className="font-extrabold text-[#1F2937] text-lg">
                           ₦{sub.plan.price.toLocaleString()}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-[#9CA3AF] font-semibold">
                           /{sub.plan.interval}
                         </p>
                       </div>
@@ -186,15 +181,19 @@ export default function MemberDashboard() {
               })}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <CreditCard className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">No active subscriptions</p>
-              <button
-                onClick={() => router.push("/member/communities")}
-                className="mt-4 px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-              >
+            <div className="text-center py-16">
+              <div className="w-20 h-20 bg-[#F9FAFB] rounded-full flex items-center justify-center mx-auto mb-6">
+                <CreditCard className="w-10 h-10 text-[#9CA3AF]" />
+              </div>
+              <h3 className="text-xl font-bold text-[#1F2937] mb-2">
+                No active subscriptions
+              </h3>
+              <p className="text-[#9CA3AF] font-medium mb-6">
+                Get started by browsing our plans
+              </p>
+              <Button variant="default" size="default">
                 Browse Plans
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -205,31 +204,32 @@ export default function MemberDashboard() {
         {/* Quick Actions */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <Link href="/member/check-ins">
-            <button className="w-full p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-emerald-300 hover:shadow-md transition-all h-full">
-              <div className="bg-emerald-100 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <QrCode className="w-6 h-6 text-emerald-600" />
+            <button className="w-full p-6 bg-white rounded-xl shadow-sm border border-[#E5E7EB] hover:border-[#0D9488]/40 hover:shadow-md transition-all duration-300 h-full group">
+              <div className="bg-[#0D9488]/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#0D9488]/20 transition-colors duration-300">
+                <QrCode className="w-7 h-7 text-[#0D9488]" />
               </div>
-              <p className="text-sm font-medium text-gray-900">Check In</p>
+              <p className="text-sm font-bold text-[#1F2937]">Check In</p>
+              <p className="text-xs text-[#9CA3AF] mt-2 font-semibold">Coming soon</p>
             </button>
           </Link>
 
           <Link href="/member/wallet">
-            <button className="w-full p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-emerald-300 hover:shadow-md transition-all h-full">
-              <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Wallet className="w-6 h-6 text-blue-600" />
+            <button className="w-full p-6 bg-white rounded-xl shadow-sm border border-[#E5E7EB] hover:border-[#0D9488]/40 hover:shadow-md transition-all duration-300 h-full group">
+              <div className="bg-[#0D9488]/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#0D9488]/20 transition-colors duration-300">
+                <Wallet className="w-7 h-7 text-[#0D9488]" />
               </div>
-              <p className="text-sm font-medium text-gray-900">Wallet</p>
-              <p className="text-xs text-gray-500 mt-1">Coming soon</p>
+              <p className="text-sm font-bold text-[#1F2937]">Wallet</p>
+              <p className="text-xs text-[#9CA3AF] mt-2 font-semibold">Coming soon</p>
             </button>
           </Link>
 
           <Link href="/member/payments">
-            <button className="w-full p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:border-emerald-300 hover:shadow-md transition-all h-full">
-              <div className="bg-purple-100 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <CreditCard className="w-6 h-6 text-purple-600" />
+            <button className="w-full p-6 bg-white rounded-xl shadow-sm border border-[#E5E7EB] hover:border-[#0D9488]/40 hover:shadow-md transition-all duration-300 h-full group">
+              <div className="bg-[#0D9488]/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#0D9488]/20 transition-colors duration-300">
+                <CreditCard className="w-7 h-7 text-[#0D9488]" />
               </div>
-              <p className="text-sm font-medium text-gray-900">Payments</p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-sm font-bold text-[#1F2937]">Payments</p>
+              <p className="text-xs text-[#9CA3AF] mt-2 font-semibold">
                 {upcomingPayments} upcoming
               </p>
             </button>

@@ -1,16 +1,34 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Clock, CheckCircle, Calendar } from "lucide-react";
-import { Button } from "@heroui/react";
+import { Clock, CheckCircle, Calendar, QrCode, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import MemberQRCodeModal from "../memberQRCodeModal";
 import { addHours } from "date-fns";
 import { useMemberStore } from "@/store/memberStore";
 import { useParams } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
-// Check-in code interface
+const C = {
+  teal:     "#0D9488",
+  coral:    "#F06543",
+  snow:     "#F9FAFB",
+  white:    "#FFFFFF",
+  ink:      "#1F2937",
+  coolGrey: "#9CA3AF",
+  border:   "#E5E7EB",
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i = 0) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.5, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] },
+  }),
+};
+
 interface CheckInCode {
   id: string;
   checkInCode: string;
@@ -29,13 +47,11 @@ export default function CheckInPage() {
 
   const orgId = params.id;
   const memberData = getMember(orgId as string);
-  console.log(memberData);
 
   useEffect(() => {
     setIsHydrated(true);
   }, []);
 
-  // Update timer countdown
   useEffect(() => {
     if (!checkInCode) return;
 
@@ -58,15 +74,12 @@ export default function CheckInPage() {
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
-
     return () => clearInterval(interval);
   }, [checkInCode]);
 
   const handleGenerateCode = async () => {
     const generateCode = async (): Promise<CheckInCode> => {
       const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-      // Set expiry to 1 hour from now
       const now = new Date();
       const expiry = addHours(now, 1);
 
@@ -77,14 +90,12 @@ export default function CheckInPage() {
           checkInCode: randomCode,
           expiresAt: expiry.toISOString(),
         });
-        console.log(response);
         if (response.data.statusCode === 201) {
-          toast("Check-in code generated successfully", {
-            duration: 5000,
-          });
+          toast.success("Check-in code generated successfully");
         }
       } catch (error) {
         console.error("Failed to generate check-in code:", error);
+        toast.error("Failed to generate code");
       } finally {
         setGeneratingCode(false);
       }
@@ -99,26 +110,15 @@ export default function CheckInPage() {
 
     const codeData = await generateCode();
     setCheckInCode(codeData);
-    // console.log(codeData);
   };
 
-  if (!isHydrated) {
+  if (!isHydrated || !memberData) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold">Loading...</h2>
-        </div>
-      </div>
-    );
-  }
-
-  if (!memberData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold">Loading member data...</h2>
-          <p className="text-gray-600 mt-2">
-            Please wait while we load your information.
+      <div style={{ minHeight: "100vh", background: C.snow, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Nunito, sans-serif" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: "48px", height: "48px", border: `3px solid ${C.border}`, borderTopColor: C.teal, borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 16px" }} />
+          <p style={{ fontWeight: 600, fontSize: "16px", color: C.ink }}>
+            {!isHydrated ? "Loading..." : "Loading member data..."}
           </p>
         </div>
       </div>
@@ -126,154 +126,284 @@ export default function CheckInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Check In</h1>
-          <p className="text-gray-600 mt-1">
-            Generate your daily check-in code
+    <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        * { box-sizing: border-box; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+      `}</style>
+
+      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "32px 24px 96px" }}>
+
+        {/* Page header - top left */}
+        <motion.div
+          variants={fadeUp} initial="hidden" animate="visible" custom={0}
+          style={{ marginBottom: "40px" }}
+        >
+          <h1 style={{ fontWeight: 800, fontSize: "32px", color: C.ink, letterSpacing: "-0.4px", marginBottom: "4px" }}>
+            Check In
+          </h1>
+          <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey }}>
+            Generate your check-in code or show your QR
           </p>
-        </div>
+        </motion.div>
 
-        {
-          /* Display Code */
-          <div className="space-y-6">
-            {/* QR Code Card */}
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-              {checkInCode && (
-                <div className="text-center mb-6">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium mb-4">
-                    <Clock className="w-4 h-4" />
-                    Valid for {timeLeft}
+        {/* Main content - 2 column layout */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "24px", alignItems: "start" }}>
+
+          {/* LEFT COLUMN - Code Display */}
+          <motion.div
+            variants={fadeUp} initial="hidden" animate="visible" custom={1}
+          >
+            {checkInCode ? (
+              /* Active code card */
+              <div style={{
+                position: "relative", overflow: "hidden",
+                background: C.teal, borderRadius: "24px", padding: "56px 48px",
+              }}>
+                {/* Decorative elements */}
+                <div style={{ position: "absolute", top: "-80px", right: "-80px", width: "280px", height: "280px", borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
+                <div style={{ position: "absolute", bottom: "-60px", left: "20%", width: "200px", height: "200px", borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+                <div style={{
+                  position: "absolute", top: 0, left: 0, right: 0, height: "2px",
+                  background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+                  backgroundSize: "200% auto",
+                  animation: "pulse-slow 3s ease-in-out infinite",
+                }} />
+
+                <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
+                  {/* Timer */}
+                  <div style={{
+                    display: "inline-flex", alignItems: "center", gap: "8px",
+                    padding: "10px 20px", borderRadius: "999px",
+                    background: "rgba(255,255,255,0.15)",
+                    border: "1px solid rgba(255,255,255,0.25)",
+                    marginBottom: "32px",
+                  }}>
+                    <Clock size={16} style={{ color: C.white }} />
+                    <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 700, fontSize: "14px", color: C.white }}>
+                      Expires in {timeLeft}
+                    </span>
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    {checkInCode?.checkInCode}
-                  </h2>
-                </div>
-              )}
 
-              {/* Alphanumeric Code */}
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-2">
-                  Show this code to staff
+                  <p style={{ fontWeight: 600, fontSize: "14px", color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "16px" }}>
+                    Your Check-In Code
+                  </p>
+
+                  {/* The code */}
+                  <div style={{
+                    display: "inline-block",
+                    padding: "32px 64px",
+                    background: "rgba(255,255,255,0.15)",
+                    backdropFilter: "blur(12px)",
+                    borderRadius: "16px",
+                    border: "2px solid rgba(255,255,255,0.3)",
+                    marginBottom: "24px",
+                  }}>
+                    <div style={{
+                      fontFamily: "monospace",
+                      fontWeight: 700,
+                      fontSize: "72px",
+                      color: C.white,
+                      letterSpacing: "8px",
+                      lineHeight: 1,
+                    }}>
+                      {checkInCode.checkInCode}
+                    </div>
+                  </div>
+
+                  <p style={{ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", maxWidth: "400px", margin: "0 auto" }}>
+                    Show this code to staff at the entrance
+                  </p>
+
+                  {/* Action buttons */}
+                  <div style={{ display: "flex", gap: "12px", justifyContent: "center", marginTop: "40px" }}>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => {
+                        setCheckInCode(null);
+                        handleGenerateCode();
+                      }}
+                      disabled={generatingCode}
+                      className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white"
+                    >
+                      <RefreshCw size={16} />
+                      {generatingCode ? "Generating..." : "New Code"}
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => setIsOpen(true)}
+                      className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white"
+                    >
+                      <QrCode size={16} />
+                      Show QR
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Empty state - Generate code */
+              <div style={{
+                background: C.white, borderRadius: "24px",
+                border: `2px dashed ${C.border}`,
+                padding: "80px 48px",
+                textAlign: "center",
+              }}>
+                <div style={{
+                  width: "96px", height: "96px", borderRadius: "24px",
+                  background: C.snow, border: `1px solid ${C.border}`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  margin: "0 auto 24px", color: C.coolGrey,
+                }}>
+                  <QrCode size={44} />
+                </div>
+
+                <h2 style={{ fontWeight: 700, fontSize: "22px", color: C.ink, marginBottom: "12px" }}>
+                  Ready to Check In?
+                </h2>
+                <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, lineHeight: 1.6, marginBottom: "32px", maxWidth: "380px", margin: "0 auto 32px" }}>
+                  Generate a secure check-in code or show your QR to get started
                 </p>
-                <div className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200">
-                  <span className="text-4xl font-mono font-bold text-emerald-900 tracking-wider">
-                    {checkInCode?.checkInCode || ""}
-                  </span>
+
+                {/* Action buttons */}
+                <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+                  {/* Coral CTA with glow */}
+                  <div style={{ position: "relative" }}>
+                    <div style={{
+                      position: "absolute", inset: "-4px", borderRadius: "12px",
+                      background: `linear-gradient(to right, rgba(240,101,67,0.4), rgba(240,101,67,0.2), rgba(240,101,67,0.4))`,
+                      filter: "blur(14px)", opacity: 0.7, zIndex: 0,
+                    }} />
+                    <div style={{ position: "relative", zIndex: 1 }}>
+                      <Button
+                        variant="default"
+                        size="lg"
+                        onClick={handleGenerateCode}
+                        disabled={generatingCode}
+                      >
+                        {generatingCode ? "Generating..." : "Generate Code"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    onClick={() => setIsOpen(true)}
+                  >
+                    <QrCode size={16} />
+                    Show QR
+                  </Button>
                 </div>
               </div>
-            </div>
+            )}
+          </motion.div>
 
-            {/* Instructions Card */}
-            <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-200">
-              <h3 className="font-bold text-emerald-900 mb-3 flex items-center gap-2">
-                <CheckCircle className="w-5 h-5" />
-                How to Check In
-              </h3>
-              <ol className="space-y-2 text-sm text-emerald-800">
-                <li className="flex items-start gap-2">
-                  <span className="font-bold">1.</span>
-                  <span>Show this code to staff at the entrance</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-bold">2.</span>
-                  <span>Staff will verify your code</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="font-bold">3.</span>
-                  <span>You&apos;re all set! Enjoy your day</span>
-                </li>
+          {/* RIGHT COLUMN - Info & History */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+
+            {/* Instructions */}
+            <motion.div
+              variants={fadeUp} initial="hidden" animate="visible" custom={2}
+              style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "28px" }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                <CheckCircle size={18} style={{ color: C.teal }} />
+                <h3 style={{ fontWeight: 700, fontSize: "16px", color: C.teal }}>
+                  How It Works
+                </h3>
+              </div>
+              <ol style={{ display: "flex", flexDirection: "column", gap: "12px", paddingLeft: "20px", margin: 0 }}>
+                {[
+                  "Generate or show your code",
+                  "Present to staff at entrance",
+                  "Staff verifies and logs entry",
+                ].map((step, idx) => (
+                  <li key={idx} style={{
+                    fontWeight: 400, fontSize: "14px", color: C.ink, lineHeight: 1.6,
+                    paddingLeft: "8px",
+                  }}>
+                    {step}
+                  </li>
+                ))}
               </ol>
-            </div>
+            </motion.div>
 
-            {/* Info Card */}
+            {/* Code details (if active) */}
             {checkInCode && (
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-600 mb-1">Generated</p>
-                    <p className="font-semibold text-gray-900">
-                      {new Date(checkInCode?.createdAt).toLocaleTimeString(
-                        "en-US",
-                        {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          second: "2-digit",
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        },
-                      )}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600 mb-1">Valid Until</p>
-                    <p className="font-semibold text-gray-900">
-                      {new Date(checkInCode?.expiresAt).toLocaleTimeString(
-                        "en-US",
-                        {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          second: "2-digit",
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "numeric",
-                        },
-                      )}
-                    </p>
-                  </div>
+              <motion.div
+                variants={fadeUp} initial="hidden" animate="visible" custom={3}
+                style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "24px" }}
+              >
+                <p style={{ fontWeight: 700, fontSize: "13px", color: C.coolGrey, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "16px" }}>
+                  Code Details
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  {[
+                    { label: "Generated", value: new Date(checkInCode.createdAt).toLocaleString("en-US", { 
+                      hour: "2-digit", minute: "2-digit", month: "short", day: "numeric"
+                    })},
+                    { label: "Valid Until", value: new Date(checkInCode.expiresAt).toLocaleString("en-US", { 
+                      hour: "2-digit", minute: "2-digit", month: "short", day: "numeric"
+                    })},
+                  ].map((item) => (
+                    <div key={item.label}>
+                      <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px" }}>
+                        {item.label}
+                      </p>
+                      <p style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}>
+                        {item.value}
+                      </p>
+                    </div>
+                  ))}
                 </div>
+              </motion.div>
+            )}
+
+            {/* Recent check-ins */}
+            <motion.div
+              variants={fadeUp} initial="hidden" animate="visible" custom={4}
+              style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "28px" }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                <Calendar size={18} style={{ color: C.teal }} />
+                <h3 style={{ fontWeight: 700, fontSize: "16px", color: C.teal }}>
+                  Recent Check-ins
+                </h3>
               </div>
-            )}
-
-            {/* Generate New Code Button */}
-            <Button
-              onPress={() => {
-                setCheckInCode(null);
-                handleGenerateCode();
-              }}
-              disabled={generatingCode}
-              isLoading={generatingCode}
-              className="w-full py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-            >
-              Generate New Code
-            </Button>
-            <Button
-              onPress={() => {
-                setCheckInCode(null);
-                setIsOpen(true);
-              }}
-              className="w-full"
-            >
-              Show My QR Code
-            </Button>
-            {isOpen && (
-              <MemberQRCodeModal
-                isOpen={isOpen}
-                onOpenChange={setIsOpen}
-                memberId={memberData?.id}
-              />
-            )}
-          </div>
-        }
-
-        {/* Coming Soon - Recent Check-ins */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-gray-400" />
-            Recent Check-ins
-          </h3>
-          <div className="text-center py-8">
-            <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-600 mb-1">Check-in history coming soon</p>
-            <p className="text-sm text-gray-500">
-              Once the backend is up, your check-in history will appear here
-            </p>
+              <div style={{ textAlign: "center", padding: "24px 0" }}>
+                <div style={{
+                  width: "56px", height: "56px", borderRadius: "12px",
+                  background: C.snow, border: `1px solid ${C.border}`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  margin: "0 auto 12px", color: C.coolGrey,
+                }}>
+                  <Calendar size={24} />
+                </div>
+                <p style={{ fontWeight: 600, fontSize: "14px", color: C.ink, marginBottom: "4px" }}>
+                  Coming Soon
+                </p>
+                <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey, lineHeight: 1.5 }}>
+                  Your history will appear here
+                </p>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
+
+      {/* QR Modal */}
+      {isOpen && (
+        <MemberQRCodeModal
+          isOpen={isOpen}
+          onOpenChange={setIsOpen}
+          memberId={memberData?.id}
+        />
+      )}
     </div>
   );
 }

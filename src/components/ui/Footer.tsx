@@ -7,35 +7,35 @@ const footerLinks = {
   product: [
     { label: "Features", href: "/features" },
     { label: "Pricing", href: "/pricing" },
-    { label: "Security", href: "#security" },
-    { label: "Roadmap", href: "#roadmap" },
+    // { label: "Security", href: "#security" },
+    // { label: "Roadmap", href: "#roadmap" },
   ],
   company: [
     { label: "About", href: "#about" },
-    { label: "Blog", href: "#blog" },
-    { label: "Careers", href: "#careers" },
+    // { label: "Blog", href: "#blog" },
+    // { label: "Careers", href: "#careers" },
     { label: "Contact", href: "#contact" },
   ],
-  resources: [
-    { label: "Documentation", href: "#docs" },
-    { label: "API Reference", href: "#api" },
-    { label: "Support", href: "#support" },
-    { label: "Status", href: "#status" },
-  ],
+  // resources: [
+  //   { label: "Documentation", href: "#docs" },
+  //   { label: "API Reference", href: "#api" },
+  //   // { label: "Support", href: "#support" },
+  //   // { label: "Status", href: "#status" },
+  // ],
   legal: [
     { label: "Privacy", href: "#privacy" },
     { label: "Terms", href: "#terms" },
-    { label: "Cookie Policy", href: "#cookies" },
+    // { label: "Cookie Policy", href: "#cookies" },
   ],
 };
 
 const socialLinks = [
   { icon: Twitter, href: "https://x.com/ReeTrack", label: "Twitter" },
-  {
-    icon: Github,
-    href: "https://github.com/ayo-sona/ReeTrack",
-    label: "GitHub",
-  },
+  // {
+  //   icon: Github,
+  //   href: "https://github.com/ayo-sona/ReeTrack",
+  //   label: "GitHub",
+  // },
   { icon: Linkedin, href: "https://linkedin.com/ReeTrack", label: "LinkedIn" },
   { icon: Mail, href: "mailto:support@reetrack.com", label: "Email" },
 ];
@@ -112,7 +112,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div>
+          {/* <div>
             <h3 className="font-bold text-[#1F2937] mb-4 text-sm uppercase tracking-wide">
               Resources
             </h3>
@@ -128,7 +128,7 @@ export function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
+          </div> */}
 
           <div>
             <h3 className="font-bold text-[#1F2937] mb-4 text-sm uppercase tracking-wide">

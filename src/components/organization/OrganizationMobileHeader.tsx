@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -13,13 +14,12 @@ import {
   ScanLine,
   LogOut,
 } from "lucide-react";
-import { Sidebar } from "@/components/ui/SideBar";
-import { useState, useEffect } from "react";
+import { MobileHeader } from "@/components/ui/MobileHeader";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { deleteCookie } from "cookies-next/client";
 
-interface OrganizationSidebarProps {
+interface OrganizationMobileHeaderProps {
   pathname: string;
 }
 
@@ -30,10 +30,12 @@ interface User {
   email: string;
 }
 
-export function OrganizationSidebar({ pathname }: OrganizationSidebarProps) {
+export function OrganizationMobileHeader({ pathname }: OrganizationMobileHeaderProps) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const unreadCount = 3; // Replace with actual notification count
 
   useEffect(() => {
     try {
@@ -71,7 +73,7 @@ export function OrganizationSidebar({ pathname }: OrganizationSidebarProps) {
     { name: "Members", href: "/organization/members", icon: Users },
     { name: "Plans", href: "/organization/plans", icon: Package },
     { name: "Transactions", href: "/organization/transactions", icon: CreditCard },
-    { name: "Organization Plans", href: "/organization/organization-plans", icon: Archive },
+    { name: "Org Plans", href: "/organization/organization-plans", icon: Archive },
     { name: "Billings", href: "/organization/billing", icon: Receipt },
     { name: "Check-ins", href: "/organization/check-ins", icon: ScanLine },
     { name: "Ping", href: "/organization/ping", icon: Send },
@@ -102,11 +104,12 @@ export function OrganizationSidebar({ pathname }: OrganizationSidebarProps) {
   } : undefined;
 
   return (
-    <Sidebar
+    <MobileHeader
       currentPath={pathname}
       navigation={navigation}
       profile={profileData}
-      profileHref="/organization/settings"
+      notificationHref="/organization/notifications"
+      notificationCount={unreadCount}
       actions={actions}
       logoText="ReeTrack"
       logoHref="/organization/dashboard"

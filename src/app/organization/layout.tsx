@@ -1,42 +1,36 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { OrganizationSidebar } from "../../components/organization/OrganizationSideBar";
-import { OrganizationHeader } from "../../components/organization/OrganizationHeader";
+import { usePathname } from "next/navigation";
+import { OrganizationSidebar } from "@/components/organization/OrganizationSideBar";
+import { OrganizationMobileHeader } from "@/components/organization/OrganizationMobileHeader";
+
+const C = {
+  snow: "#F9FAFB",
+};
 
 export default function OrganizationLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
-  const toggleSidebar = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
-  };
+  const pathname = usePathname();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-50/50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950/50">
-      {/* Sidebar */}
-      <OrganizationSidebar 
-        isCollapsed={isSidebarCollapsed} 
-        onToggleCollapse={toggleSidebar} 
-      />
+    <div style={{ minHeight: "100vh", background: C.snow }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        * { box-sizing: border-box; }
+      `}</style>
 
-      {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Header */}
-        <OrganizationHeader 
-          onToggleSidebar={toggleSidebar} 
-          isSidebarCollapsed={isSidebarCollapsed}
-        />
+      {/* Mobile Header Component */}
+      <OrganizationMobileHeader pathname={pathname} />
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="min-h-full p-6">
-            {children}
-          </div>
-        </main>
+      <div style={{ display: "flex" }}>
+        {/* Desktop Sidebar Component */}
+        <OrganizationSidebar pathname={pathname} />
+
+        {/* Main Content - No desktop header */}
+        <main style={{ flex: 1 }}>{children}</main>
       </div>
     </div>
   );

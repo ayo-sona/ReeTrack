@@ -4,13 +4,30 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Building2, Check, CreditCard, Shield } from "lucide-react";
 import Link from "next/link";
 import { useAvailablePlans } from "@/hooks/memberHook/useCommunity";
-import { memberApi } from "@/lib/memberAPI/memberAPI";
 import { useEffect, useState } from "react";
 import { useProfile } from "@/hooks/memberHook/useMember";
-import { Spinner } from "@heroui/react";
 import apiClient from "@/lib/apiClient";
 import { usePaystack } from "@/hooks/usePaystack";
-import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+
+const C = {
+  teal:     "#0D9488",
+  coral:    "#F06543",
+  snow:     "#F9FAFB",
+  white:    "#FFFFFF",
+  ink:      "#1F2937",
+  coolGrey: "#9CA3AF",
+  border:   "#E5E7EB",
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i = 0) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.5, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] },
+  }),
+};
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -22,50 +39,9 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { isReady, resumeTransaction } = usePaystack();
-  // const { paystack, initializePaystack } = usePaystack();
 
-  // useEffect(() => {
-  //   initializePaystack();
-  // }, []);
-
-  // Find the specific plan
   const plan = allPlans?.find((p) => p.id === planId);
 
-  if (plansLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
-        <div className="max-w-4xl mx-auto animate-pulse space-y-6">
-          <div className="h-8 w-64 bg-gray-200 rounded"></div>
-          <div className="h-96 bg-gray-200 rounded-2xl"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!plan) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center shadow-sm">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              Plan Not Found
-            </h3>
-            <p className="text-gray-600 mb-6">
-              The plan you&apos;re trying to subscribe to doesn&apos;t exist or
-              is no longer available.
-            </p>
-            <Link href="/member/communities">
-              <button className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
-                Back to My Community
-              </button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Format currency
   const formatCurrency = (amount: number | null) => {
     if (amount === null) return "Free";
     return `₦${amount.toLocaleString("en-US", {
@@ -74,10 +50,8 @@ export default function CheckoutPage() {
     })}`;
   };
 
-  // Calculate next billing date
   const getNextBillingDate = (interval: string | null) => {
     if (!interval) return null;
-
     const today = new Date();
     const nextDate = new Date(today);
 
@@ -106,10 +80,8 @@ export default function CheckoutPage() {
     });
   };
 
-  // Handle checkout
   const handleCheckout = async () => {
-    console.log(profile?.email, plan.price);
-    if (!profile?.email || plan.price === null) {
+    if (!profile?.email || plan?.price === null) {
       setError("Unable to process payment. Please try again.");
       return;
     }
@@ -118,76 +90,41 @@ export default function CheckoutPage() {
     setError(null);
 
     try {
-      // 1. Create subscription in your system
       const {
         data: {
           data: { invoice },
         },
       } = await apiClient.post(
-        `/subscriptions/members/subscribe/${plan.organization_id}`,
-        {
-          planId: plan.id,
-        },
+        `/subscriptions/members/subscribe/${plan?.organization_id}`,
+        { planId: plan?.id },
       );
-      console.log(invoice);
 
-      // 2. Initialize Paystack payment
       const {
         data: { data: paymentData },
       } = await apiClient.post("/payments/paystack/initialize", {
         invoiceId: invoice?.id,
       });
-      console.log(paymentData);
 
-      // 3. Redirect to Paystack
       if (!isReady) return;
       resumeTransaction(paymentData.access_code);
-      // if (!paystack) return;
-      // paystack.resumeTransaction(paymentData.access_code);
       router.refresh();
     } catch (error: any) {
-      // console.error("Subscription error:", error.data);
-      // toast("Failed to start subscription");
-
-      // Handle Axios error response
       if (error.response) {
-        const { data, status, statusText } = error.response;
-
-        console.error("Response error:", {
-          status,
-          statusText,
-          data,
-        });
-
-        // Handle specific error statuses
+        const { data, status } = error.response;
         if (status === 400) {
-          // Bad Request
-          setError(
-            data.message ||
-              "Invalid request. Please check your details and try again.",
-          );
+          setError(data.message || "Invalid request. Please check your details and try again.");
         } else if (status === 403) {
-          // Forbidden
           setError("You don't have permission to perform this action.");
         } else if (status === 404) {
-          // Not Found
           setError("The requested resource was not found.");
         } else if (status >= 500) {
-          // Server Error
           setError("A server error occurred. Please try again later.");
         } else {
-          // Other errors
           setError(data.message || "An error occurred. Please try again.");
         }
       } else if (error.request) {
-        // The request was made but no response was received
-        console.error("No response received:", error.request);
-        setError(
-          "No response from server. Please check your connection and try again.",
-        );
+        setError("No response from server. Please check your connection and try again.");
       } else {
-        // Something happened in setting up the request
-        console.error("Request setup error:", error.message);
         setError(error.message || "An error occurred. Please try again.");
       }
     } finally {
@@ -195,226 +132,244 @@ export default function CheckoutPage() {
     }
   };
 
+  // Loading state
+  if (plansLoading) {
+    return (
+      <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "32px 24px" }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+          @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+        `}</style>
+        <div style={{ maxWidth: "1000px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "24px" }}>
+          <div style={{ height: "32px", width: "200px", background: C.white, borderRadius: "8px", border: `1px solid ${C.border}`, animation: "pulse 1.5s ease-in-out infinite" }} />
+          <div style={{ height: "400px", background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, animation: "pulse 1.5s ease-in-out infinite" }} />
+        </div>
+      </div>
+    );
+  }
+
+  // Not found state
+  if (!plan) {
+    return (
+      <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "32px 24px" }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');`}</style>
+        <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
+          <div style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "64px 32px", textAlign: "center" }}>
+            <h3 style={{ fontWeight: 700, fontSize: "20px", color: C.ink, marginBottom: "8px" }}>Plan Not Found</h3>
+            <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, marginBottom: "24px", lineHeight: 1.6 }}>
+              The plan you&apos;re trying to subscribe to doesn&apos;t exist or is no longer available.
+            </p>
+            <Button variant="secondary" asChild>
+              <Link href="/member/communities">Back to My Community</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const nextBillingDate = getNextBillingDate(plan.interval);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Back Button */}
-        <Link href={`/member/communities/${plan.organization_id}`}>
-          <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Plans</span>
-          </button>
-        </Link>
+    <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "32px 24px 96px" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        * { box-sizing: border-box; }
+      `}</style>
+
+      <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
+
+        {/* Back button */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} style={{ marginBottom: "24px" }}>
+          <Link href={`/member/communities/${plan.organization_id}`} style={{ textDecoration: "none" }}>
+            <Button variant="ghost" size="sm">
+              <ArrowLeft size={16} />
+              Back to Plans
+            </Button>
+          </Link>
+        </motion.div>
 
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
-          <p className="text-gray-600 mt-1">
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1} style={{ marginBottom: "32px" }}>
+          <h1 style={{ fontWeight: 800, fontSize: "32px", color: C.ink, letterSpacing: "-0.4px" }}>Checkout</h1>
+          <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, marginTop: "4px" }}>
             Review your subscription and complete payment
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column - Plan Details */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Organization Info */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-emerald-600" />
-                Organization
-              </h2>
-              <div className="space-y-3">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
-                    {plan.organization.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">
-                      {plan.organization.name}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {plan.organization.description}
-                    </p>
-                  </div>
+        <div style={{ display: "grid", gap: "24px" }} className="lg:grid-cols-3">
+
+          {/* Left column */}
+          <div className="lg:col-span-2" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+
+            {/* Organization card */}
+            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2}
+              style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "28px" }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px" }}>
+                <Building2 size={18} style={{ color: C.teal }} />
+                <h2 style={{ fontWeight: 700, fontSize: "16px", color: C.teal }}>Organization</h2>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "16px" }}>
+                <div style={{
+                  width: "48px", height: "48px", borderRadius: "12px", background: C.teal,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: C.white, fontWeight: 800, fontSize: "20px",
+                }}>
+                  {plan.organization.name.charAt(0).toUpperCase()}
                 </div>
-                <div className="pt-3 border-t space-y-2 text-sm text-gray-600">
-                  <p>{plan.organization.address}</p>
-                  <p>{plan.organization.email}</p>
-                  <p>{plan.organization.phone}</p>
+                <div>
+                  <p style={{ fontWeight: 600, fontSize: "15px", color: C.ink }}>{plan.organization.name}</p>
+                  <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>{plan.organization.description}</p>
                 </div>
               </div>
-            </div>
+              <div style={{ paddingTop: "16px", borderTop: `1px solid ${C.border}`, display: "flex", flexDirection: "column", gap: "6px" }}>
+                <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>{plan.organization.address}</p>
+                <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>{plan.organization.email}</p>
+                <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>{plan.organization.phone}</p>
+              </div>
+            </motion.div>
 
-            {/* Plan Details */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">
-                Plan Details
-              </h2>
-
-              <div className="space-y-4">
-                {/* Plan Name */}
+            {/* Plan details card */}
+            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}
+              style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "28px" }}
+            >
+              <h2 style={{ fontWeight: 700, fontSize: "16px", color: C.teal, marginBottom: "20px" }}>Plan Details</h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Plan Name</p>
-                  <p className="text-xl font-bold text-gray-900">{plan.name}</p>
+                  <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Plan Name</p>
+                  <p style={{ fontWeight: 700, fontSize: "18px", color: C.ink }}>{plan.name}</p>
                 </div>
-
-                {/* Description */}
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Description</p>
-                  <p className="text-gray-900">{plan.description}</p>
+                  <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Description</p>
+                  <p style={{ fontWeight: 400, fontSize: "14px", color: C.ink, lineHeight: 1.6 }}>{plan.description}</p>
                 </div>
-
-                {/* Billing */}
-                <div className="grid md:grid-cols-2 gap-4">
+                <div style={{ display: "grid", gap: "16px" }} className="md:grid-cols-2">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Price</p>
-                    <p className="text-2xl font-bold text-emerald-600">
-                      {formatCurrency(plan.price)}
-                    </p>
+                    <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Price</p>
+                    <p style={{ fontWeight: 800, fontSize: "24px", color: C.teal, letterSpacing: "-0.3px" }}>{formatCurrency(plan.price)}</p>
                   </div>
                   {plan.interval && (
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">
-                        Billing Period
-                      </p>
-                      <p className="text-lg font-semibold text-gray-900 capitalize">
-                        {plan.interval}
-                      </p>
+                      <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Billing Period</p>
+                      <p style={{ fontWeight: 700, fontSize: "16px", color: C.ink, textTransform: "capitalize" }}>{plan.interval}</p>
                     </div>
                   )}
                 </div>
-
-                {/* Next Billing Date */}
                 {nextBillingDate && (
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                    <p className="text-sm text-emerald-700 font-medium mb-1">
-                      Next Billing Date
-                    </p>
-                    <p className="text-lg font-semibold text-emerald-900">
-                      {nextBillingDate}
-                    </p>
+                  <div style={{ background: "rgba(13,148,136,0.08)", border: "1px solid rgba(13,148,136,0.2)", borderRadius: "8px", padding: "14px" }}>
+                    <p style={{ fontWeight: 600, fontSize: "12px", color: C.teal, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Next Billing Date</p>
+                    <p style={{ fontWeight: 700, fontSize: "16px", color: C.teal }}>{nextBillingDate}</p>
                   </div>
                 )}
-
-                {/* Features */}
                 {plan.features && plan.features.length > 0 && (
                   <div>
-                    <p className="text-sm text-gray-600 mb-2">
-                      What&apos;s Included
-                    </p>
-                    <ul className="space-y-2">
+                    <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.5px" }}>What&apos;s Included</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {plan.features.map((feature: string, idx: number) => (
-                        <li
-                          key={idx}
-                          className="flex items-start gap-2 text-gray-900"
-                        >
-                          <Check className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                          <span>{feature}</span>
-                        </li>
+                        <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+                          <Check size={16} style={{ color: C.teal, flexShrink: 0, marginTop: "2px" }} />
+                          <span style={{ fontWeight: 400, fontSize: "14px", color: C.ink, lineHeight: 1.5 }}>{feature}</span>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
 
-            {/* Payment Security */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <Shield className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-blue-900 mb-1">
-                    Secure Payment
-                  </p>
-                  <p className="text-sm text-blue-700">
-                    Your payment information is encrypted and secure. We use
-                    industry-standard security measures to protect your data.
-                  </p>
-                </div>
+            {/* Security notice */}
+            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4}
+              style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: "12px", padding: "16px", display: "flex", gap: "12px" }}
+            >
+              <Shield size={18} style={{ color: "#3B82F6", flexShrink: 0, marginTop: "2px" }} />
+              <div>
+                <p style={{ fontWeight: 600, fontSize: "14px", color: "#1E40AF", marginBottom: "4px" }}>Secure Payment</p>
+                <p style={{ fontWeight: 400, fontSize: "13px", color: "#3B82F6", lineHeight: 1.5 }}>
+                  Your payment information is encrypted and secure. We use industry-standard security measures to protect your data.
+                </p>
               </div>
-            </div>
+            </motion.div>
           </div>
 
-          {/* Right Column - Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-sm sticky top-8">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">
-                Order Summary
-              </h2>
-
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Plan</span>
-                  <span className="font-semibold text-gray-900">
-                    {plan.name}
-                  </span>
+          {/* Right column - Order summary */}
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5} className="lg:col-span-1">
+            <div style={{
+              background: C.white, borderRadius: "16px",
+              border: `2px solid ${C.border}`, padding: "28px",
+              position: "sticky", top: "32px",
+            }}>
+              <h2 style={{ fontWeight: 700, fontSize: "16px", color: C.teal, marginBottom: "20px" }}>Order Summary</h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginBottom: "24px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey }}>Plan</span>
+                  <span style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}>{plan.name}</span>
                 </div>
-
                 {plan.interval && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Billing</span>
-                    <span className="font-semibold text-gray-900 capitalize">
-                      {plan.interval}
-                    </span>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey }}>Billing</span>
+                    <span style={{ fontWeight: 600, fontSize: "14px", color: C.ink, textTransform: "capitalize" }}>{plan.interval}</span>
                   </div>
                 )}
-
                 {nextBillingDate && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Next Billing</span>
-                    <span className="font-semibold text-gray-900">
-                      {nextBillingDate}
-                    </span>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey }}>Next Billing</span>
+                    <span style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}>{nextBillingDate}</span>
                   </div>
                 )}
-
-                <div className="border-t pt-4">
-                  <div className="flex justify-between text-lg">
-                    <span className="font-semibold text-gray-900">Total</span>
-                    <span className="font-bold text-emerald-600">
-                      {formatCurrency(plan.price)}
-                    </span>
+                <div style={{ paddingTop: "14px", borderTop: `1px solid ${C.border}` }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                    <span style={{ fontWeight: 600, fontSize: "16px", color: C.ink }}>Total</span>
+                    <span style={{ fontWeight: 800, fontSize: "20px", color: C.teal, letterSpacing: "-0.3px" }}>{formatCurrency(plan.price)}</span>
                   </div>
                   {plan.interval && (
-                    <p className="text-xs text-gray-500 mt-1 text-right">
-                      Billed {plan.interval}
-                    </p>
+                    <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, textAlign: "right" }}>Billed {plan.interval}</p>
                   )}
                 </div>
               </div>
 
-              {/* Error Message */}
+              {/* Error */}
               {error && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-700">{error}</p>
+                <div style={{ marginBottom: "16px", padding: "12px", background: "rgba(240,101,67,0.08)", border: "1px solid rgba(240,101,67,0.3)", borderRadius: "8px" }}>
+                  <p style={{ fontWeight: 400, fontSize: "13px", color: C.coral }}>{error}</p>
                 </div>
               )}
 
-              {/* Checkout Button */}
-              <button
-                onClick={handleCheckout}
-                disabled={isProcessing || plan.price === null}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors"
-              >
-                {isProcessing ? (
-                  <Spinner color="success" />
-                ) : (
-                  <>
-                    <CreditCard className="w-5 h-5" />
-                    {plan.price === null ? "Free Plan" : "Proceed to Payment"}
-                  </>
-                )}
-              </button>
+              {/* Checkout button - coral CTA with glow */}
+              <div style={{ position: "relative", marginBottom: "16px" }}>
+                <div style={{
+                  position: "absolute", inset: "-4px", borderRadius: "12px",
+                  background: `linear-gradient(to right, rgba(240,101,67,0.4), rgba(240,101,67,0.2), rgba(240,101,67,0.4))`,
+                  filter: "blur(14px)",
+                  opacity: isProcessing || plan.price === null ? 0.3 : 0.7,
+                  zIndex: 0,
+                }} />
+                <div style={{ position: "relative", zIndex: 1 }}>
+                  <Button
+                    variant="default"
+                    size="lg"
+                    className="w-full"
+                    onClick={handleCheckout}
+                    disabled={isProcessing || plan.price === null}
+                  >
+                    {isProcessing ? (
+                      "Processing..."
+                    ) : (
+                      <>
+                        <CreditCard size={18} />
+                        {plan.price === null ? "Free Plan" : "Proceed to Payment"}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
 
               {/* Terms */}
-              <p className="text-xs text-gray-500 text-center mt-4">
-                By subscribing, you agree to our Terms of Service and Privacy
-                Policy
+              <p style={{ fontWeight: 400, fontSize: "11px", color: C.coolGrey, textAlign: "center", lineHeight: 1.4 }}>
+                By subscribing, you agree to our Terms of Service and Privacy Policy
               </p>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>
