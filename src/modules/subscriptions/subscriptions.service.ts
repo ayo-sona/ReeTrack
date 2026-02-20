@@ -165,37 +165,69 @@ export class SubscriptionsService {
       plan.interval_count,
     );
 
-    // Create subscription
-    const subscription = this.memberSubscriptionRepository.create({
-      member_id: member.id,
-      organization_id: organizationId,
-      plan_id: createSubscriptionDto.planId,
-      status: SubscriptionStatus.PENDING,
-      started_at: now,
-      expires_at: periodEnd,
-      metadata: createSubscriptionDto.metadata || {},
-    });
+    // Create subscription within a transaction
+    return this.memberSubscriptionRepository.manager.transaction(
+      async (transactionalEntityManager) => {
+        const subscription = this.memberSubscriptionRepository.create({
+          member_id: member.id,
+          organization_id: organizationId,
+          plan_id: createSubscriptionDto.planId,
+          status: SubscriptionStatus.PENDING,
+          started_at: now,
+          expires_at: periodEnd,
+          metadata: createSubscriptionDto.metadata || {},
+        });
 
-    const savedSubscription: MemberSubscription =
-      await this.memberSubscriptionRepository.save(subscription);
+        const savedSubscription: MemberSubscription =
+          await transactionalEntityManager.save(subscription);
 
-    console.log('sub', savedSubscription);
+        console.log('Saved subscription ID:', savedSubscription.id);
+        console.log('Saved subscription:', savedSubscription);
 
-    // Generate invoice for subscription
-    const savedInvoice = await this.createInvoiceForSubscription(
-      organizationId,
-      savedSubscription,
-      member,
-      plan,
-    );
+        // Generate invoice for subscription within the same transaction
+        const invoice = this.invoiceRepository.create({
+          issuer_org_id: organizationId,
+          member_subscription_id: savedSubscription.id,
+          billed_user_id: member.user.id,
+          billed_type: InvoiceBilledType.MEMBER,
+          invoice_number: generateInvoiceNumber(organizationId),
+          payment_provider: PaymentProvider.PAYSTACK,
+          amount: plan.price,
+          currency: plan.currency,
+          status: InvoiceStatus.PENDING,
+          due_date: savedSubscription.expires_at,
+          metadata: {
+            plan_name: plan.name,
+            billing_period: {
+              start: savedSubscription.created_at,
+              end: savedSubscription.expires_at,
+            },
+          },
+        });
 
-    return {
-      message: 'Subscription created successfully',
-      data: {
-        subscription,
-        invoice: savedInvoice,
+        const savedInvoice = await transactionalEntityManager.save(invoice);
+
+        // 7. Send confirmation email
+        // await this.notificationsService.sendSubscriptionCreatedNotification({
+        //   email: organization.email,
+        //   memberName: organization.name,
+        //   planName: plan.name,
+        //   amount: plan.price,
+        //   currency: plan.currency,
+        //   interval: plan.interval,
+        //   startDate: now,
+        //   nextBilling: expiresAt,
+        // });
+
+        return {
+          message: 'Subscription created successfully',
+          data: {
+            subscription: savedSubscription,
+            invoice: savedInvoice,
+          },
+        };
       },
-    };
+    );
   }
 
   async findAllMemberSubscriptions(
@@ -385,13 +417,28 @@ export class SubscriptionsService {
 
         await transactionalEntityManager.save(currentSubscription);
 
-        // Generate invoice for subscription
-        const savedInvoice = await this.createInvoiceForSubscription(
-          organizationId,
-          createdSubscription,
-          member,
-          newPlan,
-        );
+        // Generate invoice for subscription within the same transaction
+        const invoice = this.invoiceRepository.create({
+          issuer_org_id: organizationId,
+          member_subscription_id: createdSubscription.id,
+          billed_user_id: member.user.id,
+          billed_type: InvoiceBilledType.MEMBER,
+          invoice_number: generateInvoiceNumber(organizationId),
+          payment_provider: PaymentProvider.PAYSTACK,
+          amount: newPlan.price,
+          currency: newPlan.currency,
+          status: InvoiceStatus.PENDING,
+          due_date: createdSubscription.expires_at,
+          metadata: {
+            plan_name: newPlan.name,
+            billing_period: {
+              start: createdSubscription.created_at,
+              end: createdSubscription.expires_at,
+            },
+          },
+        });
+
+        const savedInvoice = await transactionalEntityManager.save(invoice);
 
         return {
           message: 'Subscription plan changed successfully',
@@ -649,46 +696,62 @@ export class SubscriptionsService {
       plan.interval_count,
     );
 
-    // 5. Create subscription record
-    const subscription = this.organizationSubscriptionRepository.create({
-      organization_id: organizationId,
-      plan_id: plan.id,
-      status: SubscriptionStatus.PENDING,
-      started_at: now,
-      expires_at: expiresAt,
-    });
+    // 5. Create subscription record within a transaction
+    return this.organizationSubscriptionRepository.manager.transaction(
+      async (transactionalEntityManager) => {
+        const subscription = this.organizationSubscriptionRepository.create({
+          organization_id: organizationId,
+          plan_id: plan.id,
+          status: SubscriptionStatus.PENDING,
+          started_at: now,
+          expires_at: expiresAt,
+        });
 
-    // 6. Save subscription
-    const savedSubscription =
-      await this.organizationSubscriptionRepository.save(subscription);
+        const savedSubscription =
+          await transactionalEntityManager.save(subscription);
 
-    // 7. Create initial invoice
-    const savedInvoice = await this.createOrgInvoiceForSubscription(
-      organizationId,
-      savedSubscription,
-      plan,
-      userId,
-    );
+        // 6. Create initial invoice within the same transaction
+        const invoice = this.invoiceRepository.create({
+          issuer_org_id: organizationId,
+          organization_subscription_id: savedSubscription.id,
+          billed_user_id: userId,
+          billed_type: InvoiceBilledType.ORGANIZATION,
+          invoice_number: generateInvoiceNumber(organizationId),
+          payment_provider: PaymentProvider.PAYSTACK,
+          amount: plan.price,
+          currency: plan.currency,
+          status: InvoiceStatus.PENDING,
+          due_date: savedSubscription.started_at,
+          metadata: {
+            plan_name: plan.name,
+            interval: plan.interval,
+            interval_count: plan.interval_count,
+          },
+        });
 
-    // 9. Send confirmation email
-    // await this.notificationsService.sendSubscriptionCreatedNotification({
-    //   email: organization.email,
-    //   memberName: organization.name,
-    //   planName: plan.name,
-    //   amount: plan.price,
-    //   currency: plan.currency,
-    //   interval: plan.interval,
-    //   startDate: now,
-    //   nextBilling: expiresAt,
-    // });
+        const savedInvoice = await transactionalEntityManager.save(invoice);
 
-    return {
-      message: 'Organization subscription created successfully',
-      data: {
-        subscription: savedSubscription,
-        invoice: savedInvoice,
+        // 7. Send confirmation email
+        // await this.notificationsService.sendSubscriptionCreatedNotification({
+        //   email: organization.email,
+        //   memberName: organization.name,
+        //   planName: plan.name,
+        //   amount: plan.price,
+        //   currency: plan.currency,
+        //   interval: plan.interval,
+        //   startDate: now,
+        //   nextBilling: expiresAt,
+        // });
+
+        return {
+          message: 'Organization subscription created successfully',
+          data: {
+            subscription: savedSubscription,
+            invoice: savedInvoice,
+          },
+        };
       },
-    };
+    );
   }
 
   // Get organization subscription
@@ -757,57 +820,64 @@ export class SubscriptionsService {
     userId: string,
     // changePlanDto: ChangeOrgSubscriptionPlanDto,
   ) {
-    // const [subscription, newPlan] = await Promise.all([
-    //   this.getOrganizationSubscription(organizationId),
-    //   this.organizationPlanRepository.findOne({
-    //     where: { id: changePlanDto.newPlanId },
-    //   }),
-    // ]);
+    // Create a new subscription with the new plan within a transaction
+    return this.organizationSubscriptionRepository.manager.transaction(
+      async (transactionalEntityManager) => {
+        const newSubscription = this.organizationSubscriptionRepository.create({
+          organization_id: organizationId,
+          plan_id: newPlan.id,
+          status: SubscriptionStatus.ACTIVE,
+          started_at: new Date(),
+          expires_at: this.calculatePeriodEnd(
+            new Date(),
+            newPlan.interval,
+            newPlan.interval_count,
+          ),
+          metadata: {
+            previous_plan_id: subscription!.plan_id,
+            change_notes: 'Plans changed',
+          },
+        });
 
-    // if (!newPlan) {
-    //   throw new NotFoundException('Plan not found');
-    // }
+        // Save the new subscription
+        const createdSubscription =
+          await transactionalEntityManager.save(newSubscription);
 
-    // Create a new subscription with the new plan
-    const newSubscription = this.organizationSubscriptionRepository.create({
-      organization_id: organizationId,
-      plan_id: newPlan.id,
-      status: SubscriptionStatus.ACTIVE,
-      started_at: new Date(),
-      expires_at: this.calculatePeriodEnd(
-        new Date(),
-        newPlan.interval,
-        newPlan.interval_count,
-      ),
-      metadata: {
-        previous_plan_id: subscription!.plan_id,
-        change_notes: 'Plans changed',
+        // Cancel the old subscription
+        subscription.status = SubscriptionStatus.CANCELLED;
+        subscription.cancelled_at = new Date();
+        await transactionalEntityManager.save(subscription);
+
+        // Create invoice for the new subscription within the same transaction
+        const invoice = this.invoiceRepository.create({
+          issuer_org_id: organizationId,
+          organization_subscription_id: createdSubscription.id,
+          billed_user_id: userId,
+          billed_type: InvoiceBilledType.ORGANIZATION,
+          invoice_number: generateInvoiceNumber(organizationId),
+          payment_provider: PaymentProvider.PAYSTACK,
+          amount: newPlan.price,
+          currency: newPlan.currency,
+          status: InvoiceStatus.PENDING,
+          due_date: createdSubscription.started_at,
+          metadata: {
+            plan_name: newPlan.name,
+            interval: newPlan.interval,
+            interval_count: newPlan.interval_count,
+          },
+        });
+
+        const savedInvoice = await transactionalEntityManager.save(invoice);
+
+        return {
+          message: 'Organization plan changed successfully',
+          data: {
+            subscription: createdSubscription,
+            invoice: savedInvoice,
+          },
+        };
       },
-    });
-
-    // Cancel the old subscription
-    subscription.status = SubscriptionStatus.CANCELLED;
-    subscription.cancelled_at = new Date();
-    await this.organizationSubscriptionRepository.save([
-      subscription,
-      newSubscription,
-    ]);
-
-    // Create invoice
-    const savedInvoice = await this.createOrgInvoiceForSubscription(
-      organizationId,
-      newSubscription,
-      newPlan,
-      userId,
     );
-
-    return {
-      message: 'Organization plan changed successfully',
-      data: {
-        subscription: newSubscription,
-        invoice: savedInvoice,
-      },
-    };
   }
 
   /**
@@ -917,63 +987,6 @@ export class SubscriptionsService {
       relations: ['plan'],
       order: { created_at: 'DESC' },
     });
-  }
-
-  // Helper methods
-  private async createInvoiceForSubscription(
-    organizationId: string,
-    subscription: MemberSubscription,
-    member: Member,
-    plan: MemberPlan,
-  ) {
-    const invoice = this.invoiceRepository.create({
-      issuer_org_id: organizationId,
-      member_subscription_id: subscription.id,
-      billed_user_id: member.user.id,
-      billed_type: InvoiceBilledType.MEMBER,
-      invoice_number: generateInvoiceNumber(organizationId),
-      payment_provider: PaymentProvider.PAYSTACK,
-      amount: plan.price,
-      currency: plan.currency,
-      status: InvoiceStatus.PENDING,
-      due_date: subscription.expires_at,
-      metadata: {
-        plan_name: plan.name,
-        billing_period: {
-          start: subscription.created_at,
-          end: subscription.expires_at,
-        },
-      },
-    });
-
-    return await this.invoiceRepository.save(invoice);
-  }
-
-  private async createOrgInvoiceForSubscription(
-    organizationId: string,
-    savedSubscription: OrganizationSubscription,
-    plan: OrganizationPlan,
-    userId: string,
-  ) {
-    const invoice = this.invoiceRepository.create({
-      issuer_org_id: organizationId,
-      organization_subscription_id: savedSubscription.id,
-      invoice_number: `INV-${Date.now()}-${organizationId.substring(0, 8)}`,
-      billed_type: InvoiceBilledType.ORGANIZATION,
-      billed_user_id: userId,
-      payment_provider: PaymentProvider.PAYSTACK,
-      amount: plan.price,
-      currency: plan.currency,
-      status: InvoiceStatus.PENDING,
-      due_date: savedSubscription.started_at,
-      metadata: {
-        plan_name: plan.name,
-        interval: plan.interval,
-        interval_count: plan.interval_count,
-      },
-    });
-
-    return await this.invoiceRepository.save(invoice);
   }
 
   private calculatePeriodEnd(
