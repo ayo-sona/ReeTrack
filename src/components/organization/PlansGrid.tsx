@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreVertical, Edit, Trash2, Users, Eye, PowerOff, Power } from "lucide-react";
+import { MoreVertical, Edit, Trash2, Users, PowerOff, Power } from "lucide-react";
 import { useState } from "react";
 import { SubscriptionPlan } from "../../types/organization";
 import { Button } from "@/components/ui/button";

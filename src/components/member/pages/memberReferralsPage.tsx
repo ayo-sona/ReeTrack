@@ -93,7 +93,7 @@ export default function ReferralsPage() {
                 Share ReeTrack.<br />Get rewarded.
               </h2>
               <p style={{ fontWeight: 400, fontSize: "16px", color: "rgba(255,255,255,0.7)", lineHeight: 1.7, maxWidth: "400px" }}>
-                We're building a referral program that rewards you every time a friend joins through your link — free months, cash rewards, and more.
+                We&apos;re building a referral program that rewards you every time a friend joins through your link — free months, cash rewards, and more.
               </p>
             </div>
           </div>
@@ -102,7 +102,7 @@ export default function ReferralsPage() {
         {/* How it works label */}
         <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2} style={{ marginBottom: "14px" }}>
           <p style={{ fontWeight: 700, fontSize: "12px", color: C.coolGrey, textTransform: "uppercase", letterSpacing: "1px" }}>
-            How It'll Work
+            How It&apos;ll Work
           </p>
         </motion.div>
 
@@ -119,7 +119,7 @@ export default function ReferralsPage() {
           <div style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "36px 40px" }}>
             <h3 style={{ fontWeight: 700, fontSize: "18px", color: C.teal, marginBottom: "6px" }}>Be the first to know</h3>
             <p style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey, lineHeight: 1.6, marginBottom: "24px", maxWidth: "440px" }}>
-              Enter your email and we'll notify you the moment the referral program launches.
+              Enter your email and we&apos;ll notify you the moment the referral program launches.
             </p>
             <AnimatePresence mode="wait">
               {!submitted ? (
@@ -165,7 +165,7 @@ export default function ReferralsPage() {
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </div>
-                  <p style={{ fontWeight: 600, fontSize: "14px", color: C.teal }}>You're on the list — we'll be in touch soon.</p>
+                  <p style={{ fontWeight: 600, fontSize: "14px", color: C.teal }}>You&apos;re on the list — we&apos;ll be in touch soon.</p>
                 </motion.div>
               )}
             </AnimatePresence>

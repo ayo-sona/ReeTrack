@@ -1,17 +1,8 @@
 "use client";
 
 import {
-  LayoutDashboard,
-  Users,
-  Package,
-  Archive,
-  CreditCard,
-  Send,
-  FileDown,
-  Settings,
-  Receipt,
-  ScanLine,
-  LogOut,
+  LayoutDashboard, Users, Package, Archive, CreditCard,
+  Send, FileDown, Settings, Receipt, ScanLine, LogOut,
 } from "lucide-react";
 import { Sidebar } from "@/components/ui/SideBar";
 import { useState, useEffect } from "react";
@@ -21,6 +12,8 @@ import { deleteCookie } from "cookies-next/client";
 
 interface OrganizationSidebarProps {
   pathname: string;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 interface User {
@@ -30,7 +23,7 @@ interface User {
   email: string;
 }
 
-export function OrganizationSidebar({ pathname }: OrganizationSidebarProps) {
+export function OrganizationSidebar({ pathname, isCollapsed, onToggleCollapse }: OrganizationSidebarProps) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -54,9 +47,7 @@ export function OrganizationSidebar({ pathname }: OrganizationSidebarProps) {
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
-      if (typeof window !== "undefined") {
-        localStorage.clear();
-      }
+      if (typeof window !== "undefined") localStorage.clear();
       deleteCookie("access_token");
       deleteCookie("current_role");
       deleteCookie("user_roles");
@@ -67,15 +58,15 @@ export function OrganizationSidebar({ pathname }: OrganizationSidebarProps) {
   };
 
   const navigation = [
-    { name: "Dashboard", href: "/organization/dashboard", icon: LayoutDashboard },
-    { name: "Members", href: "/organization/members", icon: Users },
-    { name: "Plans", href: "/organization/plans", icon: Package },
-    { name: "Transactions", href: "/organization/transactions", icon: CreditCard },
+    { name: "Dashboard",          href: "/organization/dashboard",         icon: LayoutDashboard },
+    { name: "Members",            href: "/organization/members",            icon: Users },
+    { name: "Plans",              href: "/organization/plans",              icon: Package },
+    { name: "Transactions",       href: "/organization/transactions",       icon: CreditCard },
     { name: "Organization Plans", href: "/organization/organization-plans", icon: Archive },
-    { name: "Billings", href: "/organization/billing", icon: Receipt },
-    { name: "Check-ins", href: "/organization/check-ins", icon: ScanLine },
-    { name: "Ping", href: "/organization/ping", icon: Send },
-    { name: "Reports", href: "/organization/reports", icon: FileDown },
+    { name: "Billings",           href: "/organization/billing",            icon: Receipt },
+    { name: "Check-ins",          href: "/organization/check-ins",          icon: ScanLine },
+    { name: "Ping",               href: "/organization/ping",               icon: Send },
+    { name: "Reports",            href: "/organization/reports",            icon: FileDown },
   ];
 
   const actions = [
@@ -110,6 +101,8 @@ export function OrganizationSidebar({ pathname }: OrganizationSidebarProps) {
       actions={actions}
       logoText="ReeTrack"
       logoHref="/organization/dashboard"
+      isCollapsed={isCollapsed}
+      onToggleCollapse={onToggleCollapse}
     />
   );
 }

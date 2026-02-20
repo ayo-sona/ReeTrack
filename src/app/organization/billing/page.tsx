@@ -38,22 +38,89 @@ interface Invoice {
 const getInvoiceStatusConfig = (status: string) => {
   switch (status) {
     case "paid":
-      return { 
+      return {
         className: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-        label: "Paid"
+        label: "Paid",
       };
     case "failed":
-      return { 
+      return {
         className: "bg-red-50 text-red-600 border border-red-200",
-        label: "Failed"
+        label: "Failed",
       };
     default:
-      return { 
+      return {
         className: "bg-amber-50 text-amber-700 border border-amber-200",
-        label: "Pending"
+        label: "Pending",
       };
   }
 };
+
+function BillingSkeleton() {
+  return (
+    <div
+      className="w-full max-w-4xl mx-auto py-6 sm:py-8 lg:py-12 px-4 sm:px-6 lg:px-8 space-y-6 lg:space-y-8"
+      style={{ fontFamily: "Nunito, sans-serif" }}
+    >
+      {/* Header skeleton */}
+      <div className="space-y-2">
+        <div className="h-8 w-64 bg-gray-100 rounded-lg animate-pulse" />
+        <div className="h-4 w-80 bg-gray-100 rounded-lg animate-pulse" />
+      </div>
+
+      {/* Subscription card skeleton */}
+      <div className="card">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-[#E5E7EB]">
+          <div className="h-5 w-40 bg-gray-100 rounded-lg animate-pulse" />
+        </div>
+        <div className="px-4 sm:px-6 py-5 sm:py-6 space-y-6">
+          <div className="flex justify-between pb-6 border-b border-[#E5E7EB]">
+            <div className="space-y-2">
+              <div className="h-7 w-48 bg-gray-100 rounded-lg animate-pulse" />
+              <div className="h-4 w-32 bg-gray-100 rounded-lg animate-pulse" />
+            </div>
+            <div className="h-8 w-20 bg-gray-100 rounded-lg animate-pulse" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            {[1, 2].map((i) => (
+              <div key={i} className="space-y-2">
+                <div className="h-3 w-24 bg-gray-100 rounded animate-pulse" />
+                <div className="h-5 w-36 bg-gray-100 rounded-lg animate-pulse" />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-3 pt-4 border-t border-[#E5E7EB]">
+            <div className="h-10 w-32 bg-gray-100 rounded-lg animate-pulse" />
+            <div className="h-10 w-40 bg-gray-100 rounded-lg animate-pulse ml-auto" />
+          </div>
+        </div>
+      </div>
+
+      {/* Billing history skeleton */}
+      <div className="card">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-[#E5E7EB]">
+          <div className="h-5 w-32 bg-gray-100 rounded-lg animate-pulse" />
+        </div>
+        <div className="divide-y divide-[#E5E7EB]">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between gap-6"
+            >
+              <div className="space-y-2 flex-1">
+                <div className="h-4 w-40 bg-gray-100 rounded animate-pulse" />
+                <div className="h-3 w-28 bg-gray-100 rounded animate-pulse" />
+              </div>
+              <div className="flex items-center gap-4 flex-shrink-0">
+                <div className="h-5 w-24 bg-gray-100 rounded animate-pulse" />
+                <div className="h-7 w-20 bg-gray-100 rounded-lg animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function BillingPage() {
   const router = useRouter();
@@ -84,10 +151,17 @@ export default function BillingPage() {
   }, []);
 
   const handleCancel = async () => {
-    if (!confirm("Are you sure you want to cancel your subscription? This action cannot be undone.")) return;
+    if (
+      !confirm(
+        "Are you sure you want to cancel your subscription? This action cannot be undone.",
+      )
+    )
+      return;
     try {
       setIsCancelling(true);
-      await apiClient.patch(`/subscriptions/organizations/${subscription?.id}/cancel`);
+      await apiClient.patch(
+        `/subscriptions/organizations/${subscription?.id}/cancel`,
+      );
       toast.success("Subscription cancelled successfully");
       loadData();
     } catch (err) {
@@ -98,21 +172,7 @@ export default function BillingPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div 
-        className="flex items-center justify-center min-h-[60vh] py-12 px-4" 
-        style={{ fontFamily: "Nunito, sans-serif" }}
-      >
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="w-12 h-12 border-4 border-gray-100 border-t-[#0D9488] rounded-full animate-spin" />
-          </div>
-          <p className="text-sm font-semibold text-[#9CA3AF]">Loading billing details...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <BillingSkeleton />;
 
   return (
     <div
@@ -158,15 +218,17 @@ export default function BillingPage() {
                     "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold capitalize flex-shrink-0 self-start",
                     subscription.status === "active"
                       ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      : "bg-amber-50 text-amber-700 border border-amber-200"
+                      : "bg-amber-50 text-amber-700 border border-amber-200",
                   )}
                   style={{ borderRadius: "8px" }}
                 >
-                  <span 
+                  <span
                     className={clsx(
-                      "w-2 h-2 rounded-full", 
-                      subscription.status === "active" ? "bg-emerald-500" : "bg-amber-400"
-                    )} 
+                      "w-2 h-2 rounded-full",
+                      subscription.status === "active"
+                        ? "bg-emerald-500"
+                        : "bg-amber-400",
+                    )}
                   />
                   {subscription.status}
                 </span>
@@ -174,7 +236,6 @@ export default function BillingPage() {
 
               {/* Info Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                {/* Billing Date */}
                 <div>
                   <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2">
                     {subscription.auto_renew ? "Next Billing Date" : "Expires On"}
@@ -188,7 +249,6 @@ export default function BillingPage() {
                   </p>
                 </div>
 
-                {/* Auto-Renew */}
                 <div>
                   <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2">
                     Auto-Renewal
@@ -198,14 +258,14 @@ export default function BillingPage() {
                   </p>
                 </div>
 
-                {/* Payment Method */}
                 {subscription.organizationUser?.paystack_card_last4 && (
                   <div className="sm:col-span-2">
                     <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2">
                       Payment Method
                     </p>
                     <p className="text-sm sm:text-base font-bold text-[#1F2937]">
-                      {subscription.organizationUser.paystack_card_brand} ···· {subscription.organizationUser.paystack_card_last4}
+                      {subscription.organizationUser.paystack_card_brand} ····{" "}
+                      {subscription.organizationUser.paystack_card_last4}
                     </p>
                   </div>
                 )}
@@ -240,13 +300,13 @@ export default function BillingPage() {
                 No active subscription
               </p>
               <p className="text-sm sm:text-base text-[#9CA3AF] mb-6 max-w-sm">
-                You don't have an active plan yet. Choose a plan to get started.
+                You don&apos;t have an active plan yet. Choose a plan to get started.
               </p>
               <Button
                 type="button"
                 variant="default"
                 size="lg"
-                onClick={() => router.push("/pricing")}
+                onClick={() => router.push("/#pricing")}
                 className="shadow-lg shadow-[#F06543]/20"
               >
                 View Plans
@@ -292,12 +352,12 @@ export default function BillingPage() {
                         ₦{invoice.amount.toLocaleString()}
                       </p>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
-                      <span 
+                      <span
                         className={clsx(
                           "inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold flex-1",
-                          statusCfg.className
+                          statusCfg.className,
                         )}
                         style={{ borderRadius: "8px" }}
                       >
@@ -308,10 +368,12 @@ export default function BillingPage() {
                           type="button"
                           variant="default"
                           size="sm"
-                          onClick={() => router.push(`/organization/invoices/${invoice.id}/pay`)}
+                          onClick={() =>
+                            router.push(`/organization/invoices/${invoice.id}/pay`)
+                          }
                           className="flex-shrink-0"
                         >
-                          Pay Now
+                          Retry Payment
                         </Button>
                       )}
                     </div>
@@ -336,10 +398,10 @@ export default function BillingPage() {
                       <p className="text-base font-extrabold text-[#1F2937] min-w-[120px] text-right">
                         ₦{invoice.amount.toLocaleString()}
                       </p>
-                      <span 
+                      <span
                         className={clsx(
                           "inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold min-w-[90px] justify-center",
-                          statusCfg.className
+                          statusCfg.className,
                         )}
                         style={{ borderRadius: "8px" }}
                       >
@@ -350,9 +412,11 @@ export default function BillingPage() {
                           type="button"
                           variant="default"
                           size="sm"
-                          onClick={() => router.push(`/organization/invoices/${invoice.id}/pay`)}
+                          onClick={() =>
+                            router.push(`/organization/invoices/${invoice.id}/pay`)
+                          }
                         >
-                          Pay Now
+                          Retry Payment
                         </Button>
                       )}
                     </div>

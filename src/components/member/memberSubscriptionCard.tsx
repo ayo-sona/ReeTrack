@@ -36,6 +36,8 @@ const STATUS_CONFIG: Record<string, { bg: string; color: string; label: string }
   pending:  { bg: "rgba(251,191,36,0.12)",  color: "#D97706",  label: "Pending" },
 };
 
+const now = Date.now();
+
 function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.canceled;
   return (
@@ -67,7 +69,7 @@ function SubscriptionCard({ sub, index }: { sub: any; index: number }) {
   if (!sub?.plan) return null;
 
   const isExpiringSoon = (expiresAt: string) => {
-    const days = Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    const days = Math.ceil((new Date(expiresAt).getTime() - now) / (1000 * 60 * 60 * 24));
     return days <= 7 && days > 0;
   };
 

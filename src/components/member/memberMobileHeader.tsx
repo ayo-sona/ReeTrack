@@ -13,7 +13,6 @@ import {
   LogOut,
   Settings,
   Building2,
-  User as UserIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";

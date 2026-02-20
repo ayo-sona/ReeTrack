@@ -227,7 +227,7 @@ export default function MyCommunityPage() {
                 No Community Yet
               </h3>
               <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, lineHeight: 1.6, maxWidth: "340px", margin: "0 auto" }}>
-                You haven't joined any community yet. Contact an organization to get started!
+                You haven&apos;t joined any community yet. Contact an organization to get started!
               </p>
             </div>
           </motion.div>
@@ -266,7 +266,7 @@ export default function MyCommunityPage() {
             My Community
           </h1>
           <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, marginTop: "4px" }}>
-            Organizations you're subscribed to
+            Organizations you&apos;re subscribed to
           </p>
         </motion.div>
 

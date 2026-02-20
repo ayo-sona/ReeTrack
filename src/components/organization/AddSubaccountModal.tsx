@@ -1,13 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-} from "@heroui/react";
+import { X } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
@@ -45,6 +39,9 @@ export default function AddSubaccountModal({
   useEffect(() => {
     if (isOpen) {
       fetchBanks();
+      setFormData({ businessName: organization.name, accountNumber: "", bankCode: "" });
+      setError("");
+      setSubaccountData(null);
     }
   }, [isOpen]);
 
@@ -53,8 +50,7 @@ export default function AddSubaccountModal({
       setIsLoading(true);
       const response = await axios.get("https://api.paystack.co/bank");
       setBanks(response.data.data);
-    } catch (error) {
-      console.error("Failed to fetch banks:", error);
+    } catch {
       setError("Failed to load banks. Please try again.");
     } finally {
       setIsLoading(false);
@@ -64,12 +60,10 @@ export default function AddSubaccountModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
     if (!formData.businessName || !formData.accountNumber || !formData.bankCode) {
       setError("All fields are required");
       return;
     }
-
     try {
       setIsLoading(true);
       const response = await apiClient.post("/payments/paystack/subaccount", {
@@ -82,116 +76,127 @@ export default function AddSubaccountModal({
       });
       setSubaccountData(response.data.data);
       onSuccess();
-      setTimeout(() => {
-        onOpenChange(false);
-      }, 5000);
+      setTimeout(() => onOpenChange(false), 3000);
     } catch (error: any) {
-      console.error("Failed to create subaccount:", error);
       setError(error.response?.data?.message || "Failed to create subaccount");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const inputClass =
+    "w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-all disabled:opacity-50";
+
+  const labelClass =
+    "block text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1.5";
+
+  if (!isOpen) return null;
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      classNames={{
-        base: "rounded-xl border border-gray-100 shadow-lg",
-        header: "border-b border-gray-100 px-6 py-5",
-        body: "px-6 py-5",
-        footer: "border-t border-gray-100 px-6 py-4",
-      }}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ fontFamily: "Nunito, sans-serif" }}
     >
-      <ModalContent>
-        <ModalHeader>
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        onClick={() => onOpenChange(false)}
+      />
+
+      {/* Modal */}
+      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+
+        {/* Header */}
+        <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100">
           <div>
-            <h2 className="text-lg font-bold text-[#1F2937]" style={{ fontFamily: "Nunito, sans-serif" }}>
+            <h2 className="text-base font-bold text-[#1F2937]">
               Add Bank Account
             </h2>
-            <p className="text-sm font-normal text-[#9CA3AF] mt-0.5">
+            <p className="text-sm text-[#9CA3AF] mt-0.5">
               Link a bank account to receive payouts
             </p>
           </div>
-        </ModalHeader>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="text-gray-400 hover:text-gray-600 transition-colors mt-0.5"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
+        {/* Body */}
         <form onSubmit={handleSubmit}>
-          <ModalBody>
+          <div className="px-6 py-5 space-y-4">
             {error && (
-              <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm mb-2">
+              <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-[#1F2937] mb-1.5" style={{ fontFamily: "Nunito, sans-serif" }}>
-                  Business Name <span className="text-[#F06543]">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.businessName}
-                  onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                  required
-                  className="w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-[#1F2937] text-sm focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all"
-                  style={{ fontFamily: "Nunito, sans-serif" }}
-                  placeholder="Your business name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-[#1F2937] mb-1.5" style={{ fontFamily: "Nunito, sans-serif" }}>
-                  Account Number <span className="text-[#F06543]">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={formData.accountNumber}
-                  onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
-                  required
-                  className="w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-[#1F2937] text-sm focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all"
-                  style={{ fontFamily: "Nunito, sans-serif" }}
-                  placeholder="0000000000"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-[#1F2937] mb-1.5" style={{ fontFamily: "Nunito, sans-serif" }}>
-                  Bank <span className="text-[#F06543]">*</span>
-                </label>
-                <select
-                  value={formData.bankCode}
-                  onChange={(e) => setFormData({ ...formData, bankCode: e.target.value })}
-                  required
-                  disabled={isLoading && banks.length === 0}
-                  className="w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-[#1F2937] text-sm focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all disabled:opacity-50"
-                  style={{ fontFamily: "Nunito, sans-serif" }}
-                >
-                  <option value="">
-                    {isLoading && banks.length === 0 ? "Loading banks..." : "Select your bank"}
-                  </option>
-                  {banks.map((bank) => (
-                    <option key={bank.code} value={bank.code}>
-                      {bank.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {subaccountData && (
-                <div className="bg-[#F0FDF9] border border-[#0D9488]/20 rounded-lg px-4 py-3">
-                  <p className="text-xs font-semibold text-[#0D9488] uppercase tracking-wide mb-1">
-                    Account Verified
-                  </p>
-                  <p className="text-sm font-semibold text-[#1F2937]">
-                    {subaccountData.account_name}
-                  </p>
-                </div>
-              )}
+            <div>
+              <label className={labelClass}>
+                Business Name <span className="text-[#F06543]">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.businessName}
+                onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                required
+                placeholder="Your business name"
+                className={inputClass}
+              />
             </div>
-          </ModalBody>
 
-          <ModalFooter>
+            <div>
+              <label className={labelClass}>
+                Account Number <span className="text-[#F06543]">*</span>
+              </label>
+              <input
+                type="number"
+                value={formData.accountNumber}
+                onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                required
+                placeholder="0000000000"
+                className={inputClass}
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>
+                Bank <span className="text-[#F06543]">*</span>
+              </label>
+              <select
+                value={formData.bankCode}
+                onChange={(e) => setFormData({ ...formData, bankCode: e.target.value })}
+                required
+                disabled={isLoading && banks.length === 0}
+                className={inputClass}
+              >
+                <option value="">
+                  {isLoading && banks.length === 0 ? "Loading banks..." : "Select your bank"}
+                </option>
+                {banks.map((bank) => (
+                  <option key={bank.code} value={bank.code}>
+                    {bank.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {subaccountData && (
+              <div className="bg-[#F0FDF9] border border-[#0D9488]/20 rounded-lg px-4 py-3">
+                <p className="text-xs font-bold text-[#0D9488] uppercase tracking-wide mb-1">
+                  Account Verified
+                </p>
+                <p className="text-sm font-semibold text-[#1F2937]">
+                  {subaccountData.account_name}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-[#F9FAFB]">
             <Button
               type="button"
               variant="ghost"
@@ -208,9 +213,9 @@ export default function AddSubaccountModal({
             >
               {isLoading ? "Processing..." : "Add Account"}
             </Button>
-          </ModalFooter>
+          </div>
         </form>
-      </ModalContent>
-    </Modal>
+      </div>
+    </div>
   );
 }

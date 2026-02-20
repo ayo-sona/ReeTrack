@@ -246,7 +246,7 @@ export default function MyCommunityPage() {
                 No Organizations Available
               </h3>
               <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, lineHeight: 1.6, maxWidth: "340px", margin: "0 auto" }}>
-                You don't have access to any organizations yet.
+                You don&apos;t have access to any organizations yet.
               </p>
             </div>
           </motion.div>

@@ -3,36 +3,38 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  Card,
-  CardHeader,
-  CardBody,
-  Button,
-  Input,
-  Chip,
-  Skeleton,
-  Avatar,
-  Divider,
-} from "@heroui/react";
-import { Building2, Plus, ArrowRight, Search, Crown } from "lucide-react";
+import { Plus, ArrowRight, Loader2, Search, LogOut } from "lucide-react";
 import { useToast } from "@/features/notifications/useToast";
 import apiClient from "@/lib/apiClient";
-import { setCookie } from "cookies-next";
+import { setCookie, deleteCookie } from "cookies-next";
 import { toast } from "sonner";
+import Image from "next/image";
+import Link from "next/link";
 
-interface Organization {
+interface OrganizationWithRole {
   id: string;
   name: string;
   email: string;
+  role: string;
   slug?: string;
   subscription_plan?: string;
-  trial_ends_at?: string;
   created_at: string;
+  memberCount: number;
 }
 
-interface OrganizationWithRole extends Organization {
-  role: string;
-  memberCount: number;
+const roleStyles: Record<string, string> = {
+  owner: "bg-amber-50 text-amber-700 border border-amber-200",
+  admin: "bg-[#0D9488]/10 text-[#0D9488] border border-[#0D9488]/20",
+  staff: "bg-gray-100 text-gray-600 border border-gray-200",
+};
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 export default function OrganizationSelectPage() {
@@ -45,257 +47,232 @@ export default function OrganizationSelectPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const fetchOrganizations = () => {
-      try {
-        const userData = localStorage.getItem("userData");
-        if (userData) {
-          setUserData(JSON.parse(userData));
-          setLoading(false);
-          return;
-        }
-      } catch (error) {
-        addToast("error", "Error", "Failed to load organizations");
-        setLoading(false);
-      }
-    };
-
-    fetchOrganizations();
+    try {
+      const stored = localStorage.getItem("userData");
+      if (stored) setUserData(JSON.parse(stored));
+    } catch {
+      addToast("error", "Error", "Failed to load organizations");
+    } finally {
+      setLoading(false);
+    }
   }, [addToast]);
 
   const handleSelectOrganization = async (orgId: string, role: string) => {
     setSelectedOrg(orgId);
-
     try {
-      // Store selected organization ID
       localStorage.setItem("selectedOrganizationId", orgId);
-
-      // API call to switch organization context
       const response = await apiClient.get(`/organizations/select/${orgId}`);
-      // console.log(response.data);
+
       if (response.data.statusCode === 200) {
         setCookie("access_token", response.data.data.accessToken);
         setCookie("current_role", role);
 
-        // Invalidate all organization-related queries
         await queryClient.invalidateQueries({ queryKey: ["organizations"] });
         await queryClient.invalidateQueries({ queryKey: ["analytics"] });
         await queryClient.invalidateQueries({ queryKey: ["plans"] });
         await queryClient.invalidateQueries({ queryKey: ["payments"] });
-        await queryClient.invalidateQueries({
-          queryKey: ["members"],
-        });
+        await queryClient.invalidateQueries({ queryKey: ["members"] });
 
         router.push("/organization/dashboard");
-        toast("Switched organization successfully");
+        toast("Organization selected");
       }
-    } catch (error) {
-      console.error("Failed to switch organization:", error);
-      toast("Failed to switch organization");
+    } catch {
+      toast("Failed to select organization");
       setSelectedOrg(null);
     }
   };
 
-  const filteredOrgs = userData?.organizations?.filter(
-    (org: OrganizationWithRole) =>
-      org.role !== "MEMBER" &&
-      org.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
-  const getRoleColor = (role: string) => {
-    switch (role.toLowerCase()) {
-      case "owner":
-        return "warning";
-      case "admin":
-        return "primary";
-      case "staff":
-        return "secondary";
-      default:
-        return "default";
-    }
+  const handleLogout = () => {
+    deleteCookie("access_token");
+    deleteCookie("current_role");
+    deleteCookie("user_roles");
+    localStorage.removeItem("userData");
+    localStorage.removeItem("selectedOrganizationId");
+    queryClient.clear();
+    router.push("/auth/login");
+    toast("Logged out successfully");
   };
 
+  const orgs: OrganizationWithRole[] =
+    userData?.organizations?.filter(
+      (o: OrganizationWithRole) =>
+        o.role !== "MEMBER" &&
+        o.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ) ?? [];
+
   return (
-    <div className="min-h-screen text-white p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-default-600 mb-3">
-            Select an Organization
-          </h1>
-          <p className="text-default-600 text-lg">
-            Choose an organization to continue to your dashboard
-          </p>
-        </header>
+    <div
+      className="min-h-screen relative overflow-hidden bg-white"
+      style={{ fontFamily: "Nunito, sans-serif" }}
+    >
+      {/* Diagonal Split Background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-gradient-to-br from-[#F06543] to-[#D85436]"
+          style={{ clipPath: "polygon(0 0, 100% 0, 100% 45%, 0 55%)" }}
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-br from-[#0D9488] to-[#0B7A70]"
+          style={{ clipPath: "polygon(0 55%, 100% 45%, 100% 100%, 0 100%)" }}
+        />
+      </div>
 
-        {/* Search Bar */}
-        <div className="mb-8 max-w-xl mx-auto">
-          <Input
-            type="text"
-            placeholder="Search organizations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            startContent={<Search className="text-default-400" size={20} />}
-            size="lg"
-            variant="bordered"
-            classNames={{
-              input: "text-base",
-              inputWrapper: "h-12",
-            }}
-          />
+      {/* Illustrations */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[5%] left-[40%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
+          <Image src="/undraw/relaxing_hammock.svg" alt="" fill className="object-contain" />
         </div>
+        <div className="absolute bottom-[35%] right-[25%] w-26 h-26 sm:w-32 sm:h-32 opacity-90">
+          <Image src="/undraw/eating_together.svg" alt="" fill className="object-contain" />
+        </div>
+        <div className="absolute top-[3%] right-[35%] w-20 h-20 sm:w-24 sm:h-24 opacity-85">
+          <Image src="/undraw/hot_air_balloon.svg" alt="" fill className="object-contain" />
+        </div>
+        <div className="absolute top-[30%] right-[20%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
+          <Image src="/undraw/skateboarding.svg" alt="" fill className="object-contain" />
+        </div>
+        <div className="absolute top-[44%] left-[27%] w-24 h-24 opacity-90">
+          <Image src="/undraw/fitness.svg" alt="" fill className="object-contain" />
+        </div>
+        <div className="absolute top-[25%] left-[22%] w-22 h-22 sm:w-28 sm:h-28 opacity-85">
+          <Image src="/undraw/floating_balloon.svg" alt="" fill className="object-contain" />
+        </div>
+        <div className="absolute bottom-[10%] left-[25%] w-20 h-20 sm:w-28 sm:h-28 opacity-90">
+          <Image src="/undraw/playing_with_dog.svg" alt="" fill className="object-contain" />
+        </div>
+        <div className="absolute bottom-[10%] right-[24%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
+          <Image src="/undraw/bike_driving.svg" alt="" fill className="object-contain" />
+        </div>
+      </div>
 
-        {/* Organizations Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="w-full space-y-3 p-4" radius="lg">
-                <Skeleton className="rounded-lg">
-                  <div className="h-32 rounded-lg bg-default-300"></div>
-                </Skeleton>
-                <div className="space-y-3">
-                  <Skeleton className="w-3/5 rounded-lg">
-                    <div className="h-4 w-3/5 rounded-lg bg-default-200"></div>
-                  </Skeleton>
-                  <Skeleton className="w-4/5 rounded-lg">
-                    <div className="h-4 w-4/5 rounded-lg bg-default-200"></div>
-                  </Skeleton>
-                </div>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredOrgs.map((org: OrganizationWithRole) => (
-              <div key={org.id} className="">
-                <Card
-                  isPressable
-                  isHoverable
-                  className={`w-full transition-all ${
-                    selectedOrg === org.id ? "ring-2 ring-primary" : ""
-                  }`}
-                  shadow="lg"
-                  radius="lg"
-                >
-                  <CardHeader className="flex gap-3 pb-3">
-                    <Avatar
-                      icon={<Building2 size={20} />}
-                      classNames={{
-                        base: "bg-gradient-to-br from-primary to-secondary",
-                        icon: "text-white",
-                      }}
-                      size="md"
-                    />
-                    <div className="flex flex-col flex-1">
-                      <p className="text-lg font-semibold">{org.name}</p>
-                      <div className="flex gap-2 mt-1">
-                        <Chip
-                          size="sm"
-                          color={getRoleColor(org.role)}
-                          variant="flat"
-                          startContent={
-                            org.role === "Owner" ? <Crown size={14} /> : null
-                          }
-                        >
-                          {org.role}
-                        </Chip>
-                      </div>
+      {/* Content */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10">
+
+            {/* Header — inside the card, same as login */}
+            <div className="text-center mb-8">
+              <Link
+                href="/"
+                className="text-2xl font-extrabold bg-gradient-to-r from-[#0D9488] to-[#0B7A70] bg-clip-text text-transparent tracking-tight"
+              >
+                ReeTrack
+              </Link>
+              <h1 className="text-3xl font-bold text-[#1F2937] mt-1 mb-2">
+                Your Workspaces
+              </h1>
+              <p className="text-[#1F2937]/60">
+                Select an organization to continue
+              </p>
+            </div>
+
+            {/* Search */}
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Find an organization..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg bg-[#F9FAFB] text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-colors"
+              />
+            </div>
+
+            {/* List */}
+            <ul className="divide-y divide-gray-100 rounded-xl border border-gray-100 overflow-hidden max-h-64 overflow-y-auto mb-5">
+              {loading &&
+                [1, 2, 3].map((i) => (
+                  <li key={i} className="flex items-center gap-3 px-4 py-3.5 animate-pulse">
+                    <div className="w-9 h-9 rounded-lg bg-gray-100 shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-3.5 bg-gray-100 rounded w-2/3" />
+                      <div className="h-3 bg-gray-100 rounded w-1/3" />
                     </div>
-                  </CardHeader>
-                </Card>
+                  </li>
+                ))}
 
-                <Divider />
+              {!loading && orgs.length === 0 && (
+                <li className="px-4 py-8 text-center">
+                  <p className="text-sm text-[#1F2937]/40">
+                    {searchQuery
+                      ? "No organizations match your search"
+                      : "You have no organizations yet"}
+                  </p>
+                </li>
+              )}
 
-                <Button
-                  color="default"
-                  variant={selectedOrg === org.id ? "solid" : "bordered"}
-                  className="w-full pt-4"
-                  size="lg"
-                  isLoading={selectedOrg === org.id}
-                  endContent={
-                    selectedOrg !== org.id && <ArrowRight size={18} />
-                  }
-                  onPress={() => handleSelectOrganization(org.id, org.role)}
-                >
-                  Select Organization
-                </Button>
+              {!loading &&
+                orgs.map((org) => {
+                  const isSelecting = selectedOrg === org.id;
+                  const roleKey = org.role.toLowerCase();
+                  const roleClass =
+                    roleStyles[roleKey] ??
+                    "bg-gray-100 text-gray-600 border border-gray-200";
+
+                  return (
+                    <li key={org.id}>
+                      <button
+                        onClick={() => handleSelectOrganization(org.id, org.role)}
+                        disabled={!!selectedOrg}
+                        className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#F9FAFB] transition-colors disabled:opacity-60 disabled:cursor-not-allowed group text-left"
+                      >
+                        <div className="w-9 h-9 rounded-lg bg-[#0D9488]/10 flex items-center justify-center shrink-0">
+                          <span className="text-xs font-extrabold text-[#0D9488]">
+                            {getInitials(org.name)}
+                          </span>
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-[#1F2937] truncate">
+                            {org.name}
+                          </p>
+                          <span className={`inline-block mt-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${roleClass}`}>
+                            {org.role}
+                          </span>
+                        </div>
+
+                        {isSelecting ? (
+                          <Loader2 className="w-4 h-4 text-[#0D9488] animate-spin shrink-0" />
+                        ) : (
+                          <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-[#0D9488] transition-colors shrink-0" />
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+            </ul>
+
+            {/* Create New */}
+            <button
+              onClick={() => router.push("/auth/org/register")}
+              className="w-full flex items-center justify-center gap-2 rounded-lg border border-dashed border-gray-200 py-2.5 text-sm font-semibold text-gray-400 hover:border-[#0D9488] hover:text-[#0D9488] hover:bg-[#0D9488]/5 transition-colors mb-3"
+            >
+              <Plus className="w-4 h-4" />
+              Create new organization
+            </button>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
               </div>
-            ))}
-
-            {/* Create New Organization Card */}
-            <div className="flex flex-col gap-4">
-              <Card
-                isPressable
-                isHoverable
-                className="w-full border-2 border-dashed border-default-300 bg-default-50/50"
-                shadow="none"
-                radius="lg"
-                onPress={() => router.push("/auth/org/register")}
-              >
-                <CardBody className="h-full flex flex-col items-center justify-center p-8 gap-4">
-                  <div className="bg-primary/10 p-4 rounded-full">
-                    <Plus className="text-primary" size={32} />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="font-semibold text-lg mb-1">
-                      Create New Organization
-                    </h3>
-                    <p className="text-small text-default-500">
-                      Start a new organization and register members
-                    </p>
-                  </div>
-                </CardBody>
-              </Card>
-              <Button
-                color="primary"
-                variant="flat"
-                size="lg"
-                startContent={<Plus size={18} />}
-                className="mt-2"
-                onPress={() => router.push("/auth/org/register")}
-              >
-                Get Started
-              </Button>
+              <div className="relative flex justify-center">
+                <span className="px-4 bg-white text-sm text-[#1F2937]/60">
+                  Not your account?
+                </span>
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* Empty State */}
-        {!loading && filteredOrgs.length === 0 && (
-          <div className="text-center py-12">
-            <div className="bg-default-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Building2 className="text-default-400" size={32} />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">
-              No organizations found
-            </h3>
-            <p className="text-default-500 mb-6">
-              {searchQuery
-                ? "Try adjusting your search terms"
-                : "You don't have access to any organizations yet"}
-            </p>
-            <Button
-              color="primary"
-              onPress={() => router.push("/auth/org/register")}
-              startContent={<Plus />}
+            {/* Logout */}
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 rounded-lg border border-gray-200 py-2.5 text-sm font-semibold text-gray-500 hover:border-red-200 hover:text-red-500 hover:bg-red-50 transition-colors"
             >
-              Create Organization
-            </Button>
-          </div>
-        )}
+              <LogOut className="w-4 h-4" />
+              Log out
+            </button>
 
-        {/* Footer */}
-        <div className="mt-12 text-center">
-          <p className="text-small text-default-500">
-            Need help or looking for a different organization?{" "}
-            <Button
-              variant="light"
-              color="default"
-              size="sm"
-              className="p-0 h-auto min-w-0"
-            >
-              Contact support
-            </Button>
-          </p>
+          </div>
         </div>
       </div>
     </div>

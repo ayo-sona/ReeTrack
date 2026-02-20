@@ -16,6 +16,9 @@ import {
   useNotificationHistory,
   useSendNotification,
 } from "@/hooks/useNotifications";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import clsx from "clsx";
 
 interface TransformedMember {
   id: string;
@@ -29,15 +32,14 @@ interface TransformedMember {
   subscriptionStatus?: string;
 }
 
+const now = Date.now();
+
 export default function PingsPage() {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [showSendModal, setShowSendModal] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "expiring_soon" | "expired"
-  >("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Fetch members using existing API
+
   const {
     data: rawMembers = [],
     isLoading: isLoadingMembers,
@@ -47,25 +49,17 @@ export default function PingsPage() {
     queryFn: () => membersApi.getAll(),
   });
 
-  // Fetch notification history
-  const {
-    data: sentPings = [],
-    isLoading: isLoadingPings,
-    error: pingsError,
-  } = useNotificationHistory();
-
-  // Send notification mutation
+  const { data: sentPings = [], isLoading: isLoadingPings } =
+    useNotificationHistory();
   const sendNotificationMutation = useSendNotification();
 
-  // Transform members data
+  // Transform members
   const members = useMemo(() => {
     return rawMembers.map((member: Member): TransformedMember => {
       const user = member.user;
       const fullName = `${user.first_name} ${user.last_name}`.trim();
-
-      // Get active subscription data
       const activeSubscription = member.subscriptions?.find(
-        (sub) => sub.status === "active"
+        (s) => s.status === "active",
       );
 
       let expiryDate = new Date();
@@ -76,31 +70,25 @@ export default function PingsPage() {
 
       if (activeSubscription) {
         expiryDate = new Date(activeSubscription.expires_at);
-        const today = new Date();
         daysUntilExpiry = Math.ceil(
-          (expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+          (expiryDate.getTime() - now) / 86400000, 
         );
-
         planName = activeSubscription.plan.name;
         subscriptionStatus = activeSubscription.status;
-
-        if (daysUntilExpiry < 0) {
-          status = "expired";
-        } else if (daysUntilExpiry <= 14) {
-          status = "expiring_soon";
-        } else {
-          status = "active";
-        }
+        status =
+          daysUntilExpiry < 0
+            ? "expired"
+            : daysUntilExpiry <= 14
+              ? "expiring_soon"
+              : "active";
       } else {
-        // Check for expired subscriptions
         const expiredSub = member.subscriptions?.find(
-          (sub) => sub.status === "expired"
+          (s) => s.status === "expired",
         );
         if (expiredSub) {
           expiryDate = new Date(expiredSub.expires_at);
-          const today = new Date();
           daysUntilExpiry = Math.ceil(
-            (expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+            (expiryDate.getTime() - now) / 86400000,  
           );
           status = "expired";
           planName = expiredSub.plan.name;
@@ -122,42 +110,31 @@ export default function PingsPage() {
     });
   }, [rawMembers]);
 
-  // Filter members
   const filteredMembers = useMemo(() => {
-    return members.filter((member) => {
-      const matchesSearch =
-        member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.email.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus =
-        statusFilter === "all" || member.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [members, searchQuery, statusFilter]);
+    return members.filter(
+      (m) =>
+        m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.email.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [members, searchQuery]);
 
-  // Stats
   const expiringCount = members.filter(
-    (m) => m.status === "expiring_soon"
+    (m) => m.status === "expiring_soon",
   ).length;
   const expiredCount = members.filter((m) => m.status === "expired").length;
 
-  const handleSelectMember = (memberId: string) => {
+  const handleSelectMember = (id: string) =>
     setSelectedMembers((prev) =>
-      prev.includes(memberId)
-        ? prev.filter((id) => id !== memberId)
-        : [...prev, memberId]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
-  };
 
-  const handleSelectAll = () => {
-    if (
+  const handleSelectAll = () =>
+    setSelectedMembers(
       selectedMembers.length === filteredMembers.length &&
-      filteredMembers.length > 0
-    ) {
-      setSelectedMembers([]);
-    } else {
-      setSelectedMembers(filteredMembers.map((m) => m.id));
-    }
-  };
+        filteredMembers.length > 0
+        ? []
+        : filteredMembers.map((m) => m.id),
+    );
 
   const handleSendPing = async (data: {
     message: string;
@@ -169,222 +146,219 @@ export default function PingsPage() {
         message: data.message,
         channel: data.channel,
       });
-
-      alert(
-        `✅ Notification sent successfully to ${selectedMembers.length} member${selectedMembers.length !== 1 ? "s" : ""}`
+      toast.success(
+        `Notification sent to ${selectedMembers.length} member${selectedMembers.length !== 1 ? "s" : ""}`,
       );
       setShowSendModal(false);
       setSelectedMembers([]);
-    } catch (err) {
-      console.error("Error sending notification:", err);
-      alert("❌ Failed to send notification. Please try again.");
+    } catch {
+      toast.error("Failed to send notification. Please try again.");
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-NG", {
+  const formatDate = (d: string) =>
+    new Date(d).toLocaleDateString("en-NG", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
-  };
 
-  const formatTimestamp = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString("en-NG", {
+  const formatTimestamp = (d: string) =>
+    new Date(d).toLocaleString("en-NG", {
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
 
+  // ── Loading ──────────────────────────────────────────────────────────────
   if (isLoadingMembers) {
     return (
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
-            <p className="text-gray-600">Loading members...</p>
-          </div>
+      <div className="flex items-center justify-center min-h-[50vh] font-[Nunito,sans-serif]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-gray-100 border-t-[#0D9488] rounded-full animate-spin" />
+          <p className="text-sm text-[#9CA3AF]">Loading members...</p>
         </div>
       </div>
     );
   }
 
+  // ── Error ────────────────────────────────────────────────────────────────
   if (membersError) {
     return (
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
-            <p className="text-red-600 font-semibold mb-2">Error Loading Data</p>
-            <p className="text-gray-600">
-              {membersError instanceof Error
-                ? membersError.message
-                : "Failed to load members"}
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Retry
-            </button>
-          </div>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 text-center font-[Nunito,sans-serif]">
+        <AlertCircle className="w-10 h-10 text-red-400 mb-3" />
+        <p className="text-base font-bold text-[#1F2937] mb-1">
+          Error loading members
+        </p>
+        <p className="text-sm text-[#9CA3AF] mb-4">
+          {membersError instanceof Error
+            ? membersError.message
+            : "Failed to load members"}
+        </p>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          Retry
+        </Button>
       </div>
     );
   }
 
-  return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Member Notifications
-          </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Send reminders and updates to your members
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            <span className="font-semibold text-gray-900 dark:text-white">
-              {members.length}
-            </span>{" "}
-            total members
-          </div>
-        </div>
-      </div>
+  const allFilteredSelected =
+    selectedMembers.length === filteredMembers.length &&
+    filteredMembers.length > 0;
 
-      {/* Recent Sent Notifications */}
-      <div className="rounded-xl p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Recent Notifications
-          </h2>
-          {isLoadingPings && (
-            <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-          )}
-        </div>
-        {sentPings.length > 0 ? (
-          <div className="space-y-3">
-            {sentPings.map((ping) => (
-              <div
-                key={ping.id}
-                className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900 dark:text-gray-100 mb-2 line-clamp-2">
-                      {ping.message}
-                    </p>
-                    <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <Send className="w-3 h-3" />
-                        {ping.sent_to} member{ping.sent_to !== 1 ? "s" : ""}
-                      </span>
-                      <span>•</span>
-                      <span className="capitalize">{ping.channel}</span>
-                      <span>•</span>
-                      <span>{formatTimestamp(ping.sent_at)}</span>
-                      {ping.status && (
-                        <>
-                          <span>•</span>
-                          <span
-                            className={`font-medium ${
-                              ping.status === "sent"
-                                ? "text-green-600 dark:text-green-400"
-                                : ping.status === "failed"
-                                  ? "text-red-600 dark:text-red-400"
-                                  : "text-yellow-600 dark:text-yellow-400"
-                            }`}
-                          >
-                            {ping.status}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            <Send className="w-12 h-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
-            <p className="text-sm">No notifications sent yet</p>
-            <p className="text-xs mt-1">
-              Select members below and send your first notification
+  return (
+    <div className="font-[Nunito,sans-serif] bg-[#F9FAFB] min-h-screen">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+        {/* ── Page Header ──────────────────────────────────────────────────── */}
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold tracking-widest uppercase text-[#0D9488] mb-1">
+              Communications
+            </p>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#1F2937]">
+              Member Notifications
+            </h1>
+            <p className="text-sm text-[#9CA3AF] mt-0.5">
+              Send reminders and updates to your members
             </p>
           </div>
-        )}
-      </div>
+          <div className="self-start sm:self-auto mt-2 sm:mt-0">
+            <span className="text-xs font-semibold text-[#9CA3AF]">
+              <span className="text-[#1F2937] font-extrabold">
+                {members.length}
+              </span>{" "}
+              total members
+            </span>
+          </div>
+        </div>
 
-      {/* Members Selection */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800">
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Select Members
+        {/* ── Recent Notifications ─────────────────────────────────────────── */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-[#0D9488] uppercase tracking-wide">
+              Recent Notifications
             </h2>
-            <button
-              onClick={() => setShowSendModal(true)}
-              disabled={selectedMembers.length === 0}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all shadow-sm ${
-                selectedMembers.length > 0
-                  ? "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
-              }`}
-            >
-              <Send className="w-4 h-4" />
-              Send to {selectedMembers.length}{" "}
-              {selectedMembers.length === 1 ? "Member" : "Members"}
-            </button>
+            {isLoadingPings && (
+              <Loader2 className="w-4 h-4 animate-spin text-[#9CA3AF]" />
+            )}
           </div>
 
-          {/* Search and Filters */}
-          <div className="space-y-3">
+          {sentPings.length > 0 ? (
+            <div className="divide-y divide-gray-50">
+              {sentPings.map((ping) => (
+                <div
+                  key={ping.id}
+                  className="px-5 sm:px-6 py-4 hover:bg-[#F9FAFB] transition-colors"
+                >
+                  <p className="text-sm text-[#1F2937] mb-2 line-clamp-2 leading-relaxed">
+                    {ping.message}
+                  </p>
+                  {/* Meta row — wraps on mobile */}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#9CA3AF]">
+                    <span className="flex items-center gap-1">
+                      <Send className="w-3 h-3" />
+                      {ping.sent_to} member{ping.sent_to !== 1 ? "s" : ""}
+                    </span>
+                    <span>·</span>
+                    <span className="capitalize">{ping.channel}</span>
+                    <span>·</span>
+                    <span>{formatTimestamp(ping.sent_at)}</span>
+                    {ping.status && (
+                      <>
+                        <span>·</span>
+                        <span
+                          className={clsx(
+                            "font-semibold capitalize",
+                            ping.status === "sent"
+                              ? "text-emerald-600"
+                              : ping.status === "failed"
+                                ? "text-red-500"
+                                : "text-amber-500",
+                          )}
+                        >
+                          {ping.status}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+              <Send className="w-8 h-8 text-gray-200 mb-3" />
+              <p className="text-sm font-bold text-[#1F2937] mb-0.5">
+                No notifications sent yet
+              </p>
+              <p className="text-xs text-[#9CA3AF]">
+                Select members below and send your first notification
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* ── Member Selection ─────────────────────────────────────────────── */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          {/* Toolbar */}
+          <div className="px-5 sm:px-6 py-4 border-b border-gray-100 space-y-4">
+            {/* Title + Send button */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-sm font-bold text-[#0D9488] uppercase tracking-wide">
+                Select Members
+              </h2>
+              <Button
+                variant="default"
+                size="default"
+                disabled={selectedMembers.length === 0}
+                onClick={() => setShowSendModal(true)}
+                className="w-full sm:w-auto"
+              >
+                <Send className="w-4 h-4" />
+                Send to {selectedMembers.length}{" "}
+                {selectedMembers.length === 1 ? "member" : "members"}
+              </Button>
+            </div>
+
+            {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF]" />
               <input
                 type="text"
                 placeholder="Search by name or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+                className="w-full pl-9 pr-4 py-2.5 text-sm border border-[#E5E7EB] rounded-lg bg-[#F9FAFB] text-[#1F2937] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition"
               />
             </div>
 
-            <div className="flex items-center justify-between">
+            {/* Select all + status badges */}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <button
                 onClick={handleSelectAll}
-                className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+                className="flex items-center gap-1.5 text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors self-start"
               >
-                {selectedMembers.length === filteredMembers.length &&
-                filteredMembers.length > 0 ? (
+                {allFilteredSelected ? (
                   <>
-                    <CheckSquare className="w-4 h-4" />
-                    Deselect All
+                    <CheckSquare className="w-4 h-4" /> Deselect all
                   </>
                 ) : (
                   <>
-                    <Square className="w-4 h-4" />
-                    Select All ({filteredMembers.length})
+                    <Square className="w-4 h-4" /> Select all (
+                    {filteredMembers.length})
                   </>
                 )}
               </button>
 
               {(expiringCount > 0 || expiredCount > 0) && (
-                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                <div className="flex flex-wrap items-center gap-2">
                   {expiringCount > 0 && (
-                    <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-full">
+                    <span className="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-100 rounded-full">
                       {expiringCount} expiring soon
                     </span>
                   )}
                   {expiredCount > 0 && (
-                    <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full">
+                    <span className="text-xs font-semibold px-2.5 py-1 bg-red-50 text-red-600 border border-red-100 rounded-full">
                       {expiredCount} expired
                     </span>
                   )}
@@ -392,77 +366,85 @@ export default function PingsPage() {
               )}
             </div>
           </div>
-        </div>
 
-        {/* Members List */}
-        <div className="divide-y divide-gray-200 dark:divide-gray-700 max-h-[500px] overflow-y-auto">
-          {filteredMembers.length > 0 ? (
-            filteredMembers.map((member) => (
-              <label
-                key={member.id}
-                className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
-                  selectedMembers.includes(member.id)
-                    ? "bg-blue-50 dark:bg-blue-900/20"
-                    : ""
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedMembers.includes(member.id)}
-                  onChange={() => handleSelectMember(member.id)}
-                  className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-2 focus:ring-blue-500"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {member.name}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                        {member.email}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                        {member.planName}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span
-                        className={`inline-block px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-                          member.status === "active"
-                            ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
-                            : member.status === "expiring_soon"
-                              ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
-                              : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
-                        }`}
-                      >
-                        {member.status === "expiring_soon"
-                          ? `${member.daysUntilExpiry}d left`
-                          : member.status === "expired"
-                            ? `${Math.abs(member.daysUntilExpiry)}d overdue`
-                            : "Active"}
-                      </span>
-                      {member.subscriptionStatus !== "none" && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          {member.status === "expired" ? "Expired" : "Expires"}{" "}
-                          {formatDate(member.expiryDate)}
+          {/* Member list */}
+          <div className="divide-y divide-gray-50 max-h-[480px] overflow-y-auto">
+            {filteredMembers.length > 0 ? (
+              filteredMembers.map((member) => {
+                const isSelected = selectedMembers.includes(member.id);
+                return (
+                  <label
+                    key={member.id}
+                    className={clsx(
+                      "flex items-start gap-3 sm:gap-4 px-5 sm:px-6 py-4 cursor-pointer transition-colors",
+                      isSelected ? "bg-[#0D9488]/5" : "hover:bg-[#F9FAFB]",
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleSelectMember(member.id)}
+                      className="mt-0.5 w-4 h-4 rounded border-[#E5E7EB]/30 accent-[#0D9488] dark:accent-white focus:ring-[#0D9488]/30 flex-shrink-0"
+                    />
+                    {/* Member info */}
+                    <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-[#1F2937] truncate">
+                          {member.name}
                         </p>
-                      )}
+                        <p className="text-xs text-[#9CA3AF] truncate">
+                          {member.email}
+                        </p>
+                        <p className="text-xs text-[#9CA3AF] mt-0.5">
+                          {member.planName}
+                        </p>
+                      </div>
+                      <div className="flex sm:flex-col sm:items-end gap-2 sm:gap-1 flex-wrap">
+                        <span
+                          className={clsx(
+                            "text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap",
+                            member.status === "active"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                              : member.status === "expiring_soon"
+                                ? "bg-amber-50 text-amber-700 border border-amber-100"
+                                : "bg-red-50 text-red-600 border border-red-100",
+                          )}
+                        >
+                          {member.status === "expiring_soon"
+                            ? `${member.daysUntilExpiry}d left`
+                            : member.status === "expired"
+                              ? `${Math.abs(member.daysUntilExpiry)}d overdue`
+                              : "Active"}
+                        </span>
+                        {member.subscriptionStatus !== "none" && (
+                          <p className="text-xs text-[#9CA3AF] whitespace-nowrap">
+                            {member.status === "expired"
+                              ? "Expired"
+                              : "Expires"}{" "}
+                            {formatDate(member.expiryDate)}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </label>
-            ))
-          ) : (
-            <div className="p-12 text-center text-gray-500 dark:text-gray-400">
-              <Search className="w-12 h-12 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
-              <p className="font-medium">No members found</p>
-              <p className="text-sm mt-1">Try adjusting your search criteria</p>
-            </div>
-          )}
+                  </label>
+                );
+              })
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+                <Search className="w-8 h-8 text-gray-200 mb-3" />
+                <p className="text-sm font-bold text-[#1F2937] mb-0.5">
+                  No members found
+                </p>
+                <p className="text-xs text-[#9CA3AF]">
+                  Try adjusting your search
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Modals */}
+      {/* ── Send Modal ──────────────────────────────────────────────────────── */}
       {showSendModal && (
         <SendModal
           selectedCount={selectedMembers.length}
@@ -475,7 +457,7 @@ export default function PingsPage() {
   );
 }
 
-// Send Message Modal
+// ── Send Modal ────────────────────────────────────────────────────────────────
 function SendModal({
   selectedCount,
   onClose,
@@ -484,7 +466,10 @@ function SendModal({
 }: {
   selectedCount: number;
   onClose: () => void;
-  onSend: (data: { message: string; channel: "email" | "sms" | "both" }) => Promise<void>;
+  onSend: (data: {
+    message: string;
+    channel: "email" | "sms" | "both";
+  }) => Promise<void>;
   isSending: boolean;
 }) {
   const [message, setMessage] = useState("");
@@ -492,137 +477,148 @@ function SendModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && !isSending) {
-      await onSend({ message, channel });
-    }
+    if (message.trim() && !isSending) await onSend({ message, channel });
   };
 
-  const messageTemplates = [
+  const templates = [
     "Your membership is expiring soon. Please renew to continue enjoying our services.",
     "Your membership has expired. Renew today to regain access to all facilities.",
     "Special renewal offer: Get 15% off when you renew this week!",
-    "Don't forget to check in today! We'd love to see you at the gym.",
+    "Don't forget to check in today! We'd love to see you.",
     "Welcome to our community! We're excited to have you on board.",
   ];
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/20 backdrop-blur-sm px-0 sm:px-4"
       onClick={onClose}
     >
+      {/* Bottom sheet on mobile, centered modal on sm+ */}
       <div
-        className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="bg-white w-full sm:max-w-xl rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            Send to {selectedCount} {selectedCount === 1 ? "Member" : "Members"}
+        {/* Drag handle — visible on mobile only */}
+        <div className="flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-10 h-1 rounded-full bg-gray-200" />
+        </div>
+
+        {/* Header */}
+        <div className="px-5 sm:px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
+          <h2 className="text-base sm:text-lg font-extrabold text-[#1F2937]">
+            Send to {selectedCount} {selectedCount === 1 ? "member" : "members"}
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-xs sm:text-sm text-[#9CA3AF] mt-0.5">
             Choose a template or write your own message
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* Quick Templates */}
+        <form onSubmit={handleSubmit} className="px-5 sm:px-6 py-5 space-y-5">
+          {/* Templates */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2">
               Quick Templates
-            </label>
+            </p>
             <div className="space-y-2">
-              {messageTemplates.map((template, idx) => (
+              {templates.map((t, i) => (
                 <button
-                  key={idx}
+                  key={i}
                   type="button"
-                  onClick={() => setMessage(template)}
                   disabled={isSending}
-                  className="w-full text-left px-4 py-2.5 text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => setMessage(t)}
+                  className={clsx(
+                    "w-full text-left px-4 py-3 text-sm rounded-lg border transition-colors leading-relaxed",
+                    message === t
+                      ? "border-[#0D9488] bg-[#0D9488]/5 text-[#1F2937] font-semibold"
+                      : "border-[#E5E7EB] bg-[#F9FAFB] text-[#1F2937] hover:border-[#0D9488]/40",
+                  )}
                 >
-                  {template}
+                  {t}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Message */}
+          {/* Message textarea */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2">
               Your Message
-            </label>
+            </p>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              rows={6}
+              rows={5}
               placeholder="Type your message here..."
               disabled={isSending}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
               required
+              className="w-full px-4 py-3 text-sm border border-[#E5E7EB] rounded-lg bg-[#F9FAFB] text-[#1F2937] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] resize-none transition disabled:opacity-50"
             />
-            <div className="flex items-center justify-between mt-2">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex items-center justify-between mt-1.5">
+              <p className="text-xs text-[#9CA3AF]">
                 {message.length} characters
                 {channel !== "email" &&
-                  ` • ${Math.ceil(message.length / 160)} SMS`}
+                  ` · ${Math.ceil(message.length / 160)} SMS`}
               </p>
               {message.length > 160 && channel !== "email" && (
-                <p className="text-xs text-orange-600 dark:text-orange-400">
-                  ⚠️ Long SMS may incur extra charges
+                <p className="text-xs text-amber-600 font-semibold">
+                  Long SMS may incur extra charges
                 </p>
               )}
             </div>
           </div>
 
-          {/* Channel */}
+          {/* Channel selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2">
               Send Via
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              {(["email", "sms", "both"] as const).map((option) => (
+            </p>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+              {(["email", "sms", "both"] as const).map((opt) => (
                 <button
-                  key={option}
+                  key={opt}
                   type="button"
-                  onClick={() => setChannel(option)}
                   disabled={isSending}
-                  className={`px-4 py-3 rounded-lg border-2 font-medium text-sm capitalize transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                    channel === option
-                      ? "border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 shadow-sm"
-                      : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500"
-                  }`}
+                  onClick={() => setChannel(opt)}
+                  className={clsx(
+                    "py-2.5 rounded-lg border-2 text-sm font-semibold capitalize transition-all",
+                    channel === opt
+                      ? "border-[#0D9488] bg-[#0D9488]/5 text-[#0D9488]"
+                      : "border-[#E5E7EB] text-[#9CA3AF] hover:border-[#0D9488]/40",
+                  )}
                 >
-                  {option}
+                  {opt}
                 </button>
               ))}
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <button
+          <div className="flex gap-3 pt-2 border-t border-gray-100">
+            <Button
               type="button"
+              variant="outline"
+              className="flex-1"
               onClick={onClose}
               disabled={isSending}
-              className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
+              variant="default"
+              className="flex-1"
               disabled={!message.trim() || isSending}
-              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center gap-2"
             >
               {isSending ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Sending...
+                  <Loader2 className="w-4 h-4 animate-spin" /> Sending...
                 </>
               ) : (
                 <>
-                  <Send className="w-4 h-4" />
-                  Send Now
+                  <Send className="w-4 h-4" /> Send Now
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

@@ -933,15 +933,6 @@ export default function InfiniteMenu({ items = [], scale = 1.0 }: InfiniteMenuPr
     };
   }, [items, scale]);
 
-  const handleButtonClick = () => {
-    if (!activeItem?.link) return;
-    if (activeItem.link.startsWith('http')) {
-      window.open(activeItem.link, '_blank');
-    } else {
-      console.log('Internal route:', activeItem.link);
-    }
-  };
-
   return (
     <div className="relative w-full h-full">
       <canvas

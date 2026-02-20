@@ -226,7 +226,7 @@ export default function SubscriptionDetailsPage() {
           <div style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "28px 32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "20px" }}>
               <Sparkles size={18} style={{ color: C.teal }} />
-              <h2 style={{ fontWeight: 700, fontSize: "18px", color: C.teal }}>What's Included</h2>
+              <h2 style={{ fontWeight: 700, fontSize: "18px", color: C.teal }}>What&apos;s Included</h2>
             </div>
             {features.length > 0 ? (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
@@ -301,7 +301,7 @@ export default function SubscriptionDetailsPage() {
               </div>
               <h3 style={{ fontWeight: 800, fontSize: "20px", color: C.ink, marginBottom: "8px" }}>Cancel Subscription?</h3>
               <p style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey, lineHeight: 1.6, marginBottom: "28px" }}>
-                Are you sure you want to cancel <strong style={{ color: C.ink }}>{subscription.plan.name}</strong>? You'll lose access at the end of your billing period.
+                Are you sure you want to cancel <strong style={{ color: C.ink }}>{subscription.plan.name}</strong>? You&apos;ll lose access at the end of your billing period.
               </p>
               <div style={{ display: "flex", gap: "12px" }}>
                 <Button variant="outline" className="flex-1" onClick={() => setShowCancelConfirm(false)}>

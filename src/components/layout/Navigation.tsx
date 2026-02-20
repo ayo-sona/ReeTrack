@@ -12,8 +12,8 @@ import apiClient from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
+  // { label: "Pricing", href: "/pricing" },
   { label: "Features", href: "/features" },
-  { label: "Pricing", href: "/pricing" },
   { label: "About", href: "#about" },
 ];
 
@@ -110,7 +110,7 @@ const ClientOnlyNavigation = () => {
               >
                 <Link
                   href="/"
-                  className="text-xl font-extrabold bg-gradient-to-r from-[#0D9488] to-[#0B7A70] bg-clip-text text-transparent tracking-tight"
+                  className="text-xl focus:outline-none font-extrabold bg-gradient-to-r from-[#0D9488] to-[#0B7A70] bg-clip-text text-transparent tracking-tight"
                 >
                   ReeTrack
                 </Link>
@@ -196,7 +196,7 @@ const ClientOnlyNavigation = () => {
                       asChild
                       className="shadow-lg shadow-[#F06543]/20 relative overflow-hidden"
                     >
-                      <Link href="/auth">
+                      <Link href="/auth/register">
                         <span className="relative z-10">Get Started</span>
                         <motion.div
                           className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
@@ -355,7 +355,7 @@ const ClientOnlyNavigation = () => {
                       className="w-full shadow-2xl shadow-[#F06543]/20"
                     >
                       <Link
-                        href="/auth"
+                        href="/auth/register"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         Get Started

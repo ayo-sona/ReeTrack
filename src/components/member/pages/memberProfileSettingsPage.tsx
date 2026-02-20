@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Save, AlertCircle, MapPin, Calendar, Mail, Phone, User, LogOut, ShieldCheck } from "lucide-react";
+import { Save, AlertCircle, User, LogOut, ShieldCheck } from "lucide-react";
 import { useProfile, useUpdateProfile } from "@/hooks/memberHook/useMember";
 import { deleteCookie } from "cookies-next";
 import { Spinner } from "@heroui/react";

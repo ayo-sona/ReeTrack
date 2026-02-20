@@ -10,18 +10,72 @@ import {
   Clock,
   Award,
   Hash,
-  Search,
   Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/ui/SearchBar";
 import QRCodeScanner from "@/components/organization/QRCodeScanner";
 import apiClient from "@/lib/apiClient";
-import { LoadingSkeleton } from "@/components/ui";
 import { toast } from "sonner";
 import { useMembers } from "@/hooks/useMembers";
 import clsx from "clsx";
 
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+function CheckInSkeleton() {
+  return (
+    <div className="p-6 space-y-6 max-w-7xl mx-auto" style={{ fontFamily: "Nunito, sans-serif" }}>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="space-y-2">
+          <div className="h-6 w-48 bg-gray-100 rounded-lg animate-pulse" />
+          <div className="h-4 w-72 bg-gray-100 rounded animate-pulse" />
+        </div>
+        <div className="h-10 w-48 bg-gray-100 rounded-lg animate-pulse" />
+      </div>
+
+      {/* Stats cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {[1, 2].map((i) => (
+          <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="h-3 w-28 bg-gray-100 rounded animate-pulse" />
+              <div className="w-8 h-8 bg-gray-100 rounded-lg animate-pulse" />
+            </div>
+            <div className="h-9 w-16 bg-gray-100 rounded-lg animate-pulse" />
+          </div>
+        ))}
+      </div>
+
+      {/* Main content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Scan panel */}
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-5">
+          <div className="h-5 w-48 bg-gray-100 rounded-lg animate-pulse" />
+          <div className="h-10 w-full bg-gray-100 rounded-lg animate-pulse" />
+        </div>
+
+        {/* Recent check-ins */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
+          <div className="h-5 w-36 bg-gray-100 rounded-lg animate-pulse" />
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-[#F9FAFB] border border-gray-100 rounded-lg p-3 space-y-2.5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-gray-100 animate-pulse flex-shrink-0" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-4 w-32 bg-gray-100 rounded animate-pulse" />
+                  <div className="h-3 w-20 bg-gray-100 rounded animate-pulse" />
+                </div>
+              </div>
+              <div className="h-8 w-full bg-gray-100 rounded-lg animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function OrganizationCheckInPage() {
   const [activeTab, setActiveTab] = useState<"scan" | "stats">("scan");
   const [scanMode, setScanMode] = useState<"qr" | "manual" | "">("");
@@ -43,16 +97,21 @@ export default function OrganizationCheckInPage() {
 
   const recentCheckIns = members
     ?.slice()
-    .sort((a, b) => new Date(b?.checked_in_at).getTime() - new Date(a?.checked_in_at).getTime());
+    .sort(
+      (a, b) =>
+        new Date(b?.checked_in_at).getTime() - new Date(a?.checked_in_at).getTime(),
+    );
 
   const filteredStats = members?.filter(
     (m) =>
       m.user?.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.user?.last_name.toLowerCase().includes(searchQuery.toLowerCase())
+      m.user?.last_name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const formatTimeAgo = (dateString: string) => {
-    const diffInMinutes = Math.floor((Date.now() - new Date(dateString).getTime()) / 60000);
+    const diffInMinutes = Math.floor(
+      (Date.now() - new Date(dateString).getTime()) / 60000,
+    );
     if (diffInMinutes < 1) return "Just now";
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
@@ -80,11 +139,11 @@ export default function OrganizationCheckInPage() {
     }
   };
 
-  const handleCheckInSuccess = async (member: any) => {
+  const handleCheckInSuccess = () => {
     toast.success("Member checked in successfully");
   };
 
-  if (isLoading) return <LoadingSkeleton />;
+  if (isLoading) return <CheckInSkeleton />;
 
   if (members?.length === 0) {
     return (
@@ -104,7 +163,7 @@ export default function OrganizationCheckInPage() {
   const tabBtnClass = (active: boolean) =>
     clsx(
       "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all",
-      active ? "bg-white text-[#1F2937] shadow-sm" : "text-[#9CA3AF] hover:text-[#1F2937]"
+      active ? "bg-white text-[#1F2937] shadow-sm" : "text-[#9CA3AF] hover:text-[#1F2937]",
     );
 
   return (
@@ -123,11 +182,17 @@ export default function OrganizationCheckInPage() {
 
         {/* Tab switcher */}
         <div className="inline-flex items-center bg-[#F9FAFB] border border-gray-100 rounded-lg p-1 self-start sm:self-auto">
-          <button onClick={() => setActiveTab("scan")} className={tabBtnClass(activeTab === "scan")}>
+          <button
+            onClick={() => setActiveTab("scan")}
+            className={tabBtnClass(activeTab === "scan")}
+          >
             <Scan className="w-4 h-4" />
             Check-In
           </button>
-          <button onClick={() => setActiveTab("stats")} className={tabBtnClass(activeTab === "stats")}>
+          <button
+            onClick={() => setActiveTab("stats")}
+            className={tabBtnClass(activeTab === "stats")}
+          >
             <TrendingUp className="w-4 h-4" />
             Statistics
           </button>
@@ -138,7 +203,9 @@ export default function OrganizationCheckInPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide">Today's Check-Ins</p>
+            <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide">
+              Today&apos;s Check-Ins
+            </p>
             <div className="w-8 h-8 bg-[#0D9488]/10 rounded-lg flex items-center justify-center">
               <Calendar className="w-4 h-4 text-[#0D9488]" />
             </div>
@@ -148,7 +215,9 @@ export default function OrganizationCheckInPage() {
 
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide">Total Members</p>
+            <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide">
+              Total Members
+            </p>
             <div className="w-8 h-8 bg-[#0D9488]/10 rounded-lg flex items-center justify-center">
               <Users className="w-4 h-4 text-[#0D9488]" />
             </div>
@@ -168,7 +237,10 @@ export default function OrganizationCheckInPage() {
                 type="button"
                 variant="secondary"
                 className="w-full"
-                onClick={() => { setScanMode("qr"); setIsScannerOpen(true); }}
+                onClick={() => {
+                  setScanMode("qr");
+                  setIsScannerOpen(true);
+                }}
               >
                 <QrCode className="w-4 h-4 mr-2" />
                 Scan QR Code
@@ -222,9 +294,15 @@ export default function OrganizationCheckInPage() {
               <div className="space-y-3 max-h-[560px] overflow-y-auto">
                 {recentCheckIns.map((checkIn) => {
                   const initials = `${checkIn.user.first_name} ${checkIn.user.last_name}`
-                    .split(" ").map((n) => n[0]).join("").toUpperCase();
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase();
                   return (
-                    <div key={checkIn.id} className="bg-[#F9FAFB] border border-gray-100 rounded-lg p-3 space-y-2.5">
+                    <div
+                      key={checkIn.id}
+                      className="bg-[#F9FAFB] border border-gray-100 rounded-lg p-3 space-y-2.5"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-[#0D9488]/10 flex items-center justify-center text-[#0D9488] text-xs font-bold flex-shrink-0">
                           {initials}
@@ -244,7 +322,10 @@ export default function OrganizationCheckInPage() {
                         variant="outline"
                         size="sm"
                         className="w-full"
-                        onClick={() => { setScanMode("manual"); setCurrentMember(checkIn.id); }}
+                        onClick={() => {
+                          setScanMode("manual");
+                          setCurrentMember(checkIn.id);
+                        }}
                       >
                         <Hash className="w-3.5 h-3.5 mr-1.5" />
                         Enter Code
@@ -287,7 +368,7 @@ export default function OrganizationCheckInPage() {
                       "px-3 py-2 rounded-lg text-xs font-semibold transition-all capitalize",
                       timeFilter === period
                         ? "bg-[#0D9488] text-white shadow-sm"
-                        : "bg-[#F9FAFB] border border-gray-100 text-[#9CA3AF] hover:text-[#1F2937]"
+                        : "bg-[#F9FAFB] border border-gray-100 text-[#9CA3AF] hover:text-[#1F2937]",
                     )}
                   >
                     {period}
@@ -304,15 +385,24 @@ export default function OrganizationCheckInPage() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-[#F9FAFB] border-b border-gray-100">
-                    <th className="px-6 py-3.5 text-left text-xs font-bold text-[#9CA3AF] uppercase tracking-wider">Member</th>
-                    <th className="px-6 py-3.5 text-center text-xs font-bold text-[#9CA3AF] uppercase tracking-wider">Check-Ins</th>
-                    <th className="px-6 py-3.5 text-left text-xs font-bold text-[#9CA3AF] uppercase tracking-wider">Last Check-In</th>
+                    <th className="px-6 py-3.5 text-left text-xs font-bold text-[#9CA3AF] uppercase tracking-wider">
+                      Member
+                    </th>
+                    <th className="px-6 py-3.5 text-center text-xs font-bold text-[#9CA3AF] uppercase tracking-wider">
+                      Check-Ins
+                    </th>
+                    <th className="px-6 py-3.5 text-left text-xs font-bold text-[#9CA3AF] uppercase tracking-wider">
+                      Last Check-In
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {filteredStats?.map((stat, index) => {
                     const initials = `${stat.user.first_name} ${stat.user.last_name}`
-                      .split(" ").map((n) => n[0]).join("").toUpperCase();
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase();
                     return (
                       <tr key={stat.id} className="hover:bg-[#F9FAFB] transition-colors">
                         <td className="px-6 py-4">
@@ -327,12 +417,16 @@ export default function OrganizationCheckInPage() {
                         </td>
                         <td className="px-6 py-4 text-center">
                           <div className="inline-flex items-center gap-1.5">
-                            <span className="text-xl font-extrabold text-[#1F2937]">{stat.check_in_count}</span>
+                            <span className="text-xl font-extrabold text-[#1F2937]">
+                              {stat.check_in_count}
+                            </span>
                             {index === 0 && <Award className="w-4 h-4 text-amber-400" />}
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-sm text-[#9CA3AF]">{formatTimeAgo(stat.checked_in_at)}</p>
+                          <p className="text-sm text-[#9CA3AF]">
+                            {formatTimeAgo(stat.checked_in_at)}
+                          </p>
                         </td>
                       </tr>
                     );
@@ -345,7 +439,10 @@ export default function OrganizationCheckInPage() {
             <div className="md:hidden divide-y divide-gray-50">
               {filteredStats?.map((stat, index) => {
                 const initials = `${stat.user.first_name} ${stat.user.last_name}`
-                  .split(" ").map((n) => n[0]).join("").toUpperCase();
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase();
                 return (
                   <div key={stat.id} className="flex items-center justify-between p-4">
                     <div className="flex items-center gap-3">
@@ -356,11 +453,15 @@ export default function OrganizationCheckInPage() {
                         <p className="text-sm font-semibold text-[#1F2937]">
                           {stat.user.first_name} {stat.user.last_name}
                         </p>
-                        <p className="text-xs text-[#9CA3AF]">{formatTimeAgo(stat.checked_in_at)}</p>
+                        <p className="text-xs text-[#9CA3AF]">
+                          {formatTimeAgo(stat.checked_in_at)}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-lg font-extrabold text-[#1F2937]">{stat.check_in_count}</span>
+                      <span className="text-lg font-extrabold text-[#1F2937]">
+                        {stat.check_in_count}
+                      </span>
                       {index === 0 && <Award className="w-4 h-4 text-amber-400" />}
                     </div>
                   </div>

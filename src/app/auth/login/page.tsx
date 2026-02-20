@@ -53,7 +53,7 @@ export default function LoginPage() {
           "user_roles",
           response.data.data.organizations
             ? response.data.data.organizations
-                .map((org: any) => org.role)
+                .map((org: { role: string }) => org.role)
                 .join(",")
             : "",
         );
@@ -69,14 +69,15 @@ export default function LoginPage() {
           router.replace("/member/dashboard");
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login error:", err);
-      setError(
-        err.response?.data?.message || "Failed to login. Please try again.",
-      );
-      setIsRedirecting(false); // RESET on error
-    } finally {
-      setIsLoading(false);
+      const message =
+        err instanceof Error
+          ? err.message
+          : (err as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message;
+      setError(message || "Failed to login. Please try again.");
+      setIsRedirecting(false);
     }
   };
 
@@ -233,7 +234,10 @@ export default function LoginPage() {
                   disabled={isLoading}
                   startContent={<Mail className="w-4 h-4 text-gray-400" />}
                   classNames={{
-                    input: "outline-none focus-visible:outline-none ",
+                    input:
+                      "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
+                    inputWrapper:
+                      "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
                   }}
                 />
               </div>
@@ -271,7 +275,10 @@ export default function LoginPage() {
                     </button>
                   }
                   classNames={{
-                    input: "outline-none focus-visible:outline-none ",
+                    input:
+                      "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
+                    inputWrapper:
+                      "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
                   }}
                 />
               </div>

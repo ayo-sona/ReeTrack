@@ -267,7 +267,7 @@ export default function OrganizationPlansPage() {
             </div>
             <h3 style={{ fontWeight: 700, fontSize: "20px", color: C.ink, marginBottom: "8px" }}>No Plans Available</h3>
             <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, marginBottom: "24px", lineHeight: 1.6 }}>
-              This organization doesn't have any active plans.
+              This organization doesn&apos;t have any active plans.
             </p>
             <Button variant="secondary" asChild>
               <Link href="/member/communities">Back to My Community</Link>

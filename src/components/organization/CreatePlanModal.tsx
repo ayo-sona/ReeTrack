@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { SubscriptionPlan } from "../../types/organization";
 import { Button } from "@/components/ui/button";
@@ -26,31 +26,23 @@ export function CreatePlanModal({
   onSave,
   editingPlan,
 }: CreatePlanModalProps) {
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    duration: "monthly",
-  });
-  const [features, setFeatures] = useState<string[]>([""]);
+  const [formData, setFormData] = useState(() =>
+    editingPlan
+      ? {
+          name: editingPlan.name,
+          description: editingPlan.description || "",
+          price: editingPlan.price.toString(),
+          duration: editingPlan.duration,
+        }
+      : { name: "", description: "", price: "", duration: "monthly" },
+  );
 
-  useEffect(() => {
-    if (editingPlan) {
-      setFormData({
-        name: editingPlan.name,
-        description: editingPlan.description || "",
-        price: editingPlan.price.toString(),
-        duration: editingPlan.duration,
-      });
-      const featureStrings = editingPlan.features
-        ?.map((f) => (typeof f === "string" ? f : f.name || ""))
-        .filter(Boolean);
-      setFeatures(featureStrings?.length > 0 ? featureStrings : [""]);
-    } else {
-      setFormData({ name: "", description: "", price: "", duration: "monthly" });
-      setFeatures([""]);
-    }
-  }, [editingPlan]);
+  const [features, setFeatures] = useState<string[]>(() => {
+    const featureStrings = editingPlan?.features
+      ?.map((f) => (typeof f === "string" ? f : f.name || ""))
+      .filter(Boolean);
+    return featureStrings?.length ? featureStrings : [""];
+  });
 
   const handleClose = () => {
     setFormData({ name: "", description: "", price: "", duration: "monthly" });
@@ -85,9 +77,15 @@ export function CreatePlanModal({
   const labelClass = "block text-sm font-semibold text-[#1F2937] mb-1.5";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ fontFamily: "Nunito, sans-serif" }}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ fontFamily: "Nunito, sans-serif" }}
+    >
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} />
+      <div
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={handleClose}
+      />
 
       {/* Modal */}
       <div className="relative w-full max-w-2xl rounded-xl bg-white shadow-xl border border-gray-100 max-h-[90vh] flex flex-col">
@@ -97,13 +95,19 @@ export function CreatePlanModal({
             {editingPlan ? "Edit Plan" : "Create New Plan"}
           </h2>
           <p className="text-sm text-[#9CA3AF] mt-0.5">
-            {editingPlan ? "Update the details for this plan" : "Set up a new subscription plan for your members"}
+            {editingPlan
+              ? "Update the details for this plan"
+              : "Set up a new subscription plan for your members"}
           </p>
         </div>
 
         {/* Scrollable Form Body */}
         <div className="overflow-y-auto flex-1">
-          <form onSubmit={handleSubmit} id="plan-form" className="p-6 space-y-5">
+          <form
+            onSubmit={handleSubmit}
+            id="plan-form"
+            className="p-6 space-y-5"
+          >
             {/* Plan Name */}
             <div>
               <label className={labelClass}>
@@ -113,7 +117,9 @@ export function CreatePlanModal({
                 type="text"
                 required
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 className={inputClass}
                 placeholder="e.g., Premium Membership"
               />
@@ -124,7 +130,9 @@ export function CreatePlanModal({
               <label className={labelClass}>Description</label>
               <textarea
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 rows={3}
                 className={`${inputClass} resize-none`}
                 placeholder="Brief description of what this plan includes..."
@@ -141,7 +149,9 @@ export function CreatePlanModal({
                   type="number"
                   required
                   value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, price: e.target.value })
+                  }
                   className={inputClass}
                   placeholder="15000"
                   min="0"
@@ -154,7 +164,9 @@ export function CreatePlanModal({
                 </label>
                 <select
                   value={formData.duration}
-                  onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, duration: e.target.value })
+                  }
                   className={inputClass}
                 >
                   <option value="weekly">Weekly</option>
@@ -168,7 +180,9 @@ export function CreatePlanModal({
             {/* Features */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className={labelClass} style={{ marginBottom: 0 }}>Features</label>
+                <label className={labelClass} style={{ marginBottom: 0 }}>
+                  Features
+                </label>
                 <Button
                   type="button"
                   variant="ghost"
@@ -208,20 +222,10 @@ export function CreatePlanModal({
 
         {/* Footer */}
         <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-end gap-3 flex-shrink-0">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleClose}
-          >
+          <Button type="button" variant="ghost" size="sm" onClick={handleClose}>
             Cancel
           </Button>
-          <Button
-            type="submit"
-            form="plan-form"
-            variant="secondary"
-            size="sm"
-          >
+          <Button type="submit" form="plan-form" variant="secondary" size="sm">
             {editingPlan ? "Update Plan" : "Create Plan"}
           </Button>
         </div>

@@ -2,511 +2,367 @@
 
 import { useEffect, useState } from "react";
 import {
-  Building2,
-  User,
-  Save,
-  Loader2,
-  UserPlus,
-  Landmark,
-  Pen,
+  Building2, User, Save, Loader2, UserPlus, Landmark, Pen, Users, X,
 } from "lucide-react";
 import apiClient from "@/lib/apiClient";
-import { Button } from "@heroui/react";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { InviteStaffModal } from "@/components/organization/InviteStaffModal";
 import AddSubaccountModal from "@/components/organization/AddSubaccountModal";
+import clsx from "clsx";
 
+type Tab = "organisation" | "profile" | "team" | "banking";
+
+// ── Shared style tokens ───────────────────────────────────────────────────────
+const inputBase   = "w-full rounded-lg border px-4 py-2.5 text-sm transition focus:outline-none focus:ring-2";
+const inputActive = "border-[#E5E7EB] bg-white text-[#1F2937] focus:border-[#0D9488] focus:ring-[#0D9488]/20";
+const inputLocked = "border-[#E5E7EB] bg-[#F9FAFB] text-[#9CA3AF] cursor-not-allowed select-none";
+const labelClass  = "block text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1.5";
+
+// ── Field ─────────────────────────────────────────────────────────────────────
+function Field({ id, label, type = "text", value, onChange, disabled, placeholder }: {
+  id: string; label: string; type?: string; value: string;
+  onChange?: (v: string) => void; disabled?: boolean; placeholder?: string;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className={labelClass}>{label}</label>
+      <input
+        id={id} type={type} value={value} placeholder={placeholder}
+        disabled={disabled} onChange={(e) => onChange?.(e.target.value)}
+        className={clsx(inputBase, disabled ? inputLocked : inputActive)}
+      />
+    </div>
+  );
+}
+
+// ── Card section ──────────────────────────────────────────────────────────────
+function Section({ title, subtitle, children }: {
+  title: string; subtitle?: string; children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="px-5 sm:px-6 py-4 border-b border-gray-100">
+        <p className="text-sm font-bold text-[#1F2937]">{title}</p>
+        {subtitle && <p className="text-xs text-[#9CA3AF] mt-0.5">{subtitle}</p>}
+      </div>
+      <div className="px-5 sm:px-6 py-5 space-y-4">{children}</div>
+    </div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function SettingsPage() {
+  const [activeTab, setActiveTab] = useState<Tab>("organisation");
+
   const [orgData, setOrgData] = useState({
-    name: "",
-    email: "",
-    address: "",
-    website: "",
-    role: "",
-    phone: "",
-    description: "",
+    name: "", email: "", website: "", role: "", phone: "", description: "",
+  });
+  const [profileData, setProfileData] = useState({
+    firstName: "", lastName: "", email: "", phone: "",
   });
 
-  const [profileData, setProfileData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    dob: "",
-    address: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [editingOrg, setEditingOrg] = useState(false);
+  const [loading, setLoading]               = useState(true);
+  const [savingOrg, setSavingOrg]           = useState(false);
+  const [savingProfile, setSavingProfile]   = useState(false);
+  const [editingOrg, setEditingOrg]         = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [isAddSubaccountModalOpen, setIsAddSubaccountModalOpen] =
-    useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen]               = useState(false);
+  const [isAddSubaccountModalOpen, setIsAddSubaccountModalOpen] = useState(false);
 
   useEffect(() => {
-    async function fetchProfile() {
+    (async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get("/auth/profile");
+        const { data } = await apiClient.get("/auth/profile");
+        const d = data.data;
         setProfileData({
-          firstName: response.data.data.first_name,
-          lastName: response.data.data.last_name,
-          email: response.data.data.email,
-          phone: response.data.data.phone,
-          dob: response.data.data.date_of_birth,
-          address: response.data.data.address,
+          firstName: d.first_name,
+          lastName:  d.last_name,
+          email:     d.email,
+          phone:     d.phone ?? "",
         });
         setOrgData({
-          name: response.data.data.organizations[0].name,
-          email: response.data.data.organizations[0].email,
-          address: response.data.data.organizations[0].address,
-          website: response.data.data.organizations[0].website,
-          role: response.data.data.organizations[0].role,
-          phone: response.data.data.organizations[0].phone,
-          description: response.data.data.organizations[0].description,
+          name:        d.organizations[0].name,
+          email:       d.organizations[0].email,
+          website:     d.organizations[0].website     ?? "",
+          role:        d.organizations[0].role,
+          phone:       d.organizations[0].phone       ?? "",
+          description: d.organizations[0].description ?? "",
         });
-        console.log("Profile fetched:", response.data.data);
-      } catch (error) {
-        console.error("Error fetching profile:", error);
+      } catch {
+        toast.error("Failed to load settings. Please refresh.");
       } finally {
         setLoading(false);
       }
-    }
-    fetchProfile();
+    })();
   }, []);
 
   const handleOrgSubmit = async () => {
-    console.log("Organization updated:", orgData);
-
+    setSavingOrg(true);
     try {
-      setLoading(true);
-      const response = await apiClient.put("/organizations/me", {
+      await apiClient.put("/organizations/me", {
         organizationName: orgData.name,
-        address: orgData.address,
-        website: orgData.website,
-        phone: orgData.phone,
-        description: orgData.description,
+        website:          orgData.website,
+        phone:            orgData.phone,
+        description:      orgData.description,
       });
-      console.log("Organization updated:", response.data.data);
-      toast.success("Organization updated successfully");
-    } catch (error) {
-      console.error("Error updating organization:", error);
-    } finally {
-      setLoading(false);
+      toast.success("Organisation updated successfully");
       setEditingOrg(false);
+    } catch {
+      toast.error("Failed to update organisation.");
+    } finally {
+      setSavingOrg(false);
     }
   };
 
   const handleProfileSubmit = async () => {
-    console.log("Profile updated:", profileData);
-
+    setSavingProfile(true);
     try {
-      setLoading(true);
-      const response = await apiClient.put("/members", {
-        phone: profileData.phone,
-        date_of_birth: profileData.dob,
-        address: profileData.address,
-      });
-      console.log("Profile updated:", response.data.data);
+      await apiClient.put("/members", { phone: profileData.phone });
       toast.success("Profile updated successfully");
-    } catch (error) {
-      console.error("Error updating profile:", error);
-    } finally {
-      setLoading(false);
       setEditingProfile(false);
+    } catch {
+      toast.error("Failed to update profile.");
+    } finally {
+      setSavingProfile(false);
     }
   };
 
-  const handleInviteSuccess = () => {
-    toast.success("Invitation sent successfully");
-  };
-
-  const handleSubaccountSuccess = () => {
-    // Add a toast notification
-    toast.success("Account created successfully");
-  };
+  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    { id: "organisation", label: "Organisation", icon: <Building2 className="w-4 h-4" /> },
+    { id: "profile",      label: "Profile",      icon: <User      className="w-4 h-4" /> },
+    { id: "team",         label: "Team",         icon: <Users     className="w-4 h-4" /> },
+    { id: "banking",      label: "Banking",      icon: <Landmark  className="w-4 h-4" /> },
+  ];
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="flex items-center justify-center min-h-[50vh] font-[Nunito,sans-serif]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-gray-100 border-t-[#0D9488] rounded-full animate-spin" />
+          <p className="text-sm text-[#9CA3AF]">Loading settings...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Settings
-        </h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Manage your organization and profile settings
-        </p>
-      </div>
+    <div className="font-[Nunito,sans-serif] bg-[#F9FAFB] min-h-screen">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Organization Settings */}
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="rounded-lg bg-blue-100 dark:bg-blue-900 p-2">
-              <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Organization Details
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Update your business information
-              </p>
-            </div>
-          </div>
+        {/* ── Page header ──────────────────────────────────────────────────── */}
+        <div className="mb-6">
+          <p className="text-xs font-semibold tracking-widest uppercase text-[#0D9488] mb-1">
+            Account
+          </p>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#1F2937]">Settings</h1>
+          <p className="text-sm text-[#9CA3AF] mt-0.5">
+            Manage your organisation and account preferences
+          </p>
+        </div>
 
-          <form className="space-y-4">
-            <div>
-              <label
-                htmlFor="org-name"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        {/* ── Tab bar — scrolls horizontally on small screens ──────────────── */}
+        <div className="mb-6 -mx-4 sm:mx-0 px-4 sm:px-0">
+          <div className="flex gap-0 overflow-x-auto border-b border-gray-200 scrollbar-none">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={clsx(
+                  "flex items-center gap-2 px-4 py-3 text-sm font-semibold whitespace-nowrap",
+                  "border-b-2 -mb-px transition-all",
+                  activeTab === tab.id
+                    ? "border-[#0D9488] text-[#0D9488]"
+                    : "border-transparent text-[#9CA3AF] hover:text-[#1F2937] hover:border-gray-300"
+                )}
               >
-                Organization Name
-              </label>
-              <input
-                id="org-name"
-                type="text"
+                {tab.icon}
+                <span className="hidden xs:inline sm:inline">{tab.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── ORGANISATION tab ─────────────────────────────────────────────── */}
+        {activeTab === "organisation" && (
+          <div className="space-y-4">
+            <Section title="Business Information" subtitle="Details visible to your members">
+              <Field
+                id="org-name" label="Organisation Name"
                 value={orgData.name}
-                onChange={(e) =>
-                  setOrgData({ ...orgData, name: e.target.value })
-                }
+                onChange={(v) => setOrgData({ ...orgData, name: v })}
                 disabled={!editingOrg}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field id="org-email" label="Email (read-only)" type="email" value={orgData.email} disabled />
+                <Field id="org-role"  label="Role (read-only)"  value={orgData.role}  disabled />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field
+                  id="org-phone" label="Phone" type="tel"
+                  value={orgData.phone}
+                  onChange={(v) => setOrgData({ ...orgData, phone: v })}
+                  disabled={!editingOrg}
+                  placeholder="+234 000 0000 000"
+                />
+                <Field
+                  id="org-website" label="Website" type="url"
+                  value={orgData.website}
+                  onChange={(v) => setOrgData({ ...orgData, website: v })}
+                  disabled={!editingOrg}
+                  placeholder="https://yoursite.com"
+                />
+              </div>
+              <div>
+                <label htmlFor="org-description" className={labelClass}>Description</label>
+                <textarea
+                  id="org-description"
+                  value={orgData.description}
+                  onChange={(e) => setOrgData({ ...orgData, description: e.target.value })}
+                  disabled={!editingOrg}
+                  rows={3}
+                  placeholder="A short description of your organisation..."
+                  className={clsx(inputBase, "resize-none", editingOrg ? inputActive : inputLocked)}
+                />
+              </div>
+            </Section>
 
-            <div>
-              <label
-                htmlFor="org-email"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Email
-              </label>
-              <input
-                id="org-email"
-                type="email"
-                value={orgData.email}
-                // onChange={(e) =>
-                //   setOrgData({ ...orgData, email: e.target.value })
-                // }
-                disabled
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="org-role"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Role
-              </label>
-              <input
-                id="org-role"
-                type="text"
-                value={orgData.role}
-                disabled
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="org-address"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Address
-              </label>
-              <textarea
-                id="org-address"
-                value={orgData.address}
-                placeholder="Organization Address"
-                onChange={(e) =>
-                  setOrgData({ ...orgData, address: e.target.value })
-                }
-                disabled={!editingOrg}
-                rows={2}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="org-phone"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Phone
-              </label>
-              <input
-                id="org-phone"
-                type="text"
-                value={orgData.phone}
-                onChange={(e) =>
-                  setOrgData({ ...orgData, phone: e.target.value })
-                }
-                disabled={!editingOrg}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-4 py-2 text-sm text-gray-500 dark:text-gray-400"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="org-description"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Description
-              </label>
-              <input
-                id="org-description"
-                type="text"
-                value={orgData.description}
-                onChange={(e) =>
-                  setOrgData({ ...orgData, description: e.target.value })
-                }
-                disabled={!editingOrg}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="org-website"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Website
-              </label>
-              <input
-                id="org-website"
-                type="url"
-                value={orgData.website}
-                onChange={(e) =>
-                  setOrgData({ ...orgData, website: e.target.value })
-                }
-                disabled={!editingOrg}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setEditingOrg(!editingOrg);
-                }}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-green-900 transition-colors"
-              >
-                <Pen className="h-4 w-4" />
-                Edit
-              </button>
-
-              <button
-                disabled={!editingOrg}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleOrgSubmit();
-                }}
-                className={`flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors ${editingOrg ? "hover:bg-green-900" : "cursor-not-allowed opacity-50"}`}
-              >
-                <Save className="h-4 w-4" />
-                Save Changes
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* Profile Settings */}
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="rounded-lg bg-purple-100 dark:bg-purple-900 p-2">
-              <User className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Profile
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Manage your personal information
-              </p>
+            <div className="flex justify-end gap-3">
+              {editingOrg && (
+                <Button variant="outline" onClick={() => setEditingOrg(false)}>
+                  <X className="h-4 w-4" /> Cancel
+                </Button>
+              )}
+              {!editingOrg ? (
+                <Button variant="secondary" onClick={() => setEditingOrg(true)}>
+                  <Pen className="h-4 w-4" /> Edit Details
+                </Button>
+              ) : (
+                <Button variant="secondary" disabled={savingOrg} onClick={handleOrgSubmit}>
+                  {savingOrg
+                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</>
+                    : <><Save    className="h-4 w-4" /> Save Changes</>
+                  }
+                </Button>
+              )}
             </div>
           </div>
+        )}
 
-          <form className="space-y-4">
-            <div>
-              <label
-                htmlFor="first-name"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                First Name
-              </label>
-              <input
-                id="first-name"
-                type="text"
-                value={profileData.firstName}
-                // onChange={(e) =>
-                //   setProfileData({ ...profileData, firstName: e.target.value })
-                // }
-                disabled
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
+        {/* ── PROFILE tab ──────────────────────────────────────────────────── */}
+        {activeTab === "profile" && (
+          <div className="space-y-4">
+            {/* Avatar card */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6 flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center flex-shrink-0">
+                <span className="text-lg font-extrabold text-[#0D9488]">
+                  {profileData.firstName.charAt(0)}{profileData.lastName.charAt(0)}
+                </span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-base font-bold text-[#1F2937] truncate">
+                  {profileData.firstName} {profileData.lastName}
+                </p>
+                <p className="text-sm text-[#9CA3AF] truncate">{profileData.email}</p>
+                <p className="text-xs font-semibold text-[#0D9488] mt-0.5 capitalize">
+                  {orgData.role}
+                </p>
+              </div>
             </div>
 
-            <div>
-              <label
-                htmlFor="last-name"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Last Name
-              </label>
-              <input
-                id="last-name"
-                type="text"
-                value={profileData.lastName}
-                // onChange={(e) =>
-                //   setProfileData({ ...profileData, lastName: e.target.value })
-                // }
-                disabled
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="profile-email"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Email
-              </label>
-              <input
-                id="profile-email"
-                type="email"
-                value={profileData.email}
-                // onChange={(e) =>
-                //   setProfileData({ ...profileData, email: e.target.value })
-                // }
-                disabled
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="profile-phone"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Phone
-              </label>
-              <input
-                id="profile-phone"
-                type="tel"
+            <Section title="Personal Information" subtitle="Name and email cannot be changed here">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field id="first-name" label="First Name" value={profileData.firstName} disabled />
+                <Field id="last-name"  label="Last Name"  value={profileData.lastName}  disabled />
+              </div>
+              <Field id="profile-email" label="Email (read-only)" type="email" value={profileData.email} disabled />
+              <Field
+                id="profile-phone" label="Phone" type="tel"
                 value={profileData.phone}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, phone: e.target.value })
-                }
+                onChange={(v) => setProfileData({ ...profileData, phone: v })}
                 disabled={!editingProfile}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                placeholder="+234 000 0000 000"
               />
+            </Section>
+
+            <div className="flex justify-end gap-3">
+              {editingProfile && (
+                <Button variant="outline" onClick={() => setEditingProfile(false)}>
+                  <X className="h-4 w-4" /> Cancel
+                </Button>
+              )}
+              {!editingProfile ? (
+                <Button variant="secondary" onClick={() => setEditingProfile(true)}>
+                  <Pen className="h-4 w-4" /> Edit Profile
+                </Button>
+              ) : (
+                <Button variant="secondary" disabled={savingProfile} onClick={handleProfileSubmit}>
+                  {savingProfile
+                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</>
+                    : <><Save    className="h-4 w-4" /> Save Changes</>
+                  }
+                </Button>
+              )}
             </div>
-
-            <div>
-              <label
-                htmlFor="profile-dob"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                D.O.B
-              </label>
-              <input
-                id="profile-dob"
-                type="date"
-                value={profileData.dob}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, dob: e.target.value })
-                }
-                disabled={!editingProfile}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="profile-address"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Address
-              </label>
-              <input
-                id="profile-address"
-                type="text"
-                value={profileData.address}
-                onChange={(e) =>
-                  setProfileData({ ...profileData, address: e.target.value })
-                }
-                disabled={!editingProfile}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setEditingProfile(!editingProfile)}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-green-900 transition-colors"
-              >
-                <Pen className="h-4 w-4" />
-                Edit
-              </button>
-
-              <button
-                disabled={!editingProfile}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleProfileSubmit();
-                }}
-                className={`flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors ${editingProfile ? "hover:bg-green-900" : "cursor-not-allowed opacity-50"}`}
-              >
-                <Save className="h-4 w-4" />
-                Save Changes
-              </button>
-            </div>
-          </form>
-
-          <div className="flex justify-center items-center gap-2 mt-6">
-            <Button
-              color="primary"
-              startContent={<UserPlus className="h-4 w-4" />}
-              onPress={() => setIsInviteModalOpen(true)}
-            >
-              Invite Staff
-            </Button>
-            <Button
-              color="primary"
-              startContent={<Landmark className="h-4 w-4" />}
-              onPress={() => setIsAddSubaccountModalOpen(true)}
-            >
-              Add Bank Account
-            </Button>
           </div>
-        </div>
-        <InviteStaffModal
-          isOpen={isInviteModalOpen}
-          onOpenChange={setIsInviteModalOpen}
-          onSuccess={handleInviteSuccess}
-        />
-        <AddSubaccountModal
-          isOpen={isAddSubaccountModalOpen}
-          onOpenChange={setIsAddSubaccountModalOpen}
-          onSuccess={handleSubaccountSuccess}
-          organization={orgData}
-          profile={profileData}
-        />
+        )}
+
+        {/* ── TEAM tab ─────────────────────────────────────────────────────── */}
+        {activeTab === "team" && (
+          <Section title="Team Members" subtitle="Invite staff to help manage your organisation">
+            <div className="py-8 flex flex-col items-center text-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center">
+                <Users className="w-6 h-6 text-[#0D9488]" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-[#1F2937]">Invite your team</p>
+                <p className="text-xs text-[#9CA3AF] mt-1 max-w-xs leading-relaxed">
+                  Staff members can log in to manage members, plans, and check-ins on your behalf.
+                </p>
+              </div>
+              <Button variant="secondary" onClick={() => setIsInviteModalOpen(true)}>
+                <UserPlus className="h-4 w-4" /> Invite Staff Member
+              </Button>
+            </div>
+          </Section>
+        )}
+
+        {/* ── BANKING tab ──────────────────────────────────────────────────── */}
+        {activeTab === "banking" && (
+          <Section title="Bank Account" subtitle="Receive payouts from member subscriptions">
+            <div className="py-8 flex flex-col items-center text-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center">
+                <Landmark className="w-6 h-6 text-[#0D9488]" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-[#1F2937]">No bank account added</p>
+                <p className="text-xs text-[#9CA3AF] mt-1 max-w-xs leading-relaxed">
+                  Add your organisation&apos;s bank account to enable direct payouts when members subscribe.
+                </p>
+              </div>
+              <Button variant="secondary" onClick={() => setIsAddSubaccountModalOpen(true)}>
+                <Landmark className="h-4 w-4" /> Add Bank Account
+              </Button>
+            </div>
+          </Section>
+        )}
+
       </div>
+
+      {/* ── Modals ───────────────────────────────────────────────────────────── */}
+      <InviteStaffModal
+        isOpen={isInviteModalOpen}
+        onOpenChange={setIsInviteModalOpen}
+        onSuccess={() => toast.success("Invitation sent successfully")}
+      />
+      <AddSubaccountModal
+        isOpen={isAddSubaccountModalOpen}
+        onOpenChange={setIsAddSubaccountModalOpen}
+        onSuccess={() => toast.success("Bank account added successfully")}
+        organization={orgData}
+        profile={profileData}
+      />
     </div>
   );
 }

@@ -1,13 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from "@heroui/react";
+import { useState, useEffect } from "react";
+import { X } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
 
@@ -26,19 +20,22 @@ export function InviteStaffModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (!isOpen) {
+      setEmail("");
+      setError("");
+    }
+  }, [isOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      setError("Email is required");
-      return;
-    }
+    if (!email) { setError("Email is required"); return; }
     setIsLoading(true);
     setError("");
     try {
       await apiClient.post("/auth/custom/register-staff", { email });
       onSuccess?.();
       onOpenChange(false);
-      setEmail("");
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to send invitation");
     } finally {
@@ -46,56 +43,66 @@ export function InviteStaffModal({
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      classNames={{
-        base: "rounded-xl border border-gray-100 shadow-lg",
-        header: "border-b border-gray-100 px-6 py-5",
-        body: "px-6 py-5",
-        footer: "border-t border-gray-100 px-6 py-4",
-      }}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ fontFamily: "Nunito, sans-serif" }}
     >
-      <ModalContent>
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        onClick={() => onOpenChange(false)}
+      />
+
+      {/* Modal */}
+      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+
+        {/* Header */}
+        <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100">
+          <div>
+            <h2 className="text-base font-bold text-[#1F2937]">
+              Invite Staff Member
+            </h2>
+            <p className="text-sm text-[#9CA3AF] mt-0.5">
+              They'll receive an email to complete their setup
+            </p>
+          </div>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="text-gray-400 hover:text-gray-600 transition-colors mt-0.5"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Body */}
         <form onSubmit={handleSubmit}>
-          <ModalHeader>
-            <div style={{ fontFamily: "Nunito, sans-serif" }}>
-              <h2 className="text-lg font-bold text-[#1F2937]">Invite Staff Member</h2>
-              <p className="text-sm font-normal text-[#9CA3AF] mt-0.5">
-                They'll receive an email to complete their setup
-              </p>
+          <div className="px-6 py-5 space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1.5">
+                Email Address <span className="text-[#F06543]">*</span>
+              </label>
+              <input
+                type="email"
+                autoFocus
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setError(""); }}
+                disabled={isLoading}
+                required
+                placeholder="staff@example.com"
+                className="w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-all disabled:opacity-50"
+              />
             </div>
-          </ModalHeader>
 
-          <ModalBody>
-            <div className="space-y-3" style={{ fontFamily: "Nunito, sans-serif" }}>
-              <div>
-                <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">
-                  Email Address <span className="text-[#F06543]">*</span>
-                </label>
-                <input
-                  type="email"
-                  autoFocus
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setError("");
-                  }}
-                  disabled={isLoading}
-                  required
-                  placeholder="staff@example.com"
-                  className="w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all disabled:opacity-50"
-                />
-              </div>
+            {error && (
+              <p className="text-xs font-semibold text-red-500">{error}</p>
+            )}
+          </div>
 
-              {error && (
-                <p className="text-xs font-semibold text-red-500">{error}</p>
-              )}
-            </div>
-          </ModalBody>
-
-          <ModalFooter>
+          {/* Footer */}
+          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-[#F9FAFB]">
             <Button
               type="button"
               variant="ghost"
@@ -113,9 +120,9 @@ export function InviteStaffModal({
             >
               {isLoading ? "Sending..." : "Send Invitation"}
             </Button>
-          </ModalFooter>
+          </div>
         </form>
-      </ModalContent>
-    </Modal>
+      </div>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -138,14 +138,12 @@ function ErrorState() {
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 export function RevenueChart() {
-  const [isMounted,      setIsMounted]      = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("week");
   const [chartType,      setChartType]      = useState<ChartType>("area");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [startDate,      setStartDate]      = useState("");
   const [endDate,        setEndDate]        = useState("");
 
-  useEffect(() => { setIsMounted(true); }, []);
 
   const params = selectedPeriod === "custom" && startDate && endDate
     ? { period: "custom", startDate, endDate }
@@ -169,7 +167,7 @@ export function RevenueChart() {
   const fmtDate = (ds: string) =>
     new Date(ds).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-  if (!isMounted || isLoading) return <Skeleton />;
+  if (isLoading) return <Skeleton />;
   if (error || !chartData)     return <ErrorState />;
 
   const totalRevenue  = chartData.reduce((s: number, d: RevenueChartData) => s + (Number(d.revenue) || 0), 0);

@@ -12,6 +12,9 @@ import { ExportFormat, ExportType } from "@/types/organization";
 import { generateCSV, generateExcel, generatePDF } from "@/lib/fileGenerators";
 import apiClient from "@/lib/apiClient";
 import { getCurrentOrganizationId } from "@/utils/organisationUtils";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import clsx from "clsx";
 
 export default function ReportsPage() {
   const [exportConfig, setExportConfig] = useState({
@@ -20,7 +23,6 @@ export default function ReportsPage() {
     dateFrom: "",
     dateTo: "",
   });
-
   const [isExporting, setIsExporting] = useState(false);
 
   const exportTypes = [
@@ -55,91 +57,54 @@ export default function ReportsPage() {
   ];
 
   const formats = [
-    {
-      id: "csv" as ExportFormat,
-      name: "CSV",
-      description: "Comma-separated values",
-    },
-    {
-      id: "excel" as ExportFormat,
-      name: "Excel",
-      description: "Microsoft Excel format",
-    },
-    {
-      id: "pdf" as ExportFormat,
-      name: "PDF",
-      description: "Printable document",
-    },
+    { id: "csv"   as ExportFormat, name: "CSV",   description: "Comma-separated values" },
+    { id: "excel" as ExportFormat, name: "Excel", description: "Microsoft Excel format" },
+    { id: "pdf"   as ExportFormat, name: "PDF",   description: "Printable document" },
   ];
 
-  const selectedExportType = exportTypes.find(
-    (t) => t.id === exportConfig.type,
-  );
-  const showDateRange = selectedExportType?.requiresDateRange || false;
+  const selectedExportType = exportTypes.find((t) => t.id === exportConfig.type);
+  const showDateRange = selectedExportType?.requiresDateRange ?? false;
 
   const handleExport = async () => {
+    if (showDateRange && (!exportConfig.dateFrom || !exportConfig.dateTo)) {
+      toast.error("Please select a date range for this report type");
+      return;
+    }
+
+    setIsExporting(true);
     try {
-      setIsExporting(true);
-
-      // Validate date range if required
-      if (showDateRange && (!exportConfig.dateFrom || !exportConfig.dateTo)) {
-        alert("Please select a date range for this report type");
-        return;
-      }
-
-      let response;
-      // Fetch data from API
       const organizationId = getCurrentOrganizationId();
+      let response;
+
       switch (exportConfig.type) {
         case "members":
-          response = await apiClient.get(
-            `/analytics/reports/members/${organizationId}`,
-          );
+          response = await apiClient.get(`/analytics/reports/members/${organizationId}`);
           break;
         case "payments":
-          response = await apiClient.get(
-            `/analytics/reports/payments/${organizationId}`,
-            {
-              params: {
-                startDate: exportConfig.dateFrom,
-                endDate: exportConfig.dateTo,
-              },
-            },
-          );
+          response = await apiClient.get(`/analytics/reports/payments/${organizationId}`, {
+            params: { startDate: exportConfig.dateFrom, endDate: exportConfig.dateTo },
+          });
           break;
         case "revenue":
-          response = await apiClient.get(
-            `/analytics/reports/revenue/${organizationId}`,
-            {
-              params: {
-                startDate: exportConfig.dateFrom,
-                endDate: exportConfig.dateTo,
-              },
-            },
-          );
+          response = await apiClient.get(`/analytics/reports/revenue/${organizationId}`, {
+            params: { startDate: exportConfig.dateFrom, endDate: exportConfig.dateTo },
+          });
           break;
         case "plans":
-          response = await apiClient.get(
-            `/analytics/reports/plans/${organizationId}`,
-          );
+          response = await apiClient.get(`/analytics/reports/plans/${organizationId}`);
           break;
         default:
-          alert("Invalid report type");
+          toast.error("Invalid report type");
           return;
       }
 
-      if (response.data.statusCode !== 200) {
-        throw new Error("Failed to fetch report data");
-      }
+      if (response.data.statusCode !== 200) throw new Error("Failed to fetch report data");
 
-      const reportData = response.data;
-      const data = reportData.data;
-      console.log(data);
+      const data = response.data.data;
+      const timestamp = new Date().toISOString().split("T")[0];
 
-      // Generate file based on format
       let blob: Blob;
       let filename: string;
-      const timestamp = new Date().toISOString().split("T")[0];
 
       switch (exportConfig.format) {
         case "csv":
@@ -168,259 +133,220 @@ export default function ReportsPage() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      alert(`Report exported successfully as ${filename}`);
+      toast.success(`Report exported as ${filename}`);
     } catch (error) {
       console.error("Export error:", error);
-      alert("Failed to export report. Please try again.");
+      toast.error("Failed to export report. Please try again.");
     } finally {
       setIsExporting(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Reports & Export
-        </h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Export your data in various formats
-        </p>
-      </div>
+    <div className="font-[Nunito,sans-serif] bg-[#F9FAFB] min-h-screen">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Export Configuration */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Select Report Type */}
-          <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              Select Report Type
-            </h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {exportTypes.map((type) => {
-                const Icon = type.icon;
-                const isSelected = exportConfig.type === type.id;
-
-                return (
-                  <button
-                    key={type.id}
-                    onClick={() =>
-                      setExportConfig({
-                        ...exportConfig,
-                        type: type.id,
-                        // Clear dates if new type doesn't require them
-                        dateFrom: type.requiresDateRange
-                          ? exportConfig.dateFrom
-                          : "",
-                        dateTo: type.requiresDateRange
-                          ? exportConfig.dateTo
-                          : "",
-                      })
-                    }
-                    className={`flex items-start gap-3 rounded-lg border-2 p-4 text-left transition-all ${
-                      isSelected
-                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                        : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                    }`}
-                  >
-                    <div
-                      className={`rounded-lg p-2 ${
-                        isSelected
-                          ? "bg-blue-100 dark:bg-blue-900"
-                          : "bg-gray-100 dark:bg-gray-700"
-                      }`}
-                    >
-                      <Icon
-                        className={`h-5 w-5 ${
-                          isSelected
-                            ? "text-blue-600 dark:text-blue-400"
-                            : "text-gray-600 dark:text-gray-400"
-                        }`}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <p
-                        className={`text-sm font-medium ${
-                          isSelected
-                            ? "text-blue-900 dark:text-blue-100"
-                            : "text-gray-900 dark:text-gray-100"
-                        }`}
-                      >
-                        {type.name}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-                        {type.description}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Date Range */}
-          {showDateRange && (
-            <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                Date Range *
-              </h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="dateFrom"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    From
-                  </label>
-                  <input
-                    id="dateFrom"
-                    type="date"
-                    required
-                    value={exportConfig.dateFrom}
-                    onChange={(e) =>
-                      setExportConfig({
-                        ...exportConfig,
-                        dateFrom: e.target.value,
-                      })
-                    }
-                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="dateTo"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    To
-                  </label>
-                  <input
-                    id="dateTo"
-                    type="date"
-                    required
-                    value={exportConfig.dateTo}
-                    onChange={(e) =>
-                      setExportConfig({
-                        ...exportConfig,
-                        dateTo: e.target.value,
-                      })
-                    }
-                    className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Select Format */}
-          <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              Export Format
-            </h3>
-            <div className="space-y-3">
-              {formats.map((format) => {
-                const isSelected = exportConfig.format === format.id;
-
-                return (
-                  <label
-                    key={format.id}
-                    className={`flex items-center gap-3 rounded-lg border p-4 cursor-pointer transition-all ${
-                      isSelected
-                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                        : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="format"
-                      value={format.id}
-                      checked={isSelected}
-                      onChange={(e) =>
-                        setExportConfig({
-                          ...exportConfig,
-                          format: e.target.value as ExportFormat,
-                        })
-                      }
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                    />
-                    <div>
-                      <p
-                        className={`text-sm font-medium ${
-                          isSelected
-                            ? "text-blue-900 dark:text-blue-100"
-                            : "text-gray-900 dark:text-gray-100"
-                        }`}
-                      >
-                        {format.name}
-                      </p>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        {format.description}
-                      </p>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
+        {/* ── Page Header ──────────────────────────────────────────────────── */}
+        <div>
+          <p className="text-xs font-semibold tracking-widest uppercase text-[#0D9488] mb-1">
+            Reports
+          </p>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#1F2937]">
+            Reports & Export
+          </h1>
+          <p className="text-sm text-[#9CA3AF] mt-0.5">
+            Export your data in various formats
+          </p>
         </div>
 
-        {/* Export Summary */}
-        <div className="lg:col-span-1">
-          <div className="sticky top-6 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              Export Summary
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                  Report Type
-                </p>
-                <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100 capitalize">
-                  {exportConfig.type.replace("_", " ")}
-                </p>
+        {/* ── Main layout: stacks on mobile, 3-col on lg ───────────────────── */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+          {/* ── Left: configuration ────────────────────────────────────────── */}
+          <div className="lg:col-span-2 space-y-5">
+
+            {/* Report Type */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6">
+              <h3 className="text-sm font-bold text-[#0D9488] uppercase tracking-wide mb-4">
+                Report Type
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {exportTypes.map((type) => {
+                  const Icon = type.icon;
+                  const isSelected = exportConfig.type === type.id;
+                  return (
+                    <button
+                      key={type.id}
+                      onClick={() =>
+                        setExportConfig({
+                          ...exportConfig,
+                          type: type.id,
+                          dateFrom: type.requiresDateRange ? exportConfig.dateFrom : "",
+                          dateTo:   type.requiresDateRange ? exportConfig.dateTo   : "",
+                        })
+                      }
+                      className={clsx(
+                        "flex items-start gap-3 rounded-xl border-2 p-4 text-left transition-all",
+                        isSelected
+                          ? "border-[#0D9488] bg-[#0D9488]/5"
+                          : "border-[#E5E7EB] hover:border-[#0D9488]/40"
+                      )}
+                    >
+                      <div className={clsx(
+                        "rounded-lg p-2 flex-shrink-0",
+                        isSelected ? "bg-[#0D9488]/10" : "bg-[#F9FAFB]"
+                      )}>
+                        <Icon className={clsx(
+                          "h-4 w-4",
+                          isSelected ? "text-[#0D9488]" : "text-[#9CA3AF]"
+                        )} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className={clsx(
+                          "text-sm font-bold",
+                          isSelected ? "text-[#0D9488]" : "text-[#1F2937]"
+                        )}>
+                          {type.name}
+                        </p>
+                        <p className="text-xs text-[#9CA3AF] mt-0.5 leading-relaxed">
+                          {type.description}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                  Format
-                </p>
-                <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {exportConfig.format.toUpperCase()}
-                </p>
+            </div>
+
+            {/* Date Range — only shown when required */}
+            {showDateRange && (
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6">
+                <h3 className="text-sm font-bold text-[#0D9488] uppercase tracking-wide mb-4">
+                  Date Range <span className="text-red-400">*</span>
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { id: "dateFrom", label: "From", value: exportConfig.dateFrom, key: "dateFrom" as const },
+                    { id: "dateTo",   label: "To",   value: exportConfig.dateTo,   key: "dateTo"   as const },
+                  ].map(({ id, label, value, key }) => (
+                    <div key={id}>
+                      <label
+                        htmlFor={id}
+                        className="block text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2"
+                      >
+                        {label}
+                      </label>
+                      <input
+                        id={id}
+                        type="date"
+                        required
+                        value={value}
+                        onChange={(e) =>
+                          setExportConfig({ ...exportConfig, [key]: e.target.value })
+                        }
+                        className="w-full rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-2.5 text-sm text-[#1F2937] focus:border-[#0D9488] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/20 transition"
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-              {showDateRange &&
-                (exportConfig.dateFrom || exportConfig.dateTo) && (
+            )}
+
+            {/* Export Format */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6">
+              <h3 className="text-sm font-bold text-[#0D9488] uppercase tracking-wide mb-4">
+                Export Format
+              </h3>
+              <div className="space-y-2">
+                {formats.map((format) => {
+                  const isSelected = exportConfig.format === format.id;
+                  return (
+                    <label
+                      key={format.id}
+                      className={clsx(
+                        "flex items-center gap-3 rounded-xl border-2 px-4 py-3 cursor-pointer transition-all",
+                        isSelected
+                          ? "border-[#0D9488] bg-[#0D9488]/5"
+                          : "border-[#E5E7EB] hover:border-[#0D9488]/40"
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="format"
+                        value={format.id}
+                        checked={isSelected}
+                        onChange={(e) =>
+                          setExportConfig({ ...exportConfig, format: e.target.value as ExportFormat })
+                        }
+                        className="h-4 w-4 text-[#0D9488] border-[#E5E7EB] focus:ring-[#0D9488]/30 flex-shrink-0"
+                      />
+                      <div>
+                        <p className={clsx(
+                          "text-sm font-bold",
+                          isSelected ? "text-[#0D9488]" : "text-[#1F2937]"
+                        )}>
+                          {format.name}
+                        </p>
+                        <p className="text-xs text-[#9CA3AF]">{format.description}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Right: summary + export CTA ──────────────────────────────────
+              On mobile this sits below the config. On lg it's sticky sidebar. */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6 lg:sticky lg:top-8">
+              <h3 className="text-sm font-bold text-[#0D9488] uppercase tracking-wide mb-5">
+                Export Summary
+              </h3>
+
+              <div className="space-y-4 mb-6">
+                <div>
+                  <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1">
+                    Report Type
+                  </p>
+                  <p className="text-sm font-semibold text-[#1F2937] capitalize">
+                    {exportConfig.type.replace("_", " ")}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1">
+                    Format
+                  </p>
+                  <p className="text-sm font-semibold text-[#1F2937]">
+                    {exportConfig.format.toUpperCase()}
+                  </p>
+                </div>
+                {showDateRange && (exportConfig.dateFrom || exportConfig.dateTo) && (
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1">
                       Date Range
                     </p>
-                    <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {exportConfig.dateFrom || "Start"} to{" "}
-                      {exportConfig.dateTo || "Now"}
+                    <p className="text-sm font-semibold text-[#1F2937]">
+                      {exportConfig.dateFrom || "Start"} → {exportConfig.dateTo || "Now"}
                     </p>
                   </div>
                 )}
-            </div>
+              </div>
 
-            <button
-              onClick={handleExport}
-              disabled={isExporting}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isExporting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Exporting...
-                </>
-              ) : (
-                <>
-                  <FileDown className="h-4 w-4" />
-                  Export Report
-                </>
-              )}
-            </button>
+              <Button
+                variant="default"
+                size="lg"
+                className="w-full"
+                onClick={handleExport}
+                disabled={isExporting}
+              >
+                {isExporting
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Exporting...</>
+                  : <><FileDown className="h-4 w-4" /> Export Report</>
+                }
+              </Button>
 
-            <div className="mt-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 p-3">
-              <p className="text-xs text-blue-600 dark:text-blue-400">
+              <p className="text-xs text-[#9CA3AF] text-center mt-4 leading-relaxed">
                 The report will be downloaded to your device automatically.
               </p>
             </div>

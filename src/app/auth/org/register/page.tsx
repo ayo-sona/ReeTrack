@@ -246,8 +246,9 @@ export default function AdminRegisterPage() {
                       <Building className="w-4 h-4 text-gray-400" />
                     }
                     classNames={{
-                      input: "outline-none focus-visible:outline-none ",
-                    }}
+                      input: "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
+  inputWrapper: "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
+}}
                   />
                 </div>
 
@@ -270,7 +271,8 @@ export default function AdminRegisterPage() {
                     disabled={isLoading}
                     startContent={<Mail className="w-4 h-4 text-gray-400" />}
                     classNames={{
-                      input: "outline-none focus-visible:outline-none ",
+                      input: "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
+                      inputWrapper: "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
                     }}
                   />
                 </div>
@@ -303,9 +305,12 @@ export default function AdminRegisterPage() {
                     value={formData.email}
                     onChange={handleChange}
                     disabled={isLoading}
-                    startContent={<Mail className="w-4 h-4 text-gray-400" />}
+                    startContent={<Mail className="w-4 h-4 text-[#1F2937]" />}
                     classNames={{
-                      input: "outline-none focus-visible:outline-none ",
+                      input:
+                        "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
+                      inputWrapper:
+                        "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
                     }}
                   />
                   <p className="mt-2 text-xs text-[#1F2937]/50">
