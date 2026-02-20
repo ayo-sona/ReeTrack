@@ -8,11 +8,11 @@ export interface UserData {
 }
 
 export function getUserRoles(user: UserData | null) {
-  if (!user?.organizations?.length) return { isMember: false, isStaff: false };
+  if (!user?.organizations?.length) return { isMember: false, isOrg: false };
 
   const roles = {
     isMember: user.organizations.some((org) => org.role === "MEMBER"),
-    isStaff: user.organizations.some(
+    isOrg: user.organizations.some(
       (org) => org.role === "ADMIN" || org.role === "STAFF",
     ),
   };

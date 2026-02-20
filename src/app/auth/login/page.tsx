@@ -9,11 +9,14 @@ import apiClient from "@/lib/apiClient";
 import { getCookie, setCookie } from "cookies-next";
 import { getUserRoles } from "@/utils/role-utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@heroui/react";
+import { Input, Spinner } from "@heroui/react";
 
 export default function LoginPage() {
   const router = useRouter();
   const token = getCookie("access_token");
+  const userRoles = getCookie("user_roles")
+    ? (getCookie("user_roles") as string).split(",")
+    : [];
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false); // NEW FLAG
@@ -22,20 +25,39 @@ export default function LoginPage() {
     email: "",
     password: "",
   });
+  const [isMounting, setIsMounting] = useState(true);
+  // console.log("userRoles", userRoles);
+  // console.log("token", token);
+
+  useEffect(() => {
+    setIsMounting(false);
+  }, [token]);
 
   useEffect(() => {
     // Only redirect if already logged in AND not currently logging in
     if (token && !isRedirecting) {
-      router.push("/");
+      if (
+        userRoles.includes("MEMBER") &&
+        (userRoles.includes("STAFF") || userRoles.includes("ADMIN"))
+      ) {
+        router.replace("/select-role");
+      } else if (
+        !userRoles.includes("MEMBER") &&
+        (userRoles.includes("STAFF") || userRoles.includes("ADMIN"))
+      ) {
+        router.replace("/select-org");
+      } else {
+        router.replace("/member/dashboard");
+      }
     }
-  }, [router, token, isRedirecting]); // ADD isRedirecting dependency
+  }, [router, token, userRoles, isRedirecting]); // ADD isRedirecting dependency
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setIsRedirecting(true); // PREVENT useEffect interference
@@ -61,9 +83,9 @@ export default function LoginPage() {
         const roles = getUserRoles(response.data.data);
 
         // Use router.replace instead of router.push for better UX
-        if (roles.isMember && roles.isStaff) {
+        if (roles.isMember && roles.isOrg) {
           router.replace("/select-role");
-        } else if (!roles.isMember && roles.isStaff) {
+        } else if (!roles.isMember && roles.isOrg) {
           router.replace("/select-org");
         } else {
           router.replace("/member/dashboard");
@@ -187,145 +209,150 @@ export default function LoginPage() {
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
-          {/* Form Card */}
-          <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 backdrop-blur-sm bg-white/95">
-            {/* Header */}
-            <div className="text-center mb-8">
-              <Link
-                href="/"
-                className="mb-2 text-2xl font-extrabold bg-gradient-to-r from-[#0D9488] to-[#0B7A70] bg-clip-text text-transparent tracking-tight"
-              >
-                ReeTrack
-              </Link>
-              <h1 className="text-3xl font-bold text-[#1F2937] mb-2">
-                Welcome Back
-              </h1>
-              <p className="text-[#1F2937]/60">
-                Sign in to continue to ReeTrack
-              </p>
-            </div>
+          <div className="bg-white rounded-3xl shadow-2xl p-4 sm:p-10 backdrop-blur-sm">
+            {isMounting ? (
+              <Spinner
+                color="success"
+                className="w-full flex justify-center items-center"
+              />
+            ) : (
+              <>
+                <div className="text-center mb-8">
+                  <Link
+                    href="/"
+                    className="mb-2 text-2xl font-extrabold bg-gradient-to-r from-[#0D9488] to-[#0B7A70] bg-clip-text text-transparent tracking-tight"
+                  >
+                    ReeTrack
+                  </Link>
+                  <h1 className="text-3xl font-bold text-[#1F2937] mb-2">
+                    Welcome Back
+                  </h1>
+                  <p className="text-[#1F2937]/60">
+                    Sign in to continue to ReeTrack
+                  </p>
+                </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            )}
+                {/* Error Message */}
+                {error && (
+                  <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                )}
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email Input */}
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-semibold text-[#1F2937] mb-2"
-                >
-                  Email Address
-                </label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  placeholder="you@example.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  startContent={<Mail className="w-4 h-4 text-gray-400" />}
-                  classNames={{
-                    input:
-                      "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                    inputWrapper:
-                      "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                  }}
-                />
-              </div>
-
-              {/* Password Input */}
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-semibold text-[#1F2937] mb-2"
-                >
-                  Password
-                </label>
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  required
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  startContent={<Lock className="w-4 h-4 text-gray-400" />}
-                  endContent={
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="focus:outline-none"
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  {/* Email Input */}
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-semibold text-[#1F2937] mb-2"
                     >
-                      {showPassword ? (
-                        <EyeOff className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                      ) : (
-                        <Eye className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-                      )}
-                    </button>
-                  }
-                  classNames={{
-                    input:
-                      "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                    inputWrapper:
-                      "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                  }}
-                />
-              </div>
+                      Email Address
+                    </label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      placeholder="you@example.com"
+                      value={formData.email}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      startContent={<Mail className="w-4 h-4 text-gray-400" />}
+                      classNames={{
+                        input:
+                          "outline-none focus:outline-none !text-gray-900 dark:!text-gray-100 placeholder:text-gray-400",
+                        inputWrapper: "bg-white dark:bg-black",
+                      }}
+                    />
+                  </div>
 
-              {/* Forgot Password */}
-              <div className="flex justify-end">
-                <Link
-                  href="/auth/forgot-password"
-                  className="text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+                  {/* Password Input */}
+                  <div>
+                    <label
+                      htmlFor="password"
+                      className="block text-sm font-semibold text-[#1F2937] mb-2"
+                    >
+                      Password
+                    </label>
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      required
+                      placeholder="Enter your password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      startContent={<Lock className="w-4 h-4 text-gray-400" />}
+                      endContent={
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="focus:outline-none"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                          ) : (
+                            <Eye className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                          )}
+                        </button>
+                      }
+                      classNames={{
+                        input:
+                          "outline-none focus:outline-none !text-gray-900 dark:!text-gray-100 placeholder:text-gray-400",
+                        inputWrapper: "bg-white dark:bg-black",
+                      }}
+                    />
+                  </div>
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                variant="secondary"
-                size="lg"
-                disabled={isLoading}
-                className="w-full"
-              >
-                {isLoading ? "Signing in..." : "Sign In"}
-              </Button>
-            </form>
+                  {/* Forgot Password */}
+                  <div className="flex justify-end">
+                    <Link
+                      href="/auth/forgot-password"
+                      className="text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
 
-            {/* Divider */}
-            <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-[#1F2937]/60">
-                  Don&apos;t have an account?
-                </span>
-              </div>
-            </div>
+                  {/* Submit Button */}
+                  <Button
+                    type="submit"
+                    variant="secondary"
+                    size="lg"
+                    disabled={isLoading}
+                    className="w-full"
+                  >
+                    {isLoading ? "Signing in..." : "Sign In"}
+                  </Button>
+                </form>
 
-            {/* Register Link */}
-            <div className="text-center">
-              <Link
-                href="/auth/register"
-                className="text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors"
-              >
-                Create an account →
-              </Link>
-            </div>
+                {/* Divider */}
+                <div className="relative my-8">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-white text-[#1F2937]/60">
+                      Don&apos;t have an account?
+                    </span>
+                  </div>
+                </div>
+
+                {/* Register Link */}
+                <div className="text-center">
+                  <Link
+                    href="/auth/register"
+                    className="text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors"
+                  >
+                    Create an account →
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
