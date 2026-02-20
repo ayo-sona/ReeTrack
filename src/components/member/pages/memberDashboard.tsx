@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Wallet,
-  CreditCard,
-  Calendar,
-  QrCode,
-  ArrowRight,
-} from "lucide-react";
+import { Wallet, CreditCard, Calendar, QrCode, ArrowRight } from "lucide-react";
 import {
   useProfile,
   useActiveSubscriptions,
@@ -14,8 +8,10 @@ import {
 import RecentActivity from "@/components/member/memberRecentActivity";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export default function MemberDashboard() {
+  const router = useRouter();
   const { data: profile } = useProfile();
   const { data: subscriptions, isLoading: subsLoading } =
     useActiveSubscriptions();
@@ -52,7 +48,12 @@ export default function MemberDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-extrabold text-[#1F2937]">
-              Welcome back, {profile?.first_name}! 👋
+              Welcome back{" "}
+              {profile?.first_name
+                ? profile.first_name.charAt(0).toUpperCase() +
+                  profile.first_name.slice(1).toLowerCase()
+                : ""}
+              ! 👋
             </h1>
             <p className="text-[#9CA3AF] mt-2 font-medium">
               Manage your subscriptions and payments
@@ -64,7 +65,9 @@ export default function MemberDashboard() {
         <div className="bg-gradient-to-br from-[#0D9488] to-[#0B7A70] rounded-xl p-8 text-white shadow-lg border-2 border-white/20">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/80 text-sm font-semibold">Wallet Balance</p>
+              <p className="text-white/80 text-sm font-semibold">
+                Wallet Balance
+              </p>
               <h2 className="text-white text-4xl font-extrabold mt-2">
                 Coming Soon
               </h2>
@@ -87,7 +90,9 @@ export default function MemberDashboard() {
                 <CreditCard className="w-7 h-7 text-[#0D9488]" />
               </div>
               <div>
-                <p className="text-[#9CA3AF] text-sm font-semibold">Active Subscriptions</p>
+                <p className="text-[#9CA3AF] text-sm font-semibold">
+                  Active Subscriptions
+                </p>
                 <p className="text-3xl font-extrabold text-[#1F2937]">
                   {activeSubscriptionsCount}
                 </p>
@@ -102,7 +107,9 @@ export default function MemberDashboard() {
                 <Calendar className="w-7 h-7 text-[#F06543]" />
               </div>
               <div>
-                <p className="text-[#9CA3AF] text-sm font-semibold">Pending Payments</p>
+                <p className="text-[#9CA3AF] text-sm font-semibold">
+                  Pending Payments
+                </p>
                 <p className="text-3xl font-extrabold text-[#1F2937]">
                   {upcomingPayments}
                 </p>
@@ -191,7 +198,11 @@ export default function MemberDashboard() {
               <p className="text-[#9CA3AF] font-medium mb-6">
                 Get started by browsing our plans
               </p>
-              <Button variant="default" size="default">
+              <Button
+                onClick={() => router.push("/member/communities")}
+                variant="default"
+                size="default"
+              >
                 Browse Plans
               </Button>
             </div>
@@ -209,7 +220,6 @@ export default function MemberDashboard() {
                 <QrCode className="w-7 h-7 text-[#0D9488]" />
               </div>
               <p className="text-sm font-bold text-[#1F2937]">Check In</p>
-              <p className="text-xs text-[#9CA3AF] mt-2 font-semibold">Coming soon</p>
             </button>
           </Link>
 
@@ -219,7 +229,9 @@ export default function MemberDashboard() {
                 <Wallet className="w-7 h-7 text-[#0D9488]" />
               </div>
               <p className="text-sm font-bold text-[#1F2937]">Wallet</p>
-              <p className="text-xs text-[#9CA3AF] mt-2 font-semibold">Coming soon</p>
+              <p className="text-xs text-[#9CA3AF] mt-2 font-semibold">
+                Coming soon
+              </p>
             </button>
           </Link>
 
