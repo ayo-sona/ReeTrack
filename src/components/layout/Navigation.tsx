@@ -7,13 +7,12 @@ import { LogOut, Menu, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import { getCookie, deleteCookie } from "cookies-next/client";
 import { Spinner } from "@heroui/react";
-import { useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
-  // { label: "Pricing", href: "/pricing" },
   { label: "Features", href: "/features" },
+  { label: "Pricing", href: "#pricing" },
   { label: "About", href: "#about" },
 ];
 
@@ -24,8 +23,6 @@ const ClientOnlyNavigation = () => {
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
   const [pillStyle, setPillStyle] = useState({ left: 0, width: 0 });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const navRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
@@ -51,22 +48,6 @@ const ClientOnlyNavigation = () => {
 
   const pillLeft = useSpring(pillStyle.left, { stiffness: 300, damping: 30 });
   const pillWidth = useSpring(pillStyle.width, { stiffness: 300, damping: 30 });
-
-  const handleLogout = async () => {
-    try {
-      setLoading(true);
-      await apiClient.post("/auth/logout");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    } finally {
-      if (typeof window !== "undefined") localStorage.clear();
-      deleteCookie("access_token");
-      deleteCookie("current_role");
-      deleteCookie("user_roles");
-      setLoading(false);
-      router.push("/");
-    }
-  };
 
   useEffect(() => {
     document.body.style.overflow = isMobileMenuOpen ? "hidden" : "unset";
@@ -148,67 +129,41 @@ const ClientOnlyNavigation = () => {
                 ))}
               </div>
 
-              {token ? (
+              <div className="flex items-center gap-3 shrink-0">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.5, duration: 0.5 }}
+                >
+                  <Button variant="ghost" size="default" asChild>
+                    <Link href="/auth/login">Sign In</Link>
+                  </Button>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.6, duration: 0.5 }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <Button
-                    onClick={handleLogout}
-                    disabled={loading}
-                    variant="secondary"
+                    variant="default"
                     size="default"
+                    asChild
+                    className="shadow-lg shadow-[#F06543]/20 relative overflow-hidden"
                   >
-                    {loading ? (
-                      <Spinner size="sm" color="white" />
-                    ) : (
-                      <>
-                        <LogOut className="w-4 h-4" />
-                        <span>Logout</span>
-                      </>
-                    )}
+                    <Link href="/auth/register">
+                      <span className="relative z-10">Get Started</span>
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        initial={{ x: "-100%" }}
+                        whileHover={{ x: "100%" }}
+                        transition={{ duration: 0.6 }}
+                      />
+                    </Link>
                   </Button>
                 </motion.div>
-              ) : (
-                <div className="flex items-center gap-3 shrink-0">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.5, duration: 0.5 }}
-                  >
-                    <Button variant="ghost" size="default" asChild>
-                      <Link href="/auth/login">Sign In</Link>
-                    </Button>
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.6, duration: 0.5 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Button
-                      variant="default"
-                      size="default"
-                      asChild
-                      className="shadow-lg shadow-[#F06543]/20 relative overflow-hidden"
-                    >
-                      <Link href="/auth/register">
-                        <span className="relative z-10">Get Started</span>
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                          initial={{ x: "-100%" }}
-                          whileHover={{ x: "100%" }}
-                          transition={{ duration: 0.6 }}
-                        />
-                      </Link>
-                    </Button>
-                  </motion.div>
-                </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
@@ -302,67 +257,39 @@ const ClientOnlyNavigation = () => {
                   ))}
                 </nav>
 
-                {token ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4, duration: 0.5 }}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                  className="space-y-4"
+                >
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    asChild
+                    className="w-full"
                   >
-                    <Button
-                      onClick={() => {
-                        handleLogout();
-                        setIsMobileMenuOpen(false);
-                      }}
-                      disabled={loading}
-                      variant="secondary"
-                      size="lg"
-                      className="w-full"
+                    <Link
+                      href="/auth/login"
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      {loading ? (
-                        <Spinner size="sm" />
-                      ) : (
-                        <>
-                          <LogOut className="w-5 h-5" />
-                          <span>Logout</span>
-                        </>
-                      )}
-                    </Button>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4, duration: 0.5 }}
-                    className="space-y-4"
+                      Sign In
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="lg"
+                    asChild
+                    className="w-full shadow-2xl shadow-[#F06543]/20"
                   >
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      asChild
-                      className="w-full"
+                    <Link
+                      href="/auth/register"
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <Link
-                        href="/auth/login"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Sign In
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="default"
-                      size="lg"
-                      asChild
-                      className="w-full shadow-2xl shadow-[#F06543]/20"
-                    >
-                      <Link
-                        href="/auth/register"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Get Started
-                      </Link>
-                    </Button>
-                  </motion.div>
-                )}
+                      Get Started
+                    </Link>
+                  </Button>
+                </motion.div>
 
                 <motion.div
                   initial={{ opacity: 0 }}

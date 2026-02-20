@@ -12,11 +12,11 @@ export async function proxy(request: NextRequest) {
   // console.log("user_roles", userRoles);
 
   // If user is authenticated and trying to access login page, redirect to home or intended URL
-  if (token && pathname.startsWith("/auth/login")) {
-    const redirectTo = request.nextUrl.searchParams.get("redirect") || "/";
-    console.log("redirectTo", redirectTo);
-    return NextResponse.redirect(new URL(redirectTo, request.url));
-  }
+  // if (token && pathname.startsWith("/auth/login")) {
+  //   const redirectTo = request.nextUrl.searchParams.get("redirect") || "/";
+  //   console.log("redirectTo", redirectTo);
+  //   return NextResponse.redirect(new URL(redirectTo, request.url));
+  // }
 
   // Private paths that require authentication
   const privatePaths = [
@@ -75,10 +75,6 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/member/dashboard", request.url));
     }
   }
-
-  // if (token && pathname === "/auth/login") {
-  //   return NextResponse.redirect(new URL("/member/dashboard", request.url));
-  // }
 
   return NextResponse.next();
 }
