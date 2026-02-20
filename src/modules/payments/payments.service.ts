@@ -120,14 +120,18 @@ export class PaymentsService {
     }
 
     // Initialize Paystack transaction
-    const amountInKobo = this.paystackService.convertToKobo(invoice.amount);
+    const amountInSubUnit = this.paystackService.convertToSubUnit(
+      invoice.amount,
+    );
+    const currency = invoice.currency;
     const callbackUrl = `${this.configService.get('frontend.url')}/member/dashboard`;
     const subaccount = organization.paystack_subaccount_code;
     console.log('callbackUrl', callbackUrl);
 
     const paystackResponse = await this.paystackService.initializeTransaction(
       invoice.billed_user.email,
-      amountInKobo,
+      amountInSubUnit,
+      currency,
       reference,
       {
         payment_id: savedPayment.id,
@@ -202,13 +206,17 @@ export class PaymentsService {
     const savedPayment = await this.paymentRepository.save(payment);
 
     // Initialize Paystack transaction
-    const amountInKobo = this.paystackService.convertToKobo(invoice.amount);
+    const amountInSubUnit = this.paystackService.convertToSubUnit(
+      invoice.amount,
+    );
+    const currency = invoice.currency;
     const callbackUrl = `${this.configService.get('frontend.url')}/organization/dashboard`;
     console.log('callbackUrl', callbackUrl);
 
     const paystackResponse = await this.paystackService.initializeTransaction(
       invoice.billed_user.email,
-      amountInKobo,
+      amountInSubUnit,
+      currency,
       reference,
       {
         payment_id: savedPayment.id,
@@ -370,7 +378,7 @@ export class PaymentsService {
       data: {
         payment_id: payment.id,
         status: payment.status,
-        amount: this.paystackService.convertToNaira(data.amount),
+        amount: this.paystackService.convertToMainUnit(data.amount),
         reference: data.reference,
         paid_at: data.paid_at,
         channel: data.channel,
@@ -487,12 +495,14 @@ export class PaymentsService {
 
     // Charge the saved card
     try {
-      const amountInKobo = this.paystackService.convertToKobo(invoice.amount);
+      const amountInSubUnit = this.paystackService.convertToSubUnit(
+        invoice.amount,
+      );
 
       const result = await this.paystackService.chargeAuthorization(
         orgUser.paystack_authorization_code,
         subscription.member.user.email,
-        amountInKobo,
+        amountInSubUnit,
         reference,
         {
           payment_id: payment.id,

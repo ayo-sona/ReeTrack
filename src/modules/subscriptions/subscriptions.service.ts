@@ -134,8 +134,14 @@ export class SubscriptionsService {
       });
 
     if (existingActiveSubscription) {
-      throw new BadRequestException(
-        'Member already has an active/pending subscription to this organization.',
+      // throw new BadRequestException(
+      //   'Member already has an active/pending subscription to this organization.',
+      // );
+      return await this.changeSubscriptionPlan(
+        organizationId,
+        existingActiveSubscription,
+        plan,
+        member,
       );
     }
 
@@ -186,10 +192,7 @@ export class SubscriptionsService {
     return {
       message: 'Subscription created successfully',
       data: {
-        subscription: await this.memberSubscriptionRepository.findOne({
-          where: { id: savedSubscription.id },
-          relations: ['member', 'plan'],
-        }),
+        subscription,
         invoice: savedInvoice,
       },
     };
@@ -259,22 +262,19 @@ export class SubscriptionsService {
       throw new NotFoundException('Subscription not found');
     }
 
+    // Calculate period dates
+    const now = new Date();
+    const periodEnd = this.calculatePeriodEnd(
+      now,
+      subscription.plan.interval,
+      subscription.plan.interval_count,
+    );
+
     // If activating an inactive subscription, update the dates
     if (updateDto.status === 'active' && subscription.status !== 'active') {
       const now = new Date();
       subscription.started_at = now;
-      subscription.expires_at =
-        subscription.plan.interval === PlanInterval.MONTHLY
-          ? addMonths(now, subscription.plan.interval_count)
-          : subscription.plan.interval === PlanInterval.YEARLY
-            ? addYears(now, subscription.plan.interval_count)
-            : subscription.plan.interval === PlanInterval.WEEKLY
-              ? addWeeks(now, subscription.plan.interval_count)
-              : subscription.plan.interval === PlanInterval.BIWEEKLY
-                ? addWeeks(now, subscription.plan.interval_count)
-                : subscription.plan.interval === PlanInterval.QUARTERLY
-                  ? addMonths(now, subscription.plan.interval_count)
-                  : addMonths(now, subscription.plan.interval_count);
+      subscription.expires_at = periodEnd;
     }
     // If canceling an active subscription
     else if (
@@ -295,71 +295,79 @@ export class SubscriptionsService {
 
   async changeSubscriptionPlan(
     organizationId: string,
-    subscriptionId: string,
-    changePlanDto: ChangeSubscriptionPlanDto,
+    currentSubscription: MemberSubscription,
+    newPlan: MemberPlan,
+    member: Member,
   ) {
     // Start a transaction
     return this.memberSubscriptionRepository.manager.transaction(
       async (transactionalEntityManager) => {
         // Get the current subscription
-        const currentSubscription = await transactionalEntityManager.findOne(
-          MemberSubscription,
-          {
-            where: {
-              id: subscriptionId,
-              organization_id: organizationId,
-            },
-            relations: ['plan'],
-          },
-        );
+        // const currentSubscription = await transactionalEntityManager.findOne(
+        //   MemberSubscription,
+        //   {
+        //     where: {
+        //       id: subscriptionId,
+        //       organization_id: organizationId,
+        //     },
+        //     relations: ['plan'],
+        //   },
+        // );
 
-        if (!currentSubscription) {
-          throw new NotFoundException('Subscription not found');
-        }
+        // if (!currentSubscription) {
+        //   throw new NotFoundException('Subscription not found');
+        // }
 
-        if (currentSubscription.status === SubscriptionStatus.ACTIVE) {
-          throw new ForbiddenException(
-            'Cannot change plan for an active subscription',
-          );
-        }
+        // if (currentSubscription.status === SubscriptionStatus.ACTIVE) {
+        //   throw new ForbiddenException(
+        //     'Cannot change plan for an active subscription',
+        //   );
+        // }
 
         // Get the new plan
-        const newPlan = await transactionalEntityManager.findOne(MemberPlan, {
-          where: {
-            id: changePlanDto.newPlanId,
-            organization_id: organizationId,
-          },
-        });
+        // const newPlan = await transactionalEntityManager.findOne(MemberPlan, {
+        //   where: {
+        //     id: changePlanDto.newPlanId,
+        //     organization_id: organizationId,
+        //   },
+        // });
 
-        if (!newPlan) {
-          throw new NotFoundException('New plan not found');
-        }
+        // if (!newPlan) {
+        //   throw new NotFoundException('New plan not found');
+        // }
+
+        // Calculate period dates
+        const now = new Date();
+        const periodEnd = this.calculatePeriodEnd(
+          now,
+          newPlan.interval,
+          newPlan.interval_count,
+        );
 
         // Create a new subscription with the new plan
         const newSubscription = this.memberSubscriptionRepository.create({
           member_id: currentSubscription.member_id,
           plan_id: newPlan.id,
           organization_id: organizationId,
-          status: SubscriptionStatus.ACTIVE,
+          status: SubscriptionStatus.PENDING,
           started_at: new Date(),
-          expires_at:
-            newPlan.interval === PlanInterval.MONTHLY
-              ? addMonths(new Date(), newPlan.interval_count)
-              : newPlan.interval === PlanInterval.YEARLY
-                ? addYears(new Date(), newPlan.interval_count)
-                : newPlan.interval === PlanInterval.WEEKLY
-                  ? addWeeks(new Date(), newPlan.interval_count)
-                  : newPlan.interval === PlanInterval.BIWEEKLY
-                    ? addWeeks(new Date(), newPlan.interval_count)
-                    : newPlan.interval === PlanInterval.QUARTERLY
-                      ? addMonths(new Date(), newPlan.interval_count)
-                      : addMonths(new Date(), newPlan.interval_count),
+          expires_at: periodEnd,
+          // newPlan.interval === PlanInterval.MONTHLY
+          //   ? addMonths(new Date(), newPlan.interval_count)
+          //   : newPlan.interval === PlanInterval.YEARLY
+          //     ? addYears(new Date(), newPlan.interval_count)
+          //     : newPlan.interval === PlanInterval.WEEKLY
+          //       ? addWeeks(new Date(), newPlan.interval_count)
+          //       : newPlan.interval === PlanInterval.BIWEEKLY
+          //         ? addWeeks(new Date(), newPlan.interval_count)
+          //         : newPlan.interval === PlanInterval.QUARTERLY
+          //           ? addMonths(new Date(), newPlan.interval_count)
+          //           : addMonths(new Date(), newPlan.interval_count),
           auto_renew: currentSubscription.auto_renew,
           metadata: {
             ...currentSubscription.metadata,
             previous_plan_id: currentSubscription.plan_id,
             changed_at: new Date(),
-            ...changePlanDto.metadata,
           },
         });
 
@@ -372,15 +380,25 @@ export class SubscriptionsService {
         currentSubscription.cancelled_at = new Date();
         currentSubscription.metadata = {
           ...currentSubscription.metadata,
-          ...changePlanDto.metadata,
-          notes:
-            `Plan changed to ${newPlan.name}. ${changePlanDto?.metadata || ''}`.trim(),
+          notes: `Plan changed to ${newPlan.name}.`.trim(),
         };
 
         await transactionalEntityManager.save(currentSubscription);
+
+        // Generate invoice for subscription
+        const savedInvoice = await this.createInvoiceForSubscription(
+          organizationId,
+          createdSubscription,
+          member,
+          newPlan,
+        );
+
         return {
           message: 'Subscription plan changed successfully',
-          data: createdSubscription,
+          data: {
+            subscription: createdSubscription,
+            invoice: savedInvoice,
+          },
         };
       },
     );
@@ -565,7 +583,7 @@ export class SubscriptionsService {
     planId: string,
     userId: string,
   ) {
-    // 1. Verify organization exists
+    // 0. Verify organization exists
     const organization = await this.organizationRepository.findOne({
       where: { id: organizationId },
     });
@@ -574,7 +592,7 @@ export class SubscriptionsService {
       throw new NotFoundException('Organization not found');
     }
 
-    // 2. Verify plan exists and is an enterprise plan
+    // 1. Verify plan exists and is an enterprise plan
     const plan = await this.organizationPlanRepository.findOne({
       where: {
         id: planId,
@@ -586,19 +604,40 @@ export class SubscriptionsService {
       throw new NotFoundException('Enterprise plan not found or inactive');
     }
 
-    // 3. Check for existing active subscription
-    const existingSubscription = await this.organizationSubscriptionRepository
-      .createQueryBuilder('sub')
-      .where('sub.organization_id = :orgId', { orgId: organizationId })
-      .andWhere('sub.status = :status', {
-        status: In([SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING]),
-      })
-      .andWhere('sub.expires_at > :now', { now: new Date() })
-      .getOne();
+    // 2. Check if organization already has an active/pending subscription to this plan
+    const sameSubscription =
+      await this.organizationSubscriptionRepository.findOne({
+        where: {
+          plan_id: planId,
+          status: In([SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING]),
+        },
+      });
 
-    if (existingSubscription) {
+    if (sameSubscription) {
       throw new BadRequestException(
-        'Organization already has an active subscription',
+        'Organization already has an active/pending subscription to this plan',
+      );
+    }
+
+    // 3. Check for existing active/pending subscription
+    const existingOrgSubscription =
+      await this.organizationSubscriptionRepository
+        .createQueryBuilder('sub')
+        .where('sub.organization_id = :orgId', { orgId: organizationId })
+        .andWhere('sub.status = :status', {
+          status: In([SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING]),
+        })
+        .getOne();
+
+    if (existingOrgSubscription) {
+      // throw new BadRequestException(
+      //   'Organization already has an active subscription',
+      // );
+      return await this.changeOrgSubscriptionPlan(
+        organizationId,
+        existingOrgSubscription,
+        plan,
+        userId,
       );
     }
 
@@ -624,39 +663,27 @@ export class SubscriptionsService {
       await this.organizationSubscriptionRepository.save(subscription);
 
     // 7. Create initial invoice
-    const invoice = this.invoiceRepository.create({
-      issuer_org_id: organizationId,
-      organization_subscription_id: savedSubscription.id,
-      invoice_number: `INV-${Date.now()}-${organizationId.substring(0, 8)}`,
-      billed_type: InvoiceBilledType.ORGANIZATION,
-      billed_user_id: userId,
-      payment_provider: PaymentProvider.PAYSTACK,
-      amount: plan.price,
-      currency: plan.currency,
-      status: InvoiceStatus.PENDING,
-      due_date: subscription.started_at,
-      metadata: {
-        plan_name: plan.name,
-        interval: plan.interval,
-        interval_count: plan.interval_count,
-      },
-    });
-    const savedInvoice = await this.invoiceRepository.save(invoice);
+    const savedInvoice = await this.createOrgInvoiceForSubscription(
+      organizationId,
+      savedSubscription,
+      plan,
+      userId,
+    );
 
     // 9. Send confirmation email
-    await this.notificationsService.sendSubscriptionCreatedNotification({
-      email: organization.email,
-      memberName: organization.name,
-      planName: plan.name,
-      amount: plan.price,
-      currency: plan.currency,
-      interval: plan.interval,
-      startDate: now,
-      nextBilling: expiresAt,
-    });
+    // await this.notificationsService.sendSubscriptionCreatedNotification({
+    //   email: organization.email,
+    //   memberName: organization.name,
+    //   planName: plan.name,
+    //   amount: plan.price,
+    //   currency: plan.currency,
+    //   interval: plan.interval,
+    //   startDate: now,
+    //   nextBilling: expiresAt,
+    // });
 
     return {
-      message: 'Enterprise subscription created successfully',
+      message: 'Organization subscription created successfully',
       data: {
         subscription: savedSubscription,
         invoice: savedInvoice,
@@ -725,18 +752,21 @@ export class SubscriptionsService {
   // Change organization subscription plan
   async changeOrgSubscriptionPlan(
     organizationId: string,
-    changePlanDto: ChangeOrgSubscriptionPlanDto,
+    subscription: OrganizationSubscription,
+    newPlan: OrganizationPlan,
+    userId: string,
+    // changePlanDto: ChangeOrgSubscriptionPlanDto,
   ) {
-    const [subscription, newPlan] = await Promise.all([
-      this.getOrganizationSubscription(organizationId),
-      this.organizationPlanRepository.findOne({
-        where: { id: changePlanDto.newPlanId },
-      }),
-    ]);
+    // const [subscription, newPlan] = await Promise.all([
+    //   this.getOrganizationSubscription(organizationId),
+    //   this.organizationPlanRepository.findOne({
+    //     where: { id: changePlanDto.newPlanId },
+    //   }),
+    // ]);
 
-    if (!newPlan) {
-      throw new NotFoundException('Plan not found');
-    }
+    // if (!newPlan) {
+    //   throw new NotFoundException('Plan not found');
+    // }
 
     // Create a new subscription with the new plan
     const newSubscription = this.organizationSubscriptionRepository.create({
@@ -751,18 +781,33 @@ export class SubscriptionsService {
       ),
       metadata: {
         previous_plan_id: subscription!.plan_id,
-        change_notes: changePlanDto.notes,
+        change_notes: 'Plans changed',
       },
     });
 
     // Cancel the old subscription
-    subscription!.status = SubscriptionStatus.CANCELLED;
-    subscription!.cancelled_at = new Date();
+    subscription.status = SubscriptionStatus.CANCELLED;
+    subscription.cancelled_at = new Date();
     await this.organizationSubscriptionRepository.save([
-      subscription!,
+      subscription,
       newSubscription,
     ]);
-    return newSubscription;
+
+    // Create invoice
+    const savedInvoice = await this.createOrgInvoiceForSubscription(
+      organizationId,
+      newSubscription,
+      newPlan,
+      userId,
+    );
+
+    return {
+      message: 'Organization plan changed successfully',
+      data: {
+        subscription: newSubscription,
+        invoice: savedInvoice,
+      },
+    };
   }
 
   /**
@@ -904,6 +949,33 @@ export class SubscriptionsService {
     return await this.invoiceRepository.save(invoice);
   }
 
+  private async createOrgInvoiceForSubscription(
+    organizationId: string,
+    savedSubscription: OrganizationSubscription,
+    plan: OrganizationPlan,
+    userId: string,
+  ) {
+    const invoice = this.invoiceRepository.create({
+      issuer_org_id: organizationId,
+      organization_subscription_id: savedSubscription.id,
+      invoice_number: `INV-${Date.now()}-${organizationId.substring(0, 8)}`,
+      billed_type: InvoiceBilledType.ORGANIZATION,
+      billed_user_id: userId,
+      payment_provider: PaymentProvider.PAYSTACK,
+      amount: plan.price,
+      currency: plan.currency,
+      status: InvoiceStatus.PENDING,
+      due_date: savedSubscription.started_at,
+      metadata: {
+        plan_name: plan.name,
+        interval: plan.interval,
+        interval_count: plan.interval_count,
+      },
+    });
+
+    return await this.invoiceRepository.save(invoice);
+  }
+
   private calculatePeriodEnd(
     startDate: Date,
     interval: string,
@@ -920,6 +992,12 @@ export class SubscriptionsService {
         break;
       case 'yearly':
         date.setFullYear(date.getFullYear() + intervalCount);
+        break;
+      case 'quarterly':
+        date.setMonth(date.getMonth() + 3 * intervalCount);
+        break;
+      case 'biweekly':
+        date.setDate(date.getDate() + 14 * intervalCount);
         break;
     }
 

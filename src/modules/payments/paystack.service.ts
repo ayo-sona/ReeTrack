@@ -27,7 +27,8 @@ export class PaystackService {
 
   async initializeTransaction(
     email: string,
-    amount: number, // Amount in kobo (smallest currency unit)
+    amount: number, // Amount in smallest currency unit
+    currency: string,
     reference: string,
     metadata?: any,
     callbackUrl?: string,
@@ -38,7 +39,8 @@ export class PaystackService {
         '/transaction/initialize',
         {
           email,
-          amount, // Paystack expects amount in kobo (NGN x 100)
+          amount, // Paystack expects amount in lowest currency (e.g, NGN x 100)
+          currency,
           reference,
           metadata,
           ...(subaccount && { subaccount }),
@@ -310,12 +312,12 @@ export class PaystackService {
     }
   }
 
-  convertToKobo(amount: number): number {
+  convertToSubUnit(amount: number): number {
     return Math.round(amount * 100);
   }
 
-  convertToNaira(kobo: number): number {
-    return kobo / 100;
+  convertToMainUnit(subUnit: number): number {
+    return subUnit / 100;
   }
 }
 
