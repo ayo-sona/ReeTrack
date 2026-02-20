@@ -1,21 +1,25 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
-import {
-  Button,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  Spinner,
-  ModalFooter,
-} from "@heroui/react";
 import { Html5Qrcode } from "html5-qrcode";
-import { Camera, X, RotateCcw, CheckCircle, XCircle } from "lucide-react";
+import { Camera, RotateCcw, CheckCircle, XCircle, X } from "lucide-react";
 import apiClient from "@/lib/apiClient";
+import { Button } from "@/components/ui/button";
+
+interface CheckInMember {
+  fullName: string;
+  [key: string]: unknown;
+}
+
+interface ApiError {
+  response?: { data?: { message?: string } };
+  message?: string;
+}
 
 interface QRCodeScannerProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onCheckInSuccess: (member: any) => void;
+  onCheckInSuccess: (member: CheckInMember) => void;
 }
 
 interface CameraDevice {
@@ -32,31 +36,24 @@ export default function QRCodeScanner({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<{
-    member: any;
+    member: string;
     message: string;
   } | null>(null);
-  const [scannerState, setScannerState] = useState("initial"); // 'initial', 'requesting', 'scanning', 'denied'
+  const [scannerState, setScannerState] = useState("initial");
   const html5QrcodeRef = useRef<Html5Qrcode | null>(null);
   const [availableCameras, setAvailableCameras] = useState<CameraDevice[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<string>("");
   const scannerElementId = "qr-reader";
-  //   console.log(scannerState);
 
-  // Handle QR code scan
   const handleScanSuccess = async (decodedText: string) => {
     try {
       setIsProcessing(true);
       setError(null);
-
-      // Parse the QR code data (assuming it contains member ID)
-      const data = JSON.parse(decodedText); // or parse from JSON if needed
-      console.log(data);
-
+      const data = JSON.parse(decodedText);
       const response = await apiClient.post(`/members/organization/check-in`, {
         memberId: data.memberId,
         checkInCode: data.checkInCode,
       });
-      console.log(response.data.data);
       if (response.data.statusCode === 201) {
         setScannerState("initial");
         setSuccess({
@@ -65,74 +62,73 @@ export default function QRCodeScanner({
         });
         onCheckInSuccess(response.data.data.fullName);
       }
-    } catch (error: any) {
-      console.error("Check-in failed:", error);
-      setError(error.response?.data?.message || "Failed to process check-in");
+    } catch (error: unknown) {
+      const err = error as ApiError;
+      setError(err.response?.data?.message || "Failed to process check-in");
     } finally {
       setIsProcessing(false);
-      setTimeout(() => {
-        setSuccess(null);
-      }, 3000);
-      //   if (html5QrcodeRef.current) {
-      //     html5QrcodeRef.current.resume();
-      //   }
+      setTimeout(() => setSuccess(null), 3000);
     }
   };
 
-  // Scanner setup and cleanup
+  const stopScanner = () => {
+    if (html5QrcodeRef.current) {
+      const scanner = html5QrcodeRef.current;
+      html5QrcodeRef.current = null;
+
+      try {
+        scanner
+          .stop()
+          .then(() => scanner.clear())
+          .catch(() => {
+            try {
+              scanner.clear();
+            } catch {
+              /* ignore */
+            }
+          });
+      } catch {
+        // Scanner was never started, ignore
+      }
+    }
+    setScannerState("initial");
+  };
+
   const startScanner = async () => {
     if (!selectedCamera) {
       setError("No camera selected. Please check your device settings.");
       return;
     }
-
     setScannerState("requesting");
     setError(null);
-
     try {
       setIsLoading(true);
       setScannerState("scanning");
       await new Promise((resolve) => setTimeout(resolve, 300));
       const container = document.getElementById(scannerElementId);
-      if (!container) {
-        throw new Error("Scanner container not found");
-      }
-
-      // Create new scanner instance
+      if (!container) throw new Error("Scanner container not found");
       const html5QrCode = new Html5Qrcode(scannerElementId);
       html5QrcodeRef.current = html5QrCode;
-
       await html5QrCode.start(
         selectedCamera,
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-        },
-        (decodedText) => {
-          handleScanSuccess(decodedText);
-          // console.log(decodedText);
-        },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => handleScanSuccess(decodedText),
         (errorMessage) => {
-          // Ignore "not found" errors
-          if (!errorMessage.includes("No QR code found")) {
+          if (!errorMessage.includes("No QR code found"))
             console.warn("QR Code error:", errorMessage);
-          }
         },
       );
-    } catch (err: any) {
-      console.error("Error starting scanner:", err);
-
-      if (err.message.includes("Permission denied")) {
+    } catch (err: unknown) {
+      const error = err as ApiError;
+      if (error.message?.includes("Permission denied")) {
         setScannerState("denied");
         setError(
-          "Camera access was denied. Please allow camera access and try again, or check your browser settings.",
+          "Camera access was denied. Please allow camera access and try again.",
         );
-      } else if (err.message.includes("Camera not found")) {
-        setError(
-          "Selected camera not found. Please try a different camera or refresh the page.",
-        );
+      } else if (error.message?.includes("Camera not found")) {
+        setError("Selected camera not found. Please try a different camera.");
       } else {
-        setError(`Failed to start camera: ${err.message}`);
+        setError(`Failed to start camera: ${error.message}`);
       }
       setScannerState("initial");
     } finally {
@@ -140,283 +136,263 @@ export default function QRCodeScanner({
     }
   };
 
-  const stopScanner = () => {
-    if (html5QrcodeRef.current) {
-      html5QrcodeRef.current
-        .stop()
-        .then(() => {
-          html5QrcodeRef.current?.clear();
-          html5QrcodeRef.current = null;
-        })
-        .catch(console.error);
-    }
-    setScannerState("initial");
-  };
-
-  // Reset scanner state
   const resetScanner = () => {
     setSuccess(null);
     setError(null);
     stopScanner();
   };
 
-  // Check for available cameras without requesting permission
   const checkCameras = async () => {
     try {
       setIsLoading(true);
       const devices = await Html5Qrcode.getCameras();
-      setAvailableCameras(devices as any);
+      setAvailableCameras(devices);
       if (devices.length > 0) {
-        // Prefer back camera if available
         const backCamera = devices.find(
-          (device: any) =>
-            device.label.toLowerCase().includes("back") ||
-            device.label.toLowerCase().includes("rear") ||
-            device.label.toLowerCase().includes("environment"),
+          (d) =>
+            d.label.toLowerCase().includes("back") ||
+            d.label.toLowerCase().includes("rear") ||
+            d.label.toLowerCase().includes("environment"),
         );
         setSelectedCamera(backCamera ? backCamera.id : devices[0].id);
       }
-    } catch (err) {
-      console.error("Error getting cameras:", err);
+    } catch {
       setError("Unable to detect cameras on this device.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Switch camera (for devices with multiple cameras)
   const switchCamera = async () => {
     if (availableCameras.length > 1) {
       const currentIndex = availableCameras.findIndex(
-        (cam: CameraDevice) => cam.id === selectedCamera,
+        (cam) => cam.id === selectedCamera,
       );
       const nextIndex = (currentIndex + 1) % availableCameras.length;
       setSelectedCamera(availableCameras[nextIndex].id);
-
-      // If currently scanning, restart with new camera
       if (scannerState === "scanning") {
-        await stopScanner();
-        // Wait a bit before starting with new camera
-        setTimeout(() => {
-          startScanner();
-        }, 1000);
+        stopScanner();
+        setTimeout(() => startScanner(), 1000);
       }
     }
   };
 
-  // Initialize cameras when modal opens
   useEffect(() => {
-    if (isOpen) {
-      checkCameras();
-    } else {
-      resetScanner();
-    }
+    if (isOpen) checkCameras();
+    else resetScanner();
   }, [isOpen]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (html5QrcodeRef.current) {
-        stopScanner();
-      }
-      setError(null);
-      setSuccess(null);
+      stopScanner();
     };
   }, []);
 
+  if (!isOpen) return null;
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      size="lg"
-      scrollBehavior="inside"
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ fontFamily: "Nunito, sans-serif" }}
     >
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex justify-between items-center mt-4">
-              <span>Scan Member QR Code</span>
-              <Button
-                size="sm"
-                variant="flat"
-                isIconOnly
-                onPress={switchCamera}
+      {/* Backdrop — must be fixed too, not absolute */}
+      <div
+        className="fixed inset-0 bg-black/30 backdrop-blur-sm"
+        onClick={() => {
+          stopScanner();
+          onOpenChange(false);
+        }}
+      />
+
+      {/* Modal */}
+      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100">
+          <div>
+            <h2 className="text-base font-bold text-[#1F2937]">
+              Scan Member QR Code
+            </h2>
+            <p className="text-sm text-[#9CA3AF] mt-0.5">
+              Point the camera at a member's QR code
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {availableCameras.length > 1 && (
+              <button
+                onClick={switchCamera}
                 title="Switch Camera"
+                className="p-2 rounded-lg hover:bg-[#F9FAFB] transition-colors text-[#9CA3AF] hover:text-[#1F2937]"
               >
-                <RotateCcw size={16} />
-              </Button>
-            </ModalHeader>
-            <ModalBody>
-              <div className="relative w-full h-full bg-gray-100 dark:bg-black rounded-lg overflow-hidden">
-                {/* Scanner View */}
-                {scannerState === "scanning" && (
-                  <div className="relative">
-                    <div
-                      id={scannerElementId}
-                      className={`w-full h-full min-h-[300px] flex items-center justify-center ${
-                        scannerState === "scanning" ? "block" : "hidden"
-                      }`}
-                    />
-                    <div className="absolute inset-0 border-4 border-emerald-500 rounded-lg pointer-events-none animate-pulse" />
-                  </div>
-                )}
+                <RotateCcw className="w-4 h-4" />
+              </button>
+            )}
+            {/* X button */}
+            <button
+              onClick={() => {
+                stopScanner();
+                onOpenChange(false);
+              }}
+            ></button>
+          </div>
+        </div>
 
-                {/* Loading State */}
-                {isLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Spinner size="lg" />
-                  </div>
-                )}
+        {/* Body */}
+        <div className="px-6 py-5">
+          <div className="w-full rounded-xl bg-[#F9FAFB] border border-gray-100 overflow-hidden min-h-[300px] flex flex-col items-center justify-center">
+            {/* Scanning */}
+            {scannerState === "scanning" && (
+              <div className="relative w-full">
+                <div id={scannerElementId} className="w-full min-h-[300px]" />
+                <div className="absolute inset-0 border-4 border-[#0D9488] rounded-xl pointer-events-none animate-pulse" />
+              </div>
+            )}
 
-                {/* Success Message */}
-                {success && (
-                  <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                    <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
-                    <h3 className="text-xl font-semibold">
-                      Check-in Successful!
-                    </h3>
-                    <p className="text-gray-600 mt-2">{success.member}</p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {success.message}
-                    </p>
-                  </div>
-                )}
+            {/* Loading */}
+            {isLoading && scannerState !== "scanning" && (
+              <div className="flex flex-col items-center gap-3 p-8">
+                <div className="w-10 h-10 border-4 border-gray-200 border-t-[#0D9488] rounded-full animate-spin" />
+                <p className="text-sm text-[#9CA3AF]">Starting camera...</p>
+              </div>
+            )}
 
-                {/* Error Message */}
-                {error && (
-                  <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                    <XCircle className="w-16 h-16 text-red-500 mb-4" />
-                    <h3 className="text-xl font-semibold">Error</h3>
-                    <p className="text-gray-600 mt-2">{error}</p>
-                    <Button
-                      className="mt-4"
-                      color="primary"
-                      onPress={startScanner}
-                      startContent={<RotateCcw size={16} />}
-                    >
-                      Try Again
-                    </Button>
-                  </div>
-                )}
+            {/* Success */}
+            {success && (
+              <div className="flex flex-col items-center justify-center p-8 text-center">
+                <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
+                  <CheckCircle className="w-8 h-8 text-emerald-600" />
+                </div>
+                <h3 className="text-base font-bold text-[#1F2937] mb-1">
+                  Check-in Successful
+                </h3>
+                <p className="text-sm font-semibold text-[#0D9488]">
+                  {success.member}
+                </p>
+                <p className="text-xs text-[#9CA3AF] mt-1">{success.message}</p>
+              </div>
+            )}
 
-                {scannerState === "initial" && (
-                  <div className="w-full h-full p-6 flex flex-col items-center justify-center space-y-4">
-                    <Camera size={48} className="text-gray-400" />
-                    <div className="text-center">
-                      <h3 className="font-semibold text-lg mb-2">
-                        Ready to Scan
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                        Click "Start Scanning" to access your camera and scan
-                        the QR code
-                      </p>
-                      {availableCameras.length > 0 && (
-                        <p className="text-xs text-gray-500">
-                          {availableCameras.length} camera(s) detected
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
+            {/* Error */}
+            {error && !success && (
+              <div className="flex flex-col items-center justify-center p-8 text-center">
+                <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
+                  <XCircle className="w-8 h-8 text-red-500" />
+                </div>
+                <h3 className="text-base font-bold text-[#1F2937] mb-1">
+                  Something went wrong
+                </h3>
+                <p className="text-sm text-[#9CA3AF] mb-4 max-w-xs">{error}</p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={startScanner}
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Try Again
+                </Button>
+              </div>
+            )}
 
-                {scannerState === "requesting" && (
-                  <div className="w-full h-full p-6 flex flex-col items-center justify-center space-y-4">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-                    <div className="text-center">
-                      <h3 className="font-semibold text-lg mb-2">
-                        Starting Camera...
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Please allow camera access when prompted
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {scannerState === "denied" && (
-                  <div className="w-full h-full p-6 flex flex-col items-center justify-center space-y-4">
-                    <X size={48} className="text-red-400" />
-                    <div className="text-center">
-                      <h3 className="font-semibold text-lg mb-2 text-red-600">
-                        Camera Access Denied
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                        To scan QR code, please:
-                      </p>
-                      <ol className="text-xs text-left space-y-1">
-                        <li>
-                          1. Click the camera icon in your browser's address bar
-                        </li>
-                        <li>2. Select "Always allow" for camera access</li>
-                        <li>3. Refresh the page and try again</li>
-                      </ol>
-                    </div>
-                  </div>
-                )}
-
-                {/* Camera Selection */}
-                {availableCameras.length > 1 && scannerState !== "scanning" && (
-                  <div className="w-full space-y-2">
-                    <label className="text-sm font-medium">
-                      Select Camera:
-                    </label>
-                    <select
-                      value={selectedCamera || ""}
-                      onChange={(e) => setSelectedCamera(e.target.value)}
-                      className="w-full p-2 border rounded-lg bg-white dark:bg-black border-gray-300 dark:border-gray-600"
-                    >
-                      {availableCameras.map((camera: CameraDevice) => (
-                        <option
-                          key={camera.id}
-                          value={camera.id}
-                          className="capitalize"
-                        >
-                          {camera.label || `Camera ${camera.id}`}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+            {/* Initial */}
+            {scannerState === "initial" && !success && !error && !isLoading && (
+              <div className="flex flex-col items-center justify-center p-8 text-center">
+                <div className="w-16 h-16 bg-[#0D9488]/10 rounded-full flex items-center justify-center mb-4">
+                  <Camera className="w-8 h-8 text-[#0D9488]" />
+                </div>
+                <h3 className="text-base font-bold text-[#1F2937] mb-1">
+                  Ready to Scan
+                </h3>
+                <p className="text-sm text-[#9CA3AF] mb-1">
+                  Click "Start Scanning" to access your camera
+                </p>
+                {availableCameras.length > 0 && (
+                  <p className="text-xs text-[#9CA3AF]">
+                    {availableCameras.length} camera
+                    {availableCameras.length > 1 ? "s" : ""} detected
+                  </p>
                 )}
               </div>
-            </ModalBody>
+            )}
 
-            <ModalFooter className="flex justify-between">
-              <Button
-                variant="light"
-                onPress={() => {
-                  if (success) {
-                    resetScanner();
-                  } else if (scannerState === "scanning") {
-                    stopScanner();
-                  } else {
-                    onClose();
-                  }
-                }}
-              >
-                {success
-                  ? "Scan Again"
-                  : scannerState === "scanning"
-                    ? "Stop Scanning"
-                    : "Cancel"}
-              </Button>
-
-              <div className="flex space-x-2">
-                {!success && (
-                  <Button
-                    color="success"
-                    isLoading={isLoading}
-                    disabled={isLoading || availableCameras.length === 0}
-                    onPress={startScanner}
-                    startContent={<Camera size={16} />}
-                  >
-                    Start Scanning
-                  </Button>
-                )}
+            {/* Denied */}
+            {scannerState === "denied" && (
+              <div className="flex flex-col items-center justify-center p-8 text-center">
+                <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
+                  <X className="w-8 h-8 text-red-500" />
+                </div>
+                <h3 className="text-base font-bold text-red-600 mb-2">
+                  Camera Access Denied
+                </h3>
+                <p className="text-sm text-[#9CA3AF] mb-3">
+                  To scan QR codes, please:
+                </p>
+                <ol className="text-xs text-[#9CA3AF] text-left space-y-1">
+                  <li>
+                    1. Click the camera icon in your browser's address bar
+                  </li>
+                  <li>2. Select "Always allow" for camera access</li>
+                  <li>3. Refresh the page and try again</li>
+                </ol>
               </div>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+            )}
+
+            {/* Camera selector */}
+            {availableCameras.length > 1 && scannerState !== "scanning" && (
+              <div className="w-full px-6 pb-4 space-y-1.5">
+                <label className="block text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1.5">
+                  Select Camera
+                </label>
+                <select
+                  value={selectedCamera}
+                  onChange={(e) => setSelectedCamera(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-all"
+                >
+                  {availableCameras.map((camera) => (
+                    <option key={camera.id} value={camera.id}>
+                      {camera.label || `Camera ${camera.id}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-[#F9FAFB]">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (success) resetScanner();
+              else if (scannerState === "scanning") stopScanner();
+              else {
+                stopScanner();
+                onOpenChange(false);
+              }
+            }}
+          >
+            {success
+              ? "Scan Again"
+              : scannerState === "scanning"
+                ? "Stop"
+                : "Cancel"}
+          </Button>
+
+          {!success && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={isLoading || availableCameras.length === 0}
+              onClick={startScanner}
+            >
+              {isLoading ? "Starting..." : "Start Scanning"}
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

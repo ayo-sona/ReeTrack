@@ -5,6 +5,26 @@ import { useEffect } from "react";
 import { ArrowLeft, Download, Check, X, Receipt, CreditCard, FileText } from "lucide-react";
 import { useAllPayments } from "@/hooks/memberHook/useMember";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+
+const C = {
+  teal:     "#0D9488",
+  coral:    "#F06543",
+  snow:     "#F9FAFB",
+  white:    "#FFFFFF",
+  ink:      "#1F2937",
+  coolGrey: "#9CA3AF",
+  border:   "#E5E7EB",
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i = 0) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.4, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] },
+  }),
+};
 
 export default function PaymentReceiptPage() {
   const params = useParams();
@@ -12,95 +32,65 @@ export default function PaymentReceiptPage() {
   const paymentId = params.id as string;
 
   const { data: payments, isLoading } = useAllPayments();
-  
-  // Find the specific payment
   const payment = payments?.find((p) => p.id === paymentId);
 
-  // ✅ FIX: Redirect pending payments back to payment history
   useEffect(() => {
     if (!isLoading && payment && payment.status === "pending") {
       router.push("/member/payments");
     }
   }, [payment, isLoading, router]);
 
-  // Helper function to format currency - handle string or number
   const formatCurrency = (amount: number | string) => {
     const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
     if (isNaN(numAmount)) return '₦0.00';
-    
-    return `₦${numAmount.toLocaleString('en-US', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    })}`;
+    return `₦${numAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  // Format date nicely
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
     });
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "success":
-        return <Check className="w-6 h-6" />;
-      case "failed":
-        return <X className="w-6 h-6" />;
-      default:
-        return null;
-    }
-  };
+  const handlePrint = () => window.print();
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "success":
-        return "bg-green-100 text-green-700 border-green-200";
-      case "failed":
-        return "bg-red-100 text-red-700 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
+  // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
-        <div className="max-w-4xl mx-auto animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-96 bg-gray-200 rounded-2xl"></div>
+      <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "32px 24px" }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+          @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+        `}</style>
+        <div style={{ maxWidth: "1000px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "24px" }}>
+          <div style={{ height: "32px", width: "150px", background: C.white, borderRadius: "8px", border: `1px solid ${C.border}`, animation: "pulse 1.5s ease-in-out infinite" }} />
+          <div style={{ height: "600px", background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, animation: "pulse 1.5s ease-in-out infinite" }} />
         </div>
       </div>
     );
   }
 
-  // ✅ Payment not found or is pending (will redirect)
+  // Not found / pending state
   if (!payment || payment.status === "pending") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
-        <div className="max-w-4xl mx-auto text-center py-12">
-          <Receipt className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
+      <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "32px 24px" }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');`}</style>
+        <div style={{ maxWidth: "1000px", margin: "0 auto", textAlign: "center", paddingTop: "80px" }}>
+          <div style={{ width: "72px", height: "72px", borderRadius: "18px", background: C.snow, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: C.coolGrey }}>
+            <Receipt size={32} />
+          </div>
+          <h3 style={{ fontWeight: 700, fontSize: "20px", color: C.ink, marginBottom: "8px" }}>
             {payment?.status === "pending" ? "Receipt Not Available" : "Payment not found"}
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, marginBottom: "24px", lineHeight: 1.6 }}>
             {payment?.status === "pending" 
               ? "Receipts are only available for completed payments."
               : "The payment you're looking for doesn't exist or has been removed."}
           </p>
-          <Link href="/member/payments">
-            <button className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
-              Back to Payments
-            </button>
-          </Link>
+          <Button variant="secondary" asChild>
+            <Link href="/member/payments">Back to Payments</Link>
+          </Button>
         </div>
       </div>
     );
@@ -109,225 +99,208 @@ export default function PaymentReceiptPage() {
   const planName = payment.invoice?.member_subscription?.plan.name || "Unknown Plan";
   const planDescription = payment.invoice?.member_subscription?.plan.description || "";
   const reference = payment.provider_reference || payment.id;
+  const isSuccess = payment.status === "success";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Back Button & Actions - Hidden on print */}
-        <div className="flex items-center justify-between print:hidden">
-          <Link href="/member/payments">
-            <button className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-              Back to Payments
-            </button>
-          </Link>
-          
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            Print Receipt
-          </button>
-        </div>
+    <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "32px 24px 96px" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        * { box-sizing: border-box; }
+        @media print {
+          body { background: white; }
+          .print-hidden { display: none !important; }
+          @page { margin: 0.5in; }
+        }
+      `}</style>
 
-        {/* Receipt Card */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          {/* Header with Status */}
-          <div className={`p-8 border-b-4 ${
-            payment.status === "success" ? "border-green-500 bg-green-50" :
-            "border-red-500 bg-red-50"
-          }`}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Receipt className="w-8 h-8 text-gray-700" />
+      <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
+
+        {/* Header actions */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0}
+          className="print-hidden"
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}
+        >
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/member/payments">
+              <ArrowLeft size={16} />
+              Back to Payments
+            </Link>
+          </Button>
+          <Button variant="secondary" size="sm" onClick={handlePrint}>
+            <Download size={16} />
+            Print Receipt
+          </Button>
+        </motion.div>
+
+        {/* Receipt card */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1}
+          style={{ background: C.white, borderRadius: "16px", boxShadow: "0 4px 16px rgba(0,0,0,0.08)", border: `1px solid ${C.border}`, overflow: "hidden" }}
+        >
+          {/* Status header */}
+          <div style={{
+            padding: "32px",
+            borderBottom: `4px solid ${isSuccess ? C.teal : C.coral}`,
+            background: isSuccess ? "rgba(13,148,136,0.06)" : "rgba(240,101,67,0.06)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", flexWrap: "wrap", gap: "16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <Receipt size={28} style={{ color: C.ink }} />
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Payment Receipt</h1>
-                  <p className="text-sm text-gray-600">Transaction ID: {payment.id}</p>
+                  <h1 style={{ fontWeight: 800, fontSize: "24px", color: C.ink, letterSpacing: "-0.3px" }}>Payment Receipt</h1>
+                  <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>Transaction ID: {payment.id}</p>
                 </div>
               </div>
               
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 ${getStatusColor(payment.status)}`}>
-                {getStatusIcon(payment.status)}
-                <span className="font-semibold">
-                  {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-                </span>
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: "8px",
+                padding: "8px 16px", borderRadius: "999px",
+                background: isSuccess ? "rgba(13,148,136,0.1)" : "rgba(240,101,67,0.1)",
+                color: isSuccess ? C.teal : C.coral,
+                border: `2px solid ${isSuccess ? "rgba(13,148,136,0.3)" : "rgba(240,101,67,0.3)"}`,
+                fontWeight: 600, fontSize: "14px",
+              }}>
+                {isSuccess ? <Check size={18} /> : <X size={18} />}
+                {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
               </div>
             </div>
 
-            {/* Amount */}
-            <div className="mt-6">
-              <p className="text-sm text-gray-600 mb-1">Amount {payment.status === "success" ? "Paid" : "Attempted"}</p>
-              <p className="text-4xl font-bold text-gray-900">
+            <div style={{ marginTop: "20px" }}>
+              <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey, marginBottom: "6px" }}>
+                Amount {isSuccess ? "Paid" : "Attempted"}
+              </p>
+              <p style={{ fontWeight: 800, fontSize: "36px", color: C.ink, letterSpacing: "-0.5px" }}>
                 {formatCurrency(payment.amount)}
               </p>
             </div>
           </div>
 
-          {/* Payment Details */}
-          <div className="p-8 space-y-6">
-            {/* Transaction Info */}
+          {/* Transaction details */}
+          <div style={{ padding: "32px", display: "flex", flexDirection: "column", gap: "28px" }}>
+            
+            {/* Transaction info section */}
             <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5" />
+              <h2 style={{ fontWeight: 700, fontSize: "16px", color: C.teal, marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <FileText size={18} />
                 Transaction Details
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-3">
+              <div style={{ display: "grid", gap: "16px" }} className="md:grid-cols-2">
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   <div>
-                    <p className="text-sm text-gray-600">Reference Number</p>
-                    <p className="font-semibold text-gray-900 font-mono text-sm">
-                      {reference}
-                    </p>
+                    <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Reference Number</p>
+                    <p style={{ fontWeight: 600, fontSize: "13px", color: C.ink, fontFamily: "monospace" }}>{reference}</p>
                   </div>
-                  
                   <div>
-                    <p className="text-sm text-gray-600">Payment Method</p>
-                    <p className="font-semibold text-gray-900 capitalize">
-                      {payment.payment_method || "Card"}
-                    </p>
+                    <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment Method</p>
+                    <p style={{ fontWeight: 600, fontSize: "14px", color: C.ink, textTransform: "capitalize" }}>{payment.payment_method || "Card"}</p>
                   </div>
-
                   <div>
-                    <p className="text-sm text-gray-600">Payment Provider</p>
-                    <p className="font-semibold text-gray-900">
-                      {payment.payment_provider || "Paystack"}
-                    </p>
+                    <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment Provider</p>
+                    <p style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}>{payment.payment_provider || "Paystack"}</p>
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   <div>
-                    <p className="text-sm text-gray-600">Transaction Date</p>
-                    <p className="font-semibold text-gray-900">
-                      {formatDate(payment.created_at)}
-                    </p>
+                    <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Transaction Date</p>
+                    <p style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}>{formatDate(payment.created_at)}</p>
                   </div>
-
                   <div>
-                    <p className="text-sm text-gray-600">Currency</p>
-                    <p className="font-semibold text-gray-900">
-                      {payment.currency?.toUpperCase() || "NGN"}
-                    </p>
+                    <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Currency</p>
+                    <p style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}>{payment.currency?.toUpperCase() || "NGN"}</p>
                   </div>
-
                   {payment.invoice_id && (
                     <div>
-                      <p className="text-sm text-gray-600">Invoice ID</p>
-                      <p className="font-semibold text-gray-900 font-mono text-sm">
-                        {payment.invoice_id}
-                      </p>
+                      <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Invoice ID</p>
+                      <p style={{ fontWeight: 600, fontSize: "13px", color: C.ink, fontFamily: "monospace" }}>{payment.invoice_id}</p>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Subscription/Plan Info */}
-            <div className="border-t pt-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
+            {/* Plan info section */}
+            <div style={{ paddingTop: "28px", borderTop: `1px solid ${C.border}` }}>
+              <h2 style={{ fontWeight: 700, fontSize: "16px", color: C.teal, marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                <CreditCard size={18} />
                 Plan Details
               </h2>
-              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+              <div style={{ background: "rgba(13,148,136,0.06)", borderRadius: "12px", padding: "24px" }}>
+                <div style={{ display: "flex", gap: "16px", alignItems: "flex-start" }}>
+                  <div style={{
+                    width: "56px", height: "56px", borderRadius: "12px", background: C.teal,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: C.white, fontWeight: 800, fontSize: "20px", flexShrink: 0,
+                  }}>
                     {planName.charAt(0)}
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900">{planName}</h3>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontWeight: 700, fontSize: "18px", color: C.ink, marginBottom: "4px" }}>{planName}</h3>
                     {planDescription && (
-                      <p className="text-sm text-gray-700 mt-1">{planDescription}</p>
+                      <p style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey, lineHeight: 1.6 }}>{planDescription}</p>
                     )}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Payment Breakdown */}
-            <div className="border-t pt-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Payment Summary</h2>
-              <div className="space-y-3">
-                <div className="flex justify-between text-gray-700">
-                  <span>Subtotal</span>
-                  <span className="font-semibold">{formatCurrency(payment.amount)}</span>
+            {/* Payment summary */}
+            <div style={{ paddingTop: "28px", borderTop: `1px solid ${C.border}` }}>
+              <h2 style={{ fontWeight: 700, fontSize: "16px", color: C.teal, marginBottom: "16px" }}>Payment Summary</h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey }}>Subtotal</span>
+                  <span style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}>{formatCurrency(payment.amount)}</span>
                 </div>
-                <div className="flex justify-between text-gray-700">
-                  <span>Tax/Fees</span>
-                  <span className="font-semibold">{formatCurrency(0)}</span>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey }}>Tax/Fees</span>
+                  <span style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}>{formatCurrency(0)}</span>
                 </div>
-                <div className="flex justify-between text-xl font-bold text-gray-900 pt-3 border-t-2 border-gray-200">
-                  <span>Total {payment.status === "success" ? "Paid" : "Amount"}</span>
-                  <span>{formatCurrency(payment.amount)}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "12px", borderTop: `2px solid ${C.border}` }}>
+                  <span style={{ fontWeight: 700, fontSize: "18px", color: C.ink }}>Total {isSuccess ? "Paid" : "Amount"}</span>
+                  <span style={{ fontWeight: 800, fontSize: "20px", color: C.ink, letterSpacing: "-0.3px" }}>{formatCurrency(payment.amount)}</span>
                 </div>
               </div>
             </div>
 
-            {/* Success Message */}
-            {payment.status === "success" && (
-              <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Check className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-green-900 mb-1">
-                      Payment Successful
-                    </h3>
-                    <p className="text-sm text-green-700">
-                      Your payment has been processed successfully. This receipt has been sent to your email.
-                    </p>
-                  </div>
+            {/* Status message */}
+            {isSuccess ? (
+              <div style={{ background: "rgba(13,148,136,0.08)", border: "1px solid rgba(13,148,136,0.3)", borderRadius: "12px", padding: "20px", display: "flex", gap: "12px" }}>
+                <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "rgba(13,148,136,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Check size={18} style={{ color: C.teal }} />
+                </div>
+                <div>
+                  <h3 style={{ fontWeight: 600, fontSize: "15px", color: C.teal, marginBottom: "4px" }}>Payment Successful</h3>
+                  <p style={{ fontWeight: 400, fontSize: "13px", color: C.ink, lineHeight: 1.6 }}>
+                    Your payment has been processed successfully. This receipt has been sent to your email.
+                  </p>
                 </div>
               </div>
-            )}
-
-            {/* Failed Message */}
-            {payment.status === "failed" && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <X className="w-5 h-5 text-red-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-red-900 mb-1">
-                      Payment Failed
-                    </h3>
-                    <p className="text-sm text-red-700">
-                      This payment was not successful. Please contact support if you believe this is an error or try making the payment again.
-                    </p>
-                  </div>
+            ) : (
+              <div style={{ background: "rgba(240,101,67,0.08)", border: "1px solid rgba(240,101,67,0.3)", borderRadius: "12px", padding: "20px", display: "flex", gap: "12px" }}>
+                <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "rgba(240,101,67,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <X size={18} style={{ color: C.coral }} />
+                </div>
+                <div>
+                  <h3 style={{ fontWeight: 600, fontSize: "15px", color: C.coral, marginBottom: "4px" }}>Payment Failed</h3>
+                  <p style={{ fontWeight: 400, fontSize: "13px", color: C.ink, lineHeight: 1.6 }}>
+                    This payment was not successful. Please contact support if you believe this is an error or try making the payment again.
+                  </p>
                 </div>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="bg-gray-50 px-8 py-6 border-t border-gray-200">
-            <p className="text-sm text-gray-600 text-center">
+          <div style={{ background: C.snow, padding: "24px 32px", borderTop: `1px solid ${C.border}`, textAlign: "center" }}>
+            <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>
               If you have any questions about this receipt, please contact support.
             </p>
-            <p className="text-xs text-gray-500 text-center mt-2">
+            <p style={{ fontWeight: 400, fontSize: "11px", color: C.coolGrey, marginTop: "8px" }}>
               This is an electronic receipt and does not require a signature.
             </p>
           </div>
-        </div>
+        </motion.div>
       </div>
-
-      {/* Print Styles */}
-      <style jsx global>{`
-        @media print {
-          body {
-            background: white;
-          }
-          .print\\:hidden {
-            display: none !important;
-          }
-          @page {
-            margin: 0.5in;
-          }
-        }
-      `}</style>
     </div>
   );
 }

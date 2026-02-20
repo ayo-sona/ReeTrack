@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { X } from 'lucide-react';
 import { useMembers } from '../../hooks/useMembers';
+import { Button } from '@/components/ui/button';
 
 interface ManualPaymentModalProps {
   isOpen: boolean;
@@ -29,7 +29,6 @@ export function ManualPaymentModal({ isOpen, onClose, onSave }: ManualPaymentMod
     paidAt: new Date().toISOString().split('T')[0],
   });
 
-  // Fetch members for dropdown
   const { data: members = [] } = useMembers();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -39,144 +38,135 @@ export function ManualPaymentModal({ isOpen, onClose, onSave }: ManualPaymentMod
 
   if (!isOpen) return null;
 
+  const inputClass =
+    'w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all';
+  const labelClass = 'block text-sm font-semibold text-[#1F2937] mb-1.5';
+
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-50 bg-black/50"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl">
+        <div
+          className="w-full max-w-md rounded-xl border border-gray-100 bg-white shadow-xl max-h-[90vh] flex flex-col"
+          style={{ fontFamily: 'Nunito, sans-serif' }}
+        >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Log Manual Payment
-            </h2>
-            <button
-              onClick={onClose}
-              className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
+          <div className="border-b border-gray-100 px-6 py-5 flex-shrink-0">
+            <h2 className="text-lg font-bold text-[#1F2937]">Log Manual Payment</h2>
+            <p className="text-sm text-[#9CA3AF] mt-0.5">
+              Record a payment made outside the platform
+            </p>
           </div>
 
-          {/* Body */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            {/* Member Selection */}
-            <div>
-              <label htmlFor="member" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Member *
-              </label>
-              <select
-                id="member"
-                value={formData.memberId}
-                onChange={(e) => setFormData({ ...formData, memberId: e.target.value })}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                required
-              >
-                <option value="">Select a member...</option>
-                {members.map((member) => (
-                  <option key={member.id} value={member.id}>
-                    {member.user.first_name} {member.user.last_name} - {member.user.email}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Scrollable body */}
+          <div className="overflow-y-auto flex-1">
+            <form onSubmit={handleSubmit} id="manual-payment-form" className="p-6 space-y-4">
+              {/* Member */}
+              <div>
+                <label className={labelClass}>
+                  Member <span className="text-[#F06543]">*</span>
+                </label>
+                <select
+                  value={formData.memberId}
+                  onChange={(e) => setFormData({ ...formData, memberId: e.target.value })}
+                  className={inputClass}
+                  required
+                >
+                  <option value="">Select a member...</option>
+                  {members.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.user.first_name} {member.user.last_name} — {member.user.email}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            {/* Amount */}
-            <div>
-              <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Amount *
-              </label>
-              <input
-                id="amount"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                required
-              />
-            </div>
+              {/* Amount */}
+              <div>
+                <label className={labelClass}>
+                  Amount (₦) <span className="text-[#F06543]">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
+                  className={inputClass}
+                  placeholder="0.00"
+                  required
+                />
+              </div>
 
-            {/* Payment Method */}
-            <div>
-              <label htmlFor="method" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Payment Method *
-              </label>
-              <select
-                id="method"
-                value={formData.method}
-                onChange={(e) => setFormData({ ...formData, method: e.target.value as 'card' | 'bank_transfer' | 'ussd' | 'cash' })}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                required
-              >
-                <option value="cash">Cash</option>
-                <option value="bank_transfer">Bank Transfer</option>
-                <option value="card">Card</option>
-                <option value="ussd">USSD</option>
-              </select>
-            </div>
+              {/* Method & Date — side by side on sm+ */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>
+                    Payment Method <span className="text-[#F06543]">*</span>
+                  </label>
+                  <select
+                    value={formData.method}
+                    onChange={(e) =>
+                      setFormData({ ...formData, method: e.target.value as ManualPaymentData['method'] })
+                    }
+                    className={inputClass}
+                    required
+                  >
+                    <option value="cash">Cash</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="card">Card</option>
+                    <option value="ussd">USSD</option>
+                  </select>
+                </div>
 
-            {/* Payment Date */}
-            <div>
-              <label htmlFor="paidAt" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Payment Date *
-              </label>
-              <input
-                id="paidAt"
-                type="date"
-                value={formData.paidAt}
-                onChange={(e) => setFormData({ ...formData, paidAt: e.target.value })}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                required
-              />
-            </div>
+                <div>
+                  <label className={labelClass}>
+                    Payment Date <span className="text-[#F06543]">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.paidAt}
+                    onChange={(e) => setFormData({ ...formData, paidAt: e.target.value })}
+                    className={inputClass}
+                    required
+                  />
+                </div>
+              </div>
 
-            {/* Description */}
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Description *
-              </label>
-              <textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-                placeholder="E.g., Monthly membership payment"
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                required
-              />
-            </div>
+              {/* Description */}
+              <div>
+                <label className={labelClass}>
+                  Description <span className="text-[#F06543]">*</span>
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={3}
+                  placeholder="e.g., Monthly membership payment"
+                  className={`${inputClass} resize-none`}
+                  required
+                />
+              </div>
 
-            {/* Notice */}
-            <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-3">
-              <p className="text-xs text-blue-600 dark:text-blue-400">
-                <strong>Note:</strong> This will log a payment manually without processing through a payment gateway.
-              </p>
-            </div>
+              {/* Notice */}
+              <div className="rounded-lg bg-[#0D9488]/5 border border-[#0D9488]/15 px-4 py-3">
+                <p className="text-xs text-[#0D9488] leading-relaxed">
+                  <span className="font-bold">Note:</span> This logs a payment manually without processing through a payment gateway.
+                </p>
+              </div>
+            </form>
+          </div>
 
-            {/* Actions */}
-            <div className="flex gap-3 pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-              >
-                Log Payment
-              </button>
-            </div>
-          </form>
+          {/* Footer */}
+          <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-end gap-3 flex-shrink-0">
+            <Button type="button" variant="ghost" size="sm" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" form="manual-payment-form" variant="secondary" size="sm">
+              Log Payment
+            </Button>
+          </div>
         </div>
       </div>
     </>

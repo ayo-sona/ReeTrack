@@ -4,283 +4,239 @@ import { useState } from "react";
 import { Search, Check, X, Clock, CreditCard } from "lucide-react";
 import { useAllPayments } from "@/hooks/memberHook/useMember";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+
+const C = {
+  teal:     "#0D9488",
+  coral:    "#F06543",
+  snow:     "#F9FAFB",
+  white:    "#FFFFFF",
+  ink:      "#1F2937",
+  coolGrey: "#9CA3AF",
+  border:   "#E5E7EB",
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i = 0) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.5, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] },
+  }),
+};
+
+type StatusFilter = "all" | "success" | "pending" | "failed";
+const FILTERS: StatusFilter[] = ["all", "success", "pending", "failed"];
+
+const formatCurrency = (amount: number | string) => {
+  const n = typeof amount === "string" ? parseFloat(amount) : amount;
+  if (isNaN(n)) return "₦0.00";
+  return `₦${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+const toNumber = (v: number | string) => {
+  const n = typeof v === "string" ? parseFloat(v) : v;
+  return isNaN(n) ? 0 : n;
+};
+
+const STATUS_CONFIG: Record<string, { bg: string; color: string; icon: React.ReactNode }> = {
+  success: { bg: "rgba(13,148,136,0.1)",  color: C.teal,    icon: <Check size={11} /> },
+  pending: { bg: "rgba(251,191,36,0.12)", color: "#D97706", icon: <Clock size={11} /> },
+  failed:  { bg: "rgba(240,101,67,0.1)",  color: C.coral,   icon: <X size={11} />    },
+};
+
+function StatTile({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div style={{
+      background: C.snow, borderRadius: "10px",
+      border: `1px solid ${accent ? "rgba(13,148,136,0.15)" : C.border}`,
+      padding: "16px 20px",
+    }}>
+      <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>{label}</p>
+      <p style={{ fontWeight: 800, fontSize: "22px", color: accent ? C.teal : C.ink, letterSpacing: "-0.3px" }}>{value}</p>
+    </div>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, height: "96px", animation: "pulse 1.5s ease-in-out infinite" }} />
+  );
+}
+
+function PaymentRow({ payment, index }: { payment: any; index: number }) {
+  const [hovered, setHovered] = useState(false);
+  const planName    = payment.invoice?.member_subscription?.plan.name || "Unknown Plan";
+  const reference   = payment.provider_reference || payment.id;
+  const isClickable = payment.status === "success" || payment.status === "failed";
+  const cfg = STATUS_CONFIG[payment.status] ?? { bg: "rgba(156,163,175,0.12)", color: C.coolGrey, icon: null };
+
+  const inner = (
+    <motion.div
+      variants={fadeUp} initial="hidden" animate="visible" custom={index}
+      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px",
+        padding: "20px 24px", background: C.white, borderRadius: "12px",
+        border: `1px solid ${hovered && isClickable ? C.teal : C.border}`,
+        boxShadow: hovered && isClickable ? "0 8px 24px rgba(13,148,136,0.1)" : "0 1px 4px rgba(0,0,0,0.04)",
+        cursor: isClickable ? "pointer" : "default",
+        transition: "border-color 300ms, box-shadow 300ms",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "14px", minWidth: 0, flex: 1 }}>
+        <div style={{
+          width: "44px", height: "44px", borderRadius: "10px", background: C.teal, flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "18px", color: C.white,
+        }}>
+          {planName.charAt(0)}
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontWeight: 700, fontSize: "15px", color: C.ink, marginBottom: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {planName}
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px", borderRadius: "999px", background: cfg.bg, color: cfg.color, fontFamily: "Nunito, sans-serif", fontWeight: 600, fontSize: "12px" }}>
+              {cfg.icon}
+              {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+            </span>
+            <span style={{ padding: "3px 10px", borderRadius: "999px", background: C.snow, border: `1px solid ${C.border}`, fontFamily: "Nunito, sans-serif", fontWeight: 600, fontSize: "12px", color: C.coolGrey, textTransform: "capitalize" }}>
+              {payment.payment_method || "card"}
+            </span>
+            {payment.status === "pending" && (
+              <span style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, fontStyle: "italic" }}>Receipt not available</span>
+            )}
+          </div>
+        </div>
+      </div>
+      <div style={{ textAlign: "right", flexShrink: 0 }}>
+        <p style={{ fontWeight: 800, fontSize: "20px", color: C.ink, letterSpacing: "-0.3px", marginBottom: "2px" }}>{formatCurrency(payment.amount)}</p>
+        <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>
+          {new Date(payment.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+        </p>
+        <p style={{ fontWeight: 400, fontSize: "11px", color: C.coolGrey, marginTop: "2px", maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {reference}
+        </p>
+      </div>
+    </motion.div>
+  );
+
+  return isClickable ? (
+    <Link key={payment.id} href={`/member/payments/${payment.id}`} style={{ display: "block", textDecoration: "none" }}>
+      {inner}
+    </Link>
+  ) : (
+    <div key={payment.id}>{inner}</div>
+  );
+}
 
 export default function PaymentHistoryPage() {
   const { data: payments, isLoading } = useAllPayments();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "success" | "pending" | "failed"
-  >("all");
+  const [searchQuery, setSearchQuery]     = useState("");
+  const [statusFilter, setStatusFilter]   = useState<StatusFilter>("all");
+  const [searchFocused, setSearchFocused] = useState(false);
 
-  const paymentsArray = payments || [];
+  const filtered = (payments || [])
+    .filter((p) => {
+      const planName  = p.invoice?.member_subscription?.plan.name || "Unknown Plan";
+      const reference = p.provider_reference || "";
+      const matchesSearch =
+        planName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.amount.toString().includes(searchQuery);
+      return matchesSearch && (statusFilter === "all" || p.status === statusFilter);
+    })
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-  // ✅ FIX: Helper function to format currency properly - handle string or number
-  const formatCurrency = (amount: number | string) => {
-    // Convert to number if it's a string
-    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    
-    // Handle invalid numbers
-    if (isNaN(numAmount)) return '₦0.00';
-    
-    return `₦${numAmount.toLocaleString('en-US', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    })}`;
-  };
-
-  // Filter payments
-  const filteredPayments = paymentsArray.filter((payment) => {
-    const planName =
-      payment.invoice?.member_subscription?.plan.name || "Unknown Plan";
-    const reference = payment.provider_reference || "";
-
-    const matchesSearch =
-      planName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      payment.amount.toString().includes(searchQuery);
-
-    const matchesStatus = statusFilter === "all" || payment.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
-
-  // Sort by date (newest first)
-  const sortedPayments = [...filteredPayments].sort(
-    (a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "success":
-        return <Check className="w-4 h-4" />;
-      case "pending":
-        return <Clock className="w-4 h-4" />;
-      case "failed":
-        return <X className="w-4 h-4" />;
-      default:
-        return null;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "success":
-        return "bg-green-100 text-green-700";
-      case "pending":
-        return "bg-yellow-100 text-yellow-700";
-      case "failed":
-        return "bg-red-100 text-red-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
-
-  // Calculate summary stats - ensure numbers are properly converted
-  const totalAmount = sortedPayments.reduce((sum, p) => {
-    const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : p.amount;
-    return sum + (isNaN(amount) ? 0 : amount);
-  }, 0);
-  
-  const successfulCount = sortedPayments.filter(
-    (p) => p.status === "success"
-  ).length;
-  
-  const successfulAmount = sortedPayments
-    .filter((p) => p.status === "success")
-    .reduce((sum, p) => {
-      const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : p.amount;
-      return sum + (isNaN(amount) ? 0 : amount);
-    }, 0);
+  const totalAmount      = filtered.reduce((s, p) => s + toNumber(p.amount), 0);
+  const successfulItems  = filtered.filter((p) => p.status === "success");
+  const successfulAmount = successfulItems.reduce((s, p) => s + toNumber(p.amount), 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Payment History</h1>
-          <p className="text-gray-600 mt-1">
-            View all your payment transactions
-          </p>
-        </div>
+    <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "32px 24px 96px" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        * { box-sizing: border-box; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+        input::placeholder { color: #9CA3AF; }
+      `}</style>
 
-        {/* Filters */}
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <div className="space-y-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+      <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
+
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} style={{ marginBottom: "32px" }}>
+          <h1 style={{ fontWeight: 800, fontSize: "32px", color: C.ink, letterSpacing: "-0.4px" }}>Payment History</h1>
+          <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, marginTop: "4px" }}>View all your payment transactions</p>
+        </motion.div>
+
+        {/* Search & filters */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1} style={{ marginBottom: "20px" }}>
+          <div style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, padding: "20px 24px", display: "flex", flexWrap: "wrap", gap: "16px", alignItems: "center" }}>
+            <div style={{ position: "relative", flex: "1 1 260px" }}>
+              <Search size={15} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: searchFocused ? C.teal : C.coolGrey, transition: "color 300ms" }} />
               <input
-                type="text"
-                placeholder="Search by plan, amount, or reference..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                type="text" placeholder="Search by plan, amount, or reference..."
+                value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)} onBlur={() => setSearchFocused(false)}
+                style={{
+                  width: "100%", paddingLeft: "34px", paddingRight: "14px", paddingTop: "10px", paddingBottom: "10px",
+                  borderRadius: "8px", border: `1px solid ${searchFocused ? C.teal : C.border}`,
+                  boxShadow: searchFocused ? "0 0 0 3px rgba(13,148,136,0.12)" : "none",
+                  fontFamily: "Nunito, sans-serif", fontWeight: 400, fontSize: "14px",
+                  color: C.ink, background: C.white, outline: "none",
+                  transition: "border-color 300ms, box-shadow 300ms",
+                }}
               />
             </div>
-
-            {/* Status Filter */}
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Status</p>
-              <div className="flex gap-2 flex-wrap">
-                {["all", "success", "pending", "failed"].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() =>
-                      setStatusFilter(
-                        status as "all" | "success" | "pending" | "failed"
-                      )
-                    }
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      statusFilter === status
-                        ? "bg-emerald-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </button>
-                ))}
-              </div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {FILTERS.map((s) => (
+                <Button
+                  key={s}
+                  variant={statusFilter === s ? "secondary" : "outline"}
+                  size="sm"
+                  onClick={() => setStatusFilter(s)}
+                >
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </Button>
+              ))}
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Summary Card */}
-        {sortedPayments.length > 0 && (
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Summary</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Payments</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {sortedPayments.length}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Amount</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(totalAmount)}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Successful</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {successfulCount} ({formatCurrency(successfulAmount)})
-                </p>
-              </div>
+        {/* Summary */}
+        {filtered.length > 0 && (
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2} style={{ marginBottom: "20px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+              <StatTile label="Total Payments" value={String(filtered.length)} />
+              <StatTile label="Total Amount"   value={formatCurrency(totalAmount)} />
+              <StatTile label="Successful"     value={`${successfulItems.length} · ${formatCurrency(successfulAmount)}`} accent />
             </div>
-          </div>
+          </motion.div>
         )}
 
-        {/* Payments List */}
+        {/* List */}
         {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-32 bg-white rounded-xl border border-gray-100"></div>
-              </div>
-            ))}
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
           </div>
-        ) : sortedPayments.length > 0 ? (
-          <div className="space-y-4">
-            {sortedPayments.map((payment) => {
-              const planName =
-                payment.invoice?.member_subscription?.plan.name || "Unknown Plan";
-              const paymentMethod = payment.payment_method || "card";
-              const reference = payment.provider_reference || payment.id;
-              
-              // ✅ FIX: Only successful and failed payments are clickable
-              const isClickable = payment.status === "success" || payment.status === "failed";
-
-              const PaymentCard = (
-                <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-100 transition-all ${
-                  isClickable ? 'hover:shadow-md hover:border-emerald-300 cursor-pointer' : ''
-                }`}>
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    {/* Payment Info */}
-                    <div className="flex-1">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0">
-                          {planName.charAt(0)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-gray-900">{planName}</h3>
-                          <p className="text-sm text-gray-600 mb-2">
-                            via {payment.payment_provider || "Payment Gateway"}
-                          </p>
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(
-                                payment.status
-                              )}`}
-                            >
-                              {getStatusIcon(payment.status)}
-                              {payment.status.charAt(0).toUpperCase() +
-                                payment.status.slice(1)}
-                            </span>
-                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 capitalize">
-                              {paymentMethod}
-                            </span>
-                            {payment.status === "pending" && (
-                              <span className="text-xs text-gray-500 italic">
-                                Receipt not available
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Amount & Date */}
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-900">
-                        {formatCurrency(payment.amount)}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(payment.created_at).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1 truncate max-w-[200px]">
-                        Ref: {reference}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-
-              // ✅ FIX: Wrap in Link only if clickable (success or failed)
-              return isClickable ? (
-                <Link 
-                  key={payment.id} 
-                  href={`/member/payments/${payment.id}`}
-                  className="block"
-                >
-                  {PaymentCard}
-                </Link>
-              ) : (
-                <div key={payment.id}>
-                  {PaymentCard}
-                </div>
-              );
-            })}
+        ) : filtered.length > 0 ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {filtered.map((payment, i) => <PaymentRow key={payment.id} payment={payment} index={i} />)}
           </div>
         ) : (
-          <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-100">
-            <CreditCard className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              {searchQuery || statusFilter !== "all"
-                ? "No payments found"
-                : "No payment history yet"}
-            </h3>
-            <p className="text-gray-600">
-              {searchQuery || statusFilter !== "all"
-                ? "Try adjusting your search or filters"
-                : "Your payment history will appear here"}
-            </p>
-          </div>
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}>
+            <div style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "64px 32px", textAlign: "center" }}>
+              <div style={{ width: "68px", height: "68px", borderRadius: "18px", background: C.snow, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px", color: C.coolGrey }}>
+                <CreditCard size={30} />
+              </div>
+              <h3 style={{ fontWeight: 700, fontSize: "20px", color: C.ink, marginBottom: "8px" }}>
+                {searchQuery || statusFilter !== "all" ? "No payments found" : "No payment history yet"}
+              </h3>
+              <p style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey, lineHeight: 1.6 }}>
+                {searchQuery || statusFilter !== "all" ? "Try adjusting your search or filters" : "Your payment history will appear here"}
+              </p>
+            </div>
+          </motion.div>
         )}
       </div>
     </div>

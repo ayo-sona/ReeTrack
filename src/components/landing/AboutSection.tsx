@@ -9,10 +9,10 @@ const AboutSection = () => {
   const [activeTab, setActiveTab] = useState<ContentKey>("who-we-are");
 
   const tabs = [
-    { id: "who-we-are" as const, label: "Who We Are", color: "#144d3a" },
-    { id: "what-we-do" as const, label: "What We Do", color: "#97462b" },
-    { id: "the-problem" as const, label: "The Problem", color: "#144d3a" },
-    { id: "our-solution" as const, label: "Our Solution", color: "#97462b" },
+    { id: "who-we-are" as const, label: "Who We Are", color: "#0D9488" },   // Growth Teal
+    { id: "what-we-do" as const, label: "What We Do", color: "#F06543" },   // Action Coral
+    { id: "the-problem" as const, label: "The Problem", color: "#0D9488" }, // Growth Teal
+    { id: "our-solution" as const, label: "Our Solution", color: "#F06543" }, // Action Coral
   ];
 
   const content: Record<
@@ -55,10 +55,9 @@ const AboutSection = () => {
   };
 
   const activeContent = content[activeTab];
+  const activeColor = tabs.find((t) => t.id === activeTab)?.color ?? "#0D9488";
 
   return (
-    // Lock background gradient to light-mode colors in dark mode
-    // Lock background gradient to light-mode colors in dark mode
     <section className="relative py-20 bg-white overflow-hidden">
       <div className="max-w-6xl mx-auto px-6 relative">
         {/* Section Header */}
@@ -78,7 +77,7 @@ const AboutSection = () => {
                 whileInView={{ scaleX: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
-                className="absolute bottom-0 left-0 right-0 h-2 bg-[#0D9488]/20 -z-0 origin-left"
+                className="absolute bottom-0 left-0 right-0 h-2 bg-[#F06543]/20 -z-0 origin-left"
               />
             </span>
           </h2>
@@ -96,17 +95,17 @@ const AboutSection = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              // Lock inactive tab to white bg + gray-200 border (not dark variants)
               className={`px-6 py-3 rounded-full font-semibold text-sm transition-all duration-300 ${
                 activeTab === tab.id
-                  ? "text-white shadow-lg scale-105"
-                  : "text-[#1F2937] bg-white border-2 border-gray-200"
+                  ? "shadow-lg scale-105"
+                  : "bg-white border-2 border-gray-200"
               }`}
               style={{
                 backgroundColor: activeTab === tab.id ? tab.color : undefined,
+                color: activeTab === tab.id ? "#ffffff" : "#1F2937",
                 boxShadow:
                   activeTab === tab.id
-                    ? `0 10px 30px ${tab.color}30`
+                    ? `0 10px 30px ${tab.color}40`
                     : undefined,
               }}
               onMouseEnter={(e) => {
@@ -179,10 +178,7 @@ const AboutSection = () => {
                     animate={{ width: "3rem" }}
                     transition={{ duration: 0.6, delay: 0.4 }}
                     className="h-1 rounded-full mb-6"
-                    style={{
-                      backgroundColor: tabs.find((t) => t.id === activeTab)
-                        ?.color,
-                    }}
+                    style={{ backgroundColor: activeColor }}
                   />
                   <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#1F2937] mb-4">
                     {activeContent.title}
@@ -201,7 +197,8 @@ const AboutSection = () => {
                 >
                   <a
                     href="#pricing"
-                    className="inline-flex items-center gap-2 text-[#0D9488] font-semibold hover:gap-3 transition-all"
+                    className="inline-flex items-center gap-2 font-semibold hover:gap-3 transition-all"
+                    style={{ color: activeColor }}
                   >
                     Learn more
                     <svg

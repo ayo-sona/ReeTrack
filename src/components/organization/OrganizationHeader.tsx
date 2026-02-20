@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Bell, LogOut, Menu } from "lucide-react";
-import { ThemeToggle } from "../layout/ThemeToggle";
 import { NotificationPanel } from "./EnterpriseNotificationPanel";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
@@ -88,8 +87,6 @@ export function OrganizationHeader({
 
         {/* Right Actions */}
         <div className="flex items-center gap-2">
-          {/* Theme Toggle */}
-          <ThemeToggle />
 
           {/* Notifications */}
           <div className="relative">

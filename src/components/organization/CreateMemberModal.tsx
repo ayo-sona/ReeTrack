@@ -1,57 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { X } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 interface CreateMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface MemberFormData {
-  email: string;
-}
-
 export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<MemberFormData>({
-    email: "",
-  });
+  const [email, setEmail] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const data = await apiClient.post(
-        "/auth/custom/register-member",
-        formData,
-      );
-      console.log(data);
-      toast.success("Email sent successfully");
+      await apiClient.post("/auth/custom/register-member", { email });
+      toast.success("Invitation sent successfully");
       onClose();
-      // Reset form
-      setFormData({
-        email: "",
-      });
+      setEmail("");
       router.refresh();
     } catch (error: any) {
       console.error("Error creating member:", error);
-      const errorMessage =
-        error.response?.data?.message || "Failed to create member";
-      toast.error(errorMessage);
+      toast.error(error.response?.data?.message || "Failed to send invitation");
     } finally {
       setIsSubmitting(false);
     }
@@ -60,66 +37,66 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4">
-        {/* Backdrop */}
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-          onClick={onClose}
-        />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
-        {/* Modal */}
-        <div className="relative w-full max-w-md rounded-lg bg-white dark:bg-gray-800 shadow-xl">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Add New Member
-            </h2>
-            <button
-              onClick={onClose}
-              className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-              disabled={isSubmitting}
-            >
-              <X className="h-5 w-5" />
-            </button>
+      {/* Modal */}
+      <div
+        className="relative w-full max-w-md rounded-xl bg-white shadow-xl border border-gray-100"
+        style={{ fontFamily: "Nunito, sans-serif" }}
+      >
+        {/* Header */}
+        <div className="border-b border-gray-100 px-6 py-5">
+          <h2 className="text-lg font-bold text-[#1F2937]">Add New Member</h2>
+          <p className="text-sm text-[#9CA3AF] mt-0.5">
+            Send an invitation to their email address
+          </p>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <div>
+            <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">
+              Email Address <span className="text-[#F06543]">*</span>
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-[#1F2937] text-sm placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all"
+              placeholder="member@example.com"
+            />
+            <p className="text-xs text-[#9CA3AF] mt-1.5">
+              They'll receive an email to complete their registration.
+            </p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Email *
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="john@example.com"
-              />
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <button
+          <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
+                variant="secondary"
+                size="sm"
                 disabled={isSubmitting}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? "Adding..." : "Add Member"}
-              </button>
+                {isSubmitting ? "Sending..." : "Send Invitation"}
+              </Button>
             </div>
-          </form>
-        </div>
+        </form>
       </div>
     </div>
   );

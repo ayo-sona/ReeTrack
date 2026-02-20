@@ -1,25 +1,47 @@
 'use client';
 
+const C = {
+  snow:     "#F9FAFB",
+  white:    "#FFFFFF",
+  border:   "#E5E7EB",
+  skeleton: "#E5E7EB",
+};
+
 interface LoadingSkeletonProps {
   type?: 'card' | 'list' | 'stats' | 'text';
   count?: number;
 }
 
 export default function LoadingSkeleton({ type = 'card', count = 3 }: LoadingSkeletonProps) {
-  // Fixed widths pattern that looks random
   const widthPattern = [75, 90, 65, 80, 70, 85];
 
   if (type === 'card') {
     return (
-      <div className="space-y-4">
+      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+          @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        `}</style>
         {Array.from({ length: count }).map((_, i) => (
-          <div key={i} className="animate-pulse">
-            <div className="h-32 bg-white rounded-xl border border-gray-100 p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-gray-200 rounded-xl"></div>
-                <div className="flex-1 space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+          <div key={i} style={{ animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" }}>
+            <div style={{
+              height: "128px",
+              background: C.white,
+              borderRadius: "12px",
+              border: `1px solid ${C.border}`,
+              padding: "24px",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <div style={{
+                  width: "56px",
+                  height: "56px",
+                  background: C.skeleton,
+                  borderRadius: "12px",
+                  flexShrink: 0,
+                }} />
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div style={{ height: "16px", background: C.skeleton, borderRadius: "4px", width: "33%" }} />
+                  <div style={{ height: "12px", background: C.skeleton, borderRadius: "4px", width: "50%" }} />
                 </div>
               </div>
             </div>
@@ -31,15 +53,31 @@ export default function LoadingSkeleton({ type = 'card', count = 3 }: LoadingSke
 
   if (type === 'list') {
     return (
-      <div className="space-y-3">
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+          @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        `}</style>
         {Array.from({ length: count }).map((_, i) => (
-          <div key={i} className="animate-pulse">
-            <div className="h-20 bg-white rounded-lg border border-gray-100 p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                  <div className="h-2 bg-gray-200 rounded w-1/2"></div>
+          <div key={i} style={{ animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" }}>
+            <div style={{
+              height: "80px",
+              background: C.white,
+              borderRadius: "8px",
+              border: `1px solid ${C.border}`,
+              padding: "16px",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{
+                  width: "48px",
+                  height: "48px",
+                  background: C.skeleton,
+                  borderRadius: "8px",
+                  flexShrink: 0,
+                }} />
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <div style={{ height: "12px", background: C.skeleton, borderRadius: "4px", width: "66%" }} />
+                  <div style={{ height: "8px", background: C.skeleton, borderRadius: "4px", width: "50%" }} />
                 </div>
               </div>
             </div>
@@ -51,15 +89,35 @@ export default function LoadingSkeleton({ type = 'card', count = 3 }: LoadingSke
 
   if (type === 'stats') {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gap: "16px",
+      }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+          @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        `}</style>
         {Array.from({ length: count }).map((_, i) => (
-          <div key={i} className="animate-pulse">
-            <div className="h-28 bg-white rounded-xl border border-gray-100 p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+          <div key={i} style={{ animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" }}>
+            <div style={{
+              height: "112px",
+              background: C.white,
+              borderRadius: "12px",
+              border: `1px solid ${C.border}`,
+              padding: "24px",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <div style={{
+                  width: "48px",
+                  height: "48px",
+                  background: C.skeleton,
+                  borderRadius: "8px",
+                  flexShrink: 0,
+                }} />
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <div style={{ height: "12px", background: C.skeleton, borderRadius: "4px", width: "50%" }} />
+                  <div style={{ height: "16px", background: C.skeleton, borderRadius: "4px", width: "33%" }} />
                 </div>
               </div>
             </div>
@@ -71,13 +129,21 @@ export default function LoadingSkeleton({ type = 'card', count = 3 }: LoadingSke
 
   if (type === 'text') {
     return (
-      <div className="animate-pulse space-y-3">
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px", animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+          @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        `}</style>
         {Array.from({ length: count }).map((_, i) => (
-          <div 
-            key={i} 
-            className="h-4 bg-gray-200 rounded" 
-            style={{ width: `${widthPattern[i % widthPattern.length]}%` }}
-          ></div>
+          <div
+            key={i}
+            style={{
+              height: "16px",
+              background: C.skeleton,
+              borderRadius: "4px",
+              width: `${widthPattern[i % widthPattern.length]}%`,
+            }}
+          />
         ))}
       </div>
     );

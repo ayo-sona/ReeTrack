@@ -213,7 +213,10 @@ export default function RegisterPage() {
                     disabled={isLoading}
                     startContent={<User className="w-4 h-4 text-gray-400" />}
                     classNames={{
-                      input: "outline-none focus-visible:outline-none ",
+                      input:
+                        "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
+                      inputWrapper:
+                        "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
                     }}
                   />
                 </div>
@@ -236,7 +239,10 @@ export default function RegisterPage() {
                     disabled={isLoading}
                     startContent={<User className="w-4 h-4 text-gray-400" />}
                     classNames={{
-                      input: "outline-none focus-visible:outline-none ",
+                      input:
+                        "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
+                      inputWrapper:
+                        "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
                     }}
                   />
                 </div>
@@ -262,7 +268,10 @@ export default function RegisterPage() {
                   disabled={isLoading}
                   startContent={<Mail className="w-4 h-4 text-gray-400" />}
                   classNames={{
-                    input: "outline-none focus-visible:outline-none ",
+                    input:
+                      "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
+                    inputWrapper:
+                      "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
                   }}
                 />
               </div>
@@ -286,7 +295,10 @@ export default function RegisterPage() {
                   disabled={isLoading}
                   startContent={<Phone className="w-4 h-4 text-gray-400" />}
                   classNames={{
-                    input: "outline-none focus-visible:outline-none ",
+                    input:
+                      "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
+                    inputWrapper:
+                      "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
                   }}
                 />
               </div>
@@ -332,7 +344,10 @@ export default function RegisterPage() {
                       : ""
                   }
                   classNames={{
-                    input: "outline-none focus-visible:outline-none ",
+                    input:
+                      "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
+                    inputWrapper:
+                      "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
                   }}
                 />
               </div>

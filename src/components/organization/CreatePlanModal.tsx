@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { X, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { SubscriptionPlan } from "../../types/organization";
+import { Button } from "@/components/ui/button";
 
 interface PlanFormData {
   name: string;
@@ -25,72 +26,37 @@ export function CreatePlanModal({
   onSave,
   editingPlan,
 }: CreatePlanModalProps) {
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    duration: "monthly",
+  const [formData, setFormData] = useState(() =>
+    editingPlan
+      ? {
+          name: editingPlan.name,
+          description: editingPlan.description || "",
+          price: editingPlan.price.toString(),
+          duration: editingPlan.duration,
+        }
+      : { name: "", description: "", price: "", duration: "monthly" },
+  );
+
+  const [features, setFeatures] = useState<string[]>(() => {
+    const featureStrings = editingPlan?.features
+      ?.map((f) => (typeof f === "string" ? f : f.name || ""))
+      .filter(Boolean);
+    return featureStrings?.length ? featureStrings : [""];
   });
 
-  const [features, setFeatures] = useState<string[]>([""]);
-
-  // Update form when editingPlan changes
-  useEffect(() => {
-    if (editingPlan) {
-      setFormData({
-        name: editingPlan.name,
-        description: editingPlan.description || "",
-        price: editingPlan.price.toString(),
-        duration: editingPlan.duration,
-      });
-
-      // Handle features - ensure it's always a string array
-      if (editingPlan.features && editingPlan.features.length > 0) {
-        const featureStrings = editingPlan.features
-          .map((f) => (typeof f === "string" ? f : f.name || ""))
-          .filter(Boolean);
-        setFeatures(featureStrings.length > 0 ? featureStrings : [""]);
-      } else {
-        setFeatures([""]);
-      }
-    } else {
-      setFormData({
-        name: "",
-        description: "",
-        price: "",
-        duration: "monthly",
-      });
-      setFeatures([""]);
-    }
-  }, [editingPlan]);
-
   const handleClose = () => {
-    setFormData({
-      name: "",
-      description: "",
-      price: "",
-      duration: "monthly",
-    });
+    setFormData({ name: "", description: "", price: "", duration: "monthly" });
     setFeatures([""]);
     onClose();
   };
 
-  const handleSubmit = (e: React.SubmitEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    const planData: PlanFormData = {
-      ...formData,
-      features: features.filter((f) => f.trim() !== ""),
-    };
-
-    onSave(planData);
+    onSave({ ...formData, features: features.filter((f) => f.trim() !== "") });
     handleClose();
   };
 
-  const addFeature = () => {
-    setFeatures([...features, ""]);
-  };
-
+  const addFeature = () => setFeatures([...features, ""]);
   const removeFeature = (index: number) => {
     if (features.length === 1) {
       setFeatures([""]);
@@ -98,45 +64,54 @@ export function CreatePlanModal({
       setFeatures(features.filter((_, i) => i !== index));
     }
   };
-
   const updateFeature = (index: number, value: string) => {
-    const newFeatures = [...features];
-    newFeatures[index] = value;
-    setFeatures(newFeatures);
+    const updated = [...features];
+    updated[index] = value;
+    setFeatures(updated);
   };
 
   if (!isOpen) return null;
 
+  const inputClass =
+    "w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-[#1F2937] text-sm placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all";
+  const labelClass = "block text-sm font-semibold text-[#1F2937] mb-1.5";
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4">
-        {/* Backdrop */}
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-          onClick={handleClose}
-        />
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ fontFamily: "Nunito, sans-serif" }}
+    >
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={handleClose}
+      />
 
-        {/* Modal */}
-        <div className="relative w-full max-w-2xl rounded-lg bg-white dark:bg-gray-800 shadow-xl">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              {editingPlan ? "Edit Plan" : "Create New Plan"}
-            </h2>
-            <button
-              onClick={handleClose}
-              className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
+      {/* Modal */}
+      <div className="relative w-full max-w-2xl rounded-xl bg-white shadow-xl border border-gray-100 max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="border-b border-gray-100 px-6 py-5 flex-shrink-0">
+          <h2 className="text-lg font-bold text-[#1F2937]">
+            {editingPlan ? "Edit Plan" : "Create New Plan"}
+          </h2>
+          <p className="text-sm text-[#9CA3AF] mt-0.5">
+            {editingPlan
+              ? "Update the details for this plan"
+              : "Set up a new subscription plan for your members"}
+          </p>
+        </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        {/* Scrollable Form Body */}
+        <div className="overflow-y-auto flex-1">
+          <form
+            onSubmit={handleSubmit}
+            id="plan-form"
+            className="p-6 space-y-5"
+          >
             {/* Plan Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Plan Name *
+              <label className={labelClass}>
+                Plan Name <span className="text-[#F06543]">*</span>
               </label>
               <input
                 type="text"
@@ -145,32 +120,30 @@ export function CreatePlanModal({
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={inputClass}
                 placeholder="e.g., Premium Membership"
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Description
-              </label>
+              <label className={labelClass}>Description</label>
               <textarea
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
                 rows={3}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Brief description of the plan..."
+                className={`${inputClass} resize-none`}
+                placeholder="Brief description of what this plan includes..."
               />
             </div>
 
             {/* Price & Duration */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Price (₦) *
+                <label className={labelClass}>
+                  Price (₦) <span className="text-[#F06543]">*</span>
                 </label>
                 <input
                   type="number"
@@ -179,23 +152,22 @@ export function CreatePlanModal({
                   onChange={(e) =>
                     setFormData({ ...formData, price: e.target.value })
                   }
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={inputClass}
                   placeholder="15000"
                   min="0"
                   step="0.01"
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Duration *
+                <label className={labelClass}>
+                  Billing Cycle <span className="text-[#F06543]">*</span>
                 </label>
                 <select
                   value={formData.duration}
                   onChange={(e) =>
                     setFormData({ ...formData, duration: e.target.value })
                   }
-                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={inputClass}
                 >
                   <option value="weekly">Weekly</option>
                   <option value="monthly">Monthly</option>
@@ -207,20 +179,21 @@ export function CreatePlanModal({
 
             {/* Features */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className={labelClass} style={{ marginBottom: 0 }}>
                   Features
                 </label>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={addFeature}
-                  className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                  className="text-[#0D9488] hover:text-[#0B7A70] px-2 h-auto py-1"
                 >
-                  <Plus className="h-4 w-4" />
-                  Add Feature
-                </button>
+                  <Plus className="h-3.5 w-3.5" />
+                  Add
+                </Button>
               </div>
-
               <div className="space-y-2">
                 {features.map((feature, index) => (
                   <div key={index} className="flex items-center gap-2">
@@ -228,15 +201,14 @@ export function CreatePlanModal({
                       type="text"
                       value={feature}
                       onChange={(e) => updateFeature(index, e.target.value)}
-                      className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter a feature"
+                      className={`${inputClass} flex-1`}
+                      placeholder={`Feature ${index + 1}`}
                     />
                     {features.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeFeature(index)}
-                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title="Remove feature"
+                        className="p-2 text-[#9CA3AF] hover:text-red-500 hover:bg-red-50 rounded-lg transition-all flex-shrink-0"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -245,24 +217,17 @@ export function CreatePlanModal({
                 ))}
               </div>
             </div>
-
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-              >
-                {editingPlan ? "Update Plan" : "Create Plan"}
-              </button>
-            </div>
           </form>
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-end gap-3 flex-shrink-0">
+          <Button type="button" variant="ghost" size="sm" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button type="submit" form="plan-form" variant="secondary" size="sm">
+            {editingPlan ? "Update Plan" : "Create Plan"}
+          </Button>
         </div>
       </div>
     </div>

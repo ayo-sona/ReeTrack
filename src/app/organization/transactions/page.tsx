@@ -1,60 +1,37 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Plus,
-  DollarSign,
-  TrendingUp,
-  CreditCard,
-  Users,
-  AlertCircle,
-} from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { PaymentsTable } from "../../../components/organization/PaymentsTable";
 import { PaymentFilters } from "../../../components/organization/PaymentFilters";
-// import {
-//   ManualPaymentModal,
-//   ManualPaymentData,
-// } from "../../../components/organization/ManualPaymentModal";
 import {
   usePayments,
   usePaymentStats,
-  // useInitializePayment,
 } from "../../../hooks/usePayments";
 import { mapApiPaymentsToUiPayments } from "../../../utils/paymentMapper";
-import { LoadingSkeleton } from "@/components/ui";
 
 export default function PaymentsPage() {
-  // const [showManualPaymentModal, setShowManualPaymentModal] = useState(false);
-
-  // Filter state
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [selectedSource, setSelectedSource] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
 
-  // Hooks handle ALL business logic
   const {
     data: paymentsResponse,
     isLoading,
     error,
     refetch,
   } = usePayments(1, 10, selectedStatus);
-  // console.log("paymentsResponse", paymentsResponse);
-  // console.log("sample payment", paymentsResponse?.data[0]);
-  const { data: stats } = usePaymentStats();
-  // console.log("stats", stats);
-  // const createPayment = useInitializePayment();
 
-  // Transform API payments to match PaymentsTable expected format
+  const { data: stats } = usePaymentStats();
+
   const payments = useMemo(() => {
     const apiPayments = paymentsResponse?.data || [];
     return mapApiPaymentsToUiPayments(apiPayments);
   }, [paymentsResponse?.data]);
 
-  // UI-only: Apply filters
   const filteredPayments = payments.filter((payment) => {
-    // Search filter
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       const matchesSearch =
@@ -65,118 +42,72 @@ export default function PaymentsPage() {
       if (!matchesSearch) return false;
     }
 
-    // Date filters
-    if (dateFrom && new Date(payment.created_at) < new Date(dateFrom))
-      return false;
-    if (dateTo && new Date(payment.created_at) > new Date(dateTo + "T23:59:59"))
-      return false;
+    if (dateFrom && new Date(payment.created_at) < new Date(dateFrom)) return false;
+    if (dateTo && new Date(payment.created_at) > new Date(dateTo + "T23:59:59")) return false;
 
-    // Gateway filter
     if (selectedSource === "all") return true;
     if (selectedStatus === "all") return true;
-    if (selectedSource === "paystack" && payment.provider !== "paystack")
-      return false;
+    if (selectedSource === "paystack" && payment.provider !== "paystack") return false;
     if (selectedSource === "kora" && payment.provider !== "kora") return false;
-    if (selectedSource === "other" && payment.provider !== "other")
-      return false;
+    if (selectedSource === "other" && payment.provider !== "other") return false;
 
     return true;
   });
-  // console.log("filteredPayments", filteredPayments);
 
   const displayStats = stats
     ? [
         {
           title: "Total Revenue",
           value: `₦${(stats.total_member_revenue / 1000).toFixed(1)}K`,
-          icon: DollarSign,
-          color: "bg-green-500",
-          subtext: "All time",
+          accent: "text-[#0D9488]",
         },
         {
           title: "Total Expenses",
           value: `₦${(stats.total_expenses / 1000).toFixed(1)}K`,
-          icon: TrendingUp,
-          color: "bg-blue-500",
-          subtext: "All time",
+          accent: "text-gray-900",
         },
-        // {
-        //   title: "Total Profit",
-        //   value: `₦${((stats.total_revenue - stats.total_expenses) / 1000).toFixed(1)}K`,
-        //   icon: CreditCard,
-        //   color: "bg-purple-500",
-        //   subtext: "All time",
-        // },
         {
-          title: "Successful Member Payments",
+          title: "Successful Payments",
           value: stats.successful_member_payments,
-          icon: Users,
-          color: "bg-green-500",
-          subtext: "All time",
+          accent: "text-[#0D9488]",
         },
         {
-          title: "Failed Member Payments",
+          title: "Failed Payments",
           value: stats.failed_member_payments,
-          icon: Users,
-          color: "bg-red-500",
-          subtext: "All time",
+          accent: "text-red-500",
         },
         {
-          title: "Pending Member Payments",
+          title: "Pending Payments",
           value: stats.pending_member_payments,
-          icon: Users,
-          color: "bg-yellow-500",
-          subtext: "All time",
+          accent: "text-yellow-500",
         },
       ]
     : [];
 
-  // Event handlers - just call hooks
-  // const handleLogManualPayment = async (data: ManualPaymentData) => {
-  //   try {
-  //     await createPayment.mutateAsync({
-  //       memberId: data.memberId,
-  //       amount: data.amount,
-  //       currency: data.currency,
-  //       provider: data.provider,
-  //       provider_reference: data.provider_reference,
-  //       description: data.description,
-  //       paidAt: data.paidAt,
-  //     });
-  //     setShowManualPaymentModal(false);
-  //     console.log("Payment logged successfully");
-  //   } catch (error) {
-  //     console.error("Failed to log payment:", error);
-  //     alert("Failed to log payment. Please try again.");
-  //   }
-  // };
-
   if (isLoading) {
-    return <LoadingSkeleton />;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-sm text-gray-500">Loading payments...</p>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-6">
-        <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-6 max-w-md">
+      <div className="flex items-center justify-center min-h-[60vh] p-6">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-6 w-full max-w-md">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-            <div>
-              <h3 className="text-lg font-semibold text-red-900 dark:text-red-100">
-                Failed to Load Payments
+            <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <h3 className="font-semibold text-red-900">
+                Failed to load payments
               </h3>
-              <p className="mt-2 text-sm text-red-700 dark:text-red-300">
-                Unable to fetch payment data from the server. This could be
-                because:
+              <p className="text-sm text-red-700">
+                The payments data could not be fetched. Check your connection or permissions and try again.
               </p>
-              <ul className="mt-2 text-sm text-red-700 dark:text-red-300 list-disc list-inside space-y-1">
-                <li>The payments API endpoint is not yet implemented</li>
-                <li>You don&apos;t have permission to view payments</li>
-                <li>There&apos;s a network connection issue</li>
-              </ul>
               <button
                 onClick={() => refetch()}
-                className="mt-4 w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                className="mt-2 w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors"
               >
                 Retry
               </button>
@@ -188,53 +119,30 @@ export default function PaymentsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 p-4 sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Payment History
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            View all payments and manually log transactions
-          </p>
-        </div>
-        {/* <button
-          onClick={() => setShowManualPaymentModal(true)}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          Log Payment
-        </button> */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Payment History
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">
+          View and manage all payment transactions
+        </p>
       </div>
 
       {/* Stats Grid */}
       {displayStats.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {displayStats.map((stat) => (
             <div
               key={stat.title}
-              className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700"
+              className="rounded-xl border border-gray-200 bg-white p-4"
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                    {stat.title}
-                  </p>
-                  <p
-                    className="text-2xl font-bold text-gray-900 dark:text-white mt-2"
-                    suppressHydrationWarning
-                  >
-                    {stat.value}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                    {stat.subtext}
-                  </p>
-                </div>
-                <div className={`${stat.color} p-3 rounded-lg`}>
-                  <stat.icon className="w-6 h-6 text-white" />
-                </div>
-              </div>
+              <p className="text-xs text-gray-500 font-medium">{stat.title}</p>
+              <p className={`text-xl font-bold mt-1 ${stat.accent}`} suppressHydrationWarning>
+                {stat.value}
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">All time</p>
             </div>
           ))}
         </div>
@@ -256,12 +164,12 @@ export default function PaymentsPage() {
       />
 
       {/* Payments Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         {filteredPayments.length === 0 ? (
           <div className="p-12 text-center">
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-500">
               {payments.length === 0
-                ? "No payments yet. Log your first payment to get started."
+                ? "No payments yet."
                 : "No payments match your current filters."}
             </p>
           </div>
@@ -269,13 +177,6 @@ export default function PaymentsPage() {
           <PaymentsTable payments={filteredPayments} />
         )}
       </div>
-
-      {/* Manual Payment Modal */}
-      {/* <ManualPaymentModal
-        isOpen={showManualPaymentModal}
-        onClose={() => setShowManualPaymentModal(false)}
-        onSave={handleLogManualPayment}
-      /> */}
     </div>
   );
 }

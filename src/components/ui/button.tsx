@@ -20,7 +20,7 @@ const buttonVariants = cva(
           "border-2 border-[#0D9488] bg-transparent text-[#0D9488] hover:bg-[#0D9488] hover:text-white",
         ghost: "text-[#0D9488] hover:bg-[#0D9488]/10",
         destructive: "bg-red-600 text-white hover:bg-red-700",
-        link: "text-[#0D9488] underline-offset-4 hover:underline",
+        link: "text-[#0D9488] hover:text-[#0B7A70] no-underline",
       },
       size: {
         default: "h-11 px-6 py-2", // Made slightly taller for a premium feel

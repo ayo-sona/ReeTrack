@@ -1,116 +1,194 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, CreditCard, X, QrCode, CheckCircle } from "lucide-react";
+import { useState } from "react";
+import { Search, CreditCard, X, CheckCircle } from "lucide-react";
 import { useAllSubscriptions } from "@/hooks/memberHook/useMember";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+
+const C = {
+  teal:     "#0D9488",
+  coral:    "#F06543",
+  snow:     "#F9FAFB",
+  white:    "#FFFFFF",
+  ink:      "#1F2937",
+  coolGrey: "#9CA3AF",
+  border:   "#E5E7EB",
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i = 0) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.5, delay: i * 0.07, ease: [0.16, 1, 0.3, 1] },
+  }),
+};
+
+type StatusFilter = "all" | "active" | "expired" | "canceled" | "pending";
+const FILTER_OPTIONS: StatusFilter[] = ["all", "active", "pending", "expired", "canceled"];
+
+const STATUS_CONFIG: Record<string, { bg: string; color: string; label: string }> = {
+  active:   { bg: "rgba(13,148,136,0.1)",   color: C.teal,     label: "Active" },
+  expired:  { bg: "rgba(240,101,67,0.1)",   color: C.coral,    label: "Expired" },
+  canceled: { bg: "rgba(156,163,175,0.15)", color: C.coolGrey, label: "Canceled" },
+  pending:  { bg: "rgba(251,191,36,0.12)",  color: "#D97706",  label: "Pending" },
+};
+
+const now = Date.now();
+
+function StatusBadge({ status }: { status: string }) {
+  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.canceled;
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: "5px",
+      padding: "4px 10px", borderRadius: "999px",
+      background: cfg.bg, color: cfg.color,
+      fontFamily: "Nunito, sans-serif", fontWeight: 600, fontSize: "12px", flexShrink: 0,
+    }}>
+      {status === "active"   && <CheckCircle size={12} />}
+      {status === "canceled" && <X size={12} />}
+      {cfg.label}
+    </span>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div style={{
+      background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`,
+      height: "220px", animation: "pulse 1.5s ease-in-out infinite",
+    }} />
+  );
+}
+
+function SubscriptionCard({ sub, index }: { sub: any; index: number }) {
+  const [hovered, setHovered] = useState(false);
+  
+  if (!sub?.plan) return null;
+
+  const isExpiringSoon = (expiresAt: string) => {
+    const days = Math.ceil((new Date(expiresAt).getTime() - now) / (1000 * 60 * 60 * 24));
+    return days <= 7 && days > 0;
+  };
+
+  const expiringSoon = sub.status === "active" && isExpiringSoon(sub.expires_at);
+  const featuresArray: string[] = sub.plan.features?.features ?? [];
+
+  return (
+    <Link href={`/member/subscriptions/${sub.id}`} style={{ textDecoration: "none" }}>
+      <motion.div
+        variants={fadeUp} initial="hidden" animate="visible" custom={index}
+        onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+        whileHover={{ y: -2 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        style={{
+          background: expiringSoon ? "rgba(240,101,67,0.04)" : C.white,
+          borderRadius: "12px",
+          border: `1px solid ${expiringSoon ? "rgba(240,101,67,0.35)" : hovered ? C.teal : C.border}`,
+          padding: "24px",
+          boxShadow: hovered ? "0 8px 24px rgba(13,148,136,0.1)" : "0 1px 4px rgba(0,0,0,0.05)",
+          cursor: "pointer", transition: "border-color 300ms, box-shadow 300ms",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "16px", gap: "12px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: 0 }}>
+            <div style={{
+              width: "48px", height: "48px", borderRadius: "12px", background: C.teal,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: C.white, fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "20px", flexShrink: 0,
+            }}>
+              {sub.plan.name.charAt(0)}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <p style={{ fontWeight: 700, fontSize: "15px", color: C.ink, marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {sub.plan.name}
+              </p>
+              <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {sub.plan.description}
+              </p>
+            </div>
+          </div>
+          <StatusBadge status={sub.status} />
+        </div>
+
+        <div style={{ display: "flex", alignItems: "baseline", gap: "4px", marginBottom: "16px" }}>
+          <span style={{ fontWeight: 800, fontSize: "28px", color: C.ink, letterSpacing: "-0.5px" }}>
+            ₦{sub.plan.price.toLocaleString()}
+          </span>
+          <span style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey }}>/{sub.plan.interval}</span>
+        </div>
+
+        {featuresArray.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "16px" }}>
+            {featuresArray.slice(0, 3).map((feature: string, idx: number) => (
+              <div key={idx} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: C.teal, flexShrink: 0 }} />
+                <span style={{ fontWeight: 400, fontSize: "13px", color: C.ink }}>{feature}</span>
+              </div>
+            ))}
+            {featuresArray.length > 3 && (
+              <span style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>
+                +{featuresArray.length - 3} more features
+              </span>
+            )}
+          </div>
+        )}
+
+        {(sub.status === "active" || sub.status === "canceled") && (
+          <div style={{ paddingTop: "12px", borderTop: `1px solid ${C.border}` }}>
+            {sub.status === "active" && (
+              <p style={{ fontWeight: expiringSoon ? 600 : 400, fontSize: "13px", color: expiringSoon ? C.coral : C.coolGrey }}>
+                {expiringSoon && "⚠️ "}
+                {sub.auto_renew ? "Renews" : "Expires"}:{" "}
+                <span style={{ fontWeight: 600, color: expiringSoon ? C.coral : C.ink }}>
+                  {new Date(sub.expires_at).toLocaleDateString()}
+                </span>
+              </p>
+            )}
+            {sub.status === "canceled" && sub.canceled_at && (
+              <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>
+                Canceled on:{" "}
+                <span style={{ fontWeight: 600, color: C.ink }}>
+                  {new Date(sub.canceled_at).toLocaleDateString()}
+                </span>
+              </p>
+            )}
+          </div>
+        )}
+      </motion.div>
+    </Link>
+  );
+}
 
 export default function SubscriptionsPage() {
+  const router = useRouter();
   const { data: subscriptions, isLoading, error } = useAllSubscriptions();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "active" | "expired" | "canceled" | "pending"
-  >("all");
+  const [searchQuery, setSearchQuery]     = useState("");
+  const [statusFilter, setStatusFilter]   = useState<StatusFilter>("all");
+  const [searchFocused, setSearchFocused] = useState(false);
 
-  // 🔍 DEBUG: Log the actual data structure
-  useEffect(() => {
-    console.log("=== SUBSCRIPTIONS DEBUG ===");
-    console.log("Raw subscriptions:", subscriptions);
-    console.log("Is Array:", Array.isArray(subscriptions));
-    console.log("Length:", subscriptions?.length);
-    if (subscriptions && subscriptions.length > 0) {
-      console.log("First subscription:", subscriptions[0]);
-      console.log("Has plan?:", subscriptions[0]?.plan);
-      console.log("Plan structure:", JSON.stringify(subscriptions[0]?.plan, null, 2));
-    }
-  }, [subscriptions]);
+  const filtered = subscriptions
+    ?.filter((sub) => {
+      if (!sub.plan?.name) return false;
+      const matchesSearch =
+        sub.plan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sub.plan.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === "all" || sub.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime()) ?? [];
 
-  // Filter subscriptions with comprehensive null checks
-  const filteredSubscriptions = subscriptions?.filter((sub) => {
-    // 🔍 DEBUG: Log each subscription during filtering
-    console.log("Filtering sub:", { 
-      id: sub?.id, 
-      hasPlan: !!sub?.plan,
-      planName: sub?.plan?.name,
-      status: sub?.status 
-    });
+  const isEmpty = !isLoading && filtered.length === 0;
 
-    // ✅ Safety check: ensure plan exists
-    if (!sub?.plan) {
-      console.warn("⚠️ Subscription missing plan:", sub);
-      return false;
-    }
-    
-    const planName = sub.plan.name || "";
-    const planDescription = sub.plan.description || "";
-    
-    const matchesSearch =
-      planName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      planDescription.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || sub.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
-
-  // Sort by expiry date (soonest first)
-  const sortedSubscriptions = filteredSubscriptions
-    ? [...filteredSubscriptions].sort(
-        (a, b) =>
-          new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime()
-      )
-    : [];
-
-  // Check if subscription expires within 7 days
-  const isExpiringSoon = (expiresAt: string) => {
-    const now = new Date();
-    const expiry = new Date(expiresAt);
-    const daysUntilExpiry = Math.ceil(
-      (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-    );
-    return daysUntilExpiry <= 7 && daysUntilExpiry > 0;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-100 text-green-700";
-      case "expired":
-        return "bg-red-100 text-red-700";
-      case "canceled":
-        return "bg-gray-100 text-gray-700";
-      case "pending":
-        return "bg-yellow-100 text-yellow-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "active":
-        return <CheckCircle className="w-4 h-4" />;
-      case "canceled":
-        return <X className="w-4 h-4" />;
-      default:
-        return null;
-    }
-  };
-
-  // Show error state
   if (error) {
-    console.error("❌ Subscription error:", error);
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-            <h3 className="text-red-800 font-bold mb-2">Error Loading Subscriptions</h3>
-            <p className="text-red-600 mb-4">{error.message}</p>
-            <details className="text-sm text-red-700">
-              <summary className="cursor-pointer font-medium">Error Details</summary>
-              <pre className="mt-2 p-2 bg-red-100 rounded overflow-auto">
-                {JSON.stringify(error, null, 2)}
-              </pre>
-            </details>
+      <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "32px 24px" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+          <div style={{ background: "rgba(240,101,67,0.08)", border: "1px solid rgba(240,101,67,0.3)", borderRadius: "12px", padding: "24px" }}>
+            <h3 style={{ fontWeight: 700, fontSize: "18px", color: C.coral, marginBottom: "8px" }}>Error Loading Subscriptions</h3>
+            <p style={{ fontWeight: 400, fontSize: "14px", color: C.ink }}>{error.message}</p>
           </div>
         </div>
       </div>
@@ -118,226 +196,92 @@ export default function SubscriptionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-orange-50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Subscriptions</h1>
-          <p className="text-gray-600 mt-1">
-            Manage all your active and past subscriptions
-          </p>
-        </div>
+    <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "32px 24px 96px" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+        * { box-sizing: border-box; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        input::placeholder { color: #9CA3AF; }
+      `}</style>
 
-        {/* 🔍 DEBUG INFO - Remove this in production */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
-            <p className="font-medium text-blue-900 mb-2">Debug Info:</p>
-            <ul className="text-blue-800 space-y-1">
-              <li>• Subscriptions count: {subscriptions?.length || 0}</li>
-              <li>• Filtered count: {filteredSubscriptions?.length || 0}</li>
-              <li>• Loading: {isLoading ? 'Yes' : 'No'}</li>
-              <li>• Has error: {error ? 'Yes' : 'No'}</li>
-            </ul>
+      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} style={{ marginBottom: "32px" }}>
+          <h1 style={{ fontWeight: 800, fontSize: "32px", color: C.ink, letterSpacing: "-0.4px" }}>My Subscriptions</h1>
+          <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, marginTop: "4px" }}>Manage all your active and past subscriptions</p>
+        </motion.div>
+
+        {/* Search & filters */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1}
+          style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, padding: "20px 24px", marginBottom: "28px", display: "flex", flexWrap: "wrap", gap: "16px", alignItems: "center" }}
+        >
+          <div style={{ position: "relative", flex: "1 1 240px" }}>
+            <Search size={16} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: searchFocused ? C.teal : C.coolGrey, transition: "color 300ms" }} />
+            <input
+              type="text" placeholder="Search subscriptions..."
+              value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setSearchFocused(true)} onBlur={() => setSearchFocused(false)}
+              style={{
+                width: "100%", paddingLeft: "36px", paddingRight: "16px", paddingTop: "10px", paddingBottom: "10px",
+                borderRadius: "8px", border: `1px solid ${searchFocused ? C.teal : C.border}`,
+                boxShadow: searchFocused ? "0 0 0 3px rgba(13,148,136,0.12)" : "none",
+                fontFamily: "Nunito, sans-serif", fontWeight: 400, fontSize: "14px",
+                color: C.ink, background: C.white, outline: "none",
+                transition: "border-color 300ms, box-shadow 300ms",
+              }}
+            />
           </div>
-        )}
-
-        {/* Search and Filters */}
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search subscriptions..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              />
-            </div>
-
-            {/* Status Filter */}
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {["all", "active", "pending", "expired", "canceled"].map(
-                (status) => (
-                  <button
-                    key={status}
-                    onClick={() =>
-                      setStatusFilter(
-                        status as
-                          | "all"
-                          | "active"
-                          | "expired"
-                          | "canceled"
-                          | "pending"
-                      )
-                    }
-                    className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
-                      statusFilter === status
-                        ? "bg-emerald-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </button>
-                )
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Subscriptions List */}
-        {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-32 bg-white rounded-xl border border-gray-100"></div>
-              </div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            {FILTER_OPTIONS.map((s) => (
+              <Button
+                key={s}
+                variant={statusFilter === s ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter(s)}
+              >
+                {s.charAt(0).toUpperCase() + s.slice(1)}
+              </Button>
             ))}
           </div>
-        ) : sortedSubscriptions && sortedSubscriptions.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {sortedSubscriptions.map((sub) => {
-              // ✅ Additional safety check
-              if (!sub?.plan) {
-                console.warn("⚠️ Skipping subscription without plan:", sub);
-                return null;
-              }
+        </motion.div>
 
-              const expiringSoon =
-                sub.status === "active" && isExpiringSoon(sub.expires_at);
-
-              return (
-                <Link key={sub.id} href={`/member/subscriptions/${sub.id}`}>
-                  <div
-                    className={`bg-white rounded-xl p-6 shadow-sm border transition-all cursor-pointer ${
-                      expiringSoon
-                        ? "border-orange-300 bg-orange-50 hover:bg-orange-100"
-                        : "border-gray-100 hover:border-emerald-300 hover:shadow-md"
-                    }`}
-                  >
-                    {/* Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
-                          {sub.plan.name?.charAt(0) || "S"}
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-gray-900">
-                            {sub.plan.name || "Subscription"}
-                          </h3>
-                          <p className="text-sm text-gray-600 line-clamp-1">
-                            {sub.plan.description || "No description"}
-                          </p>
-                        </div>
-                      </div>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(
-                          sub.status
-                        )}`}
-                      >
-                        {getStatusIcon(sub.status)}
-                        {sub.status.charAt(0).toUpperCase() +
-                          sub.status.slice(1)}
-                      </span>
-                    </div>
-
-                    {/* Price */}
-                    <div className="flex items-baseline gap-1 mb-4">
-                      <span className="text-3xl font-bold text-gray-900">
-                        ₦{sub.plan.price?.toLocaleString() || "0"}
-                      </span>
-                      <span className="text-gray-600">/{sub.plan.interval || "month"}</span>
-                    </div>
-
-                    {/* Features */}
-                    <div className="space-y-2 mb-4">
-                      {sub.plan.features?.features?.slice(0, 3).map((feature, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-2 text-sm text-gray-600"
-                        >
-                          <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full"></div>
-                          {feature}
-                        </div>
-                      )) || (
-                        <p className="text-sm text-gray-500">No features listed</p>
-                      )}
-                      {(sub.plan.features?.features?.length || 0) > 3 && (
-                        <p className="text-sm text-gray-500">
-                          +{sub.plan.features.features.length - 3} more features
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Expiry Info */}
-                    {sub.status === "active" && (
-                      <div className="pt-4 border-t border-gray-100">
-                        <p
-                          className={`text-sm ${
-                            expiringSoon
-                              ? "text-orange-600 font-medium"
-                              : "text-gray-600"
-                          }`}
-                        >
-                          {expiringSoon && "⚠️ "}
-                          {sub.auto_renew ? "Renews" : "Expires"}:{" "}
-                          <span className="font-medium">
-                            {new Date(sub.expires_at).toLocaleDateString()}
-                          </span>
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Canceled Info */}
-                    {sub.status === "canceled" && sub.canceled_at && (
-                      <div className="pt-4 border-t border-gray-100">
-                        <p className="text-sm text-gray-600">
-                          Canceled on:{" "}
-                          <span className="font-medium text-gray-900">
-                            {new Date(sub.canceled_at).toLocaleDateString()}
-                          </span>
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Check-in Button for Active Subs - 🔜 Placeholder */}
-                    {sub.status === "active" && (
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          // Navigate to check-in
-                        }}
-                        className="mt-4 w-full py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
-                      >
-                        <QrCode className="w-4 h-4" />
-                        Check In
-                      </button>
-                    )}
-                  </div>
-                </Link>
-              );
-            })}
+        {/* Content */}
+        {isLoading ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "20px" }}>
+            {[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : !isEmpty ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "20px" }}>
+            {filtered.map((sub, i) => <SubscriptionCard key={sub.id} sub={sub} index={i} />)}
           </div>
         ) : (
-          <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-100">
-            <CreditCard className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              {searchQuery || statusFilter !== "all"
-                ? "No subscriptions found"
-                : "No subscriptions yet"}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {searchQuery || statusFilter !== "all"
-                ? "Try adjusting your search or filters"
-                : "Subscribe to a plan to get started"}
-            </p>
-            {!searchQuery && statusFilter === "all" && (
-              <button className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
-                Browse Plans
-              </button>
-            )}
-          </div>
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2}>
+            <div style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "64px 32px", textAlign: "center" }}>
+              <div style={{ width: "72px", height: "72px", borderRadius: "18px", background: C.snow, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+                <CreditCard size={32} style={{ color: C.coolGrey }} />
+              </div>
+              <h3 style={{ fontWeight: 700, fontSize: "20px", color: C.ink, marginBottom: "8px" }}>
+                {searchQuery || statusFilter !== "all" ? "No subscriptions found" : "No subscriptions yet"}
+              </h3>
+              <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, marginBottom: "28px", maxWidth: "340px", margin: "0 auto 28px", lineHeight: 1.6 }}>
+                {searchQuery || statusFilter !== "all" ? "Try adjusting your search or filters" : "Subscribe to a plan to get started"}
+              </p>
+              {!searchQuery && statusFilter === "all" && (
+                <div style={{ position: "relative", display: "inline-block" }}>
+                  <div style={{
+                    position: "absolute", inset: "-4px", borderRadius: "12px",
+                    background: `linear-gradient(to right, rgba(240,101,67,0.4), rgba(240,101,67,0.2), rgba(240,101,67,0.4))`,
+                    filter: "blur(14px)", opacity: 0.7, zIndex: 0,
+                  }} />
+                  <div style={{ position: "relative", zIndex: 1 }}>
+                    <Button variant="default" size="lg" onClick={() => router.push("/communities")}>
+                      Browse Plans
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
         )}
       </div>
     </div>

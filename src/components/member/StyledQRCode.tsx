@@ -1,5 +1,9 @@
 import { QRCodeSVG } from "qrcode.react";
-import { useEffect, useState } from "react";
+
+const C = {
+  white: "#FFFFFF",
+  border: "#E5E7EB",
+};
 
 interface StyledQRCodeProps {
   value: string;
@@ -14,22 +18,21 @@ export default function StyledQRCode({
   level = "H",
   className = "",
 }: StyledQRCodeProps) {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-    return () => setIsMounted(false);
-  }, []);
-
-  if (!isMounted) return null;
-
   return (
-    <div className={`bg-white p-4 rounded-xl shadow-lg ${className}`}>
+    <div
+      className={className}
+      style={{
+        background: C.white,
+        padding: "16px",
+        borderRadius: "12px",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+      }}
+    >
       <QRCodeSVG
         value={value}
         size={size}
         level={level}
-        className="w-full h-auto"
+        style={{ width: "100%", height: "auto" }}
         fgColor="#000000"
         bgColor="#ffffff"
       />

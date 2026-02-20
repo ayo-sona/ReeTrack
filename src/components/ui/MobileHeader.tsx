@@ -2,18 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  Home,
-  Wallet,
-  CreditCard,
-  QrCode,
-  Bell,
-  Menu,
-  X,
-  LogOut,
-  Settings,
-  Building2,
-} from "lucide-react";
+import { Menu, X, Bell, LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
@@ -25,32 +14,54 @@ const C = {
   border:   "#E5E7EB",
 };
 
-interface MemberMobileHeaderProps {
-  pathname: string;
-  unreadCount: number;
-  handleLogout: () => void;
-  loading: boolean;
-  profile?: any;
+export interface MobileNavItem {
+  name: string;
+  href: string;
+  icon: LucideIcon;
 }
 
-const navigation = [
-  { name: "Dashboard", href: "/member/dashboard", icon: Home },
-  { name: "Community", href: "/member/communities", icon: Building2 },
-  { name: "Wallet", href: "/member/wallet", icon: Wallet },
-  { name: "Subscriptions", href: "/member/subscriptions", icon: CreditCard },
-  { name: "Check In", href: "/member/check-ins", icon: QrCode },
-  { name: "Payments", href: "/member/payments", icon: CreditCard },
-  { name: "Notifications", href: "/member/notifications", icon: Bell },
-];
+export interface MobileHeaderProfile {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
 
-export function MemberMobileHeader({
-  pathname,
-  unreadCount,
-  handleLogout,
-  loading,
+export interface MobileHeaderAction {
+  label: string;
+  icon: LucideIcon;
+  onClick: () => void;
+  variant?: "ghost" | "outline";
+  disabled?: boolean;
+  className?: string;
+}
+
+interface MobileHeaderProps {
+  currentPath: string;
+  navigation: MobileNavItem[];
+  profile?: MobileHeaderProfile;
+  notificationHref?: string;
+  notificationCount?: number;
+  actions?: MobileHeaderAction[];
+  logoText?: string;
+  logoHref?: string;
+}
+
+export function MobileHeader({
+  currentPath,
+  navigation,
   profile,
-}: MemberMobileHeaderProps) {
+  notificationHref = "#",
+  notificationCount = 0,
+  actions = [],
+  logoText = "ReeTrack",
+  logoHref = "/",
+}: MobileHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Add notifications to navigation if provided
+  const allNavItems = notificationHref !== "#" 
+    ? [...navigation, { name: "Notifications", href: notificationHref, icon: Bell }]
+    : navigation;
 
   return (
     <>
@@ -78,7 +89,7 @@ export function MemberMobileHeader({
           padding: "14px 16px",
         }}>
           {/* Logo */}
-          <Link href="/member/dashboard" style={{ textDecoration: "none" }}>
+          <Link href={logoHref} style={{ textDecoration: "none" }}>
             <h1 style={{
               fontFamily: "Nunito, sans-serif",
               fontWeight: 800,
@@ -86,53 +97,55 @@ export function MemberMobileHeader({
               color: C.teal,
               letterSpacing: "-0.4px",
             }}>
-              ReeTrack
+              {logoText}
             </h1>
           </Link>
 
           {/* Right side */}
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             {/* Notifications badge */}
-            <Link href="/member/notifications" style={{ position: "relative", display: "block" }}>
-              <button style={{
-                padding: "8px",
-                borderRadius: "8px",
-                border: "none",
-                background: "transparent",
-                color: C.ink,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "background 200ms",
-                position: "relative",
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "rgba(13,148,136,0.06)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-              >
-                <Bell size={19} />
-                {unreadCount > 0 && (
-                  <span style={{
-                    position: "absolute",
-                    top: "5px",
-                    right: "5px",
-                    minWidth: "16px",
-                    height: "16px",
-                    padding: "0 4px",
-                    background: "#EF4444",
-                    color: C.white,
-                    fontSize: "10px",
-                    fontWeight: 700,
-                    borderRadius: "999px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}>
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-            </Link>
+            {notificationHref !== "#" && (
+              <Link href={notificationHref} style={{ position: "relative", display: "block" }}>
+                <button style={{
+                  padding: "8px",
+                  borderRadius: "8px",
+                  border: "none",
+                  background: "transparent",
+                  color: C.ink,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "background 200ms",
+                  position: "relative",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "rgba(13,148,136,0.06)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                >
+                  <Bell size={19} />
+                  {notificationCount > 0 && (
+                    <span style={{
+                      position: "absolute",
+                      top: "5px",
+                      right: "5px",
+                      minWidth: "16px",
+                      height: "16px",
+                      padding: "0 4px",
+                      background: "#EF4444",
+                      color: C.white,
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      borderRadius: "999px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}>
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
+              </Link>
+            )}
 
             {/* Menu button */}
             <button
@@ -203,8 +216,8 @@ export function MemberMobileHeader({
                     fontWeight: 800,
                     fontSize: "18px",
                   }}>
-                    {profile.first_name?.charAt(0)}
-                    {profile.last_name?.charAt(0)}
+                    {profile.firstName.charAt(0)}
+                    {profile.lastName.charAt(0)}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{
@@ -213,7 +226,7 @@ export function MemberMobileHeader({
                       color: C.ink,
                       marginBottom: "2px",
                     }}>
-                      {profile.first_name} {profile.last_name}
+                      {profile.firstName} {profile.lastName}
                     </p>
                     <p style={{
                       fontWeight: 400,
@@ -239,10 +252,10 @@ export function MemberMobileHeader({
               gap: "12px",
               alignContent: "start",
             }}>
-              {navigation.map((item) => {
+              {allNavItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href;
-                const hasNotif = item.name === "Notifications" && unreadCount > 0;
+                const isActive = currentPath === item.href;
+                const hasNotif = item.name === "Notifications" && notificationCount > 0;
                 
                 return (
                   <Link
@@ -304,34 +317,32 @@ export function MemberMobileHeader({
             </nav>
 
             {/* Bottom Actions */}
-            <div style={{
-              padding: "16px",
-              borderTop: `1px solid ${C.border}`,
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-            }}>
-              <Link href="/member/profile" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: "none" }}>
-                <Button variant="ghost" size="lg" className="w-full justify-start">
-                  <Settings size={20} />
-                  Settings
-                </Button>
-              </Link>
-
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50"
-                onClick={() => {
-                  handleLogout();
-                  setIsMobileMenuOpen(false);
-                }}
-                disabled={loading}
-              >
-                <LogOut size={20} />
-                {loading ? "Logging out..." : "Logout"}
-              </Button>
-            </div>
+            {actions.length > 0 && (
+              <div style={{
+                padding: "16px",
+                borderTop: `1px solid ${C.border}`,
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+              }}>
+                {actions.map((action, idx) => (
+                  <Button
+                    key={idx}
+                    variant={action.variant || "ghost"}
+                    size="lg"
+                    className={`w-full justify-start ${action.className || ""}`}
+                    onClick={() => {
+                      action.onClick();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    disabled={action.disabled}
+                  >
+                    <action.icon size={20} />
+                    {action.label}
+                  </Button>
+                ))}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { X, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Member } from "../../types/organization";
 import { GrantAccessData } from "@/app/organization/members/[id]/page";
+import { Button } from "@/components/ui/button";
 
 interface GrantAccessModalProps {
   member: Member;
@@ -18,24 +19,13 @@ export function GrantAccessModal({
   onGrant,
   currentSubscription,
 }: GrantAccessModalProps) {
-  // const [selectedPlanId, setSelectedPlanId] = useState("");
   const [reason, setReason] = useState("");
 
-  // Get member info from actual API structure
-  const memberName =
-    `${member.user.first_name} ${member.user.last_name}`.trim();
+  const memberName = `${member.user.first_name} ${member.user.last_name}`.trim();
   const memberEmail = member.user.email;
 
-  // Get active subscription if exists
-  // const activeSubscription = member.subscriptions?.find(s => s.status === 'active');
-  // const hasActiveSubscription = !!activeSubscription;
-
-  // Fetch available plans from API
-  // const { data: plans = [], isLoading: isLoadingPlans } = useActivePlans();
-
-  const handleSubmit = (e: React.SubmitEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     onGrant({
       memberId: member.id,
       planId: currentSubscription?.plan?.id || "",
@@ -51,123 +41,95 @@ export function GrantAccessModal({
 
   return (
     <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 z-50 bg-black/50" onClick={onClose} />
+      <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div
+          className="w-full max-w-md rounded-xl border border-gray-100 bg-white shadow-xl max-h-[90vh] flex flex-col"
+          style={{ fontFamily: "Nunito, sans-serif" }}
+        >
           {/* Header */}
-          <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 z-10">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Grant Subscription Access
-            </h2>
-            <button
-              onClick={onClose}
-              className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
+          <div className="border-b border-gray-100 px-6 py-5 flex-shrink-0">
+            <h2 className="text-lg font-bold text-[#1F2937]">Grant Subscription Access</h2>
+            <p className="text-sm text-[#9CA3AF] mt-0.5">
+              Manually extend access to a member
+            </p>
           </div>
 
-          {/* Body */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            {/* Member Info */}
-            <div className="rounded-lg bg-gray-50 dark:bg-gray-700/50 p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Granting access to:
-              </p>
-              <p className="mt-1 font-medium text-gray-900 dark:text-gray-100">
-                {memberName}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {memberEmail}
-              </p>
+          {/* Scrollable body */}
+          <div className="overflow-y-auto flex-1">
+            <form onSubmit={handleSubmit} id="grant-form" className="p-6 space-y-4">
+              {/* Member info */}
+              <div className="rounded-lg bg-[#F9FAFB] border border-gray-100 p-4">
+                <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide mb-2">
+                  Granting access to
+                </p>
+                <p className="text-sm font-bold text-[#1F2937]">{memberName}</p>
+                <p className="text-xs text-[#9CA3AF] mt-0.5">{memberEmail}</p>
 
-              {/* Current Subscription Status */}
+                {currentSubscription && (
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide mb-1">
+                      Current Plan
+                    </p>
+                    <p className="text-sm font-semibold text-[#1F2937]">
+                      {currentSubscription.plan.name}
+                    </p>
+                    <p className="text-xs text-[#9CA3AF] mt-0.5">
+                      Expires {new Date(currentSubscription.expires_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Conflict warning */}
               {currentSubscription && (
-                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Current Plan:
-                  </p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {currentSubscription.plan.name}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Expires:{" "}
-                    {new Date(
-                      currentSubscription.expires_at,
-                    ).toLocaleDateString()}
+                <div className="rounded-lg bg-amber-50 border border-amber-100 px-4 py-3 flex items-start gap-2.5">
+                  <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-amber-700 leading-relaxed">
+                    This member already has an active subscription. Granting access may override or conflict with the existing one.
                   </p>
                 </div>
               )}
-            </div>
 
-            {/* Warning if member has active subscription */}
-            {currentSubscription && (
-              <div className="rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-3">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5 shrink-0" />
-                  <p className="text-xs text-yellow-800 dark:text-yellow-200">
-                    This member already has an active subscription. Creating a
-                    new subscription may override or conflict with the existing
-                    one.
-                  </p>
+              {/* Plan display */}
+              {currentSubscription?.plan && (
+                <div>
+                  <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">
+                    Plan
+                  </label>
+                  <div className="rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-sm text-[#1F2937]">
+                    {currentSubscription.plan.name} — ₦{currentSubscription.plan.price?.toLocaleString()}/{currentSubscription.plan.interval}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Current plan */}
-            <div>
-              <label
-                htmlFor="plan"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Plan *
-              </label>
+              {/* Reason */}
               <div>
-                {currentSubscription.plan?.name} - ₦
-                {currentSubscription.plan.price?.toLocaleString()}/
-                {currentSubscription.plan?.interval}{" "}
+                <label className="block text-sm font-semibold text-[#1F2937] mb-1.5">
+                  Reason <span className="text-[#F06543]">*</span>
+                </label>
+                <textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  rows={3}
+                  required
+                  placeholder="e.g., Complimentary access for loyalty..."
+                  className="w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all resize-none"
+                />
               </div>
-            </div>
+            </form>
+          </div>
 
-            {/* Reason */}
-            <div>
-              <label
-                htmlFor="reason"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Reason for Access Grant *
-              </label>
-              <textarea
-                id="reason"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                rows={3}
-                placeholder="E.g., Complimentary access..."
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3 pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Grant Access
-              </button>
-            </div>
-          </form>
+          {/* Footer */}
+          <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-end gap-3 flex-shrink-0">
+            <Button type="button" variant="ghost" size="sm" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" form="grant-form" variant="secondary" size="sm">
+              Grant Access
+            </Button>
+          </div>
         </div>
       </div>
     </>

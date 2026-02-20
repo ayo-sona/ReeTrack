@@ -1,32 +1,30 @@
-import React, { useState } from 'react';
-import { X, Save, Bell, Mail, MessageSquare, Clock, AlertCircle, Settings, } from 'lucide-react';
+import React, { useState } from "react";
+import { X, Save, AlertCircle } from "lucide-react";
+
+// Force light color scheme on all native elements — prevents browser dark mode from
+// inverting input/select backgrounds and text colours.
+const FIELD_STYLE: React.CSSProperties = {
+  colorScheme: "light",
+  backgroundColor: "#F9FAFB",
+  color: "#1F2937",
+  borderColor: "#E5E7EB",
+};
 
 interface ReminderSettings {
-  // Automation
   autoRemindersEnabled: boolean;
-  
-  // Timing
   firstReminderDays: number;
   secondReminderDays: number;
   thirdReminderDays: number;
   overdueReminderDays: number;
   maxReminders: number;
-  
-  // Channels
-  preferredChannel: 'email' | 'sms' | 'both';
+  preferredChannel: "email" | "sms" | "both";
   emailEnabled: boolean;
   smsEnabled: boolean;
-  
-  // Sending Hours
   sendingStartHour: number;
   sendingEndHour: number;
   sendOnWeekends: boolean;
-  
-  // Templates
   defaultUpcomingTemplate: number;
   defaultOverdueTemplate: number;
-  
-  // Thresholds
   minDaysBeforeReminder: number;
   stopRemindersAfterDays: number;
 }
@@ -38,538 +36,558 @@ interface ReminderSettingsModalProps {
   onSave: (settings: ReminderSettings) => void;
 }
 
+type Tab = "automation" | "channels" | "timing" | "advanced";
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: "automation", label: "Automation" },
+  { id: "channels",   label: "Channels"   },
+  { id: "timing",     label: "Timing"     },
+  { id: "advanced",   label: "Advanced"   },
+];
+
+// ─── Primitives ────────────────────────────────────────────────────────────
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[10px] font-bold uppercase tracking-[0.1em] mb-4"
+       style={{ color: "#9CA3AF" }}>
+      {children}
+    </p>
+  );
+}
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <label className="block text-xs font-semibold mb-1.5" style={{ color: "#1F2937" }}>
+      {children}
+    </label>
+  );
+}
+
+function FieldHint({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs mt-1.5 leading-relaxed" style={{ color: "#9CA3AF" }}>
+      {children}
+    </p>
+  );
+}
+
+function Input({
+  value,
+  onChange,
+  type = "number",
+  min,
+  max,
+}: {
+  value: number | string;
+  onChange: (v: number | string) => void;
+  type?: string;
+  min?: number;
+  max?: number;
+}) {
+  return (
+    <input
+      type={type}
+      min={min}
+      max={max}
+      value={value}
+      onChange={(e) => onChange(type === "number" ? Number(e.target.value) : e.target.value)}
+      className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none transition-colors duration-150"
+      style={{
+        ...FIELD_STYLE,
+        border: "1px solid #E5E7EB",
+      }}
+      onFocus={(e) => {
+        e.currentTarget.style.borderColor = "#0D9488";
+        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(13,148,136,0.12)";
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.borderColor = "#E5E7EB";
+        e.currentTarget.style.boxShadow = "none";
+      }}
+    />
+  );
+}
+
+function SelectInput({
+  value,
+  onChange,
+  children,
+}: {
+  value: number | string;
+  onChange: (v: number) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none appearance-none transition-colors duration-150"
+      style={{
+        ...FIELD_STYLE,
+        border: "1px solid #E5E7EB",
+      }}
+      onFocus={(e) => {
+        e.currentTarget.style.borderColor = "#0D9488";
+        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(13,148,136,0.12)";
+      }}
+      onBlur={(e) => {
+        e.currentTarget.style.borderColor = "#E5E7EB";
+        e.currentTarget.style.boxShadow = "none";
+      }}
+    >
+      {children}
+    </select>
+  );
+}
+
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none"
+      style={{ backgroundColor: checked ? "#0D9488" : "#E5E7EB" }}
+    >
+      <span
+        className="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200"
+        style={{ transform: checked ? "translateX(24px)" : "translateX(4px)" }}
+      />
+    </button>
+  );
+}
+
+function Divider() {
+  return <div className="my-6" style={{ borderTop: "1px solid #F3F4F6" }} />;
+}
+
+// ─── Tab bar ───────────────────────────────────────────────────────────────
+
+function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
+  return (
+    // Scrollable on mobile so all 4 tabs are reachable
+    <div
+      className="flex border-b overflow-x-auto px-2 sm:px-6 scrollbar-none"
+      style={{ backgroundColor: "#F9FAFB", borderColor: "#E5E7EB" }}
+    >
+      {TABS.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => onChange(tab.id)}
+          className="relative flex-shrink-0 py-4 px-3 sm:px-4 text-sm font-semibold transition-colors duration-150 whitespace-nowrap"
+          style={{ color: active === tab.id ? "#0D9488" : "#9CA3AF" }}
+        >
+          {tab.label}
+          {active === tab.id && (
+            <span
+              className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full"
+              style={{ backgroundColor: "#0D9488" }}
+            />
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Automation tab ────────────────────────────────────────────────────────
+
+function AutomationTab({
+  s,
+  update,
+}: {
+  s: ReminderSettings;
+  update: <K extends keyof ReminderSettings>(k: K, v: ReminderSettings[K]) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <div
+        className="flex items-center justify-between p-4 rounded-xl border"
+        style={{
+          backgroundColor: s.autoRemindersEnabled ? "rgba(13,148,136,0.04)" : "#F9FAFB",
+          borderColor: s.autoRemindersEnabled ? "rgba(13,148,136,0.2)" : "#E5E7EB",
+        }}
+      >
+        <div className="pr-4">
+          <p className="text-sm font-semibold" style={{ color: "#1F2937" }}>Automated Reminders</p>
+          <p className="text-xs mt-0.5" style={{ color: "#9CA3AF" }}>
+            Automatically send reminders based on membership expiry
+          </p>
+        </div>
+        <Toggle checked={s.autoRemindersEnabled} onChange={(v) => update("autoRemindersEnabled", v)} />
+      </div>
+
+      {s.autoRemindersEnabled && (
+        <>
+          <Divider />
+          <SectionLabel>Reminder Schedule</SectionLabel>
+
+          {/* 2-col on sm+, 1-col on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {(
+              [
+                ["firstReminderDays",   "1st reminder — days before expiry"],
+                ["secondReminderDays",  "2nd reminder — days before expiry"],
+                ["thirdReminderDays",   "3rd reminder — days before expiry"],
+                ["overdueReminderDays", "Overdue — repeat every X days"],
+              ] as [keyof ReminderSettings, string][]
+            ).map(([key, label]) => (
+              <div key={key}>
+                <FieldLabel>{label}</FieldLabel>
+                <Input
+                  value={s[key] as number}
+                  onChange={(v) => update(key, v as ReminderSettings[typeof key])}
+                  min={1}
+                  max={90}
+                />
+              </div>
+            ))}
+          </div>
+
+          <div
+            className="flex gap-3 p-4 rounded-xl"
+            style={{ backgroundColor: "#FFFBEB", border: "1px solid #FDE68A" }}
+          >
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: "#F59E0B" }} />
+            <div className="text-xs leading-relaxed" style={{ color: "#92400E" }}>
+              <p className="font-semibold mb-1">Recommended</p>
+              14 days → 7 days → 3 days before expiry, then every 3 days overdue.
+            </div>
+          </div>
+
+          <Divider />
+          <SectionLabel>Limits</SectionLabel>
+          <div>
+            <FieldLabel>Max reminders per member</FieldLabel>
+            <Input
+              value={s.maxReminders}
+              onChange={(v) => update("maxReminders", v as number)}
+              min={1}
+              max={20}
+            />
+            <FieldHint>Stop automated reminders after this many attempts.</FieldHint>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Channels tab ──────────────────────────────────────────────────────────
+
+function ChannelsTab({
+  s,
+  update,
+}: {
+  s: ReminderSettings;
+  update: <K extends keyof ReminderSettings>(k: K, v: ReminderSettings[K]) => void;
+}) {
+  const options: { value: "email" | "sms" | "both"; label: string; sub: string; cost: string; rate: string }[] = [
+    { value: "email", label: "Email", sub: "Most cost-effective", cost: "₦2 / send",  rate: "25–30% open rate" },
+    { value: "sms",   label: "SMS",   sub: "Highest open rate",   cost: "₦10 / send", rate: "90–95% open rate" },
+    { value: "both",  label: "Both",  sub: "Maximum reach",       cost: "₦12 / send", rate: "Combined" },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <SectionLabel>Preferred delivery channel</SectionLabel>
+
+      {/* 3-col on sm+, 1-col on mobile */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {options.map((opt) => {
+          const active = s.preferredChannel === opt.value;
+          return (
+            <button
+              key={opt.value}
+              onClick={() => update("preferredChannel", opt.value)}
+              className="p-4 rounded-xl text-left transition-all duration-150"
+              style={{
+                border: `2px solid ${active ? "#0D9488" : "#E5E7EB"}`,
+                backgroundColor: active ? "rgba(13,148,136,0.05)" : "#FFFFFF",
+              }}
+            >
+              <p className="text-sm font-bold mb-0.5" style={{ color: active ? "#0D9488" : "#1F2937" }}>
+                {opt.label}
+              </p>
+              <p className="text-[11px] mb-2" style={{ color: "#9CA3AF" }}>{opt.sub}</p>
+              <p className="text-[11px] font-semibold" style={{ color: active ? "#0D9488" : "#9CA3AF" }}>
+                {opt.cost}
+              </p>
+              <p className="text-[10px]" style={{ color: "#D1D5DB" }}>{opt.rate}</p>
+            </button>
+          );
+        })}
+      </div>
+
+      <Divider />
+      <SectionLabel>Channel toggles</SectionLabel>
+      <div className="space-y-3">
+        {[
+          { key: "emailEnabled" as const, label: "Email", desc: "Send to member's registered email address" },
+          { key: "smsEnabled"   as const, label: "SMS",   desc: "Send to member's registered phone number"  },
+        ].map(({ key, label, desc }) => (
+          <div
+            key={key}
+            className="flex items-center justify-between p-4 rounded-xl border"
+            style={{ backgroundColor: "#F9FAFB", borderColor: "#E5E7EB" }}
+          >
+            <div className="pr-4">
+              <p className="text-sm font-semibold" style={{ color: "#1F2937" }}>{label}</p>
+              <p className="text-xs mt-0.5" style={{ color: "#9CA3AF" }}>{desc}</p>
+            </div>
+            <Toggle checked={s[key]} onChange={(v) => update(key, v)} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Timing tab ────────────────────────────────────────────────────────────
+
+function TimingTab({
+  s,
+  update,
+}: {
+  s: ReminderSettings;
+  update: <K extends keyof ReminderSettings>(k: K, v: ReminderSettings[K]) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <SectionLabel>Sending hours</SectionLabel>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <FieldLabel>Start time</FieldLabel>
+          <SelectInput value={s.sendingStartHour} onChange={(v) => update("sendingStartHour", v)}>
+            {Array.from({ length: 24 }, (_, i) => (
+              <option key={i} value={i}>{i.toString().padStart(2, "0")}:00</option>
+            ))}
+          </SelectInput>
+        </div>
+        <div>
+          <FieldLabel>End time</FieldLabel>
+          <SelectInput value={s.sendingEndHour} onChange={(v) => update("sendingEndHour", v)}>
+            {Array.from({ length: 24 }, (_, i) => (
+              <option key={i} value={i}>{i.toString().padStart(2, "0")}:00</option>
+            ))}
+          </SelectInput>
+        </div>
+      </div>
+      <FieldHint>Recommended: 09:00 – 18:00 for better engagement.</FieldHint>
+
+      <Divider />
+
+      <div className="flex items-center justify-between">
+        <div className="pr-4">
+          <p className="text-sm font-semibold" style={{ color: "#1F2937" }}>Send on weekends</p>
+          <p className="text-xs mt-0.5" style={{ color: "#9CA3AF" }}>Allow reminders on Saturdays and Sundays</p>
+        </div>
+        <Toggle checked={s.sendOnWeekends} onChange={(v) => update("sendOnWeekends", v)} />
+      </div>
+    </div>
+  );
+}
+
+// ─── Advanced tab ──────────────────────────────────────────────────────────
+
+function AdvancedTab({
+  s,
+  update,
+}: {
+  s: ReminderSettings;
+  update: <K extends keyof ReminderSettings>(k: K, v: ReminderSettings[K]) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <SectionLabel>Thresholds</SectionLabel>
+      <div className="space-y-5">
+        <div>
+          <FieldLabel>Minimum days before first reminder</FieldLabel>
+          <Input
+            value={s.minDaysBeforeReminder}
+            onChange={(v) => update("minDaysBeforeReminder", v as number)}
+            min={1}
+            max={90}
+          />
+          <FieldHint>Skip reminders for memberships expiring sooner than this.</FieldHint>
+        </div>
+        <div>
+          <FieldLabel>Stop reminders after (days overdue)</FieldLabel>
+          <Input
+            value={s.stopRemindersAfterDays}
+            onChange={(v) => update("stopRemindersAfterDays", v as number)}
+            min={1}
+            max={365}
+          />
+          <FieldHint>Automatically stop sending after account is overdue by this many days.</FieldHint>
+        </div>
+      </div>
+
+      <Divider />
+      <SectionLabel>Default templates</SectionLabel>
+      <div className="space-y-4">
+        <div>
+          <FieldLabel>Upcoming expiry template</FieldLabel>
+          <SelectInput
+            value={s.defaultUpcomingTemplate}
+            onChange={(v) => update("defaultUpcomingTemplate", v)}
+          >
+            <option value={1}>Upcoming Expiry — Friendly</option>
+            <option value={4}>Gentle Reminder</option>
+          </SelectInput>
+        </div>
+        <div>
+          <FieldLabel>Overdue payment template</FieldLabel>
+          <SelectInput
+            value={s.defaultOverdueTemplate}
+            onChange={(v) => update("defaultOverdueTemplate", v)}
+          >
+            <option value={2}>Overdue Payment — Urgent</option>
+            <option value={3}>Final Notice — Critical</option>
+          </SelectInput>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main modal ────────────────────────────────────────────────────────────
+
 export const ReminderSettingsModal: React.FC<ReminderSettingsModalProps> = ({
   isOpen,
   onClose,
   settings,
-  onSave
+  onSave,
 }) => {
-  const [localSettings, setLocalSettings] = useState<ReminderSettings>(settings);
-  const [activeTab, setActiveTab] = useState<'automation' | 'channels' | 'timing' | 'advanced'>('automation');
-  const [hasChanges, setHasChanges] = useState(false);
+  const [local, setLocal]        = useState<ReminderSettings>(settings);
+  const [tab, setTab]            = useState<Tab>("automation");
+  const [hasChanges, setChanges] = useState(false);
 
   if (!isOpen) return null;
 
-  const updateSetting = <K extends keyof ReminderSettings>(
-    key: K,
-    value: ReminderSettings[K]
-  ) => {
-    setLocalSettings(prev => ({ ...prev, [key]: value }));
-    setHasChanges(true);
+  const update = <K extends keyof ReminderSettings>(k: K, v: ReminderSettings[K]) => {
+    setLocal((prev) => ({ ...prev, [k]: v }));
+    setChanges(true);
   };
 
-  const handleSave = () => {
-    onSave(localSettings);
-    setHasChanges(false);
-    onClose();
-  };
-
-  const handleReset = () => {
-    setLocalSettings(settings);
-    setHasChanges(false);
-  };
+  const handleSave  = () => { onSave(local); setChanges(false); onClose(); };
+  const handleReset = () => { setLocal(settings); setChanges(false); };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4"
+      style={{ backgroundColor: "rgba(17,24,39,0.45)", backdropFilter: "blur(4px)" }}
+    >
+      <div
+        // Full-screen sheet on mobile, centred modal on sm+
+        className="w-full sm:max-w-2xl max-h-[95dvh] sm:max-h-[90vh] flex flex-col overflow-hidden sm:rounded-2xl rounded-t-2xl"
+        style={{
+          backgroundColor: "#FFFFFF",
+          boxShadow: "0 8px 40px rgba(13,148,136,0.12), 0 2px 8px rgba(0,0,0,0.08)",
+        }}
+      >
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 flex items-center justify-between bg-white">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Settings className="w-6 h-6 text-blue-600" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">Reminder Settings</h2>
-              <p className="text-gray-600 mt-1">Configure automated payment reminder preferences</p>
-            </div>
+        <div
+          className="flex items-start justify-between px-5 sm:px-7 py-5 sm:py-6 border-b flex-shrink-0"
+          style={{ borderColor: "#E5E7EB" }}
+        >
+          <div>
+            <h2
+              className="text-base sm:text-lg font-bold"
+              style={{ color: "#1F2937", letterSpacing: "-0.02em" }}
+            >
+              Reminder Settings
+            </h2>
+            <p className="text-xs mt-0.5" style={{ color: "#9CA3AF" }}>
+              Configure automated payment reminder preferences
+            </p>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3 ml-3">
+            {hasChanges && (
+              <span
+                className="hidden sm:inline text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                style={{ color: "#92400E", backgroundColor: "#FFFBEB", border: "1px solid #FDE68A" }}
+              >
+                Unsaved changes
+              </span>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg transition-colors flex-shrink-0"
+              style={{ color: "#9CA3AF" }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#F3F4F6")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
+
+        {/* Mobile unsaved pill */}
+        {hasChanges && (
+          <div
+            className="sm:hidden px-5 py-2 text-center text-[11px] font-semibold"
+            style={{ color: "#92400E", backgroundColor: "#FFFBEB", borderBottom: "1px solid #FDE68A" }}
+          >
+            Unsaved changes
+          </div>
+        )}
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 bg-gray-50 px-6">
-          <div className="flex gap-6">
-            <button
-              onClick={() => setActiveTab('automation')}
-              className={`py-4 px-2 border-b-2 font-medium transition-colors ${
-                activeTab === 'automation'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Bell className="w-4 h-4 inline mr-2" />
-              Automation
-            </button>
-            <button
-              onClick={() => setActiveTab('channels')}
-              className={`py-4 px-2 border-b-2 font-medium transition-colors ${
-                activeTab === 'channels'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Mail className="w-4 h-4 inline mr-2" />
-              Channels
-            </button>
-            <button
-              onClick={() => setActiveTab('timing')}
-              className={`py-4 px-2 border-b-2 font-medium transition-colors ${
-                activeTab === 'timing'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Clock className="w-4 h-4 inline mr-2" />
-              Timing
-            </button>
-            <button
-              onClick={() => setActiveTab('advanced')}
-              className={`py-4 px-2 border-b-2 font-medium transition-colors ${
-                activeTab === 'advanced'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Settings className="w-4 h-4 inline mr-2" />
-              Advanced
-            </button>
-          </div>
-        </div>
+        <TabBar active={tab} onChange={setTab} />
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {/* Automation Tab */}
-          {activeTab === 'automation' && (
-            <div className="space-y-6">
-              {/* Enable/Disable */}
-              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Bell className="w-5 h-5 text-blue-600" />
-                    <div>
-                      <p className="font-semibold text-gray-900">Automated Reminders</p>
-                      <p className="text-sm text-gray-600">
-                        Automatically send reminders based on membership expiry dates
-                      </p>
-                    </div>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={localSettings.autoRemindersEnabled}
-                      onChange={(e) => updateSetting('autoRemindersEnabled', e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
-              </div>
-
-              {localSettings.autoRemindersEnabled && (
-                <>
-                  {/* Reminder Schedule */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Reminder Schedule</h3>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            First Reminder (days before expiry)
-                          </label>
-                          <input
-                            type="number"
-                            min="1"
-                            max="90"
-                            value={localSettings.firstReminderDays}
-                            onChange={(e) => updateSetting('firstReminderDays', Number(e.target.value))}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Second Reminder (days before expiry)
-                          </label>
-                          <input
-                            type="number"
-                            min="1"
-                            max="90"
-                            value={localSettings.secondReminderDays}
-                            onChange={(e) => updateSetting('secondReminderDays', Number(e.target.value))}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Third Reminder (days before expiry)
-                          </label>
-                          <input
-                            type="number"
-                            min="1"
-                            max="90"
-                            value={localSettings.thirdReminderDays}
-                            onChange={(e) => updateSetting('thirdReminderDays', Number(e.target.value))}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Overdue Reminder (every X days)
-                          </label>
-                          <input
-                            type="number"
-                            min="1"
-                            max="30"
-                            value={localSettings.overdueReminderDays}
-                            onChange={(e) => updateSetting('overdueReminderDays', Number(e.target.value))}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg flex gap-3">
-                        <AlertCircle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
-                        <div className="text-sm text-yellow-800">
-                          <p className="font-medium mb-1">Recommended Schedule:</p>
-                          <ul className="list-disc list-inside space-y-1">
-                            <li>First reminder: 14 days before expiry</li>
-                            <li>Second reminder: 7 days before expiry</li>
-                            <li>Third reminder: 3 days before expiry</li>
-                            <li>Overdue: Every 3 days after expiry</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Max Reminders */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Maximum Total Reminders per Member
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="20"
-                      value={localSettings.maxReminders}
-                      onChange={(e) => updateSetting('maxReminders', Number(e.target.value))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <p className="text-sm text-gray-600 mt-2">
-                      Stop sending automated reminders after this many attempts
-                    </p>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Channels Tab */}
-          {activeTab === 'channels' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Preferred Delivery Channel</h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <button
-                    onClick={() => updateSetting('preferredChannel', 'email')}
-                    className={`p-4 border-2 rounded-lg transition-all ${
-                      localSettings.preferredChannel === 'email'
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <Mail className={`w-8 h-8 mx-auto mb-2 ${
-                      localSettings.preferredChannel === 'email' ? 'text-blue-600' : 'text-gray-400'
-                    }`} />
-                    <div className="text-sm font-medium text-gray-900">Email Only</div>
-                    <div className="text-xs text-gray-500 mt-1">Most cost-effective</div>
-                  </button>
-                  <button
-                    onClick={() => updateSetting('preferredChannel', 'sms')}
-                    className={`p-4 border-2 rounded-lg transition-all ${
-                      localSettings.preferredChannel === 'sms'
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <MessageSquare className={`w-8 h-8 mx-auto mb-2 ${
-                      localSettings.preferredChannel === 'sms' ? 'text-green-600' : 'text-gray-400'
-                    }`} />
-                    <div className="text-sm font-medium text-gray-900">SMS Only</div>
-                    <div className="text-xs text-gray-500 mt-1">Higher open rate</div>
-                  </button>
-                  <button
-                    onClick={() => updateSetting('preferredChannel', 'both')}
-                    className={`p-4 border-2 rounded-lg transition-all ${
-                      localSettings.preferredChannel === 'both'
-                        ? 'border-purple-500 bg-purple-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex justify-center gap-1 mb-2">
-                      <Mail className={`w-6 h-6 ${
-                        localSettings.preferredChannel === 'both' ? 'text-purple-600' : 'text-gray-400'
-                      }`} />
-                      <MessageSquare className={`w-6 h-6 ${
-                        localSettings.preferredChannel === 'both' ? 'text-purple-600' : 'text-gray-400'
-                      }`} />
-                    </div>
-                    <div className="text-sm font-medium text-gray-900">Both</div>
-                    <div className="text-xs text-gray-500 mt-1">Maximum reach</div>
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="border border-gray-200 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-5 h-5 text-blue-600" />
-                      <span className="font-medium text-gray-900">Email</span>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={localSettings.emailEnabled}
-                        onChange={(e) => updateSetting('emailEnabled', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                    </label>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    Send reminders via email to member&apos;s registered email address
-                  </p>
-                  <div className="mt-3 text-xs text-gray-500">
-                    <div className="flex justify-between">
-                      <span>Cost per send:</span>
-                      <span className="font-medium">₦2</span>
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      <span>Avg. open rate:</span>
-                      <span className="font-medium">25-30%</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border border-gray-200 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="w-5 h-5 text-green-600" />
-                      <span className="font-medium text-gray-900">SMS</span>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={localSettings.smsEnabled}
-                        onChange={(e) => updateSetting('smsEnabled', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                    </label>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    Send reminders via SMS to member&apos;s registered phone number
-                  </p>
-                  <div className="mt-3 text-xs text-gray-500">
-                    <div className="flex justify-between">
-                      <span>Cost per send:</span>
-                      <span className="font-medium">₦10</span>
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      <span>Avg. open rate:</span>
-                      <span className="font-medium">90-95%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Timing Tab */}
-          {activeTab === 'timing' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Sending Hours</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Set the hours during which automated reminders can be sent
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Start Time
-                    </label>
-                    <select
-                      value={localSettings.sendingStartHour}
-                      onChange={(e) => updateSetting('sendingStartHour', Number(e.target.value))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      {Array.from({ length: 24 }, (_, i) => (
-                        <option key={i} value={i}>
-                          {i.toString().padStart(2, '0')}:00
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      End Time
-                    </label>
-                    <select
-                      value={localSettings.sendingEndHour}
-                      onChange={(e) => updateSetting('sendingEndHour', Number(e.target.value))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      {Array.from({ length: 24 }, (_, i) => (
-                        <option key={i} value={i}>
-                          {i.toString().padStart(2, '0')}:00
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Recommended: 9:00 AM to 6:00 PM for better engagement
-                </p>
-              </div>
-
-              <div className="border-t border-gray-200 pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-gray-900">Send on Weekends</p>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Allow automated reminders to be sent on Saturdays and Sundays
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={localSettings.sendOnWeekends}
-                      onChange={(e) => updateSetting('sendOnWeekends', e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Advanced Tab */}
-          {activeTab === 'advanced' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Reminder Thresholds</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Minimum Days Before First Reminder
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="90"
-                      value={localSettings.minDaysBeforeReminder}
-                      onChange={(e) => updateSetting('minDaysBeforeReminder', Number(e.target.value))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <p className="text-sm text-gray-600 mt-2">
-                      Don&apos;t send reminders to memberships expiring less than this many days
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Stop Reminders After (days overdue)
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="365"
-                      value={localSettings.stopRemindersAfterDays}
-                      onChange={(e) => updateSetting('stopRemindersAfterDays', Number(e.target.value))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <p className="text-sm text-gray-600 mt-2">
-                      Stop sending reminders after account has been overdue for this many days
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Default Templates</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Upcoming Expiry Template
-                    </label>
-                    <select
-                      value={localSettings.defaultUpcomingTemplate}
-                      onChange={(e) => updateSetting('defaultUpcomingTemplate', Number(e.target.value))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value={1}>Upcoming Expiry - Friendly</option>
-                      <option value={4}>Gentle Reminder</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Overdue Payment Template
-                    </label>
-                    <select
-                      value={localSettings.defaultOverdueTemplate}
-                      onChange={(e) => updateSetting('defaultOverdueTemplate', Number(e.target.value))}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value={2}>Overdue Payment - Urgent</option>
-                      <option value={3}>Final Notice - Critical</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-5 sm:px-7 py-5 sm:py-7">
+          {tab === "automation" && <AutomationTab s={local} update={update} />}
+          {tab === "channels"   && <ChannelsTab   s={local} update={update} />}
+          {tab === "timing"     && <TimingTab     s={local} update={update} />}
+          {tab === "advanced"   && <AdvancedTab   s={local} update={update} />}
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 flex justify-between items-center bg-gray-50">
+        <div
+          className="flex items-center justify-between px-5 sm:px-7 py-4 sm:py-5 border-t flex-shrink-0"
+          style={{ borderColor: "#E5E7EB", backgroundColor: "#F9FAFB" }}
+        >
           <button
             onClick={handleReset}
             disabled={!hasChanges}
-            className="px-6 py-2.5 text-gray-700 font-medium hover:text-gray-900 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ color: "#9CA3AF" }}
+            onMouseEnter={(e) => { if (hasChanges) e.currentTarget.style.color = "#1F2937"; }}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#9CA3AF")}
           >
-            Reset Changes
+            Reset
           </button>
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <button
               onClick={onClose}
-              className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors"
+              className="px-4 sm:px-5 py-2 text-sm font-semibold rounded-lg border transition-colors"
+              style={{ color: "#1F2937", borderColor: "#E5E7EB", backgroundColor: "#FFFFFF" }}
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors"
+              className="px-4 sm:px-5 py-2 text-sm font-semibold text-white rounded-lg flex items-center gap-2 transition-colors duration-150"
+              style={{ backgroundColor: "#0D9488" }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#0B7A70")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0D9488")}
             >
-              <Save className="w-4 h-4" />
-              Save Settings
+              <Save className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Save settings</span>
+              <span className="sm:hidden">Save</span>
             </button>
           </div>
         </div>
 
-        {/* Changes indicator */}
-        {hasChanges && (
-          <div className="absolute top-4 right-20 bg-yellow-100 border border-yellow-300 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2">
-            <AlertCircle className="w-4 h-4" />
-            Unsaved changes
-          </div>
-        )}
+        {/* Brand line */}
+        <div
+          className="h-[3px] flex-shrink-0"
+          style={{ background: "linear-gradient(to right, #0D9488, rgba(13,148,136,0.15), transparent)" }}
+        />
       </div>
     </div>
   );
