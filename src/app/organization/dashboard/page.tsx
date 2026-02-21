@@ -37,7 +37,7 @@ export default function OrganizationDashboardPage() {
               Dashboard
             </h1>
             <p className="text-sm text-[#9CA3AF] mt-1 leading-relaxed">
-              Here&apos;s an overview of your membership business.
+              Here&apos;s an overview of how things have been so far.
             </p>
           </div>
 

@@ -73,6 +73,14 @@ export default function OrganizationSelectPage() {
         await queryClient.invalidateQueries({ queryKey: ["payments"] });
         await queryClient.invalidateQueries({ queryKey: ["members"] });
 
+        // Check if onboarding is pending — redirect there instead of dashboard
+        const onboardingPending = localStorage.getItem("onboarding_pending");
+        if (onboardingPending) {
+          localStorage.removeItem("onboarding_pending");
+          router.push("/organization/onboarding/bank-account");
+          return;
+        }
+
         router.push("/organization/dashboard");
         toast("Organization selected");
       }
@@ -150,7 +158,6 @@ export default function OrganizationSelectPage() {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10">
 
-            {/* Header — inside the card, same as login */}
             <div className="text-center mb-8">
               <Link
                 href="/"
