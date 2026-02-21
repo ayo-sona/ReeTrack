@@ -46,7 +46,7 @@ export class PaystackService {
           ...(subaccount && { subaccount }),
           ...(subaccount ? { bearer: 'subaccount' } : {}),
           channels: ['card'], // Only allow cards for recurring billing
-          // callback_url: callbackUrl,
+          callback_url: callbackUrl,
         },
       );
 

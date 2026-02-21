@@ -11,6 +11,7 @@ import { OrganizationPlan } from '../../database/entities/organization-plan.enti
 import { PaymentsModule } from '../payments/payments.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { Organization, OrganizationUser } from 'src/database/entities';
+import { WebsocketModule } from '../../websocket/websocket.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { Organization, OrganizationUser } from 'src/database/entities';
     ]),
     PaymentsModule,
     NotificationsModule,
+    WebsocketModule,
   ],
   controllers: [SubscriptionsController],
   providers: [SubscriptionsService],

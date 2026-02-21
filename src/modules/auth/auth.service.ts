@@ -453,15 +453,15 @@ export class AuthService {
     role: string | null,
     currentOrganizationId: string | null,
   ) {
-    const storedToken = await this.refreshTokenRepository.findOne({
-      where: { token: oldRefreshToken, is_revoked: false },
-    });
+    // const storedToken = await this.refreshTokenRepository.findOne({
+    //   where: { token: oldRefreshToken, is_revoked: false },
+    // });
 
-    if (!storedToken) {
-      throw new UnauthorizedException('Invalid refresh token');
-    }
+    // if (!storedToken) {
+    //   throw new UnauthorizedException('Invalid refresh token');
+    // }
 
-    // Get user and their primary org_user
+    // Get user
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -470,26 +470,26 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    const orgUser = await this.organizationUserRepository.findOne({
-      where: { user_id: userId },
-      relations: ['organization'],
-    });
+    // const orgUser = await this.organizationUserRepository.findOne({
+    //   where: { user_id: userId },
+    //   relations: ['organization'],
+    // });
 
-    if (!orgUser) {
-      throw new UnauthorizedException('No organization access');
-    }
+    // if (!orgUser) {
+    //   throw new UnauthorizedException('No organization access');
+    // }
 
     // Revoke old token
-    storedToken.is_revoked = true;
-    await this.refreshTokenRepository.save(storedToken);
+    // storedToken.is_revoked = true;
+    // await this.refreshTokenRepository.save(storedToken);
 
     // Generate new tokens
     const { accessToken, refreshToken } = await this.generateTokens(
       user,
       currentOrganizationId,
       role,
-      storedToken.ip_address,
-      storedToken.user_agent,
+      // storedToken.ip_address,
+      // storedToken.user_agent,
     );
 
     return {
@@ -558,6 +558,9 @@ export class AuthService {
         website: orgUser.organization.website,
         phone: orgUser.organization.phone,
         description: orgUser.organization.description,
+        bank: orgUser.organization.bank,
+        account_number: orgUser.organization.account_number,
+        enterprise_plan: orgUser.organization.enterprise_plan,
       })),
     };
   }
@@ -652,22 +655,22 @@ export class AuthService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 1); // 1 day
 
-    type TokenData = Pick<
-      RefreshToken,
-      'user_id' | 'token' | 'expires_at' | 'ip_address' | 'user_agent'
-    >;
+    // type TokenData = Pick<
+    //   RefreshToken,
+    //   'user_id' | 'token' | 'expires_at' | 'ip_address' | 'user_agent'
+    // >;
 
-    const tokenInstance: TokenData = {
-      user_id: user.id,
-      token: refreshToken,
-      expires_at: expiresAt,
-      ip_address: ipAddress || null,
-      user_agent: userAgent || null,
-    };
+    // const tokenInstance: TokenData = {
+    //   user_id: user.id,
+    //   token: refreshToken,
+    //   expires_at: expiresAt,
+    //   ip_address: ipAddress || null,
+    //   user_agent: userAgent || null,
+    // };
 
-    const tokenEntity = this.refreshTokenRepository.create(tokenInstance);
+    // const tokenEntity = this.refreshTokenRepository.create(tokenInstance);
 
-    await this.refreshTokenRepository.save(tokenEntity);
+    // await this.refreshTokenRepository.save(tokenEntity);
 
     return { accessToken, refreshToken };
   }

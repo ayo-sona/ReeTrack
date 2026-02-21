@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Organization } from './organization.entity';
-import { PlanInterval, Currency } from 'src/common/enums/enums';
+import { OrgPlans, PlanInterval, Currency } from 'src/common/enums/enums';
 import { OrganizationSubscription } from './organization-subscription.entity';
 import { IsEnum } from 'class-validator';
 
@@ -34,8 +34,8 @@ export class OrganizationPlan {
     description: 'Plan name',
     example: 'Basic Plan',
   })
-  @Column({ type: 'text' })
-  name: string;
+  @Column({ type: 'enum', enum: OrgPlans })
+  name: OrgPlans;
 
   @ApiProperty({
     description: 'Plan description',

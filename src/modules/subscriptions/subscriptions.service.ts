@@ -28,15 +28,13 @@ import {
   Organization,
   OrganizationSubscription,
   OrganizationUser,
-} from 'src/database/entities';
-import {
-  ChangeSubscriptionPlanDto,
-  UpdateSubscriptionDto,
-} from './dto/update-subscription.dto';
+} from '../../database/entities';
+import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
 import {
   ChangeOrgSubscriptionPlanDto,
   UpdateOrgSubscriptionStatusDto,
 } from './dto/organization-subscription.dto';
+import { SubscriptionGateway } from '../../websocket/subscription.gateway';
 import { OrganizationPlan } from 'src/database/entities';
 import { PaystackService } from '../payments/paystack.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -72,6 +70,7 @@ export class SubscriptionsService {
 
     private paystackService: PaystackService,
     private notificationsService: NotificationsService,
+    private subscriptionGateway: SubscriptionGateway,
   ) {}
 
   async createMemberSubscription(
@@ -207,7 +206,29 @@ export class SubscriptionsService {
 
         const savedInvoice = await transactionalEntityManager.save(invoice);
 
-        // 7. Send confirmation email
+        // Send WebSocket notification
+        this.subscriptionGateway.notifyMemberSubscriptionEvent(
+          organizationId,
+          'created',
+          {
+            subscription: savedSubscription,
+            invoice: savedInvoice,
+            member: {
+              id: member.id,
+              email: member.user.email,
+              firstName: member.user.first_name,
+              lastName: member.user.last_name,
+            },
+            plan: {
+              id: plan.id,
+              name: plan.name,
+              price: plan.price,
+              currency: plan.currency,
+            },
+          },
+        );
+
+        // Send confirmation email
         // await this.notificationsService.sendSubscriptionCreatedNotification({
         //   email: organization.email,
         //   memberName: organization.name,
@@ -731,17 +752,20 @@ export class SubscriptionsService {
 
         const savedInvoice = await transactionalEntityManager.save(invoice);
 
-        // 7. Send confirmation email
-        // await this.notificationsService.sendSubscriptionCreatedNotification({
-        //   email: organization.email,
-        //   memberName: organization.name,
-        //   planName: plan.name,
-        //   amount: plan.price,
-        //   currency: plan.currency,
-        //   interval: plan.interval,
-        //   startDate: now,
-        //   nextBilling: expiresAt,
-        // });
+        // Send WebSocket notification for plan upgrade
+        this.subscriptionGateway.notifyPlanUpgrade(organizationId, plan.name);
+
+        // Send WebSocket notification for invoice creation
+        this.subscriptionGateway.notifyInvoiceEvent(organizationId, 'created', {
+          invoice: savedInvoice,
+          subscription: savedSubscription,
+          plan: {
+            id: plan.id,
+            name: plan.name,
+            price: plan.price,
+            currency: plan.currency,
+          },
+        });
 
         return {
           message: 'Organization subscription created successfully',

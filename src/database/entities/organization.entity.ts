@@ -14,6 +14,7 @@ import { MemberPlan } from './member-plan.entity';
 import { OrganizationInvite } from './organization-invite.entity';
 import { MemberSubscription } from './member-subscription.entity';
 import { OrganizationPlan } from './organization-plan.entity';
+import { OrgPlans } from 'src/common/enums/enums';
 
 @Entity('organizations')
 export class Organization {
@@ -58,6 +59,15 @@ export class Organization {
 
   @Column({ type: 'text', nullable: true })
   paystack_subaccount_code: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  account_number: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  bank: string | null;
+
+  @Column({ type: 'enum', enum: OrgPlans, default: OrgPlans.BASIC })
+  enterprise_plan: OrgPlans;
 
   @ApiProperty({
     description: 'Created At',

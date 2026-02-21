@@ -404,6 +404,8 @@ export class PaymentsService {
       await this.paystackService.createSubaccount(createSubaccountDto);
 
     organization.paystack_subaccount_code = data.subaccount_code;
+    organization.bank = data.settlement_bank;
+    organization.account_number = data.account_number;
     await this.organizationRepository.save(organization);
 
     return data;
@@ -429,6 +431,8 @@ export class PaymentsService {
     );
 
     organization.paystack_subaccount_code = data.subaccount_code;
+    organization.bank = data.settlement_bank;
+    organization.account_number = data.account_number;
     await this.organizationRepository.save(organization);
 
     return data;

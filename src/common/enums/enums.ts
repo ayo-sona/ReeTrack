@@ -42,6 +42,12 @@ export enum OrgRole {
   MEMBER = 'MEMBER',
 }
 
+export enum OrgPlans {
+  BASIC = 'BASIC',
+  PLATINUM = 'PLATINUM',
+  GOLD = 'GOLD',
+}
+
 export enum PlanInterval {
   MONTHLY = 'monthly',
   YEARLY = 'yearly',

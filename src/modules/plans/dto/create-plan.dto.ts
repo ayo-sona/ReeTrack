@@ -7,15 +7,15 @@ import {
   IsArray,
   Min,
 } from 'class-validator';
-import { PlanInterval } from 'src/common/enums/enums';
+import { OrgPlans, PlanInterval } from 'src/common/enums/enums';
 
 export class CreatePlanDto {
   @ApiProperty({
     description: 'Plan name',
     example: 'Basic Plan',
   })
-  @IsString()
-  name: string;
+  @IsEnum(OrgPlans)
+  name: OrgPlans;
 
   @ApiProperty({
     description: 'Plan description',
