@@ -4,24 +4,30 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@heroui/react";
 import { Mail, Building, User, Phone, Lock, Eye, EyeOff } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 
+const inputClassNames = {
+  input: "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
+  inputWrapper: "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
+};
+
 export default function AdminRegisterPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [isExistingUser, setIsExistingUser] = useState(false);
+
   const [formData, setFormData] = useState({
-    // User fields
     firstName: "",
     lastName: "",
     phone: "",
     password: "",
-    // Org fields
     organizationName: "",
     organizationEmail: "",
     email: "",
@@ -35,15 +41,9 @@ export default function AdminRegisterPage() {
   };
 
   const validateForm = () => {
-    const requiredFields = [
-      "firstName",
-      "lastName",
-      "email",
-      "phone",
-      "password",
-      "organizationName",
-      "organizationEmail",
-    ];
+    const baseFields = ["email", "password", "organizationName", "organizationEmail"];
+    const newUserFields = ["firstName", "lastName", "phone"];
+    const requiredFields = isExistingUser ? baseFields : [...baseFields, ...newUserFields];
 
     for (const field of requiredFields) {
       if (!formData[field as keyof typeof formData]) {
@@ -73,44 +73,55 @@ export default function AdminRegisterPage() {
     setIsLoading(true);
     setError(null);
 
-    // Step 1: Create the user account — if this fails, stop everything
-    try {
-      await apiClient.post("/auth/register-user", {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
-        password: formData.password,
-      });
-    } catch (err: any) {
-      if (err?.response?.status === 409) {
-        setError("An account with this email already exists. Please sign in instead.");
-        toast.error("Account already exists.");
-      } else {
+    // Step 1: Register user — only if they're new
+    if (!isExistingUser) {
+      try {
+        await apiClient.post("/auth/register-user", {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+        });
+      } catch (err: any) {
         const message = err?.response?.data?.message || "Failed to create account. Please try again.";
         setError(message);
         toast.error(message);
+        setIsLoading(false);
+        return;
       }
-      setIsLoading(false);
-      return; // Stop here — don't attempt org creation
     }
 
-    // Step 2: Create the organization — only runs if Step 1 succeeded
+    // Step 2: Create organization
     try {
       await apiClient.post("/auth/register-organization", {
         organizationName: formData.organizationName,
         organizationEmail: formData.organizationEmail,
         email: formData.email,
       });
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Failed to create organization. Please try again.";
+      setError(
+        isExistingUser
+          ? message
+          : "Your account was created but we couldn't set up your organization. Please log in and try again from your dashboard."
+      );
+      toast.error(message);
+      setIsLoading(false);
+      return;
+    }
 
+    // Step 3: Silent login to get auth token then go straight to onboarding
+    try {
+      await apiClient.post("/auth/login", {
+        email: formData.email,
+        password: formData.password,
+      });
+      router.push("/onboarding/bank-account");
+    } catch {
+      // Silent login failed — just send them to login page gracefully
       toast.success("Organization created! Please log in to continue.");
       router.push("/auth/login");
-    } catch (err: any) {
-      // User was created but org failed — tell them exactly what happened
-      setError(
-        "Your account was created but we couldn't set up your organization. Please log in and try again from your dashboard."
-      );
-      toast.error("Organization setup failed. Please log in to retry.");
     } finally {
       setIsLoading(false);
     }
@@ -130,7 +141,7 @@ export default function AdminRegisterPage() {
         />
       </div>
 
-      {/* Scattered Avatar Illustrations */}
+      {/* Illustrations */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="hidden md:block absolute top-[8%] left-[10%] w-26 h-26 sm:w-32 sm:h-32 opacity-90">
           <Image src="/undraw/analytics.svg" alt="" fill className="object-contain" />
@@ -162,8 +173,9 @@ export default function AdminRegisterPage() {
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-2xl">
           <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 backdrop-blur-sm bg-white/95">
+
             {/* Header */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#0D9488]/10 mb-4">
                 <Building className="w-8 h-8 text-[#0D9488]" />
               </div>
@@ -181,7 +193,54 @@ export default function AdminRegisterPage() {
               </p>
             </div>
 
-            {/* Error Message */}
+            {/* Toggle */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
+                <button
+                  type="button"
+                  onClick={() => { setIsExistingUser(false); setError(null); }}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 ${
+                    !isExistingUser
+                      ? "bg-white text-[#0D9488] shadow-sm"
+                      : "text-[#9CA3AF] hover:text-[#1F2937]"
+                  }`}
+                >
+                  I'm new here
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setIsExistingUser(true); setError(null); }}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 ${
+                    isExistingUser
+                      ? "bg-white text-[#0D9488] shadow-sm"
+                      : "text-[#9CA3AF] hover:text-[#1F2937]"
+                  }`}
+                >
+                  I already have an account
+                </button>
+              </div>
+            </div>
+
+            {/* Existing user info banner */}
+            <AnimatePresence>
+              {isExistingUser && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="mb-6 overflow-hidden"
+                >
+                  <div className="bg-[#0D9488]/5 border border-[#0D9488]/15 rounded-xl px-4 py-3">
+                    <p className="text-xs text-[#0D9488] leading-relaxed">
+                      Enter your existing ReeTrack email and password along with your organization details — we'll link everything together.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Error */}
             {error && (
               <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
                 <p className="text-sm text-red-700">{error}</p>
@@ -189,59 +248,92 @@ export default function AdminRegisterPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Admin Account Section */}
+
+              {/* New user fields — hidden for existing users */}
+              <AnimatePresence>
+                {!isExistingUser && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="space-y-5 overflow-hidden"
+                  >
+                    <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                      <User className="w-5 h-5 text-[#F06543]" />
+                      <h3 className="text-base font-bold text-[#1F2937]">Your Account</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="firstName" className="block text-sm font-semibold text-[#1F2937] mb-2">
+                          First Name *
+                        </label>
+                        <Input
+                          id="firstName"
+                          name="firstName"
+                          type="text"
+                          required={!isExistingUser}
+                          placeholder="John"
+                          value={formData.firstName}
+                          onChange={handleChange}
+                          disabled={isLoading}
+                          startContent={<User className="w-4 h-4 text-gray-400" />}
+                          classNames={inputClassNames}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="lastName" className="block text-sm font-semibold text-[#1F2937] mb-2">
+                          Last Name *
+                        </label>
+                        <Input
+                          id="lastName"
+                          name="lastName"
+                          type="text"
+                          required={!isExistingUser}
+                          placeholder="Doe"
+                          value={formData.lastName}
+                          onChange={handleChange}
+                          disabled={isLoading}
+                          startContent={<User className="w-4 h-4 text-gray-400" />}
+                          classNames={inputClassNames}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="phone" className="block text-sm font-semibold text-[#1F2937] mb-2">
+                        Phone Number *
+                      </label>
+                      <Input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        required={!isExistingUser}
+                        placeholder="+234 800 000 0000"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        disabled={isLoading}
+                        startContent={<Phone className="w-4 h-4 text-gray-400" />}
+                        classNames={inputClassNames}
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Email + Password — always shown */}
               <div className="space-y-5">
                 <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <User className="w-5 h-5 text-[#F06543]" />
-                  <h3 className="text-base font-bold text-[#1F2937]">Your Account</h3>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="firstName" className="block text-sm font-semibold text-[#1F2937] mb-2">
-                      First Name *
-                    </label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      required
-                      placeholder="John"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      disabled={isLoading}
-                      startContent={<User className="w-4 h-4 text-gray-400" />}
-                      classNames={{
-                        input: "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                        inputWrapper: "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="lastName" className="block text-sm font-semibold text-[#1F2937] mb-2">
-                      Last Name *
-                    </label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      required
-                      placeholder="Doe"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      disabled={isLoading}
-                      startContent={<User className="w-4 h-4 text-gray-400" />}
-                      classNames={{
-                        input: "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                        inputWrapper: "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                      }}
-                    />
-                  </div>
+                  <Mail className="w-5 h-5 text-[#F06543]" />
+                  <h3 className="text-base font-bold text-[#1F2937]">
+                    {isExistingUser ? "Your Account" : "Login Details"}
+                  </h3>
                 </div>
 
                 <div>
                   <label htmlFor="email" className="block text-sm font-semibold text-[#1F2937] mb-2">
-                    Your Email Address *
+                    Email Address *
                   </label>
                   <Input
                     id="email"
@@ -254,45 +346,21 @@ export default function AdminRegisterPage() {
                     onChange={handleChange}
                     disabled={isLoading}
                     startContent={<Mail className="w-4 h-4 text-gray-400" />}
-                    classNames={{
-                      input: "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                      inputWrapper: "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-semibold text-[#1F2937] mb-2">
-                    Phone Number *
-                  </label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    required
-                    placeholder="+234 800 000 0000"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    startContent={<Phone className="w-4 h-4 text-gray-400" />}
-                    classNames={{
-                      input: "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                      inputWrapper: "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                    }}
+                    classNames={inputClassNames}
                   />
                 </div>
 
                 <div>
                   <label htmlFor="password" className="block text-sm font-semibold text-[#1F2937] mb-2">
-                    Password *
+                    {isExistingUser ? "Your Password *" : "Password *"}
                   </label>
                   <Input
                     id="password"
                     name="password"
                     type={isVisible ? "text" : "password"}
-                    autoComplete="new-password"
+                    autoComplete={isExistingUser ? "current-password" : "new-password"}
                     required
-                    placeholder="Create a strong password"
+                    placeholder={isExistingUser ? "Enter your existing password" : "Create a strong password"}
                     value={formData.password}
                     onChange={handleChange}
                     disabled={isLoading}
@@ -304,21 +372,18 @@ export default function AdminRegisterPage() {
                           : <Eye className="w-4 h-4 text-gray-400 hover:text-gray-600" />}
                       </button>
                     }
-                    isInvalid={formData.password.length > 0 && formData.password.length < 8}
+                    isInvalid={!isExistingUser && formData.password.length > 0 && formData.password.length < 8}
                     errorMessage={
-                      formData.password.length > 0 && formData.password.length < 8
+                      !isExistingUser && formData.password.length > 0 && formData.password.length < 8
                         ? "Password must be at least 8 characters"
                         : ""
                     }
-                    classNames={{
-                      input: "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                      inputWrapper: "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                    }}
+                    classNames={inputClassNames}
                   />
                 </div>
               </div>
 
-              {/* Organization Details Section */}
+              {/* Organization Details */}
               <div className="space-y-5 pt-2">
                 <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
                   <Building className="w-5 h-5 text-[#0D9488]" />
@@ -339,10 +404,7 @@ export default function AdminRegisterPage() {
                     onChange={handleChange}
                     disabled={isLoading}
                     startContent={<Building className="w-4 h-4 text-gray-400" />}
-                    classNames={{
-                      input: "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                      inputWrapper: "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                    }}
+                    classNames={inputClassNames}
                   />
                 </div>
 
@@ -360,10 +422,7 @@ export default function AdminRegisterPage() {
                     onChange={handleChange}
                     disabled={isLoading}
                     startContent={<Mail className="w-4 h-4 text-gray-400" />}
-                    classNames={{
-                      input: "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                      inputWrapper: "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                    }}
+                    classNames={inputClassNames}
                   />
                 </div>
               </div>
