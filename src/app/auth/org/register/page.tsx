@@ -84,9 +84,18 @@ export default function AdminRegisterPage() {
           password: formData.password,
         });
       } catch (err: any) {
-        const message = err?.response?.data?.message || "Failed to create account. Please try again.";
-        setError(message);
-        toast.error(message);
+        const status = err?.response?.status;
+        const message = err?.response?.data?.message || "";
+
+        if (status === 409 || message.toLowerCase().includes("exist") || message.toLowerCase().includes("already")) {
+          setError("This email is already registered. Switch to \"I already have an account\" above to create your organization.");
+          setIsLoading(false);
+          return;
+        }
+
+        const fallback = message || "Failed to create account. Please try again.";
+        setError(fallback);
+        toast.error(fallback);
         setIsLoading(false);
         return;
       }
@@ -101,30 +110,22 @@ export default function AdminRegisterPage() {
       });
     } catch (err: any) {
       const message = err?.response?.data?.message || "Failed to create organization. Please try again.";
+      // Account was created but org failed — flip to existing user mode silently
+      // so if they retry, register-user is skipped and we go straight to org creation
+      setIsExistingUser(true);
       setError(
-        isExistingUser
-          ? message
-          : "Your account was created but we couldn't set up your organization. Please log in and try again from your dashboard."
+        `Your account was created but we couldn't set up your organization. Please click "Create Organization" again to retry — your account is already ready.`
       );
       toast.error(message);
       setIsLoading(false);
       return;
     }
 
-    // Step 3: Silent login to get auth token then go straight to onboarding
-    try {
-      await apiClient.post("/auth/login", {
-        email: formData.email,
-        password: formData.password,
-      });
-      router.push("/onboarding/bank-account");
-    } catch {
-      // Silent login failed — just send them to login page gracefully
-      toast.success("Organization created! Please log in to continue.");
-      router.push("/auth/login");
-    } finally {
-      setIsLoading(false);
-    }
+    // Registration complete — set flag so login page redirects to onboarding
+    localStorage.setItem("onboarding_pending", "true");
+    toast.success("Organization created! Please log in to continue.");
+    router.push("/auth/login");
+    setIsLoading(false);
   };
 
   return (

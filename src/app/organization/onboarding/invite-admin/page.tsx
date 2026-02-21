@@ -97,7 +97,7 @@ export default function OnboardingInviteAdminPage() {
           ? "Invitation sent!"
           : `${successCount} invitations sent!`
       );
-      router.push("/onboarding/highlights");
+      router.push("/organization/onboarding/highlights");
     } else if (successCount > 0 && failCount > 0) {
       toast.warning(`${successCount} sent, ${failCount} failed — check highlighted emails`);
     } else {
@@ -232,7 +232,7 @@ export default function OnboardingInviteAdminPage() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push("/onboarding/highlights")}
+                onClick={() => router.push("/organization/onboarding/highlights")}
                 disabled={isSubmitting}
               >
                 Skip for now
@@ -243,7 +243,7 @@ export default function OnboardingInviteAdminPage() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => router.push("/onboarding/add-member")}
+                  onClick={() => router.push("/organization/onboarding/add-member")}
                   disabled={isSubmitting}
                 >
                   ← Back

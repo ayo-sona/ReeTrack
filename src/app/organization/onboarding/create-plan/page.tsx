@@ -55,7 +55,7 @@ export default function OnboardingCreatePlanPage() {
       });
       setSuccess(true);
       toast.success("Plan created!");
-      setTimeout(() => router.push("/onboarding/add-member"), 1200);
+      setTimeout(() => router.push("/organization/onboarding/add-member"), 1200);
     } catch (err: any) {
       setError(err?.response?.data?.message || "Failed to create plan. Please try again.");
     } finally {
@@ -240,7 +240,7 @@ export default function OnboardingCreatePlanPage() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push("/onboarding/add-member")}
+                onClick={() => router.push("/organization/onboarding/add-member")}
                 disabled={isLoading}
               >
                 Skip for now
@@ -251,7 +251,7 @@ export default function OnboardingCreatePlanPage() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => router.push("/onboarding/bank-account")}
+                  onClick={() => router.push("/organization/onboarding/bank-account")}
                   disabled={isLoading}
                 >
                   ← Back

@@ -97,7 +97,7 @@ export default function OnboardingAddMemberPage() {
           ? "Invitation sent!"
           : `${successCount} invitations sent!`
       );
-      router.push("/onboarding/invite-admin");
+      router.push("/organization/onboarding/invite-admin");
     } else if (successCount > 0 && failCount > 0) {
       toast.warning(`${successCount} sent, ${failCount} failed — check highlighted emails`);
     } else {
@@ -231,7 +231,7 @@ export default function OnboardingAddMemberPage() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push("/onboarding/invite-admin")}
+                onClick={() => router.push("/organization/onboarding/invite-admin")}
                 disabled={isSubmitting}
               >
                 Skip for now

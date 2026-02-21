@@ -76,6 +76,8 @@ export default function SettingsPage() {
       try {
         const { data } = await apiClient.get("/auth/profile");
         const d = data.data;
+
+        console.log(d)
         setProfileData({
           firstName: d.first_name,
           lastName:  d.last_name,

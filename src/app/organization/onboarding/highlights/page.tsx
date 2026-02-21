@@ -100,7 +100,7 @@ export default function OnboardingHighlightsPage() {
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => router.push("/onboarding/invite-admin")}
+              onClick={() => router.push("/organization/onboarding/invite-admin")}
             >
               ← Back
             </Button>
