@@ -8,16 +8,19 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { JwtService } from '@nestjs/jwt';
 import { Injectable, Logger, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { WsAuthGuard } from './guards/ws-auth.guard';
 
 @WebSocketGateway({
-  cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true,
-  },
+  // cors: {
+  //   // origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  //   origin: 'http://localhost:3000',
+  //   // origin: this.configService.get('frontend.url') || 'http://localhost:3000',
+  //   // origin: "https://www.reetrack.com",
+  //   credentials: true,
+  // },
+  // transports: ['websocket', 'pooling'],
   namespace: '/subscriptions',
 })
 @Injectable()
@@ -29,54 +32,17 @@ export class SubscriptionGateway
 
   private readonly logger = new Logger(SubscriptionGateway.name);
 
-  constructor(
-    private jwtService: JwtService,
-    private configService: ConfigService,
-  ) {}
+  constructor(private configService: ConfigService) {}
 
   async handleConnection(client: Socket) {
-    try {
-      // Get token from handshake auth or query params
-      const token = client.handshake.auth.token || client.handshake.query.token;
-
-      if (!token) {
-        this.logger.warn(
-          `Client ${client.id} connected without token, disconnecting...`,
-        );
-        client.disconnect();
-        return;
-      }
-
-      // Verify JWT token
-      const payload = this.jwtService.verify(token, {
-        secret: this.configService.get('JWT_SECRET'),
-      });
-
-      // Join organization-specific room
-      const room = `org:${payload.organizationId}`;
-      client.join(room);
-
-      // Store user data on client
-      client.data = {
-        userId: payload.sub,
-        organizationId: payload.organizationId,
-        email: payload.email,
-      };
-
-      this.logger.log(`Client ${client.id} connected to room ${room}`);
-
-      // Send welcome message to client
-      client.emit('connected', {
-        message: 'Connected to subscription updates',
-        organizationId: payload.organizationId,
-      });
-    } catch (error) {
-      this.logger.error(
-        `Failed to authenticate client ${client.id}:`,
-        error.message,
-      );
-      client.disconnect();
-    }
+    // Allow all connections initially - authentication will be handled by guards on specific events
+    this.logger.log(`Client ${client.id} connected to subscriptions namespace`);
+    // console.log(process.env.FRONTEND_URL)
+    // Send welcome message
+    client.emit('connected', {
+      message: 'Connected to subscription updates namespace',
+      namespace: '/subscriptions',
+    });
   }
 
   handleDisconnect(client: Socket) {
@@ -88,26 +54,31 @@ export class SubscriptionGateway
   }
 
   // Handle client subscribing to specific events
+  @UseGuards(WsAuthGuard)
   @SubscribeMessage('subscribe:subscription')
   async handleSubscriptionSubscribe(
     @MessageBody() data: { subscriptionId: string },
     @ConnectedSocket() client: Socket,
   ) {
-    const { organizationId } = client.data || {};
-    if (!organizationId) {
-      client.emit('error', { message: 'Not authenticated' });
-      return;
-    }
+    const { organizationId } = client.data;
+
+    // Join organization-specific room first
+    const orgRoom = `org:${organizationId}`;
+    client.join(orgRoom);
 
     // Join subscription-specific room
-    const room = `subscription:${data.subscriptionId}`;
-    client.join(room);
+    const subscriptionRoom = `subscription:${data.subscriptionId}`;
+    client.join(subscriptionRoom);
 
-    this.logger.log(`Client ${client.id} subscribed to ${room}`);
-    client.emit('subscribed', { room: data.subscriptionId });
+    this.logger.log(`Client ${client.id} subscribed to ${subscriptionRoom}`);
+    client.emit('subscribed', {
+      room: data.subscriptionId,
+      organizationId,
+    });
   }
 
   // Handle client unsubscribing from events
+  @UseGuards(WsAuthGuard)
   @SubscribeMessage('unsubscribe:subscription')
   async handleSubscriptionUnsubscribe(
     @MessageBody() data: { subscriptionId: string },

@@ -21,7 +21,7 @@ export class WsAuthGuard implements CanActivate {
       }
 
       const payload = this.jwtService.verify(token, {
-        secret: this.configService.get('JWT_SECRET'),
+        secret: this.configService.get('jwt.secret'),
       });
 
       // Attach user data to client for use in handlers

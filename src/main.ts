@@ -8,6 +8,7 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import * as http from 'http';
+import { SocketIoAdapter } from './websocket/socket-io.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -69,6 +70,9 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
+
+  // Websocket Adapter
+  app.useWebSocketAdapter(new SocketIoAdapter(app));
 
   // Force HTTPS
   if (configService.get('app.nodeEnv') === 'production') {
