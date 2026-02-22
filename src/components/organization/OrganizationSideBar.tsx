@@ -1,14 +1,24 @@
 "use client";
 
 import {
-  LayoutDashboard, Users, Package, Archive, CreditCard,
-  Send, FileDown, Settings, Receipt, ScanLine, LogOut,
+  LayoutDashboard,
+  Users,
+  Package,
+  CreditCard,
+  Send,
+  FileDown,
+  Settings,
+  Receipt,
+  ScanLine,
+  LogOut,
+  Bell,
 } from "lucide-react";
 import { Sidebar } from "@/components/ui/SideBar";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { deleteCookie } from "cookies-next/client";
+import { useOrganizationNotifications } from "@/hooks/useOrganizationNotifiations";
 
 interface OrganizationSidebarProps {
   pathname: string;
@@ -23,10 +33,17 @@ interface User {
   email: string;
 }
 
-export function OrganizationSidebar({ pathname, isCollapsed, onToggleCollapse }: OrganizationSidebarProps) {
+export function OrganizationSidebar({
+  pathname,
+  isCollapsed,
+  onToggleCollapse,
+}: OrganizationSidebarProps) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // unreadCount comes directly from the hook — no need for a separate helper
+  const { unreadCount } = useOrganizationNotifications();
 
   useEffect(() => {
     try {
@@ -58,15 +75,52 @@ export function OrganizationSidebar({ pathname, isCollapsed, onToggleCollapse }:
   };
 
   const navigation = [
-    { name: "Dashboard",          href: "/organization/dashboard",         icon: LayoutDashboard },
-    { name: "Members",            href: "/organization/members",            icon: Users },
-    { name: "Plans",              href: "/organization/plans",              icon: Package },
-    { name: "Transactions",       href: "/organization/transactions",       icon: CreditCard },
-    // { name: "Organization Plans", href: "/organization/organization-plans", icon: Archive },
-    { name: "My Access",           href: "/organization/access",            icon: Receipt },
-    { name: "Check-ins",          href: "/organization/check-ins",          icon: ScanLine },
-    { name: "Ping",               href: "/organization/ping",               icon: Send },
-    { name: "Reports",            href: "/organization/reports",            icon: FileDown },
+    {
+      name: "Dashboard",
+      href: "/organization/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      name: "Members",
+      href: "/organization/members",
+      icon: Users,
+    },
+    {
+      name: "Plans",
+      href: "/organization/plans",
+      icon: Package,
+    },
+    {
+      name: "Transactions",
+      href: "/organization/transactions",
+      icon: CreditCard,
+    },
+    {
+      name: "My Access",
+      href: "/organization/access",
+      icon: Receipt,
+    },
+    {
+      name: "Check-ins",
+      href: "/organization/check-ins",
+      icon: ScanLine,
+    },
+    {
+      name: "Notifications",
+      href: "/organization/notifications",
+      icon: Bell,
+      badge: unreadCount > 0 ? unreadCount : undefined,
+    },
+    {
+      name: "Ping",
+      href: "/organization/ping",
+      icon: Send,
+    },
+    {
+      name: "Reports",
+      href: "/organization/reports",
+      icon: FileDown,
+    },
   ];
 
   const actions = [
@@ -86,11 +140,13 @@ export function OrganizationSidebar({ pathname, isCollapsed, onToggleCollapse }:
     },
   ];
 
-  const profileData = user ? {
-    firstName: user.first_name || "",
-    lastName: user.last_name || "",
-    email: user.email || "",
-  } : undefined;
+  const profileData = user
+    ? {
+        firstName: user.first_name || "",
+        lastName: user.last_name || "",
+        email: user.email || "",
+      }
+    : undefined;
 
   return (
     <Sidebar
