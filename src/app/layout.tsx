@@ -6,8 +6,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 
 export const metadata: Metadata = {
   title: "ReeTrack - Community and Payment Management",
-  description: "Manage your community
-   and payments",
+  description: "Manage your community and payments",
 };
 
 export default function RootLayout({
