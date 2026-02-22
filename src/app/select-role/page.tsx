@@ -53,7 +53,9 @@ export default function SelectRolePage() {
         </div>
         <div className="relative z-10 flex flex-col items-center gap-4">
           <div className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-          <p className="text-base font-bold text-white">Loading your workspace...</p>
+          <p className="text-base font-bold text-white">
+            Loading your workspace...
+          </p>
         </div>
       </div>
     );
@@ -187,7 +189,9 @@ export default function SelectRolePage() {
                       >
                         <User
                           className={`w-10 h-10 sm:w-12 sm:h-12 transition-colors duration-300 ${
-                            hoveredCard === "member" ? "text-white" : "text-[#0D9488]"
+                            hoveredCard === "member"
+                              ? "text-white"
+                              : "text-[#0D9488]"
                           }`}
                         />
                       </div>
@@ -199,8 +203,8 @@ export default function SelectRolePage() {
                         Member Portal
                       </h3>
                       <p className="text-base text-[#1F2937]/70 font-semibold leading-relaxed">
-                        Access your personal dashboard, view check-ins, and manage your
-                        membership
+                        Access your personal dashboard, view check-ins, and
+                        manage your membership
                       </p>
                     </div>
 
@@ -240,7 +244,9 @@ export default function SelectRolePage() {
                     {/* Gradient Overlay on Hover */}
                     <div
                       className={`absolute inset-0 bg-gradient-to-br from-[#F06543]/10 to-transparent transition-opacity duration-300 ${
-                        hoveredCard === "organization" ? "opacity-100" : "opacity-0"
+                        hoveredCard === "organization"
+                          ? "opacity-100"
+                          : "opacity-0"
                       }`}
                     />
 
@@ -269,8 +275,8 @@ export default function SelectRolePage() {
                         Organization Hub
                       </h3>
                       <p className="text-base text-[#1F2937]/70 font-semibold leading-relaxed">
-                        Manage your community, track member activity, and grow your
-                        organization
+                        Manage your community, track member activity, and grow
+                        your organization
                       </p>
                     </div>
 
@@ -308,7 +314,7 @@ export default function SelectRolePage() {
                     .replace(/^ +/, "")
                     .replace(
                       /=.*/,
-                      "=;expires=" + new Date().toUTCString() + ";path=/"
+                      "=;expires=" + new Date().toUTCString() + ";path=/",
                     );
                 });
                 router.push("/auth/login");
