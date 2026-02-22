@@ -10,7 +10,7 @@ export default function SelectRolePage() {
   const [userData, setUserData] = useState<any>(null);
 
   useEffect(() => {
-    // Fetch user data from your auth context or API
+    // Fetch user data
     const user = JSON.parse(localStorage.getItem("userData") || "{}");
     setUserData(user);
   }, []);
@@ -59,27 +59,24 @@ export default function SelectRolePage() {
             </button>
           )}
 
-          {userData.organizations
-            ?.map((org: any) => org.role)
-            .includes("STAFF") ||
-            (userData.organizations
-              ?.map((org: any) => org.role)
-              .includes("ADMIN") && (
-              <button
-                onClick={() => handleRoleSelect("staff")}
-                className="group relative w-full flex justify-center items-center p-6 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex flex-col items-center">
-                  <Shield className="h-12 w-12 text-purple-600 mb-3" />
-                  <span className="text-lg font-medium text-gray-900">
-                    Continue as Organization
-                  </span>
-                  <p className="mt-1 text-sm text-gray-500 text-center">
-                    Access organization management
-                  </p>
-                </div>
-              </button>
-            ))}
+          {userData.organizations?.some((org: any) =>
+            ["STAFF", "ADMIN"].includes(org.role),
+          ) && (
+            <button
+              onClick={() => handleRoleSelect("staff")}
+              className="group relative w-full flex justify-center items-center p-6 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex flex-col items-center">
+                <Shield className="h-12 w-12 text-purple-600 mb-3" />
+                <span className="text-lg font-medium text-gray-900">
+                  Continue as Organization
+                </span>
+                <p className="mt-1 text-sm text-gray-500 text-center">
+                  Access organization management
+                </p>
+              </div>
+            </button>
+          )}
         </div>
       </div>
     </div>

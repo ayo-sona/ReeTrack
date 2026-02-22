@@ -97,7 +97,7 @@ export default function OrganizationSelectPage() {
     userData?.organizations?.filter(
       (o: OrganizationWithRole) =>
         o.role !== "MEMBER" &&
-        o.name.toLowerCase().includes(searchQuery.toLowerCase())
+        o.name.toLowerCase().includes(searchQuery.toLowerCase()),
     ) ?? [];
 
   return (
@@ -120,28 +120,68 @@ export default function OrganizationSelectPage() {
       {/* Illustrations */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[5%] left-[40%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/relaxing_hammock.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/relaxing_hammock.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute bottom-[35%] right-[25%] w-26 h-26 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/eating_together.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/eating_together.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute top-[3%] right-[35%] w-20 h-20 sm:w-24 sm:h-24 opacity-85">
-          <Image src="/undraw/hot_air_balloon.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/hot_air_balloon.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute top-[30%] right-[20%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/skateboarding.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/skateboarding.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute top-[44%] left-[27%] w-24 h-24 opacity-90">
-          <Image src="/undraw/fitness.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/fitness.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute top-[25%] left-[22%] w-22 h-22 sm:w-28 sm:h-28 opacity-85">
-          <Image src="/undraw/floating_balloon.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/floating_balloon.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute bottom-[10%] left-[25%] w-20 h-20 sm:w-28 sm:h-28 opacity-90">
-          <Image src="/undraw/playing_with_dog.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/playing_with_dog.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute bottom-[10%] right-[24%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/bike_driving.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/bike_driving.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
       </div>
 
@@ -149,7 +189,6 @@ export default function OrganizationSelectPage() {
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10">
-
             {/* Header — inside the card, same as login */}
             <div className="text-center mb-8">
               <Link
@@ -182,7 +221,10 @@ export default function OrganizationSelectPage() {
             <ul className="divide-y divide-gray-100 rounded-xl border border-gray-100 overflow-hidden max-h-64 overflow-y-auto mb-5">
               {loading &&
                 [1, 2, 3].map((i) => (
-                  <li key={i} className="flex items-center gap-3 px-4 py-3.5 animate-pulse">
+                  <li
+                    key={i}
+                    className="flex items-center gap-3 px-4 py-3.5 animate-pulse"
+                  >
                     <div className="w-9 h-9 rounded-lg bg-gray-100 shrink-0" />
                     <div className="flex-1 space-y-1.5">
                       <div className="h-3.5 bg-gray-100 rounded w-2/3" />
@@ -212,7 +254,9 @@ export default function OrganizationSelectPage() {
                   return (
                     <li key={org.id}>
                       <button
-                        onClick={() => handleSelectOrganization(org.id, org.role)}
+                        onClick={() =>
+                          handleSelectOrganization(org.id, org.role)
+                        }
                         disabled={!!selectedOrg}
                         className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#F9FAFB] transition-colors disabled:opacity-60 disabled:cursor-not-allowed group text-left"
                       >
@@ -226,7 +270,9 @@ export default function OrganizationSelectPage() {
                           <p className="text-sm font-bold text-[#1F2937] truncate">
                             {org.name}
                           </p>
-                          <span className={`inline-block mt-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${roleClass}`}>
+                          <span
+                            className={`inline-block mt-0.5 text-xs font-semibold px-2 py-0.5 rounded-full ${roleClass}`}
+                          >
                             {org.role}
                           </span>
                         </div>
@@ -271,7 +317,6 @@ export default function OrganizationSelectPage() {
               <LogOut className="w-4 h-4" />
               Log out
             </button>
-
           </div>
         </div>
       </div>
