@@ -56,7 +56,7 @@ interface SubscriptionEvents {
   error: (data: { message: string }) => void;
 }
 
-const BASE_URL = "https://paypips.onrender.com/api/v1";
+const BASE_URL = "https://paypips.onrender.com";
 // const BASE_URL = "http://localhost:4000";
 
 class ReeTrackWebSocket {
