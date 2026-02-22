@@ -18,6 +18,7 @@ import { MobileHeader } from "@/components/ui/MobileHeader";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { deleteCookie } from "cookies-next/client";
+import { useOrganizationNotifications } from "@/hooks/useOrganizationNotifiations";
 
 interface OrganizationMobileHeaderProps {
   pathname: string;
@@ -35,7 +36,7 @@ export function OrganizationMobileHeader({ pathname }: OrganizationMobileHeaderP
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const unreadCount = 3; // Replace with actual notification count
+  const { unreadCount } = useOrganizationNotifications();
 
   useEffect(() => {
     try {
@@ -73,8 +74,7 @@ export function OrganizationMobileHeader({ pathname }: OrganizationMobileHeaderP
     { name: "Members", href: "/organization/members", icon: Users },
     { name: "Plans", href: "/organization/plans", icon: Package },
     { name: "Transactions", href: "/organization/transactions", icon: CreditCard },
-    { name: "Org Plans", href: "/organization/organization-plans", icon: Archive },
-    { name: "Billings", href: "/organization/billing", icon: Receipt },
+    { name: "My Access", href: "/organization/access", icon: Receipt },
     { name: "Check-ins", href: "/organization/check-ins", icon: ScanLine },
     { name: "Ping", href: "/organization/ping", icon: Send },
     { name: "Reports", href: "/organization/reports", icon: FileDown },
@@ -97,11 +97,13 @@ export function OrganizationMobileHeader({ pathname }: OrganizationMobileHeaderP
     },
   ];
 
-  const profileData = user ? {
-    firstName: user.first_name || "",
-    lastName: user.last_name || "",
-    email: user.email || "",
-  } : undefined;
+  const profileData = user
+    ? {
+        firstName: user.first_name || "",
+        lastName: user.last_name || "",
+        email: user.email || "",
+      }
+    : undefined;
 
   return (
     <MobileHeader
@@ -109,7 +111,7 @@ export function OrganizationMobileHeader({ pathname }: OrganizationMobileHeaderP
       navigation={navigation}
       profile={profileData}
       notificationHref="/organization/notifications"
-      notificationCount={unreadCount}
+      notificationCount={unreadCount > 0 ? unreadCount : undefined}
       actions={actions}
       logoText="ReeTrack"
       logoHref="/organization/dashboard"
