@@ -1,14 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { OrganizationSidebar } from "@/components/organization/OrganizationSideBar";
 import { OrganizationMobileHeader } from "@/components/organization/OrganizationMobileHeader";
+import { useWebSocket } from "@/hooks/useWebsocket";
+import { useWebSocketCacheInvalidation } from "@/hooks/useWebSocketCacheInvalidation";
+import { getCookie } from "cookies-next/client";
+import { Spinner } from "@heroui/react";
 
-export default function OrganizationLayout({ children }: { children: React.ReactNode }) {
+export default function OrganizationLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
+  const accessToken = getCookie("access_token") ?? null;
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // Initialize WebSocket connection
+  const { isConnected } = useWebSocket(accessToken);
+
+  // Set up cache invalidation listener
+  useWebSocketCacheInvalidation();
+
+  useEffect(() => {
+    if (isConnected) {
+      console.log("WebSocket connected for organization layout");
+      // You can subscribe to organization-specific events here
+      // For example, subscribe to all subscriptions for the current organization
+    }
+  }, [isConnected]);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return (
+      <div className="bg-[#F9FAFB] flex h-screen justify-center items-center">
+        <Spinner color="default" size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -16,7 +52,10 @@ export default function OrganizationLayout({ children }: { children: React.React
       style={{ fontFamily: "Nunito, sans-serif" }}
     >
       {/* Sidebar + toggle wrapper */}
-      <div className="hidden lg:flex items-center" style={{ padding: "12px 0 12px 12px", position: "relative" }}>
+      <div
+        className="hidden lg:flex items-center"
+        style={{ padding: "12px 0 12px 12px", position: "relative" }}
+      >
         <OrganizationSidebar
           pathname={pathname}
           isCollapsed={isCollapsed}
