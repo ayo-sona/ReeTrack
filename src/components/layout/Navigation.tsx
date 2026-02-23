@@ -298,7 +298,7 @@ const ClientOnlyNavigation = () => {
                   className="mt-auto pt-12"
                 >
                   <p className="text-[#1F2937]/50 text-sm">
-                    © {new Date().getFullYear()} ReeTrack Inc.
+                    © {new Date().getFullYear()} ReeTrack.
                   </p>
                 </motion.div>
               </div>

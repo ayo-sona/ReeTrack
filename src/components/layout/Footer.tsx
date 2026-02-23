@@ -153,7 +153,7 @@ export function Footer() {
         <div className="border-t border-gray-200 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-[#1F2937]/50">
-              © {new Date().getFullYear()} ReeTrack Inc. All rights reserved.
+              © {new Date().getFullYear()} ReeTrack. All rights reserved.
             </p>
           </div>
         </div>
