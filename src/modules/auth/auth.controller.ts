@@ -27,6 +27,8 @@ import { UserRegisterDto } from 'src/common/dto/user-register.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString } from 'class-validator';
 import { StaffRegisterDto } from 'src/common/dto/staff-register.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { OrgRole } from 'src/common/enums/enums';
 
 type RequestUser = {
   id: string;
@@ -205,7 +207,7 @@ export class AuthController {
   @Post('custom/register-staff')
   @Throttle({ short: { limit: 3, ttl: 60000 } }) // 3 requests per minute
   @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.CREATED)
+  @Roles(OrgRole.ADMIN)
   @ApiOperation({ summary: 'Register a new member' })
   @ApiResponse({
     status: 201,

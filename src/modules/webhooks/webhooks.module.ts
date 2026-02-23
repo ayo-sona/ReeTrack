@@ -7,11 +7,13 @@ import { Invoice } from '../../database/entities/invoice.entity';
 import { MemberSubscription } from '../../database/entities/member-subscription.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
 import {
+  Organization,
   OrganizationSubscription,
   OrganizationUser,
 } from 'src/database/entities';
 import { Stripe } from 'stripe';
 import { ConfigService } from '@nestjs/config';
+import { PlansModule } from '../plans/plans.module';
 
 @Module({
   imports: [
@@ -21,8 +23,10 @@ import { ConfigService } from '@nestjs/config';
       MemberSubscription,
       OrganizationSubscription,
       OrganizationUser,
+      Organization,
     ]),
     NotificationsModule,
+    PlansModule,
   ],
   controllers: [WebhooksController],
   providers: [

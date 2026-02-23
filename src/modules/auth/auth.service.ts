@@ -117,12 +117,12 @@ export class AuthService {
 
     const savedOrgUser = await this.organizationUserRepository.save(orgUser);
 
-    // Send welcome email
-    // await this.notificationsService.sendWelcomeEmail({
-    //   email: existingUser.email,
-    //   userName: `${existingUser.first_name} ${existingUser.last_name}`,
-    //   organizationName: savedOrg.name,
-    // });
+    // Send welcome email to organization
+    await this.notificationsService.sendOrganizationRegisterEmail({
+      userEmail: existingUser.email,
+      userName: `${existingUser.first_name} ${existingUser.last_name}`,
+      organizationName: savedOrg.name,
+    });
 
     return {
       message: 'Organization and admin user created successfully',

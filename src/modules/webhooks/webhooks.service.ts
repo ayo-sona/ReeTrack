@@ -20,9 +20,11 @@ import {
 import { NotificationsService } from '../notifications/notifications.service';
 import Stripe from 'stripe';
 import {
+  Organization,
   OrganizationSubscription,
   OrganizationUser,
 } from 'src/database/entities';
+import { PlanLimitService } from '../plans/plans-limit.service';
 
 @Injectable()
 export class WebhooksService {
@@ -43,6 +45,9 @@ export class WebhooksService {
     @InjectRepository(OrganizationUser)
     private organizationUserRepository: Repository<OrganizationUser>,
 
+    @InjectRepository(Organization)
+    private organizationRepository: Repository<Organization>,
+
     @InjectRepository(MemberSubscription)
     private memberSubscriptionRepository: Repository<MemberSubscription>,
 
@@ -50,10 +55,12 @@ export class WebhooksService {
 
     private configService: ConfigService,
     private notificationsService: NotificationsService,
+    private planLimitService: PlanLimitService,
   ) {
-    this.paystackWebhookSecret = this.configService.get(
-      'paystack.testSecretKey',
-    );
+    this.paystackWebhookSecret =
+      this.configService.get('app.nodeEnv') === 'production'
+        ? this.configService.get('paystack.secretKey')
+        : this.configService.get('paystack.testSecretKey');
     this.stripeWebhookSecret = this.configService.get('stripe.webhookSecret');
   }
 
@@ -119,7 +126,7 @@ export class WebhooksService {
       where: { provider_reference: data.reference },
       relations: [
         'invoice.member_subscription',
-        'invoice.organization_subscription',
+        'invoice.organization_subscription.plan',
         'payer_user',
       ],
     });
@@ -200,6 +207,25 @@ export class WebhooksService {
       // If invoice is linked to an organization subscription, ensure it's active
       if (payment.invoice.organization_subscription) {
         const subscription = payment.invoice.organization_subscription;
+
+        // Get the organization
+        const organization = await this.organizationRepository.findOne({
+          where: { id: subscription.organization_id },
+        });
+
+        // if(!organization) {
+        //   throw new Error(`Organization ${subscription.organization_id} not found`);
+        // }
+
+        // Update the current plan and the transaction fee
+        organization!.enterprise_plan =
+          payment.invoice.organization_subscription.plan.name;
+        await this.organizationRepository.save(organization!);
+
+        await this.planLimitService.updateTransactionFees(
+          organization!.id,
+          payment.invoice.organization_subscription.plan.name,
+        );
 
         if (
           subscription.status === SubscriptionStatus.EXPIRED ||

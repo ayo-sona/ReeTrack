@@ -7,6 +7,8 @@ import { Invoice } from '../../database/entities/invoice.entity';
 import { Payment } from '../../database/entities/payment.entity';
 import { Member } from '../../database/entities/member.entity';
 import { MemberPlan } from '../../database/entities/member-plan.entity';
+import { Organization } from 'src/database/entities';
+import { PlansModule } from '../plans/plans.module';
 
 @Module({
   imports: [
@@ -16,7 +18,9 @@ import { MemberPlan } from '../../database/entities/member-plan.entity';
       Payment,
       Member,
       MemberPlan,
+      Organization,
     ]),
+    PlansModule,
   ],
   controllers: [AnalyticsController],
   providers: [AnalyticsService],

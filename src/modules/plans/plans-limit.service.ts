@@ -101,7 +101,7 @@ export class PlanLimitService {
 
   // ─── Transaction Fees ──────────────────────────────────────────────
 
-  async assertCanUpdateTransactionFees(organizationId: string, plan: PlanTier) {
+  async updateTransactionFees(organizationId: string, plan: PlanTier) {
     const limit = PLAN_FEATURES[plan].transactionFeePercent;
     if (limit === Infinity) return;
 

@@ -7,12 +7,13 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Organization } from 'src/database/entities';
 import { PlansModule } from '../plans/plans.module';
+import { Email } from 'src/database/entities/email.entity';
 
 @Module({
   imports: [
     ConfigModule,
     forwardRef(() => PlansModule),
-    TypeOrmModule.forFeature([Organization]),
+    TypeOrmModule.forFeature([Organization, Email]),
   ],
   providers: [NotificationsService, EmailService, SmsService],
   exports: [NotificationsService],

@@ -12,6 +12,9 @@ import { UpdateMemberDto } from './dto/update-member.dto';
 import { OrgRole } from 'src/common/enums/enums';
 import { User } from 'src/database/entities/user.entity';
 import { CheckInDto } from './members.controller';
+import { PlanLimitService } from '../plans/plans-limit.service';
+import { Organization } from 'src/database/entities';
+// import
 
 @Injectable()
 export class MembersService {
@@ -24,6 +27,11 @@ export class MembersService {
 
     @InjectRepository(OrganizationUser)
     private orgUserRepository: Repository<OrganizationUser>,
+
+    @InjectRepository(Organization)
+    private orgRepository: Repository<Organization>,
+
+    private planLimitService: PlanLimitService,
   ) {}
 
   async findAll(organizationId: string, search?: string): Promise<Member[]> {
@@ -181,6 +189,20 @@ export class MembersService {
   }
 
   async checkInMember(organizationId: string, checkInData: CheckInDto) {
+    // Find the organization
+    const organization = await this.orgRepository.findOne({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    // Check if the organization has access to check-in
+    await this.planLimitService.assertCanUseCheckInService(
+      organization.enterprise_plan,
+    );
+
     // Find the member
     const member = await this.memberRepository.findOne({
       where: {

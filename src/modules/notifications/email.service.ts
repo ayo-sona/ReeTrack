@@ -66,6 +66,8 @@ export class EmailService {
       welcome_email: this.welcomeEmailTemplate(context),
       register_member_email: this.registerMemberEmailTemplate(context),
       register_staff_email: this.registerStaffEmailTemplate(context),
+      register_organization_email:
+        this.registerOrganizationEmailTemplate(context),
       custom_email: this.customEmailTemplate(context),
       password_reset: this.passwordResetEmail(context),
     };
@@ -102,6 +104,78 @@ export class EmailService {
         </div>
       </body>
       </html>
+    `;
+  }
+
+  private registerOrganizationEmailTemplate(context: any): string {
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
+            .logo { font-size: 24px; font-weight: bold; color: #4CAF50; margin-bottom: 10px; }
+            .content { background-color: #ffffff; padding: 30px; border-radius: 8px; border: 1px solid #e9ecef; }
+            .button { 
+                display: inline-block; 
+                padding: 12px 24px; 
+                background-color: #4CAF50; 
+                color: white; 
+                text-decoration: none; 
+                border-radius: 4px; 
+                margin: 20px 0; 
+            }
+            .footer { margin-top: 30px; font-size: 12px; color: #666; text-align: center; }
+            .info-box { background-color: #f1f8ff; border-left: 4px solid #2196F3; padding: 15px; margin: 20px 0; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">ReeTrack</div>
+                <p>Your Organization Management Platform</p>
+            </div>
+            
+            <div class="content">
+                <h2>Welcome to ReeTrack! 🎉</h2>
+                <p>Hello <strong>${context.userName || 'Administrator'}</strong>,</p>
+                <p>Congratulations! Your organization <strong>${context.organizationName}</strong> has been successfully registered on ReeTrack.</p>
+                
+                <div class="info-box">
+                    <p><strong>Organization Details:</strong></p>
+                    <ul>
+                        <li>Organization Name: ${context.organizationName}</li>
+                        <li>Admin Email: ${context.userEmail}</li>
+                        <li>Plan: BASIC</li>
+                    </ul>
+                </div>
+                
+                <p>Your organization is now ready to use! You can:</p>
+                <ul>
+                    <li>✅ Add and manage members</li>
+                    <li>✅ Create subscription plans</li>
+                    <li>✅ Track payments and subscriptions</li>
+                    <li>✅ Generate reports</li>
+                </ul>
+                
+                <p>Get started by clicking the button below:</p>
+                <a href="${context.loginUrl}" class="button">Go to Dashboard</a>
+                
+                <p>Or copy and paste this link into your browser:</p>
+                <p style="word-break: break-all; color: #666;">${context.loginUrl}</p>
+                
+                <p><strong>Need help?</strong> Check out our documentation or contact our support team.</p>
+            </div>
+            
+            <div class="footer">
+                <p>This is an automated email from ReeTrack</p>
+                <p>© 2026 ReeTrack. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
     `;
   }
 
@@ -204,7 +278,7 @@ export class EmailService {
 
   private customEmailTemplate(context: any): string {
     const {
-      subject = 'Notification',
+      subject = 'UPDATES',
       content = '',
       organization = {},
       additionalInfo = '',

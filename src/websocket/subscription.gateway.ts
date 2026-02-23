@@ -34,6 +34,7 @@ export class SubscriptionGateway
 
   constructor(private configService: ConfigService) {}
 
+  // NestJs calls this function when a client connects to the subscriptions namespace
   async handleConnection(client: Socket) {
     // Allow all connections initially - authentication will be handled by guards on specific events
     this.logger.log(`Client ${client.id} connected to subscriptions namespace`);
@@ -45,6 +46,7 @@ export class SubscriptionGateway
     });
   }
 
+  // NestJs calls this function when a client disconnects from the subscriptions namespace
   handleDisconnect(client: Socket) {
     const { userId, organizationId } = client.data || {};
     this.logger.log(

@@ -13,6 +13,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Organization } from 'src/database/entities';
 import { Repository } from 'typeorm';
 import { PlanLimitService } from '../plans/plans-limit.service';
+import { Email } from 'src/database/entities/email.entity';
+import { EmailStatus, EmailType } from 'src/common/enums/enums';
 
 @Injectable()
 export class NotificationsService {
@@ -34,7 +36,31 @@ export class NotificationsService {
 
     @InjectRepository(Organization)
     private organizationRepository: Repository<Organization>,
+
+    @InjectRepository(Email)
+    private emailRepository: Repository<Email>,
   ) {}
+
+  async sendOrganizationRegisterEmail(data: {
+    userEmail: string;
+    userName: string;
+    organizationName: string;
+  }) {
+    const baseUrl = this.configService.get('frontend.url');
+    const context = {
+      ...data,
+      loginUrl: `${baseUrl}/auth/login`,
+    };
+
+    await this.emailService.sendEmail({
+      to: data.userEmail,
+      subject: `You've been invited to join ${data.organizationName}'s staff team`,
+      template: 'register_organization_email',
+      context,
+    });
+
+    this.logger.log(`Staff registration email sent to ${data.userEmail}`);
+  }
 
   async sendMemberRegisterEmail(data: {
     email: string;
@@ -133,6 +159,16 @@ export class NotificationsService {
     // Send emails in parallel
     await Promise.all(
       data.to.map(async (email) => {
+        // Create row in PENDING state
+        const storedEmail = this.emailRepository.create({
+          organization_id: data.organizationId,
+          toEmail: email,
+          subject: data.subject,
+          type: EmailType.CUSTOM,
+          status: EmailStatus.PENDING,
+        });
+        await this.emailRepository.save(storedEmail);
+
         try {
           await this.emailService.sendEmail({
             to: email,
@@ -143,6 +179,11 @@ export class NotificationsService {
           results.success++;
           this.logger.log(`Custom email sent to ${email}`);
         } catch (error) {
+          // Mark as SENT with timestamp
+          await this.emailRepository.update(storedEmail.id, {
+            status: EmailStatus.SENT,
+            sentAt: new Date(),
+          });
           results.failed++;
           results.errors.push({
             email,

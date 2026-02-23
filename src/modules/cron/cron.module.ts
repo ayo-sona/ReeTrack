@@ -11,7 +11,12 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { AuthModule } from '../auth/auth.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
-import { OrganizationUser } from 'src/database/entities';
+import {
+  Organization,
+  OrganizationSubscription,
+  OrganizationUser,
+} from 'src/database/entities';
+import { PlansModule } from '../plans/plans.module';
 
 @Module({
   imports: [
@@ -22,11 +27,14 @@ import { OrganizationUser } from 'src/database/entities';
       MemberPlan,
       Member,
       OrganizationUser,
+      Organization,
+      OrganizationSubscription,
     ]),
     NotificationsModule,
     AuthModule,
     PaymentsModule,
     SubscriptionsModule,
+    PlansModule,
   ],
   controllers: [CronController],
   providers: [CronService],

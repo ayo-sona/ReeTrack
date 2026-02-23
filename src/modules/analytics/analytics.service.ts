@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, LessThan, MoreThan } from 'typeorm';
 import { MemberSubscription } from '../../database/entities/member-subscription.entity';
@@ -12,6 +12,7 @@ import {
 } from 'src/common/enums/enums';
 import { Member } from '../../database/entities/member.entity';
 import { MemberPlan } from '../../database/entities/member-plan.entity';
+import { Organization } from 'src/database/entities/organization.entity';
 import {
   MRRData,
   ChurnData,
@@ -39,6 +40,7 @@ import {
   endOfDay,
   addDays,
 } from 'date-fns';
+import { PlanLimitService } from '../plans/plans-limit.service';
 
 @Injectable()
 export class AnalyticsService {
@@ -54,11 +56,16 @@ export class AnalyticsService {
     @InjectRepository(Payment)
     private paymentRepository: Repository<Payment>,
 
+    @InjectRepository(Organization)
+    private organizationRepository: Repository<Organization>,
+
     @InjectRepository(Member)
     private memberRepository: Repository<Member>,
 
     @InjectRepository(MemberPlan)
     private memberPlanRepository: Repository<MemberPlan>,
+
+    private planLimitService: PlanLimitService,
   ) {}
 
   // ============================================
@@ -601,6 +608,20 @@ export class AnalyticsService {
   // ============================================
 
   async getMembersReport(organizationId: string): Promise<MemberReport> {
+    // Get the organization
+    const organization = await this.organizationRepository.findOne({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    // Check if the organization have access to report generation
+    await this.planLimitService.assertCanUseReportsGeneration(
+      organization.enterprise_plan,
+    );
+
     const members = await this.memberRepository
       .createQueryBuilder('member')
       .leftJoinAndSelect('member.organization_user', 'org_user')
@@ -639,6 +660,20 @@ export class AnalyticsService {
     startDate: Date,
     endDate: Date,
   ): Promise<PaymentReport> {
+    // Get the organization
+    const organization = await this.organizationRepository.findOne({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    // Check if the organization have access to report generation
+    await this.planLimitService.assertCanUseReportsGeneration(
+      organization.enterprise_plan,
+    );
+
     const payments = await this.paymentRepository
       .createQueryBuilder('payment')
       .leftJoinAndSelect('payment.payer_user', 'user')
@@ -674,6 +709,20 @@ export class AnalyticsService {
     startDate: Date,
     endDate: Date,
   ): Promise<RevenueReport> {
+    // Get the organization
+    const organization = await this.organizationRepository.findOne({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    // Check if the organization have access to report generation
+    await this.planLimitService.assertCanUseReportsGeneration(
+      organization.enterprise_plan,
+    );
+
     const start = startOfMonth(new Date(startDate));
     const end = endOfMonth(new Date(endDate));
 
@@ -792,6 +841,20 @@ export class AnalyticsService {
   }
 
   async getPlansReport(organizationId: string): Promise<PlanReport> {
+    // Get the organization
+    const organization = await this.organizationRepository.findOne({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    // Check if the organization have access to report generation
+    await this.planLimitService.assertCanUseReportsGeneration(
+      organization.enterprise_plan,
+    );
+
     const plans = await this.memberPlanRepository
       .createQueryBuilder('plan')
       .leftJoinAndSelect('plan.subscriptions', 'subscription')

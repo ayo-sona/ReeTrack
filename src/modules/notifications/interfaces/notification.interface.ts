@@ -25,6 +25,7 @@ export enum NotificationType {
   WELCOME_EMAIL = 'welcome_email',
   REGISTER_MEMBER_EMAIL = 'register_member_email',
   REGISTER_STAFF_EMAIL = 'register_staff_email',
+  REGISTER_ORGANIZATION_EMAIL = 'register_organization_email',
   CUSTOM_EMAIL = 'custom_email',
   PASSWORD_RESET = 'password_reset',
 }

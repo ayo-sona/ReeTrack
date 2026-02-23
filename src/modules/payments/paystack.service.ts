@@ -14,7 +14,10 @@ export class PaystackService {
   private readonly secretKey: string | undefined;
 
   constructor(private configService: ConfigService) {
-    this.secretKey = this.configService.get('paystack.testSecretKey');
+    this.secretKey =
+      this.configService.get('app.nodeEnv') === 'production'
+        ? this.configService.get('paystack.secretKey')
+        : this.configService.get('paystack.testSecretKey');
 
     this.paystackClient = axios.create({
       baseURL: 'https://api.paystack.co',

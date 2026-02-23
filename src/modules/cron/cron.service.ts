@@ -36,6 +36,7 @@ import { Invoice } from '../../database/entities/invoice.entity';
 import {
   InvoiceBilledType,
   InvoiceStatus,
+  OrgPlans,
   PaymentProvider,
   PlanInterval,
   SubscriptionStatus,
@@ -44,7 +45,11 @@ import { MemberPlan } from '../../database/entities/member-plan.entity';
 import { Member } from '../../database/entities/member.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuthService } from '../auth/auth.service';
-import { OrganizationUser } from 'src/database/entities';
+import {
+  Organization,
+  OrganizationSubscription,
+  OrganizationUser,
+} from 'src/database/entities';
 import { generateInvoiceNumber } from '../../common/utils/invoice-number.util';
 import { PaymentsService } from '../payments/payments.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
@@ -55,6 +60,7 @@ import {
   startOfDay,
   subMonths,
 } from 'date-fns';
+import { PlanLimitService } from '../plans/plans-limit.service';
 
 @Injectable()
 export class CronService {
@@ -73,13 +79,20 @@ export class CronService {
     @InjectRepository(Member)
     private memberRepository: Repository<Member>,
 
+    @InjectRepository(Organization)
+    private organizationRepository: Repository<Organization>,
+
     @InjectRepository(OrganizationUser)
     private organizationUserRepository: Repository<OrganizationUser>,
+
+    @InjectRepository(OrganizationSubscription)
+    private organizationSubscriptionRepository: Repository<OrganizationSubscription>,
 
     private notificationsService: NotificationsService,
     private configService: ConfigService,
     private authService: AuthService,
     private paymentsService: PaymentsService,
+    private planLimitService: PlanLimitService,
     private subscriptionsService: SubscriptionsService,
   ) {}
 
@@ -110,6 +123,62 @@ export class CronService {
         email: subscription.member.user.email,
         phone: subscription.member.user.phone,
         memberName: `${subscription.member.user.first_name} ${subscription.member.user.last_name}`,
+        planName: subscription.plan.name,
+        reactivateUrl: `${frontendUrl}/subscriptions/${subscription.id}/renew`,
+      });
+
+      this.logger.log(`Subscription ${subscription.id} marked as expired`);
+    }
+
+    this.logger.log(`✅ Expired ${expiredSubscriptions.length} subscriptions`);
+  }
+
+  // CHECK AND EXPIRE ORGANIZATION SUBSCRIPTIONS
+  // Runs every hour
+  // @Cron('10 17 * * *') // TESTING
+  @Cron(CronExpression.EVERY_HOUR)
+  async checkExpiredOrganizationSubscriptions() {
+    this.logger.log('🔍 Checking for expired organization subscriptions...');
+
+    const now = new Date();
+
+    const expiredSubscriptions =
+      await this.organizationSubscriptionRepository.find({
+        where: {
+          status: In([SubscriptionStatus.ACTIVE]),
+          expires_at: LessThan(now),
+        },
+        relations: ['organization', 'plan'],
+      });
+
+    for (const subscription of expiredSubscriptions) {
+      subscription.status = SubscriptionStatus.EXPIRED;
+      await this.organizationSubscriptionRepository.save(subscription);
+
+      // Get the organization
+      const organization = await this.organizationRepository.findOne({
+        where: { id: subscription.organization_id },
+      });
+
+      // if(!organization) {
+      //   throw new Error(`Organization ${subscription.organization_id} not found`);
+      // }
+
+      // Update the current plan and the transaction fee
+      organization!.enterprise_plan = OrgPlans.BASIC;
+      await this.organizationRepository.save(organization!);
+
+      await this.planLimitService.updateTransactionFees(
+        organization!.id,
+        OrgPlans.BASIC,
+      );
+
+      // Send notification
+      const frontendUrl = this.configService.get('frontend.url');
+      await this.notificationsService.sendSubscriptionExpiredNotification({
+        email: subscription.organization.email,
+        phone: subscription.organization.phone,
+        memberName: subscription.organization.name,
         planName: subscription.plan.name,
         reactivateUrl: `${frontendUrl}/subscriptions/${subscription.id}/renew`,
       });

@@ -28,13 +28,10 @@ export class Email {
   toEmail: string; // Primary recipient
 
   @Column({ type: 'text', nullable: true })
-  toName: string;
-
-  @Column({ type: 'text', nullable: true })
   subject: string;
 
-  @Column({ type: 'text', nullable: true })
-  plainTextBody: string;
+  // @Column({ type: 'text', nullable: true })
+  // plainTextBody: string;
 
   @Column({
     type: 'enum',
