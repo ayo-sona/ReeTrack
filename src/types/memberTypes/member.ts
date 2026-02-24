@@ -298,7 +298,7 @@ export interface SubscriptionDisplay {
   planPrice: number;
   planInterval: string;
   planCurrency: string;
-  status: "active" | "expired" | "canceled" | "pending";
+  status: "active" | "expired" | "cancelled" | "pending";
   features: string[];
   autoRenew: boolean;
   startedAt: string;
