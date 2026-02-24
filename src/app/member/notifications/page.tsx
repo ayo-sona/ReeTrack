@@ -1,5 +1,5 @@
-import NotificationsPage from '@/components/member/pages/memberNotificationPage';
+// import NotificationsPage from '@/components/member/pages/memberNotificationPage';
 
-export default function Page() {
-  return <NotificationsPage />;
-}
+// export default function Page() {
+//   return <NotificationsPage />;
+// }

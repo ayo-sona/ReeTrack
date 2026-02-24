@@ -40,7 +40,9 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
 
   const updateEmail = (id: string, value: string) => {
     setEmails((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, value, status: "idle", error: undefined } : e))
+      prev.map((e) =>
+        e.id === id ? { ...e, value, status: "idle", error: undefined } : e,
+      ),
     );
   };
 
@@ -50,7 +52,7 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
     onClose();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
     const validEmails = emails.filter((e) => e.value.trim() !== "");
@@ -61,59 +63,79 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
 
     setIsSubmitting(true);
 
-    // Fire all requests — one per email
-    const results = await Promise.allSettled(
-      validEmails.map((entry) =>
-        apiClient
-          .post("/auth/custom/register-member", { email: entry.value.trim() })
-          .then(() => ({ id: entry.id, success: true }))
-          .catch((err) => ({
-            id: entry.id,
-            success: false,
-            error: err?.response?.data?.message || "Failed to send invitation",
-          }))
-      )
-    );
+    try {
+      // Send all emails in a single request
+      const response = await apiClient.post("/auth/custom/register-member", {
+        email: validEmails.map((entry) => entry.value.trim()),
+      });
 
-    // Map results back to email entries
-    const resultMap: Record<string, { success: boolean; error?: string }> = {};
-    results.forEach((result) => {
-      if (result.status === "fulfilled") {
-        resultMap[result.value.id] = {
-          success: result.value.success,
-          error: (result.value as any).error,
-        };
+      console.log(response);
+      // Handle the response structure
+      if (response.data.statusCode === 201) {
+        const resultMap: Record<
+          string,
+          { success: boolean; error?: string; userExists?: boolean }
+        > = {};
+
+        // Map results back to email entries
+        response.data.data.results.forEach((result: any) => {
+          const emailEntry = validEmails.find(
+            (entry) => entry.value.trim() === result.email,
+          );
+          if (emailEntry) {
+            resultMap[emailEntry.id] = {
+              success: result.status === "sent",
+              userExists: result.userExists,
+              error:
+                result.status !== "sent"
+                  ? "Failed to send invitation"
+                  : undefined,
+            };
+          }
+        });
+
+        setEmails((prev) =>
+          prev.map((entry) => {
+            const result = resultMap[entry.id];
+            if (!result) return entry; // wasn't submitted (empty)
+            return {
+              ...entry,
+              status: result.success ? "success" : "error",
+              error: result.error,
+              userExists: result.userExists,
+            };
+          }),
+        );
+
+        const successCount = Object.values(resultMap).filter(
+          (r) => r.success,
+        ).length;
+        const failCount = Object.values(resultMap).filter(
+          (r) => !r.success,
+        ).length;
+
+        if (successCount > 0 && failCount === 0) {
+          toast.success(
+            successCount === 1
+              ? "Invitation sent successfully"
+              : `${successCount} invitations sent successfully`,
+          );
+          router.refresh();
+          handleClose();
+        } else if (successCount > 0 && failCount > 0) {
+          toast.warning(
+            `${successCount} sent, ${failCount} failed — check the highlighted emails`,
+          );
+          router.refresh();
+        } else {
+          toast.error("All invitations failed — check the highlighted emails");
+        }
       }
-    });
-
-    setEmails((prev) =>
-      prev.map((entry) => {
-        const result = resultMap[entry.id];
-        if (!result) return entry; // wasn't submitted (empty)
-        return {
-          ...entry,
-          status: result.success ? "success" : "error",
-          error: result.error,
-        };
-      })
-    );
-
-    const successCount = Object.values(resultMap).filter((r) => r.success).length;
-    const failCount = Object.values(resultMap).filter((r) => !r.success).length;
-
-    if (successCount > 0 && failCount === 0) {
-      toast.success(
-        successCount === 1
-          ? "Invitation sent successfully"
-          : `${successCount} invitations sent successfully`
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Failed to send invitations",
       );
-      router.refresh();
-      handleClose();
-    } else if (successCount > 0 && failCount > 0) {
-      toast.warning(`${successCount} sent, ${failCount} failed — check the highlighted emails`);
-      router.refresh();
-    } else {
-      toast.error("All invitations failed — check the highlighted emails");
+      console.error("Error sending invitations:", error);
     }
 
     setIsSubmitting(false);
@@ -157,8 +179,9 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
         {/* Info banner */}
         <div className="mx-6 mt-5 rounded-lg bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
           <p className="text-xs text-[#0D9488] leading-relaxed">
-            If the email is already registered, they'll be asked to confirm joining your organization.
-            If not, they'll be prompted to create an account first.
+            If the email is already registered, they'll be asked to confirm
+            joining your organization. If not, they'll be prompted to create an
+            account first.
           </p>
         </div>
 
@@ -179,8 +202,8 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
                         entry.status === "error"
                           ? "border-red-300 focus:ring-red-200 focus:border-red-400"
                           : entry.status === "success"
-                          ? "border-[#0D9488] bg-[#0D9488]/5 text-[#0D9488]"
-                          : "border-gray-200 focus:ring-[#0D9488]/20 focus:border-[#0D9488]"
+                            ? "border-[#0D9488] bg-[#0D9488]/5 text-[#0D9488]"
+                            : "border-gray-200 focus:ring-[#0D9488]/20 focus:border-[#0D9488]"
                       }`}
                     />
                     {/* Status indicator */}
@@ -205,7 +228,9 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
 
                 {/* Per-email error */}
                 {entry.status === "error" && entry.error && (
-                  <p className="text-xs text-red-500 font-semibold pl-1">{entry.error}</p>
+                  <p className="text-xs text-red-500 font-semibold pl-1">
+                    {entry.error}
+                  </p>
                 )}
               </div>
             ))}
@@ -242,8 +267,8 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
               {isSubmitting
                 ? "Sending..."
                 : emails.filter((e) => e.value.trim()).length > 1
-                ? `Send ${emails.filter((e) => e.value.trim()).length} Invitations`
-                : "Send Invitation"}
+                  ? `Send ${emails.filter((e) => e.value.trim()).length} Invitations`
+                  : "Send Invitation"}
             </Button>
           </div>
         </form>

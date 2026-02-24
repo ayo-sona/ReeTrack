@@ -12,24 +12,34 @@ import {
 import { membersApi } from "@/lib/organizationAPI/membersApi";
 import { useQuery } from "@tanstack/react-query";
 import { Member } from "@/types/organization";
-import {
-  useNotificationHistory,
-  useSendNotification,
-} from "@/hooks/useNotifications";
+// import {
+//   useNotificationHistory,
+//   useSendNotification,
+// } from "@/hooks/useNotifications";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
+import apiClient from "@/lib/apiClient";
+
+interface SendNotificationDto {
+  to: string[];
+  subject: string;
+  context: {
+    content: string;
+    additionalNotes?: string;
+  };
+}
 
 interface TransformedMember {
   id: string;
   name: string;
   email: string;
   phone: string;
-  planName: string;
-  expiryDate: string;
-  daysUntilExpiry: number;
-  status: "active" | "expiring_soon" | "expired";
-  subscriptionStatus?: string;
+  // planName: string;
+  // expiryDate: string;
+  // daysUntilExpiry: number;
+  // status: "active" | "expiring_soon" | "expired";
+  // subscriptionStatus?: string;
 }
 
 const now = Date.now();
@@ -38,7 +48,7 @@ export default function PingsPage() {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [showSendModal, setShowSendModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
+  const [isSending, setIsSending] = useState(false);
 
   const {
     data: rawMembers = [],
@@ -49,63 +59,63 @@ export default function PingsPage() {
     queryFn: () => membersApi.getAll(),
   });
 
-  const { data: sentPings = [], isLoading: isLoadingPings } =
-    useNotificationHistory();
-  const sendNotificationMutation = useSendNotification();
+  // const { data: sentPings = [], isLoading: isLoadingPings } =
+  //   useNotificationHistory();
+  // const sendNotificationMutation = useSendNotification();
 
   // Transform members
   const members = useMemo(() => {
     return rawMembers.map((member: Member): TransformedMember => {
       const user = member.user;
       const fullName = `${user.first_name} ${user.last_name}`.trim();
-      const activeSubscription = member.subscriptions?.find(
-        (s) => s.status === "active",
-      );
+      // const activeSubscription = member.subscriptions?.find(
+      //   (s) => s.status === "active",
+      // );
 
-      let expiryDate = new Date();
-      let daysUntilExpiry = 0;
-      let status: "active" | "expiring_soon" | "expired" = "active";
-      let planName = "No Plan";
-      let subscriptionStatus = "none";
+      // let expiryDate = new Date();
+      // let daysUntilExpiry = 0;
+      // let status: "active" | "expiring_soon" | "expired" = "active";
+      // let planName = "No Plan";
+      // let subscriptionStatus = "none";
 
-      if (activeSubscription) {
-        expiryDate = new Date(activeSubscription.expires_at);
-        daysUntilExpiry = Math.ceil(
-          (expiryDate.getTime() - now) / 86400000, 
-        );
-        planName = activeSubscription.plan.name;
-        subscriptionStatus = activeSubscription.status;
-        status =
-          daysUntilExpiry < 0
-            ? "expired"
-            : daysUntilExpiry <= 14
-              ? "expiring_soon"
-              : "active";
-      } else {
-        const expiredSub = member.subscriptions?.find(
-          (s) => s.status === "expired",
-        );
-        if (expiredSub) {
-          expiryDate = new Date(expiredSub.expires_at);
-          daysUntilExpiry = Math.ceil(
-            (expiryDate.getTime() - now) / 86400000,  
-          );
-          status = "expired";
-          planName = expiredSub.plan.name;
-          subscriptionStatus = "expired";
-        }
-      }
+      // if (activeSubscription) {
+      //   expiryDate = new Date(activeSubscription.expires_at);
+      //   daysUntilExpiry = Math.ceil(
+      //     (expiryDate.getTime() - now) / 86400000,
+      //   );
+      //   planName = activeSubscription.plan.name;
+      //   subscriptionStatus = activeSubscription.status;
+      //   status =
+      //     daysUntilExpiry < 0
+      //       ? "expired"
+      //       : daysUntilExpiry <= 14
+      //         ? "expiring_soon"
+      //         : "active";
+      // } else {
+      //   const expiredSub = member.subscriptions?.find(
+      //     (s) => s.status === "expired",
+      //   );
+      //   if (expiredSub) {
+      //     expiryDate = new Date(expiredSub.expires_at);
+      //     daysUntilExpiry = Math.ceil(
+      //       (expiryDate.getTime() - now) / 86400000,
+      //     );
+      //     status = "expired";
+      //     planName = expiredSub.plan.name;
+      //     subscriptionStatus = "expired";
+      //   }
+      // }
 
       return {
         id: member.id,
         name: fullName,
         email: user.email,
         phone: user.phone,
-        planName,
-        expiryDate: expiryDate.toISOString(),
-        daysUntilExpiry,
-        status,
-        subscriptionStatus,
+        // planName,
+        // expiryDate: expiryDate.toISOString(),
+        // daysUntilExpiry,
+        // status,
+        // subscriptionStatus,
       };
     });
   }, [rawMembers]);
@@ -118,10 +128,10 @@ export default function PingsPage() {
     );
   }, [members, searchQuery]);
 
-  const expiringCount = members.filter(
-    (m) => m.status === "expiring_soon",
-  ).length;
-  const expiredCount = members.filter((m) => m.status === "expired").length;
+  // const expiringCount = members.filter(
+  //   (m) => m.status === "expiring_soon",
+  // ).length;
+  // const expiredCount = members.filter((m) => m.status === "expired").length;
 
   const handleSelectMember = (id: string) =>
     setSelectedMembers((prev) =>
@@ -138,38 +148,68 @@ export default function PingsPage() {
 
   const handleSendPing = async (data: {
     message: string;
-    channel: "email" | "sms" | "both";
+    subject?: string;
+    additionalNotes?: string;
   }) => {
     try {
-      await sendNotificationMutation.mutateAsync({
-        member_ids: selectedMembers,
-        message: data.message,
-        channel: data.channel,
+      const selectedMemberEmails = selectedMembers
+        .map((id) => {
+          const member = members.find((m) => m.id === id);
+          return member?.email || "";
+        })
+        .filter((email) => email !== "");
+
+      if (selectedMemberEmails.length === 0) {
+        toast.error("Please select at least one member");
+        return;
+      }
+
+      setIsSending(true);
+      const response = await apiClient.post("notifications/email/custom", {
+        to: selectedMemberEmails,
+        subject: data.subject || "Notification from ReeTrack",
+        context: {
+          content: data.message,
+        },
       });
-      toast.success(
-        `Notification sent to ${selectedMembers.length} member${selectedMembers.length !== 1 ? "s" : ""}`,
-      );
+      console.log("response", response);
+
+      if (response.data.statusCode === 201) {
+        // toast.success(
+        //   `Notification sent to ${selectedMemberEmails.length} member${selectedMemberEmails.length !== 1 ? "s" : ""}`,
+        // );
+        toast.success(
+          `Notification sent to ${response.data.data.results.success} member${selectedMemberEmails.length !== 1 ? "s" : ""}`,
+        );
+      }
+
       setShowSendModal(false);
       setSelectedMembers([]);
-    } catch {
-      toast.error("Failed to send notification. Please try again.");
+    } catch (error: any) {
+      console.error("Failed to send notification:", error);
+      const { data } = error.response;
+      toast.error(
+        data.message || "Failed to send notification. Please try again.",
+      );
+    } finally {
+      setIsSending(false);
     }
   };
 
-  const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString("en-NG", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+  // const formatDate = (d: string) =>
+  //   new Date(d).toLocaleDateString("en-NG", {
+  //     year: "numeric",
+  //     month: "short",
+  //     day: "numeric",
+  //   });
 
-  const formatTimestamp = (d: string) =>
-    new Date(d).toLocaleString("en-NG", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  // const formatTimestamp = (d: string) =>
+  //   new Date(d).toLocaleString("en-NG", {
+  //     month: "short",
+  //     day: "numeric",
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //   });
 
   // ── Loading ──────────────────────────────────────────────────────────────
   if (isLoadingMembers) {
@@ -234,7 +274,7 @@ export default function PingsPage() {
         </div>
 
         {/* ── Recent Notifications ─────────────────────────────────────────── */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        {/* <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-sm font-bold text-[#0D9488] uppercase tracking-wide">
               Recent Notifications
@@ -242,20 +282,20 @@ export default function PingsPage() {
             {isLoadingPings && (
               <Loader2 className="w-4 h-4 animate-spin text-[#9CA3AF]" />
             )}
-          </div>
+          </div> */}
 
-          {sentPings.length > 0 ? (
-            <div className="divide-y divide-gray-50">
-              {sentPings.map((ping) => (
-                <div
+        {/* {sentPings.length > 0 ? ( */}
+        {/* <div className="divide-y divide-gray-50"> */}
+        {/* {sentPings.map((ping) => ( */}
+        {/* <div
                   key={ping.id}
                   className="px-5 sm:px-6 py-4 hover:bg-[#F9FAFB] transition-colors"
                 >
                   <p className="text-sm text-[#1F2937] mb-2 line-clamp-2 leading-relaxed">
                     {ping.message}
-                  </p>
-                  {/* Meta row — wraps on mobile */}
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#9CA3AF]">
+                  </p> */}
+        {/* Meta row — wraps on mobile */}
+        {/* <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#9CA3AF]">
                     <span className="flex items-center gap-1">
                       <Send className="w-3 h-3" />
                       {ping.sent_to} member{ping.sent_to !== 1 ? "s" : ""}
@@ -283,9 +323,9 @@ export default function PingsPage() {
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
+              ))} */}
+        {/* </div> */}
+        {/* ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center px-4">
               <Send className="w-8 h-8 text-gray-200 mb-3" />
               <p className="text-sm font-bold text-[#1F2937] mb-0.5">
@@ -296,7 +336,7 @@ export default function PingsPage() {
               </p>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* ── Member Selection ─────────────────────────────────────────────── */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
@@ -350,7 +390,7 @@ export default function PingsPage() {
                 )}
               </button>
 
-              {(expiringCount > 0 || expiredCount > 0) && (
+              {/* {(expiringCount > 0 || expiredCount > 0) && (
                 <div className="flex flex-wrap items-center gap-2">
                   {expiringCount > 0 && (
                     <span className="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-100 rounded-full">
@@ -363,7 +403,7 @@ export default function PingsPage() {
                     </span>
                   )}
                 </div>
-              )}
+              )} */}
             </div>
           </div>
 
@@ -395,11 +435,11 @@ export default function PingsPage() {
                         <p className="text-xs text-[#9CA3AF] truncate">
                           {member.email}
                         </p>
-                        <p className="text-xs text-[#9CA3AF] mt-0.5">
+                        {/* <p className="text-xs text-[#9CA3AF] mt-0.5">
                           {member.planName}
-                        </p>
+                        </p> */}
                       </div>
-                      <div className="flex sm:flex-col sm:items-end gap-2 sm:gap-1 flex-wrap">
+                      {/* <div className="flex sm:flex-col sm:items-end gap-2 sm:gap-1 flex-wrap">
                         <span
                           className={clsx(
                             "text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap",
@@ -424,7 +464,7 @@ export default function PingsPage() {
                             {formatDate(member.expiryDate)}
                           </p>
                         )}
-                      </div>
+                      </div> */}
                     </div>
                   </label>
                 );
@@ -450,7 +490,7 @@ export default function PingsPage() {
           selectedCount={selectedMembers.length}
           onClose={() => setShowSendModal(false)}
           onSend={handleSendPing}
-          isSending={sendNotificationMutation.isPending}
+          isSending={isSending}
         />
       )}
     </div>
@@ -468,22 +508,26 @@ function SendModal({
   onClose: () => void;
   onSend: (data: {
     message: string;
-    channel: "email" | "sms" | "both";
+    subject?: string;
+    additionalNotes?: string;
   }) => Promise<void>;
   isSending: boolean;
 }) {
   const [message, setMessage] = useState("");
-  const [channel, setChannel] = useState<"email" | "sms" | "both">("both");
+  const [subject, setSubject] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
-    if (message.trim() && !isSending) await onSend({ message, channel });
+    if (message.trim() && !isSending) {
+      await onSend({
+        message,
+        subject: subject.trim() || undefined,
+      });
+    }
   };
 
   const templates = [
-    "Your membership is expiring soon. Please renew to continue enjoying our services.",
     "Your membership has expired. Renew today to regain access to all facilities.",
-    "Special renewal offer: Get 15% off when you renew this week!",
     "Don't forget to check in today! We'd love to see you.",
     "Welcome to our community! We're excited to have you on board.",
   ];
@@ -514,29 +558,19 @@ function SendModal({
         </div>
 
         <form onSubmit={handleSubmit} className="px-5 sm:px-6 py-5 space-y-5">
-          {/* Templates */}
+          {/* Subject */}
           <div>
             <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2">
-              Quick Templates
+              Subject (Optional)
             </p>
-            <div className="space-y-2">
-              {templates.map((t, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  disabled={isSending}
-                  onClick={() => setMessage(t)}
-                  className={clsx(
-                    "w-full text-left px-4 py-3 text-sm rounded-lg border transition-colors leading-relaxed",
-                    message === t
-                      ? "border-[#0D9488] bg-[#0D9488]/5 text-[#1F2937] font-semibold"
-                      : "border-[#E5E7EB] bg-[#F9FAFB] text-[#1F2937] hover:border-[#0D9488]/40",
-                  )}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            <input
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="Enter subject..."
+              disabled={isSending}
+              className="w-full px-4 py-3 text-sm border border-[#E5E7EB] rounded-lg bg-[#F9FAFB] text-[#1F2937] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] resize-none transition disabled:opacity-50"
+            />
           </div>
 
           {/* Message textarea */}
@@ -556,37 +590,34 @@ function SendModal({
             <div className="flex items-center justify-between mt-1.5">
               <p className="text-xs text-[#9CA3AF]">
                 {message.length} characters
-                {channel !== "email" &&
-                  ` · ${Math.ceil(message.length / 160)} SMS`}
               </p>
-              {message.length > 160 && channel !== "email" && (
-                <p className="text-xs text-amber-600 font-semibold">
-                  Long SMS may incur extra charges
-                </p>
-              )}
             </div>
           </div>
 
-          {/* Channel selector */}
+          {/* Templates */}
           <div>
             <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2">
-              Send Via
+              Quick Templates
             </p>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              {(["email", "sms", "both"] as const).map((opt) => (
+            <div className="space-y-2">
+              {templates.map((t, i) => (
                 <button
-                  key={opt}
+                  key={i}
                   type="button"
                   disabled={isSending}
-                  onClick={() => setChannel(opt)}
+                  onClick={() => {
+                    setMessage(t);
+                    setSubject("Notification from ReeTrack");
+                    // setAdditionalNotes("");
+                  }}
                   className={clsx(
-                    "py-2.5 rounded-lg border-2 text-sm font-semibold capitalize transition-all",
-                    channel === opt
-                      ? "border-[#0D9488] bg-[#0D9488]/5 text-[#0D9488]"
-                      : "border-[#E5E7EB] text-[#9CA3AF] hover:border-[#0D9488]/40",
+                    "w-full text-left px-4 py-3 text-sm rounded-lg border transition-colors leading-relaxed",
+                    message === t
+                      ? "border-[#0D9488] bg-[#0D9488]/5 text-[#1F2937] font-semibold"
+                      : "border-[#E5E7EB] bg-[#F9FAFB] text-[#1F2937] hover:border-[#0D9488]/40",
                   )}
                 >
-                  {opt}
+                  {t}
                 </button>
               ))}
             </div>

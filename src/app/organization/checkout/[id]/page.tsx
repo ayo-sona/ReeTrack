@@ -58,9 +58,13 @@ export default function OrganizationCheckoutPage() {
       <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center font-[Nunito,sans-serif] px-4">
         <div className="text-center space-y-3 max-w-sm">
           <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
-          <p className="text-base font-bold text-[#1F2937]">Could not load plan</p>
+          <p className="text-base font-bold text-[#1F2937]">
+            Could not load plan
+          </p>
           <p className="text-sm text-[#9CA3AF]">{error}</p>
-          <Button variant="outline" onClick={() => router.back()}>Go back</Button>
+          <Button variant="outline" onClick={() => router.back()}>
+            Go back
+          </Button>
         </div>
       </div>
     );
@@ -70,7 +74,7 @@ export default function OrganizationCheckoutPage() {
     <SharedCheckout
       mode="organization"
       plan={plan}
-      backHref="/organization/plans"
+      backHref="/organization/access"
       backLabel="Back to plans"
     />
   );
