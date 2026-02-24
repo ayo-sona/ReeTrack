@@ -2,10 +2,15 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "../providers/Providers";
 import { Toaster } from "sonner";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 export const metadata: Metadata = {
-  title: "ReeTrack Inc",
-  description: "Manage your subscriptions and payments",
+  title: "ReeTrack - Community and Payment Management",
+  description: "Manage your community and payments",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -20,6 +25,7 @@ export default function RootLayout({
           {children}
           <Toaster position="top-right" />
         </Providers>
+        <GoogleAnalytics gaId="G-NFCEF78QJN" />
       </body>
     </html>
   );
