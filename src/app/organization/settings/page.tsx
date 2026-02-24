@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import {
-  Building2, User, Save, Loader2, UserPlus, Landmark, Pen, Users, X,
+  Building2,
+  User,
+  Save,
+  Loader2,
+  UserPlus,
+  Landmark,
+  Pen,
+  Users,
+  X,
 } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
@@ -14,22 +22,45 @@ import clsx from "clsx";
 type Tab = "organisation" | "profile" | "team" | "banking";
 
 // ── Shared style tokens ───────────────────────────────────────────────────────
-const inputBase   = "w-full rounded-lg border px-4 py-2.5 text-sm transition focus:outline-none focus:ring-2";
-const inputActive = "border-[#E5E7EB] bg-white text-[#1F2937] focus:border-[#0D9488] focus:ring-[#0D9488]/20";
-const inputLocked = "border-[#E5E7EB] bg-[#F9FAFB] text-[#9CA3AF] cursor-not-allowed select-none";
-const labelClass  = "block text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1.5";
+const inputBase =
+  "w-full rounded-lg border px-4 py-2.5 text-sm transition focus:outline-none focus:ring-2";
+const inputActive =
+  "border-[#E5E7EB] bg-white text-[#1F2937] focus:border-[#0D9488] focus:ring-[#0D9488]/20";
+const inputLocked =
+  "border-[#E5E7EB] bg-[#F9FAFB] text-[#9CA3AF] cursor-not-allowed select-none";
+const labelClass =
+  "block text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1.5";
 
 // ── Field ─────────────────────────────────────────────────────────────────────
-function Field({ id, label, type = "text", value, onChange, disabled, placeholder }: {
-  id: string; label: string; type?: string; value: string;
-  onChange?: (v: string) => void; disabled?: boolean; placeholder?: string;
+function Field({
+  id,
+  label,
+  type = "text",
+  value,
+  onChange,
+  disabled,
+  placeholder,
+}: {
+  id: string;
+  label: string;
+  type?: string;
+  value: string;
+  onChange?: (v: string) => void;
+  disabled?: boolean;
+  placeholder?: string;
 }) {
   return (
     <div>
-      <label htmlFor={id} className={labelClass}>{label}</label>
+      <label htmlFor={id} className={labelClass}>
+        {label}
+      </label>
       <input
-        id={id} type={type} value={value} placeholder={placeholder}
-        disabled={disabled} onChange={(e) => onChange?.(e.target.value)}
+        id={id}
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        disabled={disabled}
+        onChange={(e) => onChange?.(e.target.value)}
         className={clsx(inputBase, disabled ? inputLocked : inputActive)}
       />
     </div>
@@ -37,14 +68,22 @@ function Field({ id, label, type = "text", value, onChange, disabled, placeholde
 }
 
 // ── Card section ──────────────────────────────────────────────────────────────
-function Section({ title, subtitle, children }: {
-  title: string; subtitle?: string; children: React.ReactNode;
+function Section({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
 }) {
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="px-5 sm:px-6 py-4 border-b border-gray-100">
         <p className="text-sm font-bold text-[#1F2937]">{title}</p>
-        {subtitle && <p className="text-xs text-[#9CA3AF] mt-0.5">{subtitle}</p>}
+        {subtitle && (
+          <p className="text-xs text-[#9CA3AF] mt-0.5">{subtitle}</p>
+        )}
       </div>
       <div className="px-5 sm:px-6 py-5 space-y-4">{children}</div>
     </div>
@@ -56,19 +95,29 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<Tab>("organisation");
 
   const [orgData, setOrgData] = useState({
-    name: "", email: "", website: "", role: "", phone: "", description: "",
+    name: "",
+    email: "",
+    website: "",
+    role: "",
+    phone: "",
+    description: "",
+    slug: "",
   });
   const [profileData, setProfileData] = useState({
-    firstName: "", lastName: "", email: "", phone: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
   });
 
-  const [loading, setLoading]               = useState(true);
-  const [savingOrg, setSavingOrg]           = useState(false);
-  const [savingProfile, setSavingProfile]   = useState(false);
-  const [editingOrg, setEditingOrg]         = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [savingOrg, setSavingOrg] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [editingOrg, setEditingOrg] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
-  const [isInviteModalOpen, setIsInviteModalOpen]               = useState(false);
-  const [isAddSubaccountModalOpen, setIsAddSubaccountModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isAddSubaccountModalOpen, setIsAddSubaccountModalOpen] =
+    useState(false);
 
   useEffect(() => {
     (async () => {
@@ -77,20 +126,21 @@ export default function SettingsPage() {
         const { data } = await apiClient.get("/auth/profile");
         const d = data.data;
 
-        console.log(d)
+        console.log(d);
         setProfileData({
           firstName: d.first_name,
-          lastName:  d.last_name,
-          email:     d.email,
-          phone:     d.phone ?? "",
+          lastName: d.last_name,
+          email: d.email,
+          phone: d.phone ?? "",
         });
         setOrgData({
-          name:        d.organizations[0].name,
-          email:       d.organizations[0].email,
-          website:     d.organizations[0].website     ?? "",
-          role:        d.organizations[0].role,
-          phone:       d.organizations[0].phone       ?? "",
+          name: d.organizations[0].name,
+          email: d.organizations[0].email,
+          website: d.organizations[0].website ?? "",
+          role: d.organizations[0].role,
+          phone: d.organizations[0].phone ?? "",
           description: d.organizations[0].description ?? "",
+          slug: d.organizations[0].slug,
         });
       } catch {
         toast.error("Failed to load settings. Please refresh.");
@@ -105,9 +155,9 @@ export default function SettingsPage() {
     try {
       await apiClient.put("/organizations/me", {
         organizationName: orgData.name,
-        website:          orgData.website,
-        phone:            orgData.phone,
-        description:      orgData.description,
+        website: orgData.website,
+        phone: orgData.phone,
+        description: orgData.description,
       });
       toast.success("Organisation updated successfully");
       setEditingOrg(false);
@@ -132,10 +182,14 @@ export default function SettingsPage() {
   };
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: "organisation", label: "Organisation", icon: <Building2 className="w-4 h-4" /> },
-    { id: "profile",      label: "Profile",      icon: <User      className="w-4 h-4" /> },
-    { id: "team",         label: "Team",         icon: <Users     className="w-4 h-4" /> },
-    { id: "banking",      label: "Banking",      icon: <Landmark  className="w-4 h-4" /> },
+    {
+      id: "organisation",
+      label: "Organisation",
+      icon: <Building2 className="w-4 h-4" />,
+    },
+    { id: "profile", label: "Profile", icon: <User className="w-4 h-4" /> },
+    { id: "team", label: "Team", icon: <Users className="w-4 h-4" /> },
+    { id: "banking", label: "Banking", icon: <Landmark className="w-4 h-4" /> },
   ];
 
   if (loading) {
@@ -152,13 +206,14 @@ export default function SettingsPage() {
   return (
     <div className="font-[Nunito,sans-serif] bg-[#F9FAFB] min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-
         {/* ── Page header ──────────────────────────────────────────────────── */}
         <div className="mb-6">
           <p className="text-xs font-semibold tracking-widest uppercase text-[#0D9488] mb-1">
             Account
           </p>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-[#1F2937]">Settings</h1>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#1F2937]">
+            Settings
+          </h1>
           <p className="text-sm text-[#9CA3AF] mt-0.5">
             Manage your organisation and account preferences
           </p>
@@ -176,7 +231,7 @@ export default function SettingsPage() {
                   "border-b-2 -mb-px transition-all",
                   activeTab === tab.id
                     ? "border-[#0D9488] text-[#0D9488]"
-                    : "border-transparent text-[#9CA3AF] hover:text-[#1F2937] hover:border-gray-300"
+                    : "border-transparent text-[#9CA3AF] hover:text-[#1F2937] hover:border-gray-300",
                 )}
               >
                 {tab.icon}
@@ -189,27 +244,46 @@ export default function SettingsPage() {
         {/* ── ORGANISATION tab ─────────────────────────────────────────────── */}
         {activeTab === "organisation" && (
           <div className="space-y-4">
-            <Section title="Business Information" subtitle="Details visible to your members">
+            <Section
+              title="Business Information"
+              subtitle="Details visible to your members"
+            >
               <Field
-                id="org-name" label="Organisation Name"
+                id="org-name"
+                label="Organisation Name"
                 value={orgData.name}
                 onChange={(v) => setOrgData({ ...orgData, name: v })}
                 disabled={!editingOrg}
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field id="org-email" label="Email (read-only)" type="email" value={orgData.email} disabled />
-                <Field id="org-role"  label="Role (read-only)"  value={orgData.role}  disabled />
+                <Field
+                  id="org-email"
+                  label="Email (read-only)"
+                  type="email"
+                  value={orgData.email}
+                  disabled
+                />
+                <Field
+                  id="org-role"
+                  label="Role (read-only)"
+                  value={orgData.role}
+                  disabled
+                />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field
-                  id="org-phone" label="Phone" type="tel"
+                  id="org-phone"
+                  label="Phone"
+                  type="tel"
                   value={orgData.phone}
                   onChange={(v) => setOrgData({ ...orgData, phone: v })}
                   disabled={!editingOrg}
                   placeholder="+234 000 0000 000"
                 />
                 <Field
-                  id="org-website" label="Website" type="url"
+                  id="org-website"
+                  label="Website"
+                  type="url"
                   value={orgData.website}
                   onChange={(v) => setOrgData({ ...orgData, website: v })}
                   disabled={!editingOrg}
@@ -217,15 +291,23 @@ export default function SettingsPage() {
                 />
               </div>
               <div>
-                <label htmlFor="org-description" className={labelClass}>Description</label>
+                <label htmlFor="org-description" className={labelClass}>
+                  Description
+                </label>
                 <textarea
                   id="org-description"
                   value={orgData.description}
-                  onChange={(e) => setOrgData({ ...orgData, description: e.target.value })}
+                  onChange={(e) =>
+                    setOrgData({ ...orgData, description: e.target.value })
+                  }
                   disabled={!editingOrg}
                   rows={3}
                   placeholder="A short description of your organisation..."
-                  className={clsx(inputBase, "resize-none", editingOrg ? inputActive : inputLocked)}
+                  className={clsx(
+                    inputBase,
+                    "resize-none",
+                    editingOrg ? inputActive : inputLocked,
+                  )}
                 />
               </div>
             </Section>
@@ -241,11 +323,20 @@ export default function SettingsPage() {
                   <Pen className="h-4 w-4" /> Edit Details
                 </Button>
               ) : (
-                <Button variant="secondary" disabled={savingOrg} onClick={handleOrgSubmit}>
-                  {savingOrg
-                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</>
-                    : <><Save    className="h-4 w-4" /> Save Changes</>
-                  }
+                <Button
+                  variant="secondary"
+                  disabled={savingOrg}
+                  onClick={handleOrgSubmit}
+                >
+                  {savingOrg ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" /> Save Changes
+                    </>
+                  )}
                 </Button>
               )}
             </div>
@@ -259,28 +350,52 @@ export default function SettingsPage() {
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6 flex items-center gap-4">
               <div className="w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center flex-shrink-0">
                 <span className="text-lg font-extrabold text-[#0D9488]">
-                  {profileData.firstName.charAt(0)}{profileData.lastName.charAt(0)}
+                  {profileData.firstName.charAt(0)}
+                  {profileData.lastName.charAt(0)}
                 </span>
               </div>
               <div className="min-w-0">
                 <p className="text-base font-bold text-[#1F2937] truncate">
                   {profileData.firstName} {profileData.lastName}
                 </p>
-                <p className="text-sm text-[#9CA3AF] truncate">{profileData.email}</p>
+                <p className="text-sm text-[#9CA3AF] truncate">
+                  {profileData.email}
+                </p>
                 <p className="text-xs font-semibold text-[#0D9488] mt-0.5 capitalize">
                   {orgData.role}
                 </p>
               </div>
             </div>
 
-            <Section title="Personal Information" subtitle="Name and email cannot be changed here">
+            <Section
+              title="Personal Information"
+              subtitle="Name and email cannot be changed here"
+            >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field id="first-name" label="First Name" value={profileData.firstName} disabled />
-                <Field id="last-name"  label="Last Name"  value={profileData.lastName}  disabled />
+                <Field
+                  id="first-name"
+                  label="First Name"
+                  value={profileData.firstName}
+                  disabled
+                />
+                <Field
+                  id="last-name"
+                  label="Last Name"
+                  value={profileData.lastName}
+                  disabled
+                />
               </div>
-              <Field id="profile-email" label="Email (read-only)" type="email" value={profileData.email} disabled />
               <Field
-                id="profile-phone" label="Phone" type="tel"
+                id="profile-email"
+                label="Email (read-only)"
+                type="email"
+                value={profileData.email}
+                disabled
+              />
+              <Field
+                id="profile-phone"
+                label="Phone"
+                type="tel"
                 value={profileData.phone}
                 onChange={(v) => setProfileData({ ...profileData, phone: v })}
                 disabled={!editingProfile}
@@ -290,20 +405,35 @@ export default function SettingsPage() {
 
             <div className="flex justify-end gap-3">
               {editingProfile && (
-                <Button variant="outline" onClick={() => setEditingProfile(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setEditingProfile(false)}
+                >
                   <X className="h-4 w-4" /> Cancel
                 </Button>
               )}
               {!editingProfile ? (
-                <Button variant="secondary" onClick={() => setEditingProfile(true)}>
+                <Button
+                  variant="secondary"
+                  onClick={() => setEditingProfile(true)}
+                >
                   <Pen className="h-4 w-4" /> Edit Profile
                 </Button>
               ) : (
-                <Button variant="secondary" disabled={savingProfile} onClick={handleProfileSubmit}>
-                  {savingProfile
-                    ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</>
-                    : <><Save    className="h-4 w-4" /> Save Changes</>
-                  }
+                <Button
+                  variant="secondary"
+                  disabled={savingProfile}
+                  onClick={handleProfileSubmit}
+                >
+                  {savingProfile ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" /> Save Changes
+                    </>
+                  )}
                 </Button>
               )}
             </div>
@@ -312,18 +442,27 @@ export default function SettingsPage() {
 
         {/* ── TEAM tab ─────────────────────────────────────────────────────── */}
         {activeTab === "team" && (
-          <Section title="Team Members" subtitle="Invite staff to help manage your organisation">
+          <Section
+            title="Team Members"
+            subtitle="Invite staff to help manage your organisation"
+          >
             <div className="py-8 flex flex-col items-center text-center gap-4">
               <div className="w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center">
                 <Users className="w-6 h-6 text-[#0D9488]" />
               </div>
               <div>
-                <p className="text-sm font-bold text-[#1F2937]">Invite your team</p>
+                <p className="text-sm font-bold text-[#1F2937]">
+                  Invite your team
+                </p>
                 <p className="text-xs text-[#9CA3AF] mt-1 max-w-xs leading-relaxed">
-                  Staff members can log in to manage members, plans, and check-ins on your behalf.
+                  Staff members can log in to manage members, plans, and
+                  check-ins on your behalf.
                 </p>
               </div>
-              <Button variant="secondary" onClick={() => setIsInviteModalOpen(true)}>
+              <Button
+                variant="secondary"
+                onClick={() => setIsInviteModalOpen(true)}
+              >
                 <UserPlus className="h-4 w-4" /> Invite Staff Member
               </Button>
             </div>
@@ -332,24 +471,32 @@ export default function SettingsPage() {
 
         {/* ── BANKING tab ──────────────────────────────────────────────────── */}
         {activeTab === "banking" && (
-          <Section title="Bank Account" subtitle="Receive payouts from member subscriptions">
+          <Section
+            title="Bank Account"
+            subtitle="Receive payouts from member subscriptions"
+          >
             <div className="py-8 flex flex-col items-center text-center gap-4">
               <div className="w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center">
                 <Landmark className="w-6 h-6 text-[#0D9488]" />
               </div>
               <div>
-                <p className="text-sm font-bold text-[#1F2937]">No bank account added</p>
+                <p className="text-sm font-bold text-[#1F2937]">
+                  No bank account added
+                </p>
                 <p className="text-xs text-[#9CA3AF] mt-1 max-w-xs leading-relaxed">
-                  Add your organisation&apos;s bank account to enable direct payouts when members subscribe.
+                  Add your organisation&apos;s bank account to enable direct
+                  payouts when members subscribe.
                 </p>
               </div>
-              <Button variant="secondary" onClick={() => setIsAddSubaccountModalOpen(true)}>
+              <Button
+                variant="secondary"
+                onClick={() => setIsAddSubaccountModalOpen(true)}
+              >
                 <Landmark className="h-4 w-4" /> Add Bank Account
               </Button>
             </div>
           </Section>
         )}
-
       </div>
 
       {/* ── Modals ───────────────────────────────────────────────────────────── */}
