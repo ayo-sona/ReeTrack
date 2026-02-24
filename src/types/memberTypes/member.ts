@@ -96,7 +96,7 @@ export interface MemberSubscription {
   member_id: string;
   plan_id: string;
   organization_id: string;
-  status: "active" | "expired" | "canceled" | "pending";
+  status: "active" | "expired" | "cancelled" | "pending";
   started_at: string;
   expires_at: string;
   canceled_at: string | null;
@@ -298,7 +298,7 @@ export interface SubscriptionDisplay {
   planPrice: number;
   planInterval: string;
   planCurrency: string;
-  status: "active" | "expired" | "canceled" | "pending";
+  status: "active" | "expired" | "cancelled" | "pending";
   features: string[];
   autoRenew: boolean;
   startedAt: string;

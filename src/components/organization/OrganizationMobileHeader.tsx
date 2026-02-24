@@ -18,7 +18,7 @@ import { MobileHeader } from "@/components/ui/MobileHeader";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { deleteCookie } from "cookies-next/client";
-import { useOrganizationNotifications } from "@/hooks/useOrganizationNotifiations";
+// import { useOrganizationNotifications } from "@/hooks/useOrganizationNotifications";
 
 interface OrganizationMobileHeaderProps {
   pathname: string;
@@ -31,12 +31,14 @@ interface User {
   email: string;
 }
 
-export function OrganizationMobileHeader({ pathname }: OrganizationMobileHeaderProps) {
+export function OrganizationMobileHeader({
+  pathname,
+}: OrganizationMobileHeaderProps) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { unreadCount } = useOrganizationNotifications();
+  // const { unreadCount } = useOrganizationNotifications();
 
   useEffect(() => {
     try {
@@ -70,10 +72,18 @@ export function OrganizationMobileHeader({ pathname }: OrganizationMobileHeaderP
   };
 
   const navigation = [
-    { name: "Dashboard", href: "/organization/dashboard", icon: LayoutDashboard },
+    {
+      name: "Dashboard",
+      href: "/organization/dashboard",
+      icon: LayoutDashboard,
+    },
     { name: "Members", href: "/organization/members", icon: Users },
     { name: "Plans", href: "/organization/plans", icon: Package },
-    { name: "Transactions", href: "/organization/transactions", icon: CreditCard },
+    {
+      name: "Transactions",
+      href: "/organization/transactions",
+      icon: CreditCard,
+    },
     { name: "My Access", href: "/organization/access", icon: Receipt },
     { name: "Check-ins", href: "/organization/check-ins", icon: ScanLine },
     { name: "Ping", href: "/organization/ping", icon: Send },
@@ -110,8 +120,8 @@ export function OrganizationMobileHeader({ pathname }: OrganizationMobileHeaderP
       currentPath={pathname}
       navigation={navigation}
       profile={profileData}
-      notificationHref="/organization/notifications"
-      notificationCount={unreadCount > 0 ? unreadCount : undefined}
+      // notificationHref="/organization/notifications"
+      // notificationCount={unreadCount > 0 ? unreadCount : undefined}
       actions={actions}
       logoText="ReeTrack"
       logoHref="/organization/dashboard"

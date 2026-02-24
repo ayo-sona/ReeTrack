@@ -7,11 +7,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 const C = {
-  teal:     "#0D9488",
-  white:    "#FFFFFF",
-  ink:      "#1F2937",
+  teal: "#0D9488",
+  white: "#FFFFFF",
+  ink: "#1F2937",
   coolGrey: "#9CA3AF",
-  border:   "#E5E7EB",
+  border: "#E5E7EB",
 };
 
 export interface MobileNavItem {
@@ -59,9 +59,13 @@ export function MobileHeader({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Add notifications to navigation if provided
-  const allNavItems = notificationHref !== "#" 
-    ? [...navigation, { name: "Notifications", href: notificationHref, icon: Bell }]
-    : navigation;
+  const allNavItems =
+    notificationHref !== "#"
+      ? [
+          ...navigation,
+          { name: "Notifications", href: notificationHref, icon: Bell },
+        ]
+      : navigation;
 
   return (
     <>
@@ -82,21 +86,25 @@ export function MobileHeader({
         }}
         className="lg:hidden"
       >
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "14px 16px",
-        }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 16px",
+          }}
+        >
           {/* Logo */}
           <Link href={logoHref} style={{ textDecoration: "none" }}>
-            <h1 style={{
-              fontFamily: "Nunito, sans-serif",
-              fontWeight: 800,
-              fontSize: "20px",
-              color: C.teal,
-              letterSpacing: "-0.4px",
-            }}>
+            <h1
+              style={{
+                fontFamily: "Nunito, sans-serif",
+                fontWeight: 800,
+                fontSize: "20px",
+                color: C.teal,
+                letterSpacing: "-0.4px",
+              }}
+            >
               {logoText}
             </h1>
           </Link>
@@ -104,7 +112,7 @@ export function MobileHeader({
           {/* Right side */}
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             {/* Notifications badge */}
-            {notificationHref !== "#" && (
+            {/* {notificationHref !== "#" && (
               <Link href={notificationHref} style={{ position: "relative", display: "block" }}>
                 <button style={{
                   padding: "8px",
@@ -145,7 +153,7 @@ export function MobileHeader({
                   )}
                 </button>
               </Link>
-            )}
+            )} */}
 
             {/* Menu button */}
             <button
@@ -154,7 +162,9 @@ export function MobileHeader({
                 padding: "8px",
                 borderRadius: "8px",
                 border: "none",
-                background: isMobileMenuOpen ? "rgba(13,148,136,0.08)" : "transparent",
+                background: isMobileMenuOpen
+                  ? "rgba(13,148,136,0.08)"
+                  : "transparent",
                 color: isMobileMenuOpen ? C.teal : C.ink,
                 cursor: "pointer",
                 display: "flex",
@@ -194,48 +204,58 @@ export function MobileHeader({
           >
             {/* Profile Card */}
             {profile && (
-              <div style={{
-                padding: "20px 16px",
-                borderBottom: `1px solid ${C.border}`,
-                background: `linear-gradient(135deg, rgba(13,148,136,0.04) 0%, rgba(13,148,136,0.08) 100%)`,
-              }}>
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "14px",
-                }}>
-                  <div style={{
-                    width: "52px",
-                    height: "52px",
-                    borderRadius: "12px",
-                    background: C.teal,
+              <div
+                style={{
+                  padding: "20px 16px",
+                  borderBottom: `1px solid ${C.border}`,
+                  background: `linear-gradient(135deg, rgba(13,148,136,0.04) 0%, rgba(13,148,136,0.08) 100%)`,
+                }}
+              >
+                <div
+                  style={{
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    color: C.white,
-                    fontWeight: 800,
-                    fontSize: "18px",
-                  }}>
+                    gap: "14px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "52px",
+                      height: "52px",
+                      borderRadius: "12px",
+                      background: C.teal,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: C.white,
+                      fontWeight: 800,
+                      fontSize: "18px",
+                    }}
+                  >
                     {profile.firstName.charAt(0)}
                     {profile.lastName.charAt(0)}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{
-                      fontWeight: 600,
-                      fontSize: "15px",
-                      color: C.ink,
-                      marginBottom: "2px",
-                    }}>
+                    <p
+                      style={{
+                        fontWeight: 600,
+                        fontSize: "15px",
+                        color: C.ink,
+                        marginBottom: "2px",
+                      }}
+                    >
                       {profile.firstName} {profile.lastName}
                     </p>
-                    <p style={{
-                      fontWeight: 400,
-                      fontSize: "13px",
-                      color: C.coolGrey,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}>
+                    <p
+                      style={{
+                        fontWeight: 400,
+                        fontSize: "13px",
+                        color: C.coolGrey,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {profile.email}
                     </p>
                   </div>
@@ -244,19 +264,21 @@ export function MobileHeader({
             )}
 
             {/* Navigation Grid */}
-            <nav style={{
-              flex: 1,
-              padding: "24px 16px",
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: "12px",
-              alignContent: "start",
-            }}>
+            <nav
+              style={{
+                flex: 1,
+                padding: "24px 16px",
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: "12px",
+                alignContent: "start",
+              }}
+            >
               {allNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentPath === item.href;
-                const hasNotif = item.name === "Notifications" && notificationCount > 0;
-                
+                // const hasNotif = item.name === "Notifications" && notificationCount > 0;
+
                 return (
                   <Link
                     key={item.name}
@@ -264,34 +286,40 @@ export function MobileHeader({
                     onClick={() => setIsMobileMenuOpen(false)}
                     style={{ textDecoration: "none" }}
                   >
-                    <div style={{
-                      position: "relative",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "24px 16px",
-                      borderRadius: "12px",
-                      background: isActive ? "rgba(13,148,136,0.08)" : C.white,
-                      border: isActive ? `1.5px solid rgba(13,148,136,0.25)` : `1px solid ${C.border}`,
-                      color: isActive ? C.teal : C.ink,
-                      cursor: "pointer",
-                      transition: "all 200ms",
-                    }}
-                    onTouchStart={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.background = "rgba(13,148,136,0.04)";
-                      }
-                    }}
-                    onTouchEnd={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.background = C.white;
-                      }
-                    }}
+                    <div
+                      style={{
+                        position: "relative",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "24px 16px",
+                        borderRadius: "12px",
+                        background: isActive
+                          ? "rgba(13,148,136,0.08)"
+                          : C.white,
+                        border: isActive
+                          ? `1.5px solid rgba(13,148,136,0.25)`
+                          : `1px solid ${C.border}`,
+                        color: isActive ? C.teal : C.ink,
+                        cursor: "pointer",
+                        transition: "all 200ms",
+                      }}
+                      onTouchStart={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.background =
+                            "rgba(13,148,136,0.04)";
+                        }
+                      }}
+                      onTouchEnd={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.background = C.white;
+                        }
+                      }}
                     >
                       <div style={{ position: "relative" }}>
                         <Icon size={24} />
-                        {hasNotif && (
+                        {/* {hasNotif && (
                           <span style={{
                             position: "absolute",
                             top: "-4px",
@@ -301,13 +329,15 @@ export function MobileHeader({
                             background: "#EF4444",
                             borderRadius: "50%",
                           }} />
-                        )}
+                        )} */}
                       </div>
-                      <span style={{
-                        fontWeight: isActive ? 600 : 500,
-                        fontSize: "13px",
-                        textAlign: "center",
-                      }}>
+                      <span
+                        style={{
+                          fontWeight: isActive ? 600 : 500,
+                          fontSize: "13px",
+                          textAlign: "center",
+                        }}
+                      >
                         {item.name}
                       </span>
                     </div>
@@ -318,13 +348,15 @@ export function MobileHeader({
 
             {/* Bottom Actions */}
             {actions.length > 0 && (
-              <div style={{
-                padding: "16px",
-                borderTop: `1px solid ${C.border}`,
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
-              }}>
+              <div
+                style={{
+                  padding: "16px",
+                  borderTop: `1px solid ${C.border}`,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
                 {actions.map((action, idx) => (
                   <Button
                     key={idx}

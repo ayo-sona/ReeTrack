@@ -18,11 +18,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 const C = {
-  teal:     "#0D9488",
-  white:    "#FFFFFF",
-  ink:      "#1F2937",
+  teal: "#0D9488",
+  white: "#FFFFFF",
+  ink: "#1F2937",
   coolGrey: "#9CA3AF",
-  border:   "#E5E7EB",
+  border: "#E5E7EB",
 };
 
 interface MemberMobileHeaderProps {
@@ -40,7 +40,7 @@ const navigation = [
   { name: "Subscriptions", href: "/member/subscriptions", icon: CreditCard },
   { name: "Check In", href: "/member/check-ins", icon: QrCode },
   { name: "Payments", href: "/member/payments", icon: CreditCard },
-  { name: "Notifications", href: "/member/notifications", icon: Bell },
+  // { name: "Notifications", href: "/member/notifications", icon: Bell },
 ];
 
 export function MemberMobileHeader({
@@ -71,21 +71,25 @@ export function MemberMobileHeader({
         }}
         className="lg:hidden"
       >
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "14px 16px",
-        }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 16px",
+          }}
+        >
           {/* Logo */}
           <Link href="/member/dashboard" style={{ textDecoration: "none" }}>
-            <h1 style={{
-              fontFamily: "Nunito, sans-serif",
-              fontWeight: 800,
-              fontSize: "20px",
-              color: C.teal,
-              letterSpacing: "-0.4px",
-            }}>
+            <h1
+              style={{
+                fontFamily: "Nunito, sans-serif",
+                fontWeight: 800,
+                fontSize: "20px",
+                color: C.teal,
+                letterSpacing: "-0.4px",
+              }}
+            >
               ReeTrack
             </h1>
           </Link>
@@ -93,7 +97,7 @@ export function MemberMobileHeader({
           {/* Right side */}
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             {/* Notifications badge */}
-            <Link href="/member/notifications" style={{ position: "relative", display: "block" }}>
+            {/* <Link href="/member/notifications" style={{ position: "relative", display: "block" }}>
               <button style={{
                 padding: "8px",
                 borderRadius: "8px",
@@ -132,7 +136,7 @@ export function MemberMobileHeader({
                   </span>
                 )}
               </button>
-            </Link>
+            </Link> */}
 
             {/* Menu button */}
             <button
@@ -141,7 +145,9 @@ export function MemberMobileHeader({
                 padding: "8px",
                 borderRadius: "8px",
                 border: "none",
-                background: isMobileMenuOpen ? "rgba(13,148,136,0.08)" : "transparent",
+                background: isMobileMenuOpen
+                  ? "rgba(13,148,136,0.08)"
+                  : "transparent",
                 color: isMobileMenuOpen ? C.teal : C.ink,
                 cursor: "pointer",
                 display: "flex",
@@ -181,48 +187,58 @@ export function MemberMobileHeader({
           >
             {/* Profile Card */}
             {profile && (
-              <div style={{
-                padding: "20px 16px",
-                borderBottom: `1px solid ${C.border}`,
-                background: `linear-gradient(135deg, rgba(13,148,136,0.04) 0%, rgba(13,148,136,0.08) 100%)`,
-              }}>
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "14px",
-                }}>
-                  <div style={{
-                    width: "52px",
-                    height: "52px",
-                    borderRadius: "12px",
-                    background: C.teal,
+              <div
+                style={{
+                  padding: "20px 16px",
+                  borderBottom: `1px solid ${C.border}`,
+                  background: `linear-gradient(135deg, rgba(13,148,136,0.04) 0%, rgba(13,148,136,0.08) 100%)`,
+                }}
+              >
+                <div
+                  style={{
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    color: C.white,
-                    fontWeight: 800,
-                    fontSize: "18px",
-                  }}>
+                    gap: "14px",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "52px",
+                      height: "52px",
+                      borderRadius: "12px",
+                      background: C.teal,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: C.white,
+                      fontWeight: 800,
+                      fontSize: "18px",
+                    }}
+                  >
                     {profile.first_name?.charAt(0)}
                     {profile.last_name?.charAt(0)}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{
-                      fontWeight: 600,
-                      fontSize: "15px",
-                      color: C.ink,
-                      marginBottom: "2px",
-                    }}>
+                    <p
+                      style={{
+                        fontWeight: 600,
+                        fontSize: "15px",
+                        color: C.ink,
+                        marginBottom: "2px",
+                      }}
+                    >
                       {profile.first_name} {profile.last_name}
                     </p>
-                    <p style={{
-                      fontWeight: 400,
-                      fontSize: "13px",
-                      color: C.coolGrey,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}>
+                    <p
+                      style={{
+                        fontWeight: 400,
+                        fontSize: "13px",
+                        color: C.coolGrey,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {profile.email}
                     </p>
                   </div>
@@ -231,19 +247,21 @@ export function MemberMobileHeader({
             )}
 
             {/* Navigation Grid */}
-            <nav style={{
-              flex: 1,
-              padding: "24px 16px",
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: "12px",
-              alignContent: "start",
-            }}>
+            <nav
+              style={{
+                flex: 1,
+                padding: "24px 16px",
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: "12px",
+                alignContent: "start",
+              }}
+            >
               {navigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
-                const hasNotif = item.name === "Notifications" && unreadCount > 0;
-                
+                // const hasNotif = item.name === "Notifications" && unreadCount > 0;
+
                 return (
                   <Link
                     key={item.name}
@@ -251,34 +269,40 @@ export function MemberMobileHeader({
                     onClick={() => setIsMobileMenuOpen(false)}
                     style={{ textDecoration: "none" }}
                   >
-                    <div style={{
-                      position: "relative",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "24px 16px",
-                      borderRadius: "12px",
-                      background: isActive ? "rgba(13,148,136,0.08)" : C.white,
-                      border: isActive ? `1.5px solid rgba(13,148,136,0.25)` : `1px solid ${C.border}`,
-                      color: isActive ? C.teal : C.ink,
-                      cursor: "pointer",
-                      transition: "all 200ms",
-                    }}
-                    onTouchStart={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.background = "rgba(13,148,136,0.04)";
-                      }
-                    }}
-                    onTouchEnd={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.background = C.white;
-                      }
-                    }}
+                    <div
+                      style={{
+                        position: "relative",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "24px 16px",
+                        borderRadius: "12px",
+                        background: isActive
+                          ? "rgba(13,148,136,0.08)"
+                          : C.white,
+                        border: isActive
+                          ? `1.5px solid rgba(13,148,136,0.25)`
+                          : `1px solid ${C.border}`,
+                        color: isActive ? C.teal : C.ink,
+                        cursor: "pointer",
+                        transition: "all 200ms",
+                      }}
+                      onTouchStart={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.background =
+                            "rgba(13,148,136,0.04)";
+                        }
+                      }}
+                      onTouchEnd={(e) => {
+                        if (!isActive) {
+                          e.currentTarget.style.background = C.white;
+                        }
+                      }}
                     >
                       <div style={{ position: "relative" }}>
                         <Icon size={24} />
-                        {hasNotif && (
+                        {/* {hasNotif && (
                           <span style={{
                             position: "absolute",
                             top: "-4px",
@@ -288,13 +312,15 @@ export function MemberMobileHeader({
                             background: "#EF4444",
                             borderRadius: "50%",
                           }} />
-                        )}
+                        )} */}
                       </div>
-                      <span style={{
-                        fontWeight: isActive ? 600 : 500,
-                        fontSize: "13px",
-                        textAlign: "center",
-                      }}>
+                      <span
+                        style={{
+                          fontWeight: isActive ? 600 : 500,
+                          fontSize: "13px",
+                          textAlign: "center",
+                        }}
+                      >
                         {item.name}
                       </span>
                     </div>
@@ -304,15 +330,25 @@ export function MemberMobileHeader({
             </nav>
 
             {/* Bottom Actions */}
-            <div style={{
-              padding: "16px",
-              borderTop: `1px solid ${C.border}`,
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-            }}>
-              <Link href="/member/profile" onClick={() => setIsMobileMenuOpen(false)} style={{ textDecoration: "none" }}>
-                <Button variant="ghost" size="lg" className="w-full justify-start">
+            <div
+              style={{
+                padding: "16px",
+                borderTop: `1px solid ${C.border}`,
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+              }}
+            >
+              <Link
+                href="/member/profile"
+                onClick={() => setIsMobileMenuOpen(false)}
+                style={{ textDecoration: "none" }}
+              >
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="w-full justify-start"
+                >
                   <Settings size={20} />
                   Settings
                 </Button>

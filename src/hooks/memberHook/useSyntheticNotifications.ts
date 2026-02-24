@@ -110,7 +110,7 @@ export const useSyntheticNotifications = () => {
     // Recently canceled subscriptions (last 7 days)
     subscriptions?.forEach((sub) => {
       if (
-        sub.status === "canceled" &&
+        sub.status === "cancelled" &&
         sub.canceled_at &&
         isInPastDays(sub.canceled_at, 7)
       ) {

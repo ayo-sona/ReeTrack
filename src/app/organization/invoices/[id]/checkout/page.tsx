@@ -21,7 +21,9 @@ export default function InvoiceCheckoutPage() {
     (async () => {
       setLoading(true);
       try {
-        const { data } = await apiClient.get(`/invoices/organization/${invoiceId}`);
+        const { data } = await apiClient.get(
+          `/invoices/organization/${invoiceId}`,
+        );
         const invoice = data.data;
 
         // Shape the invoice into CheckoutPlan so SharedCheckout
@@ -61,9 +63,13 @@ export default function InvoiceCheckoutPage() {
       <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center font-[Nunito,sans-serif] px-4">
         <div className="text-center space-y-3 max-w-sm">
           <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
-          <p className="text-base font-bold text-[#1F2937]">Could not load invoice</p>
+          <p className="text-base font-bold text-[#1F2937]">
+            Could not load invoice
+          </p>
           <p className="text-sm text-[#9CA3AF]">{error}</p>
-          <Button variant="outline" onClick={() => router.back()}>Go back</Button>
+          <Button variant="outline" onClick={() => router.back()}>
+            Go back
+          </Button>
         </div>
       </div>
     );
@@ -73,7 +79,7 @@ export default function InvoiceCheckoutPage() {
     <SharedCheckout
       mode="organization"
       plan={plan}
-      backHref="/organization/billing"
+      backHref="/organization/access"
       backLabel="Back to billing"
     />
   );

@@ -1,8 +1,14 @@
 "use client";
 
 import {
-  Home, Wallet, CreditCard, QrCode,
-  Bell, LogOut, Settings, Building2,
+  Home,
+  Wallet,
+  CreditCard,
+  QrCode,
+  Bell,
+  LogOut,
+  Settings,
+  Building2,
 } from "lucide-react";
 import { Sidebar } from "@/components/ui/SideBar";
 import { User } from "@/types/user";
@@ -27,25 +33,27 @@ export function MemberSidebar({
   onToggleCollapse,
 }: MemberSidebarProps) {
   const navigation = [
-    { name: "Dashboard",     href: "/member/dashboard",     icon: Home },
-    { name: "Community",     href: "/member/communities",   icon: Building2 },
-    { name: "Wallet",        href: "/member/wallet",        icon: Wallet },
+    { name: "Dashboard", href: "/member/dashboard", icon: Home },
+    { name: "Community", href: "/member/communities", icon: Building2 },
+    { name: "Wallet", href: "/member/wallet", icon: Wallet },
     { name: "Subscriptions", href: "/member/subscriptions", icon: CreditCard },
-    { name: "Check In",      href: "/member/check-ins",     icon: QrCode },
-    { name: "Payments",      href: "/member/payments",      icon: CreditCard },
-    {
-      name: "Notifications",
-      href: "/member/notifications",
-      icon: Bell,
-      badge: unreadCount,
-    },
+    { name: "Check In", href: "/member/check-ins", icon: QrCode },
+    { name: "Payments", href: "/member/payments", icon: CreditCard },
+    // {
+    //   name: "Notifications",
+    //   href: "/member/notifications",
+    //   icon: Bell,
+    //   badge: unreadCount,
+    // },
   ];
 
   const actions = [
     {
       label: "Settings",
       icon: Settings,
-      onClick: () => { window.location.href = "/member/profile"; },
+      onClick: () => {
+        window.location.href = "/member/profile";
+      },
       variant: "ghost" as const,
     },
     {
@@ -58,11 +66,13 @@ export function MemberSidebar({
     },
   ];
 
-  const profileData = profile ? {
-    firstName: profile.first_name || "",
-    lastName: profile.last_name || "",
-    email: profile.email || "",
-  } : undefined;
+  const profileData = profile
+    ? {
+        firstName: profile.first_name || "",
+        lastName: profile.last_name || "",
+        email: profile.email || "",
+      }
+    : undefined;
 
   return (
     <Sidebar
