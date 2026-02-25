@@ -238,14 +238,18 @@ export class WebhooksService {
         // }
 
         // Update the current plan and the transaction fee
-        organization!.enterprise_plan =
-          payment.invoice.organization_subscription.plan.name;
-        await this.organizationRepository.save(organization!);
+        if (organization) {
+          organization.enterprise_plan =
+            payment.invoice.organization_subscription.plan.name;
+          await this.organizationRepository.save(organization);
 
-        await this.planLimitService.updateTransactionFees(
-          organization!.id,
-          payment.invoice.organization_subscription.plan.name,
-        );
+          if (organization?.paystack_subaccount_code) {
+            await this.planLimitService.updateTransactionFees(
+              organization.id,
+              payment.invoice.organization_subscription.plan.name,
+            );
+          }
+        }
 
         if (
           subscription.status === SubscriptionStatus.EXPIRED ||
