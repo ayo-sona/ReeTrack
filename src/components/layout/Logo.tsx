@@ -1,11 +1,12 @@
 import Image from "next/image";
+import React from "react";
 
 interface LogoProps {
   size?: number;
   variant?: "default" | "white";
 }
 
-export default function Logo({ size = 36, variant = "default" }: LogoProps): JSX.Element {
+export default function Logo({ size = 36, variant = "default" }: LogoProps): React.ReactElement {
   return (
     <div className="flex items-center gap-2.5">
       <Image
