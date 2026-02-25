@@ -243,7 +243,7 @@ export class WebhooksService {
             payment.invoice.organization_subscription.plan.name;
           await this.organizationRepository.save(organization);
 
-          if (organization?.paystack_subaccount_code) {
+          if (organization.paystack_subaccount_code) {
             await this.planLimitService.updateTransactionFees(
               organization.id,
               payment.invoice.organization_subscription.plan.name,
