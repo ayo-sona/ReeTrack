@@ -9,6 +9,7 @@ import apiClient from "@/lib/apiClient";
 import { deleteCookie } from "cookies-next";
 import { MemberSidebar } from "@/components/member/memberSidebar";
 import { MemberMobileHeader } from "@/components/member/memberMobileHeader";
+import { toast } from "sonner";
 
 const C = { snow: "#F9FAFB" };
 
@@ -28,8 +29,10 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
     try {
       setLoading(true);
       await apiClient.post("/auth/logout");
+      toast.success("Logged out successfully");
     } catch (error) {
       console.error("Logout failed:", error);
+      toast.error("Logout failed");
     } finally {
       if (typeof window !== "undefined") localStorage.clear();
       deleteCookie("access_token");
@@ -61,7 +64,11 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
         {/* Sidebar + toggle — desktop only */}
         <div
           className="hidden lg:flex items-center"
-          style={{ padding: "12px 0 12px 12px", position: "relative", flexShrink: 0 }}
+          style={{
+            padding: "12px 0 12px 12px",
+            position: "relative",
+            flexShrink: 0,
+          }}
         >
           <MemberSidebar
             pathname={pathname}
@@ -106,7 +113,11 @@ export default function MemberLayout({ children }: MemberLayoutProps) {
               e.currentTarget.style.borderColor = "#E5E7EB";
             }}
           >
-            {isCollapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
+            {isCollapsed ? (
+              <ChevronRight size={13} />
+            ) : (
+              <ChevronLeft size={13} />
+            )}
           </button>
         </div>
 

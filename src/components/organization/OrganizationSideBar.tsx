@@ -18,6 +18,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { deleteCookie } from "cookies-next/client";
+import { toast } from "sonner";
 // import { useOrganizationNotifications } from "@/hooks/useOrganizationNotifications";
 
 interface OrganizationSidebarProps {
@@ -61,8 +62,10 @@ export function OrganizationSidebar({
     try {
       setLoading(true);
       await apiClient.post("/auth/logout");
+      toast.success("Logged out successfully");
     } catch (error) {
       console.error("Logout failed:", error);
+      toast.error("Logout failed");
     } finally {
       if (typeof window !== "undefined") localStorage.clear();
       deleteCookie("access_token");
