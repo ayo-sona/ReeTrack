@@ -10,6 +10,7 @@ import { getCookie, setCookie } from "cookies-next";
 import { getUserRoles } from "@/utils/role-utils";
 import { Button } from "@/components/ui/button";
 import { Input, Spinner } from "@heroui/react";
+import Logo from "@/components/layout/Logo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -204,18 +205,17 @@ export default function LoginPage() {
           <div className="bg-white rounded-3xl shadow-2xl p-4 sm:p-10 backdrop-blur-sm">
             {isMounting ? (
               <Spinner
-                color="default"
+                color="success"
                 className="w-full flex justify-center items-center"
               />
             ) : (
               <>
                 <div className="text-center mb-8">
-                  <Link
-                    href="/"
-                    className="mb-2 text-2xl font-extrabold bg-gradient-to-r from-[#0D9488] to-[#0B7A70] bg-clip-text text-transparent tracking-tight"
-                  >
-                    ReeTrack
-                  </Link>
+                  <div className="flex justify-center mb-4">
+                    <Link href="/">
+                      <Logo size={32} />
+                    </Link>
+                  </div>
                   <h1 className="text-3xl font-bold text-[#1F2937] mb-2">
                     Welcome Back
                   </h1>

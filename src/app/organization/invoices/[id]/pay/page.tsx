@@ -118,7 +118,7 @@ export default function PayInvoicePage() {
           onClick={() => router.back()}
           className="text-sm font-semibold text-[#9CA3AF] hover:text-[#1F2937] transition-colors flex items-center gap-1"
         >
-          ← Back to billing
+          ← Back to My Access
         </button>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">

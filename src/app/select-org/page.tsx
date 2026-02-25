@@ -10,6 +10,7 @@ import { setCookie, deleteCookie } from "cookies-next";
 import { toast } from "sonner";
 import Image from "next/image";
 import Link from "next/link";
+import Logo from "@/components/layout/Logo";
 
 interface OrganizationWithRole {
   id: string;
@@ -198,12 +199,11 @@ export default function OrganizationSelectPage() {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10">
             <div className="text-center mb-8">
-              <Link
-                href="/"
-                className="text-2xl font-extrabold bg-gradient-to-r from-[#0D9488] to-[#0B7A70] bg-clip-text text-transparent tracking-tight"
-              >
-                ReeTrack
-              </Link>
+              <div className="flex justify-center mb-4">
+                <Link href="/">
+                  <Logo size={32} />
+                </Link>
+              </div>
               <h1 className="text-3xl font-bold text-[#1F2937] mt-1 mb-2">
                 Your Workspaces
               </h1>

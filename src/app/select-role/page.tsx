@@ -7,6 +7,7 @@ import { setCookie } from "cookies-next";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
+import Logo from "@/components/layout/Logo"
 
 export default function SelectRolePage() {
   const router = useRouter();
@@ -124,12 +125,11 @@ export default function SelectRolePage() {
         >
           {/* Header */}
           <div className="text-center mb-12">
-            <Link
-              href="/"
-              className="inline-block mb-6 text-3xl font-extrabold text-white drop-shadow-lg"
-            >
-              ReeTrack
-            </Link>
+            <div className="flex justify-center mb-4 text-white">
+              <Link href="/">
+              <Logo size={32} variant="white" />
+              </Link>
+            </div>
             <motion.h1
               className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 drop-shadow-lg"
               initial={{ opacity: 0, y: 20 }}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X, Bell, LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import Logo from "@/components/layout/Logo";
 
 const C = {
   teal: "#0D9488",
@@ -42,7 +43,6 @@ interface MobileHeaderProps {
   notificationHref?: string;
   notificationCount?: number;
   actions?: MobileHeaderAction[];
-  logoText?: string;
   logoHref?: string;
 }
 
@@ -53,7 +53,6 @@ export function MobileHeader({
   notificationHref = "#",
   notificationCount = 0,
   actions = [],
-  logoText = "ReeTrack",
   logoHref = "/",
 }: MobileHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -95,18 +94,8 @@ export function MobileHeader({
           }}
         >
           {/* Logo */}
-          <Link href={logoHref} style={{ textDecoration: "none" }}>
-            <h1
-              style={{
-                fontFamily: "Nunito, sans-serif",
-                fontWeight: 800,
-                fontSize: "20px",
-                color: C.teal,
-                letterSpacing: "-0.4px",
-              }}
-            >
-              {logoText}
-            </h1>
+          <Link href={logoHref}>
+            <Logo size={28} />
           </Link>
 
           {/* Right side */}
@@ -155,7 +144,6 @@ export function MobileHeader({
               </Link>
             )} */}
 
-            {/* Menu button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               style={{
@@ -363,10 +351,7 @@ export function MobileHeader({
                     variant={action.variant || "ghost"}
                     size="lg"
                     className={`w-full justify-start ${action.className || ""}`}
-                    onClick={() => {
-                      action.onClick();
-                      setIsMobileMenuOpen(false);
-                    }}
+                    onClick={() => { action.onClick(); setIsMobileMenuOpen(false); }}
                     disabled={action.disabled}
                   >
                     <action.icon size={20} />

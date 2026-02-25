@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   Users,
   Package,
-  Archive,
   CreditCard,
   Send,
   FileDown,
@@ -126,7 +125,6 @@ export function OrganizationMobileHeader({
       // notificationHref="/organization/notifications"
       // notificationCount={unreadCount > 0 ? unreadCount : undefined}
       actions={actions}
-      logoText="ReeTrack"
       logoHref="/organization/dashboard"
     />
   );

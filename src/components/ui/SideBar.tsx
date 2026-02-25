@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { LucideIcon } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import Logo from "@/components/layout/Logo";
 
 const C = {
   teal:     "#0D9488",
@@ -114,7 +115,6 @@ export function Sidebar({
           display: "flex",
           flexDirection: "column",
           fontFamily: "Nunito, sans-serif",
-          // No overflow:hidden — nothing to clip
         }}
       >
         <div style={{
@@ -135,31 +135,27 @@ export function Sidebar({
             flexShrink: 0,
           }}>
             {isCollapsed ? (
-              <div style={{
-                width: "28px",
-                height: "28px",
-                borderRadius: "8px",
-                background: C.teal,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: C.white,
-                fontWeight: 800,
-                fontSize: "13px",
-              }}>
-                {logoText.charAt(0)}
-              </div>
-            ) : (
-              <Link href={logoHref} style={{ textDecoration: "none" }}>
-                <h1 style={{
+              // Collapsed: show just the icon image as a small square
+              <Link href={logoHref}>
+                <div style={{
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "8px",
+                  background: C.teal,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: C.white,
                   fontWeight: 800,
-                  fontSize: "20px",
-                  color: C.teal,
-                  letterSpacing: "-0.5px",
-                  margin: 0,
+                  fontSize: "13px",
                 }}>
-                  {logoText}
-                </h1>
+                  {logoText.charAt(0)}
+                </div>
+              </Link>
+            ) : (
+              // Expanded: show full Logo component
+              <Link href={logoHref} style={{ textDecoration: "none" }}>
+                <Logo size={28} />
               </Link>
             )}
           </div>

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import Logo from "@/components/layout/Logo";
 
 const C = {
   teal: "#0D9488",
@@ -79,19 +80,8 @@ export function MemberMobileHeader({
             padding: "14px 16px",
           }}
         >
-          {/* Logo */}
-          <Link href="/member/dashboard" style={{ textDecoration: "none" }}>
-            <h1
-              style={{
-                fontFamily: "Nunito, sans-serif",
-                fontWeight: 800,
-                fontSize: "20px",
-                color: C.teal,
-                letterSpacing: "-0.4px",
-              }}
-            >
-              ReeTrack
-            </h1>
+          <Link href="/member/dashboard">
+            <Logo size={28} />
           </Link>
 
           {/* Right side */}
@@ -116,22 +106,24 @@ export function MemberMobileHeader({
               >
                 <Bell size={19} />
                 {unreadCount > 0 && (
-                  <span style={{
-                    position: "absolute",
-                    top: "5px",
-                    right: "5px",
-                    minWidth: "16px",
-                    height: "16px",
-                    padding: "0 4px",
-                    background: "#EF4444",
-                    color: C.white,
-                    fontSize: "10px",
-                    fontWeight: 700,
-                    borderRadius: "999px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}>
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: "5px",
+                      right: "5px",
+                      minWidth: "16px",
+                      height: "16px",
+                      padding: "0 4px",
+                      background: "#EF4444",
+                      color: C.white,
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      borderRadius: "999px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     {unreadCount}
                   </span>
                 )}

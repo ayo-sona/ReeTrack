@@ -80,7 +80,7 @@ export default function InvoiceCheckoutPage() {
       mode="organization"
       plan={plan}
       backHref="/organization/access"
-      backLabel="Back to billing"
+      backLabel="Back to My Access"
     />
   );
 }

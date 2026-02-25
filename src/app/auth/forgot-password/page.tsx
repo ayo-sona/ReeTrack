@@ -7,6 +7,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import apiClient from "@/lib/apiClient";
 import Image from "next/image";
+import Logo from "@/components/layout/Logo";
 
 type FormState = "email" | "code" | "success";
 
@@ -24,13 +25,18 @@ export default function ForgotPasswordPage() {
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) { setError("Please enter your email address"); return; }
+    if (!email) {
+      setError("Please enter your email address");
+      return;
+    }
     try {
       setLoading(true);
       setError("");
       const response = await apiClient.post("/auth/forgot-password", { email });
       if (response.data.statusCode !== 200) {
-        throw new Error(response.data.data.message || "Failed to send verification code");
+        throw new Error(
+          response.data.data.message || "Failed to send verification code",
+        );
       }
       setFormState("code");
       toast.success("Verification code sent to your email");
@@ -43,8 +49,14 @@ export default function ForgotPasswordPage() {
 
   const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!code || !newPassword || !confirmPassword) { setError("Please fill in all fields"); return; }
-    if (newPassword !== confirmPassword) { setError("Passwords do not match"); return; }
+    if (!code || !newPassword || !confirmPassword) {
+      setError("Please fill in all fields");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
     try {
       setLoading(true);
       setError("");
@@ -54,7 +66,9 @@ export default function ForgotPasswordPage() {
         password: newPassword,
       });
       if (response.data.statusCode !== 200) {
-        throw new Error(response.data.data.message || "Failed to reset password");
+        throw new Error(
+          response.data.data.message || "Failed to reset password",
+        );
       }
       setFormState("success");
       toast.success("Password reset successfully");
@@ -91,28 +105,68 @@ export default function ForgotPasswordPage() {
       {/* Illustrations */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[5%] left-[40%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/relaxing_hammock.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/relaxing_hammock.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute bottom-[35%] right-[25%] w-26 h-26 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/eating_together.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/eating_together.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute top-[3%] right-[35%] w-20 h-20 sm:w-24 sm:h-24 opacity-85">
-          <Image src="/undraw/hot_air_balloon.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/hot_air_balloon.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute top-[30%] right-[20%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/skateboarding.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/skateboarding.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute top-[44%] left-[27%] w-24 h-24 opacity-90">
-          <Image src="/undraw/fitness.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/fitness.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute top-[25%] left-[22%] w-22 h-22 sm:w-28 sm:h-28 opacity-85">
-          <Image src="/undraw/floating_balloon.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/floating_balloon.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute bottom-[10%] left-[25%] w-20 h-20 sm:w-28 sm:h-28 opacity-90">
-          <Image src="/undraw/playing_with_dog.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/playing_with_dog.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute bottom-[10%] right-[24%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/bike_driving.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/bike_driving.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
       </div>
 
@@ -120,15 +174,13 @@ export default function ForgotPasswordPage() {
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10">
-
             {/* Header */}
             <div className="text-center mb-8">
-              <Link
-                href="/"
-                className="text-2xl font-extrabold bg-gradient-to-r from-[#0D9488] to-[#0B7A70] bg-clip-text text-transparent tracking-tight"
-              >
-                ReeTrack
-              </Link>
+              <div className="flex justify-center mb-4">
+                <Link href="/">
+                  <Logo size={32} />
+                </Link>
+              </div>
 
               {formState === "success" ? (
                 <>
@@ -145,7 +197,9 @@ export default function ForgotPasswordPage() {
               ) : (
                 <>
                   <h1 className="text-2xl font-bold text-[#1F2937] mt-2 mb-1">
-                    {formState === "email" ? "Reset your password" : "Check your email"}
+                    {formState === "email"
+                      ? "Reset your password"
+                      : "Check your email"}
                   </h1>
                   <p className="text-sm text-[#1F2937]/60">
                     {formState === "email"
@@ -179,7 +233,10 @@ export default function ForgotPasswordPage() {
                       required
                       placeholder="you@example.com"
                       value={email}
-                      onChange={(e) => { setEmail(e.target.value); setError(""); }}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setError("");
+                      }}
                       disabled={loading}
                       className={`${inputClass} pl-9`}
                     />
@@ -231,7 +288,10 @@ export default function ForgotPasswordPage() {
                       required
                       placeholder="Enter new password"
                       value={newPassword}
-                      onChange={(e) => { setNewPassword(e.target.value); setError(""); }}
+                      onChange={(e) => {
+                        setNewPassword(e.target.value);
+                        setError("");
+                      }}
                       disabled={loading}
                       className={`${inputClass} pr-10`}
                     />
@@ -240,7 +300,11 @@ export default function ForgotPasswordPage() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -257,7 +321,10 @@ export default function ForgotPasswordPage() {
                       required
                       placeholder="Confirm new password"
                       value={confirmPassword}
-                      onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setError("");
+                      }}
                       disabled={loading}
                       className={`${inputClass} pr-10`}
                     />
@@ -266,7 +333,11 @@ export default function ForgotPasswordPage() {
                       onClick={() => setShowConfirm(!showConfirm)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                     >
-                      {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {showConfirm ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -281,7 +352,10 @@ export default function ForgotPasswordPage() {
 
                 <button
                   type="button"
-                  onClick={() => { setFormState("email"); setError(""); }}
+                  onClick={() => {
+                    setFormState("email");
+                    setError("");
+                  }}
                   className="w-full text-sm text-[#1F2937]/50 hover:text-[#1F2937] transition-colors"
                 >
                   Wrong email? Go back
@@ -310,7 +384,6 @@ export default function ForgotPasswordPage() {
                 Back to login
               </Link>
             </div>
-
           </div>
         </div>
       </div>
