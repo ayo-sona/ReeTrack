@@ -175,7 +175,6 @@ export function SharedCheckout({
         });
         if (!isReady) return;
         resumeTransaction(paymentData.access_code);
-        router.refresh();
       } else {
         // If invoiceId is already on the plan, skip subscription creation
         // (billing page pay-now flow — invoice already exists)
@@ -199,7 +198,6 @@ export function SharedCheckout({
         });
         if (!isReady) return;
         resumeTransaction(paymentData.access_code);
-        setTimeout(() => window.location.reload(), 3000);
       }
     } catch (err) {
       setError(parseApiError(err));
