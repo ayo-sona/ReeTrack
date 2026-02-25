@@ -129,19 +129,22 @@ export default function PlansPage() {
       const payload = {
         name: planData.name,
         description: planData.description,
-        amount: parseFloat(planData.price),
+        price: parseFloat(planData.price),
         currency: "NGN",
         interval: planData.duration as
-          | "daily"
           | "weekly"
           | "monthly"
-          | "yearly",
+          | "yearly"
+          | "quarterly",
         intervalCount: 1,
         features: planData.features,
       };
 
       if (editingPlan) {
-        await updatePlan.mutateAsync({ id: editingPlan.id, data: payload });
+        await updatePlan.mutateAsync({
+          id: editingPlan.id,
+          data: payload,
+        });
         toast.success("Plan updated successfully");
       } else {
         await createPlan.mutateAsync(payload);
