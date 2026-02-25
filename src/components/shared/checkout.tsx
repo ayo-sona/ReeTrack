@@ -199,7 +199,6 @@ export function SharedCheckout({
         });
         if (!isReady) return;
         resumeTransaction(paymentData.access_code);
-        setTimeout(() => window.location.reload(), 3000);
       }
     } catch (err) {
       setError(parseApiError(err));
