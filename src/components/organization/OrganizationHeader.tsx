@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { deleteCookie } from "cookies-next/client";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 interface OrganizationHeaderProps {
   onToggleSidebar?: () => void;
@@ -31,8 +32,12 @@ export function OrganizationHeader({
     try {
       setLoading(true);
       await apiClient.post("/auth/logout");
+            toast.success("Logged out successfully");
+
     } catch (error) {
       console.error("Logout failed:", error);
+            toast.error("Logout failed");
+
     } finally {
       if (typeof window !== "undefined") {
         localStorage.clear();
