@@ -50,8 +50,8 @@ export function InviteStaffModal({
   const updateEmail = (id: string, value: string) => {
     setEmails((prev) =>
       prev.map((e) =>
-        e.id === id ? { ...e, value, status: "idle", error: undefined } : e
-      )
+        e.id === id ? { ...e, value, status: "idle", error: undefined } : e,
+      ),
     );
   };
 
@@ -60,7 +60,7 @@ export function InviteStaffModal({
     onOpenChange(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
     const validEmails = emails.filter((e) => e.value.trim() !== "");
@@ -71,61 +71,80 @@ export function InviteStaffModal({
 
     setIsSubmitting(true);
 
-    // Fire all requests in parallel — one per email
-    const results = await Promise.allSettled(
-      validEmails.map((entry) =>
-        apiClient
-          .post("/auth/custom/register-staff", { email: entry.value.trim() })
-          .then(() => ({ id: entry.id, success: true }))
-          .catch((err) => ({
-            id: entry.id,
-            success: false,
-            error: err?.response?.data?.message || "Failed to send invitation",
-          }))
-      )
-    );
+    try {
+      // Send all emails in a single request
+      const response = await apiClient.post("/auth/custom/register-staff", {
+        email: validEmails.map((entry) => entry.value.trim()),
+      });
 
-    // Map results back to entries
-    const resultMap: Record<string, { success: boolean; error?: string }> = {};
-    results.forEach((result) => {
-      if (result.status === "fulfilled") {
-        resultMap[result.value.id] = {
-          success: result.value.success,
-          error: (result.value as any).error,
-        };
+      console.log(response);
+
+      // Handle the response structure
+      if (response.data.statusCode === 201) {
+        const resultMap: Record<
+          string,
+          { success: boolean; error?: string; userExists?: boolean }
+        > = {};
+
+        // Map results back to email entries
+        response.data.data.results.forEach((result: any) => {
+          const emailEntry = validEmails.find(
+            (entry) => entry.value.trim() === result.email,
+          );
+          if (emailEntry) {
+            resultMap[emailEntry.id] = {
+              success: result.status === "created",
+              userExists: result.userExists,
+              error:
+                result.status !== "created"
+                  ? "Failed to send invitation"
+                  : undefined,
+            };
+          }
+        });
+
+        setEmails((prev) =>
+          prev.map((entry) => {
+            const result = resultMap[entry.id];
+            if (!result) return entry; // wasn't submitted (empty)
+            return {
+              ...entry,
+              status: result.success ? "success" : "error",
+              error: result.error,
+              userExists: result.userExists,
+            };
+          }),
+        );
+
+        const successCount = Object.values(resultMap).filter(
+          (r) => r.success,
+        ).length;
+        const failCount = Object.values(resultMap).filter(
+          (r) => !r.success,
+        ).length;
+
+        if (successCount > 0 && failCount === 0) {
+          toast.success(
+            successCount === 1
+              ? "Staff invitation sent successfully"
+              : `${successCount} staff invitations sent successfully`,
+          );
+          onSuccess?.();
+          handleClose();
+        } else if (successCount > 0 && failCount > 0) {
+          toast.warning(
+            `${successCount} sent, ${failCount} failed — check highlighted emails`,
+          );
+          onSuccess?.();
+        } else {
+          toast.error("All invitations failed — check the highlighted emails");
+        }
       }
-    });
-
-    setEmails((prev) =>
-      prev.map((entry) => {
-        const result = resultMap[entry.id];
-        if (!result) return entry;
-        return {
-          ...entry,
-          status: result.success ? "success" : "error",
-          error: result.error,
-        };
-      })
-    );
-
-    const successCount = Object.values(resultMap).filter((r) => r.success).length;
-    const failCount = Object.values(resultMap).filter((r) => !r.success).length;
-
-    if (successCount > 0 && failCount === 0) {
-      toast.success(
-        successCount === 1
-          ? "Invitation sent successfully"
-          : `${successCount} invitations sent successfully`
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Failed to send staff invitations",
       );
-      onSuccess?.();
-      handleClose();
-    } else if (successCount > 0 && failCount > 0) {
-      toast.warning(
-        `${successCount} sent, ${failCount} failed — check the highlighted emails`
-      );
-      onSuccess?.();
-    } else {
-      toast.error("All invitations failed — check the highlighted emails");
+      console.error("Error sending staff invitations:", error);
     }
 
     setIsSubmitting(false);
@@ -194,8 +213,8 @@ export function InviteStaffModal({
                         entry.status === "error"
                           ? "border-red-300 focus:ring-red-200 focus:border-red-400"
                           : entry.status === "success"
-                          ? "border-[#0D9488] bg-[#0D9488]/5 text-[#0D9488]"
-                          : "border-gray-200 focus:ring-[#0D9488]/20 focus:border-[#0D9488]"
+                            ? "border-[#0D9488] bg-[#0D9488]/5 text-[#0D9488]"
+                            : "border-gray-200 focus:ring-[#0D9488]/20 focus:border-[#0D9488]"
                       }`}
                     />
                     {entry.status === "success" && (
@@ -257,8 +276,8 @@ export function InviteStaffModal({
               {isSubmitting
                 ? "Sending..."
                 : emails.filter((e) => e.value.trim()).length > 1
-                ? `Send ${emails.filter((e) => e.value.trim()).length} Invitations`
-                : "Send Invitation"}
+                  ? `Send ${emails.filter((e) => e.value.trim()).length} Invitations`
+                  : "Send Invitation"}
             </Button>
           </div>
         </form>

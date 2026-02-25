@@ -14,7 +14,7 @@ export default function OnboardingCreatePlanPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [features, setFeatures] = useState<string[]>([""] );
+  const [features, setFeatures] = useState<string[]>([""]);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -24,7 +24,10 @@ export default function OnboardingCreatePlanPage() {
 
   const addFeature = () => setFeatures((prev) => [...prev, ""]);
   const removeFeature = (i: number) => {
-    if (features.length === 1) { setFeatures([""]); return; }
+    if (features.length === 1) {
+      setFeatures([""]);
+      return;
+    }
     setFeatures((prev) => prev.filter((_, idx) => idx !== i));
   };
   const updateFeature = (i: number, value: string) => {
@@ -47,17 +50,27 @@ export default function OnboardingCreatePlanPage() {
       await createPlan.mutateAsync({
         name: formData.name,
         description: formData.description,
-        amount: parseFloat(formData.price),
+        price: parseFloat(formData.price),
         currency: "NGN",
-        interval: formData.duration as "daily" | "weekly" | "monthly" | "yearly",
+        interval: formData.duration as
+          | "weekly"
+          | "monthly"
+          | "yearly"
+          | "quarterly",
         intervalCount: 1,
         features: features.filter((f) => f.trim() !== ""),
       });
       setSuccess(true);
       toast.success("Plan created!");
-      setTimeout(() => router.push("/organization/onboarding/add-member"), 1200);
+      setTimeout(
+        () => router.push("/organization/onboarding/add-member"),
+        1200,
+      );
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to create plan. Please try again.");
+      setError(
+        err?.response?.data?.message ||
+          "Failed to create plan. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -65,7 +78,8 @@ export default function OnboardingCreatePlanPage() {
 
   const inputClass =
     "w-full rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/20 focus:border-[#0D9488] transition-all disabled:opacity-50";
-  const labelClass = "block text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1.5";
+  const labelClass =
+    "block text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1.5";
 
   return (
     <div
@@ -73,7 +87,6 @@ export default function OnboardingCreatePlanPage() {
       style={{ fontFamily: "Nunito, sans-serif" }}
     >
       <div className="w-full max-w-lg">
-
         {/* Step indicator */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -89,7 +102,11 @@ export default function OnboardingCreatePlanPage() {
               <div
                 key={s}
                 className={`h-1.5 rounded-full transition-all duration-500 ${
-                  s < 2 ? "bg-[#0D9488] w-6" : s === 2 ? "bg-[#0D9488]/50 w-6" : "bg-gray-200 w-4"
+                  s < 2
+                    ? "bg-[#0D9488] w-6"
+                    : s === 2
+                      ? "bg-[#0D9488]/50 w-6"
+                      : "bg-gray-200 w-4"
                 }`}
               />
             ))}
@@ -112,14 +129,15 @@ export default function OnboardingCreatePlanPage() {
               Start collecting payments
             </h1>
             <p className="text-sm text-[#1F2937]/70 leading-relaxed">
-              Plans are what your members subscribe to. You set the name, price, and billing
-              cycle. Members can be on different plans at the same time, and you can create
-              as many plans as you need.
+              Plans are what your members subscribe to. You set the name, price,
+              and billing cycle. Members can be on different plans at the same
+              time, and you can create as many plans as you need.
             </p>
 
             <div className="mt-5 rounded-xl bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
               <p className="text-xs text-[#0D9488] leading-relaxed">
-                💡 Start with one simple plan. You can always add more from your dashboard later.
+                💡 Start with one simple plan. You can always add more from your
+                dashboard later.
               </p>
             </div>
           </div>
@@ -144,7 +162,9 @@ export default function OnboardingCreatePlanPage() {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   required
                   disabled={isLoading || success}
                   placeholder="e.g. Premium Membership"
@@ -156,7 +176,9 @@ export default function OnboardingCreatePlanPage() {
                 <label className={labelClass}>Description</label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   disabled={isLoading || success}
                   rows={2}
                   placeholder="What's included in this plan..."
@@ -170,7 +192,9 @@ export default function OnboardingCreatePlanPage() {
                   <input
                     type="number"
                     value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
                     required
                     disabled={isLoading || success}
                     placeholder="15000"
@@ -182,7 +206,9 @@ export default function OnboardingCreatePlanPage() {
                   <label className={labelClass}>Billing Cycle *</label>
                   <select
                     value={formData.duration}
-                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, duration: e.target.value })
+                    }
                     disabled={isLoading || success}
                     className={inputClass}
                   >
@@ -197,7 +223,9 @@ export default function OnboardingCreatePlanPage() {
               {/* Features */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className={labelClass} style={{ marginBottom: 0 }}>Features</label>
+                  <label className={labelClass} style={{ marginBottom: 0 }}>
+                    Features
+                  </label>
                   <button
                     type="button"
                     onClick={addFeature}
@@ -240,7 +268,9 @@ export default function OnboardingCreatePlanPage() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push("/organization/onboarding/add-member")}
+                onClick={() =>
+                  router.push("/organization/onboarding/add-member")
+                }
                 disabled={isLoading}
               >
                 Skip for now
@@ -251,7 +281,9 @@ export default function OnboardingCreatePlanPage() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => router.push("/organization/onboarding/bank-account")}
+                  onClick={() =>
+                    router.push("/organization/onboarding/bank-account")
+                  }
                   disabled={isLoading}
                 >
                   ← Back

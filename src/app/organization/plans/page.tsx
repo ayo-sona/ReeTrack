@@ -30,7 +30,8 @@ interface PlanFormData {
 export default function PlansPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
-  const [viewingPlanMembers, setViewingPlanMembers] = useState<SubscriptionPlan | null>(null);
+  const [viewingPlanMembers, setViewingPlanMembers] =
+    useState<SubscriptionPlan | null>(null);
   const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
@@ -42,42 +43,60 @@ export default function PlansPage() {
   });
 
   const { data: plansResponse, isLoading, error } = usePlans();
-  const createPlan  = useCreatePlan();
-  const updatePlan  = useUpdatePlan();
-  const deletePlan  = useDeletePlan();
-  const togglePlan  = useTogglePlan();
+  const createPlan = useCreatePlan();
+  const updatePlan = useUpdatePlan();
+  const deletePlan = useDeletePlan();
+  const togglePlan = useTogglePlan();
 
   const allPlans = useMemo(
-    () => plansResponse?.data ? mapPlansToSubscriptionPlans(plansResponse.data) : [],
-    [plansResponse]
+    () =>
+      plansResponse?.data
+        ? mapPlansToSubscriptionPlans(plansResponse.data)
+        : [],
+    [plansResponse],
   );
 
   const filteredPlans = useMemo(() => {
     return allPlans.filter((plan) => {
-      if (search && !plan.name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (search && !plan.name.toLowerCase().includes(search.toLowerCase()))
+        return false;
       if (filters.status !== "all") {
-        if (filters.status === "active"   && !plan.isActive) return false;
-        if (filters.status === "inactive" &&  plan.isActive) return false;
+        if (filters.status === "active" && !plan.isActive) return false;
+        if (filters.status === "inactive" && plan.isActive) return false;
       }
-      if (filters.duration !== "all" && plan.duration !== filters.duration) return false;
-      if (filters.priceMin !== "" && plan.price < parseFloat(filters.priceMin)) return false;
-      if (filters.priceMax !== "" && plan.price > parseFloat(filters.priceMax)) return false;
+      if (filters.duration !== "all" && plan.duration !== filters.duration)
+        return false;
+      if (filters.priceMin !== "" && plan.price < parseFloat(filters.priceMin))
+        return false;
+      if (filters.priceMax !== "" && plan.price > parseFloat(filters.priceMax))
+        return false;
       return true;
     });
   }, [allPlans, search, filters]);
 
   const stats = {
-    total:        allPlans.length,
-    active:       allPlans.filter((p) => p.isActive).length,
-    totalMembers: allPlans.reduce((sum, p) => sum + (p.subscriptions?.length || 0), 0),
-    avgPrice:     allPlans.length > 0
-      ? allPlans.reduce((sum, p) => sum + p.price, 0) / allPlans.length
-      : 0,
+    total: allPlans.length,
+    active: allPlans.filter((p) => p.isActive).length,
+    totalMembers: allPlans.reduce(
+      (sum, p) => sum + (p.subscriptions?.length || 0),
+      0,
+    ),
+    avgPrice:
+      allPlans.length > 0
+        ? allPlans.reduce((sum, p) => sum + p.price, 0) / allPlans.length
+        : 0,
   };
 
-  const handleCreatePlan = () => { setEditingPlan(null); setShowCreateModal(true); };
-  const handleEditPlan   = (plan: SubscriptionPlan) => { setEditingPlan(plan); setShowCreateModal(true); };
-  const handleViewMembers = (plan: SubscriptionPlan) => setViewingPlanMembers(plan);
+  const handleCreatePlan = () => {
+    setEditingPlan(null);
+    setShowCreateModal(true);
+  };
+  const handleEditPlan = (plan: SubscriptionPlan) => {
+    setEditingPlan(plan);
+    setShowCreateModal(true);
+  };
+  const handleViewMembers = (plan: SubscriptionPlan) =>
+    setViewingPlanMembers(plan);
 
   const handleTogglePlanStatus = async (planId: string) => {
     try {
@@ -108,17 +127,24 @@ export default function PlansPage() {
   const handleSavePlan = async (planData: PlanFormData) => {
     try {
       const payload = {
-        name:          planData.name,
-        description:   planData.description,
-        amount:        parseFloat(planData.price),
-        currency:      "NGN",
-        interval:      planData.duration as "daily" | "weekly" | "monthly" | "yearly",
+        name: planData.name,
+        description: planData.description,
+        price: parseFloat(planData.price),
+        currency: "NGN",
+        interval: planData.duration as
+          | "weekly"
+          | "monthly"
+          | "yearly"
+          | "quarterly",
         intervalCount: 1,
-        features:      planData.features,
+        features: planData.features,
       };
 
       if (editingPlan) {
-        await updatePlan.mutateAsync({ id: editingPlan.id, data: payload });
+        await updatePlan.mutateAsync({
+          id: editingPlan.id,
+          data: payload,
+        });
         toast.success("Plan updated successfully");
       } else {
         await createPlan.mutateAsync(payload);
@@ -127,8 +153,10 @@ export default function PlansPage() {
 
       setShowCreateModal(false);
       setEditingPlan(null);
-    } catch {
-      toast.error("Failed to save plan. Please try again.");
+    } catch (error: any) {
+      console.log(error.response);
+      const { data } = error.response;
+      toast.error(data.message || "Failed to save plan. Please try again.");
     }
   };
 
@@ -149,11 +177,15 @@ export default function PlansPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 text-center font-[Nunito,sans-serif]">
         <AlertCircle className="w-10 h-10 text-red-400 mb-3" />
-        <p className="text-base font-bold text-[#1F2937] mb-1">Failed to load plans</p>
+        <p className="text-base font-bold text-[#1F2937] mb-1">
+          Failed to load plans
+        </p>
         <p className="text-sm text-[#9CA3AF] mb-4">
           {error instanceof Error ? error.message : "Unknown error"}
         </p>
-        <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          Retry
+        </Button>
       </div>
     );
   }
@@ -163,7 +195,6 @@ export default function PlansPage() {
   return (
     <div className="font-[Nunito,sans-serif] bg-[#F9FAFB] min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-
         {/* ── Page Header ──────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -223,7 +254,10 @@ export default function PlansPage() {
                 </p>
                 {icon}
               </div>
-              <p className="text-xl sm:text-2xl font-extrabold text-[#1F2937]" suppressHydrationWarning>
+              <p
+                className="text-xl sm:text-2xl font-extrabold text-[#1F2937]"
+                suppressHydrationWarning
+              >
                 {value}
               </p>
             </div>
@@ -257,11 +291,14 @@ export default function PlansPage() {
         {/* ── Empty state ──────────────────────────────────────────────────── */}
         {filteredPlans.length === 0 && allPlans.length > 0 && (
           <div className="text-center py-12 bg-white rounded-xl border border-gray-100 shadow-sm px-4">
-            <p className="text-sm font-bold text-[#1F2937] mb-1">No plans match your filters</p>
-            <p className="text-xs text-[#9CA3AF]">Try adjusting your search or filter criteria</p>
+            <p className="text-sm font-bold text-[#1F2937] mb-1">
+              No plans match your filters
+            </p>
+            <p className="text-xs text-[#9CA3AF]">
+              Try adjusting your search or filter criteria
+            </p>
           </div>
         )}
-
       </div>
 
       {/* ── Delete confirmation modal ─────────────────────────────────────── */}
@@ -274,11 +311,15 @@ export default function PlansPage() {
             className="bg-white rounded-xl border border-gray-100 shadow-xl w-full max-w-sm p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-base font-extrabold text-[#1F2937] mb-1">Delete plan</h2>
+            <h2 className="text-base font-extrabold text-[#1F2937] mb-1">
+              Delete plan
+            </h2>
             <p className="text-sm text-[#9CA3AF] mb-6 leading-relaxed">
               Are you sure you want to permanently delete{" "}
-              <span className="font-semibold text-[#1F2937]">&quot;{deletingPlan?.name}&quot;</span>?
-              This action cannot be undone.
+              <span className="font-semibold text-[#1F2937]">
+                &quot;{deletingPlan?.name}&quot;
+              </span>
+              ? This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <Button
@@ -304,7 +345,10 @@ export default function PlansPage() {
       {/* ── Create / Edit modal ───────────────────────────────────────────── */}
       <CreatePlanModal
         isOpen={showCreateModal}
-        onClose={() => { setShowCreateModal(false); setEditingPlan(null); }}
+        onClose={() => {
+          setShowCreateModal(false);
+          setEditingPlan(null);
+        }}
         onSave={handleSavePlan}
         editingPlan={editingPlan}
       />

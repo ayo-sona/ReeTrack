@@ -39,12 +39,12 @@ export function MemberSidebar({
     { name: "Subscriptions", href: "/member/subscriptions", icon: CreditCard },
     { name: "Check In", href: "/member/check-ins", icon: QrCode },
     { name: "Payments", href: "/member/payments", icon: CreditCard },
-    {
-      name: "Notifications",
-      href: "/member/notifications",
-      icon: Bell,
-      badge: unreadCount,
-    },
+    // {
+    //   name: "Notifications",
+    //   href: "/member/notifications",
+    //   icon: Bell,
+    //   badge: unreadCount,
+    // },
   ];
 
   const actions = [

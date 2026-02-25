@@ -41,7 +41,7 @@ const navigation = [
   { name: "Subscriptions", href: "/member/subscriptions", icon: CreditCard },
   { name: "Check In", href: "/member/check-ins", icon: QrCode },
   { name: "Payments", href: "/member/payments", icon: CreditCard },
-  { name: "Notifications", href: "/member/notifications", icon: Bell },
+  // { name: "Notifications", href: "/member/notifications", icon: Bell },
 ];
 
 export function MemberMobileHeader({
@@ -87,30 +87,22 @@ export function MemberMobileHeader({
           {/* Right side */}
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             {/* Notifications badge */}
-            <Link
-              href="/member/notifications"
-              style={{ position: "relative", display: "block" }}
-            >
-              <button
-                style={{
-                  padding: "8px",
-                  borderRadius: "8px",
-                  border: "none",
-                  background: "transparent",
-                  color: C.ink,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "background 200ms",
-                  position: "relative",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "rgba(13,148,136,0.06)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "transparent")
-                }
+            {/* <Link href="/member/notifications" style={{ position: "relative", display: "block" }}>
+              <button style={{
+                padding: "8px",
+                borderRadius: "8px",
+                border: "none",
+                background: "transparent",
+                color: C.ink,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "background 200ms",
+                position: "relative",
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = "rgba(13,148,136,0.06)"}
+              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
               >
                 <Bell size={19} />
                 {unreadCount > 0 && (
@@ -136,7 +128,7 @@ export function MemberMobileHeader({
                   </span>
                 )}
               </button>
-            </Link>
+            </Link> */}
 
             {/* Menu button */}
             <button
@@ -260,8 +252,7 @@ export function MemberMobileHeader({
               {navigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
-                const hasNotif =
-                  item.name === "Notifications" && unreadCount > 0;
+                // const hasNotif = item.name === "Notifications" && unreadCount > 0;
 
                 return (
                   <Link
@@ -303,19 +294,17 @@ export function MemberMobileHeader({
                     >
                       <div style={{ position: "relative" }}>
                         <Icon size={24} />
-                        {hasNotif && (
-                          <span
-                            style={{
-                              position: "absolute",
-                              top: "-4px",
-                              right: "-4px",
-                              width: "14px",
-                              height: "14px",
-                              background: "#EF4444",
-                              borderRadius: "50%",
-                            }}
-                          />
-                        )}
+                        {/* {hasNotif && (
+                          <span style={{
+                            position: "absolute",
+                            top: "-4px",
+                            right: "-4px",
+                            width: "14px",
+                            height: "14px",
+                            background: "#EF4444",
+                            borderRadius: "50%",
+                          }} />
+                        )} */}
                       </div>
                       <span
                         style={{

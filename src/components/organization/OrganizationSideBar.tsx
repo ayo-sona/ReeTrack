@@ -18,7 +18,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { deleteCookie } from "cookies-next/client";
-import { useOrganizationNotifications } from "@/hooks/useOrganizationNotifiations";
+import { toast } from "sonner";
+// import { useOrganizationNotifications } from "@/hooks/useOrganizationNotifications";
 
 interface OrganizationSidebarProps {
   pathname: string;
@@ -43,7 +44,7 @@ export function OrganizationSidebar({
   const [loading, setLoading] = useState(false);
 
   // unreadCount comes directly from the hook — no need for a separate helper
-  const { unreadCount } = useOrganizationNotifications();
+  // const { unreadCount } = useOrganizationNotifications();
 
   useEffect(() => {
     try {
@@ -61,8 +62,10 @@ export function OrganizationSidebar({
     try {
       setLoading(true);
       await apiClient.post("/auth/logout");
+      toast.success("Logged out successfully");
     } catch (error) {
       console.error("Logout failed:", error);
+      toast.error("Logout failed");
     } finally {
       if (typeof window !== "undefined") localStorage.clear();
       deleteCookie("access_token");
@@ -105,12 +108,12 @@ export function OrganizationSidebar({
       href: "/organization/check-ins",
       icon: ScanLine,
     },
-    {
-      name: "Notifications",
-      href: "/organization/notifications",
-      icon: Bell,
-      badge: unreadCount > 0 ? unreadCount : undefined,
-    },
+    // {
+    //   name: "Notifications",
+    //   href: "/organization/notifications",
+    //   icon: Bell,
+    //   badge: unreadCount > 0 ? unreadCount : undefined,
+    // },
     {
       name: "Ping",
       href: "/organization/ping",
