@@ -73,8 +73,8 @@ export default function InvoiceCheckoutPage() {
     <SharedCheckout
       mode="organization"
       plan={plan}
-      backHref="/organization/billing"
-      backLabel="Back to billing"
+      backHref="/organization/access"
+      backLabel="Back to My Access"
     />
   );
 }

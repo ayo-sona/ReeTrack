@@ -20,7 +20,7 @@ const FeaturesSection = () => {
       id: "crm",
       title: "Know Your People",
       description:
-        "Transform raw data into real understanding. See who your members are, group them by what matters, and track how your community evolves over time. Every interaction tells a story—Reetrack helps you read it. Smart segmentation meets intuitive analytics.",
+        "Transform raw data into real understanding. See who your members are, group them by what matters, and track how your community evolves over time. Every interaction tells a story Reetrack helps you read it. Smart segmentation meets intuitive analytics.",
       pic: "community",
       accentColor: "#0D9488",
       Icon: TrendingUp,

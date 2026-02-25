@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X, Bell, LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import Logo from "@/components/layout/Logo";
 
 const C = {
   teal:     "#0D9488",
@@ -42,7 +43,6 @@ interface MobileHeaderProps {
   notificationHref?: string;
   notificationCount?: number;
   actions?: MobileHeaderAction[];
-  logoText?: string;
   logoHref?: string;
 }
 
@@ -53,13 +53,11 @@ export function MobileHeader({
   notificationHref = "#",
   notificationCount = 0,
   actions = [],
-  logoText = "ReeTrack",
   logoHref = "/",
 }: MobileHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Add notifications to navigation if provided
-  const allNavItems = notificationHref !== "#" 
+  const allNavItems = notificationHref !== "#"
     ? [...navigation, { name: "Notifications", href: notificationHref, icon: Bell }]
     : navigation;
 
@@ -89,21 +87,12 @@ export function MobileHeader({
           padding: "14px 16px",
         }}>
           {/* Logo */}
-          <Link href={logoHref} style={{ textDecoration: "none" }}>
-            <h1 style={{
-              fontFamily: "Nunito, sans-serif",
-              fontWeight: 800,
-              fontSize: "20px",
-              color: C.teal,
-              letterSpacing: "-0.4px",
-            }}>
-              {logoText}
-            </h1>
+          <Link href={logoHref}>
+            <Logo size={28} />
           </Link>
 
           {/* Right side */}
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            {/* Notifications badge */}
             {notificationHref !== "#" && (
               <Link href={notificationHref} style={{ position: "relative", display: "block" }}>
                 <button style={{
@@ -147,7 +136,6 @@ export function MobileHeader({
               </Link>
             )}
 
-            {/* Menu button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               style={{
@@ -199,11 +187,7 @@ export function MobileHeader({
                 borderBottom: `1px solid ${C.border}`,
                 background: `linear-gradient(135deg, rgba(13,148,136,0.04) 0%, rgba(13,148,136,0.08) 100%)`,
               }}>
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "14px",
-                }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                   <div style={{
                     width: "52px",
                     height: "52px",
@@ -220,21 +204,12 @@ export function MobileHeader({
                     {profile.lastName.charAt(0)}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{
-                      fontWeight: 600,
-                      fontSize: "15px",
-                      color: C.ink,
-                      marginBottom: "2px",
-                    }}>
+                    <p style={{ fontWeight: 600, fontSize: "15px", color: C.ink, marginBottom: "2px" }}>
                       {profile.firstName} {profile.lastName}
                     </p>
                     <p style={{
-                      fontWeight: 400,
-                      fontSize: "13px",
-                      color: C.coolGrey,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
+                      fontWeight: 400, fontSize: "13px", color: C.coolGrey,
+                      overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                     }}>
                       {profile.email}
                     </p>
@@ -256,7 +231,7 @@ export function MobileHeader({
                 const Icon = item.icon;
                 const isActive = currentPath === item.href;
                 const hasNotif = item.name === "Notifications" && notificationCount > 0;
-                
+
                 return (
                   <Link
                     key={item.name}
@@ -279,14 +254,10 @@ export function MobileHeader({
                       transition: "all 200ms",
                     }}
                     onTouchStart={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.background = "rgba(13,148,136,0.04)";
-                      }
+                      if (!isActive) e.currentTarget.style.background = "rgba(13,148,136,0.04)";
                     }}
                     onTouchEnd={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.background = C.white;
-                      }
+                      if (!isActive) e.currentTarget.style.background = C.white;
                     }}
                     >
                       <div style={{ position: "relative" }}>
@@ -303,11 +274,7 @@ export function MobileHeader({
                           }} />
                         )}
                       </div>
-                      <span style={{
-                        fontWeight: isActive ? 600 : 500,
-                        fontSize: "13px",
-                        textAlign: "center",
-                      }}>
+                      <span style={{ fontWeight: isActive ? 600 : 500, fontSize: "13px", textAlign: "center" }}>
                         {item.name}
                       </span>
                     </div>
@@ -331,10 +298,7 @@ export function MobileHeader({
                     variant={action.variant || "ghost"}
                     size="lg"
                     className={`w-full justify-start ${action.className || ""}`}
-                    onClick={() => {
-                      action.onClick();
-                      setIsMobileMenuOpen(false);
-                    }}
+                    onClick={() => { action.onClick(); setIsMobileMenuOpen(false); }}
                     disabled={action.disabled}
                   >
                     <action.icon size={20} />

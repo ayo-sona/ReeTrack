@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   Users,
   Package,
-  Archive,
   CreditCard,
   Send,
   FileDown,

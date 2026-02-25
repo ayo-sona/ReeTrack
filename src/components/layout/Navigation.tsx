@@ -3,12 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useSpring, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { LogOut, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import dynamic from "next/dynamic";
-import { getCookie, deleteCookie } from "cookies-next/client";
-import { Spinner } from "@heroui/react";
-import apiClient from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
+import Logo from "./Logo"
 
 const navItems = [
   { label: "Features", href: "/features" },
@@ -17,7 +15,6 @@ const navItems = [
 ];
 
 const ClientOnlyNavigation = () => {
-  const token = getCookie("access_token");
   const [scrolled, setScrolled] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("");
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
@@ -58,7 +55,6 @@ const ClientOnlyNavigation = () => {
 
   const navStyle = (extra?: object) => ({
     background: scrolled ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.40)",
-
     backdropFilter: "blur(12px)",
     WebkitBackdropFilter: "blur(12px)",
     border: "1px solid rgba(255,255,255,0.6)",
@@ -78,10 +74,7 @@ const ClientOnlyNavigation = () => {
         className="fixed top-6 left-0 right-0 z-50 px-6 py-4 hidden md:block"
       >
         <div className="max-w-6xl mx-auto">
-          <div
-            className="transition-all duration-500 rounded-full"
-            style={navStyle()}
-          >
+          <div className="transition-all duration-500 rounded-full" style={navStyle()}>
             <div className="w-full px-8 py-3 flex items-center justify-between gap-8">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -89,11 +82,8 @@ const ClientOnlyNavigation = () => {
                 transition={{ delay: 0.2, duration: 0.6 }}
                 className="relative z-10 shrink-0"
               >
-                <Link
-                  href="/"
-                  className="text-xl focus:outline-none font-extrabold bg-gradient-to-r from-[#0D9488] to-[#0B7A70] bg-clip-text text-transparent tracking-tight"
-                >
-                  ReeTrack
+                <Link href="/" className="focus:outline-none">
+                  <Logo size={34} />
                 </Link>
               </motion.div>
 
@@ -108,9 +98,7 @@ const ClientOnlyNavigation = () => {
                 {navItems.map((item, idx) => (
                   <motion.a
                     key={item.label}
-                    ref={(el) => {
-                      itemRefs.current[item.label] = el;
-                    }}
+                    ref={(el) => { itemRefs.current[item.label] = el; }}
                     href={item.href}
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -119,9 +107,7 @@ const ClientOnlyNavigation = () => {
                     onMouseEnter={() => setHoveredTab(item.label)}
                     onMouseLeave={() => setHoveredTab(null)}
                     className={`relative z-10 px-4 py-2 text-[14px] font-semibold tracking-tight transition-colors duration-200 whitespace-nowrap ${
-                      activeTab === item.label
-                        ? "text-[#1F2937]"
-                        : "text-[#9CA3AF] hover:text-[#1F2937]"
+                      activeTab === item.label ? "text-[#1F2937]" : "text-[#9CA3AF] hover:text-[#1F2937]"
                     }`}
                   >
                     {item.label}
@@ -180,13 +166,9 @@ const ClientOnlyNavigation = () => {
           className="transition-all duration-500 rounded-[28px]"
           style={navStyle({ background: "rgba(255,255,255,0.92)" })}
         >
-          <div className="w-full px-5 py-4 flex items-center justify-between">
-            <Link
-              href="/"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-xl font-extrabold bg-gradient-to-r from-[#0D9488] to-[#0B7A70] bg-clip-text text-transparent tracking-tight"
-            >
-              ReeTrack
+          <div className="w-full px-5 py-3 flex items-center justify-between">
+            <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+              <Logo size={30} />
             </Link>
             <motion.button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -194,11 +176,7 @@ const ClientOnlyNavigation = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </motion.button>
           </div>
         </div>
@@ -222,11 +200,7 @@ const ClientOnlyNavigation = () => {
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="fixed inset-0 z-30 md:hidden overflow-y-auto rounded-[30px]"
-              style={{
-                // background: "rgba(255,255,255,0.97)",
-                backdropFilter: "blur(24px)",
-                WebkitBackdropFilter: "blur(24px)",
-              }}
+              style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="h-full flex flex-col justify-center px-8 py-16">
@@ -236,20 +210,14 @@ const ClientOnlyNavigation = () => {
                       key={item.label}
                       initial={{ opacity: 0, x: -50 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{
-                        delay: 0.1 + idx * 0.1,
-                        duration: 0.5,
-                        type: "spring",
-                        stiffness: 100,
-                      }}
+                      transition={{ delay: 0.1 + idx * 0.1, duration: 0.5, type: "spring", stiffness: 100 }}
                     >
                       <Link
                         href={item.href}
-                        onClick={() => {
-                          setActiveTab(item.label);
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className={`block dark:text-white text-left py-4 px-6 text-3xl font-bold transition-all rounded-2xl ${activeTab === item.label ? "text-[#0D9488] bg-gray-300" : "text-[#1F2937]/70"}`}
+                        onClick={() => { setActiveTab(item.label); setIsMobileMenuOpen(false); }}
+                        className={`block dark:text-white text-left py-4 px-6 text-3xl font-bold transition-all rounded-2xl ${
+                          activeTab === item.label ? "text-[#0D9488] bg-gray-300" : "text-[#1F2937]/70"
+                        }`}
                       >
                         {item.label}
                       </Link>
@@ -263,29 +231,13 @@ const ClientOnlyNavigation = () => {
                   transition={{ delay: 0.4, duration: 0.5 }}
                   className="space-y-4"
                 >
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    asChild
-                    className="w-full"
-                  >
-                    <Link
-                      href="/auth/login"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
+                  <Button variant="outline" size="lg" asChild className="w-full">
+                    <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
                       Sign In
                     </Link>
                   </Button>
-                  <Button
-                    variant="default"
-                    size="lg"
-                    asChild
-                    className="w-full shadow-2xl shadow-[#F06543]/20"
-                  >
-                    <Link
-                      href="/auth/register"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
+                  <Button variant="default" size="lg" asChild className="w-full shadow-2xl shadow-[#F06543]/20">
+                    <Link href="/auth/register" onClick={() => setIsMobileMenuOpen(false)}>
                       Get Started
                     </Link>
                   </Button>
@@ -297,9 +249,7 @@ const ClientOnlyNavigation = () => {
                   transition={{ delay: 0.6, duration: 0.5 }}
                   className="mt-auto pt-12"
                 >
-                  <p className="text-[#1F2937]/50 text-sm">
-                    © {new Date().getFullYear()} ReeTrack.
-                  </p>
+                  <p className="text-[#1F2937]/50 text-sm">© {new Date().getFullYear()} ReeTrack.</p>
                 </motion.div>
               </div>
             </motion.div>
