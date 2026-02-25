@@ -4,9 +4,9 @@ import apiClient from "../apiClient";
 export interface CreatePlanDto {
   name: string;
   description: string;
-  amount: number;
+  price: number;
   currency: string;
-  interval: "daily" | "weekly" | "monthly" | "yearly";
+  interval: "weekly" | "monthly" | "yearly" | "quarterly";
   intervalCount: number;
   features: string[];
 }
@@ -14,9 +14,9 @@ export interface CreatePlanDto {
 export interface UpdatePlanDto {
   name?: string;
   description?: string;
-  amount?: number;
+  price?: number;
   currency?: string;
-  interval?: "daily" | "weekly" | "monthly" | "yearly";
+  interval?: "weekly" | "monthly" | "yearly" | "quarterly";
   intervalCount?: number;
   features?: string[];
   isActive?: boolean;
