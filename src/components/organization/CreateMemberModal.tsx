@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { X, Plus, Trash2, Link2, Copy, Check } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
@@ -19,6 +19,21 @@ interface CreateMemberModalProps {
   onClose: () => void;
 }
 
+interface Organization {
+  id: string;
+  slug: string;
+}
+
+interface UserData {
+  organizations?: Organization[];
+}
+
+interface InviteResult {
+  email: string;
+  status: string;
+  userExists?: boolean;
+}
+
 type Tab = "email" | "link";
 
 export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
@@ -26,29 +41,33 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
   const [activeTab, setActiveTab] = useState<Tab>("email");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [inviteLink, setInviteLink] = useState<string>("");
   const [emails, setEmails] = useState<EmailEntry[]>([
     { id: crypto.randomUUID(), value: "", status: "idle" },
   ]);
 
   // Build the invite link from the org slug stored in userData
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  const inviteLink = useMemo(() => {
+    if (typeof window === "undefined") return "";
     try {
-      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-      // Slug may be on the organization object directly
-      const slug =
-        userData?.organization?.slug ??
-        userData?.organizations?.[0]?.slug ??
-        null;
+      const userData: UserData = JSON.parse(
+        localStorage.getItem("userData") || "{}",
+      );
+      const selectedOrgId = localStorage.getItem("selectedOrganizationId");
+
+      const org = selectedOrgId
+        ? userData?.organizations?.find((o) => o.id === selectedOrgId)
+        : userData?.organizations?.[0];
+
+      const slug = org?.slug ?? null;
 
       if (slug) {
-        setInviteLink(`${window.location.origin}/join/${slug}`);
+        return `${window.location.origin}/join/${slug}`;
       }
     } catch {
       // silently ignore parse errors
     }
-  }, [isOpen]);
+    return "";
+  }, []);
 
   const handleCopyLink = async () => {
     if (!inviteLink) return;
@@ -77,8 +96,8 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
   const updateEmail = (id: string, value: string) => {
     setEmails((prev) =>
       prev.map((e) =>
-        e.id === id ? { ...e, value, status: "idle", error: undefined } : e
-      )
+        e.id === id ? { ...e, value, status: "idle", error: undefined } : e,
+      ),
     );
   };
 
@@ -111,9 +130,9 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
           { success: boolean; error?: string; userExists?: boolean }
         > = {};
 
-        response.data.data.results.forEach((result: any) => {
+        response.data.data.results.forEach((result: InviteResult) => {
           const emailEntry = validEmails.find(
-            (entry) => entry.value.trim() === result.email
+            (entry) => entry.value.trim() === result.email,
           );
           if (emailEntry) {
             resultMap[emailEntry.id] = {
@@ -136,36 +155,37 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
               status: result.success ? "success" : "error",
               error: result.error,
             };
-          })
+          }),
         );
 
         const successCount = Object.values(resultMap).filter(
-          (r) => r.success
+          (r) => r.success,
         ).length;
         const failCount = Object.values(resultMap).filter(
-          (r) => !r.success
+          (r) => !r.success,
         ).length;
 
         if (successCount > 0 && failCount === 0) {
           toast.success(
             successCount === 1
               ? "Invitation sent successfully"
-              : `${successCount} invitations sent successfully`
+              : `${successCount} invitations sent successfully`,
           );
           router.refresh();
           handleClose();
         } else if (successCount > 0 && failCount > 0) {
           toast.warning(
-            `${successCount} sent, ${failCount} failed — check the highlighted emails`
+            `${successCount} sent, ${failCount} failed — check the highlighted emails`,
           );
           router.refresh();
         } else {
           toast.error("All invitations failed — check the highlighted emails");
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const apiError = error as { response?: { data?: { message?: string } } };
       toast.error(
-        error?.response?.data?.message || "Failed to send invitations"
+        apiError?.response?.data?.message || "Failed to send invitations",
       );
       console.error("Error sending invitations:", error);
     }
@@ -243,9 +263,9 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
             {/* Info banner */}
             <div className="mx-6 mt-5 rounded-lg bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
               <p className="text-xs text-[#0D9488] leading-relaxed">
-                If the email is already registered, they'll be asked to confirm
-                joining your organization. If not, they'll be prompted to create
-                an account first.
+                If the email is already registered, they&apos;ll be asked to
+                confirm joining your organization. If not, they&apos;ll be
+                prompted to create an account first.
               </p>
             </div>
 
@@ -341,7 +361,7 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
             <div className="rounded-lg bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
               <p className="text-xs text-[#0D9488] leading-relaxed">
                 Anyone with this link can join your organization. Share it on
-                WhatsApp, in emails, or on social media — they'll be walked
+                WhatsApp, in emails, or on social media — they&apos;ll be walked
                 through signup automatically.
               </p>
             </div>
