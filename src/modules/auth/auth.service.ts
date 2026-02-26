@@ -453,6 +453,7 @@ export class AuthService {
           email: orgUser.organization.email,
           role: orgUser.role,
           status: orgUser.status,
+          slug: orgUser.organization.slug,
         })),
         access_token: accessToken,
         refresh_token: refreshToken,
