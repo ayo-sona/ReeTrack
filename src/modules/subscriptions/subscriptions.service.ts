@@ -325,7 +325,7 @@ export class SubscriptionsService {
 
     // If activating an inactive subscription, update the dates
     if (updateDto.status === 'active' && subscription.status !== 'active') {
-      const now = new Date();
+      // const now = new Date();
       subscription.started_at = now;
       subscription.expires_at = periodEnd;
     }
@@ -784,7 +784,7 @@ export class SubscriptionsService {
     const subscription = await this.organizationSubscriptionRepository.findOne({
       where: {
         organization_id: organizationId,
-        status: SubscriptionStatus.ACTIVE,
+        status: In([SubscriptionStatus.ACTIVE, SubscriptionStatus.PENDING]),
       },
       relations: ['plan'],
       order: { created_at: 'DESC' },
