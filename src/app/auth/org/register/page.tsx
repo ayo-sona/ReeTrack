@@ -79,7 +79,7 @@ export default function AdminRegisterPage() {
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
@@ -97,7 +97,7 @@ export default function AdminRegisterPage() {
           password: formData.password,
         });
       } catch (err: any) {
-        const status = err?.response?.status;
+        const status = err?.response?.data?.statusCode;
         const message = err?.response?.data?.message || "";
 
         if (
@@ -106,7 +106,7 @@ export default function AdminRegisterPage() {
           message.toLowerCase().includes("already")
         ) {
           setError(
-            'This email is already registered. Switch to "I already have an account" above to create your organization.',
+            'This login email is already registered. Switch to "I already have an account" above to create your organization.',
           );
           setIsLoading(false);
           return;
@@ -121,7 +121,23 @@ export default function AdminRegisterPage() {
       }
     }
 
-    // Step 2: Create organization
+    // Step 2: Login with credential
+    try {
+      const response = await apiClient.post("/auth/login", {
+        email: formData.email,
+        password: formData.password,
+      });
+      console.log("Logging in");
+    } catch (err: any) {
+      console.error("Login error:", err.response);
+      const { statusCode, message } = err.response.data;
+      if (err.response) setError(message);
+      setError(err.message || "Failed to complete registration");
+      setIsLoading(false);
+      return;
+    }
+
+    // Step 3: Create organization
     try {
       await apiClient.post("/auth/register-organization", {
         organizationName: formData.organizationName,

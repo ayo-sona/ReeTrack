@@ -49,7 +49,7 @@ export interface SubscriptionPlan {
 }
 
 // Member Types
-export type MemberStatus = "active" | "inactive" | "expired";
+export type MemberStatus = "active" | "inactive";
 export type MembershipType = "self_signup" | "manual_add" | "invite";
 
 /// Member type based on ACTUAL API response from /api/v1/members
@@ -90,7 +90,7 @@ export interface Member {
     member_id: string;
     plan_id: string;
     organization_id: string;
-    status: "active" | "expired" | "canceled";
+    status: "active" | "expired" | "cancelled" | "pending";
     started_at: string;
     expires_at: string;
     canceled_at: string | null;

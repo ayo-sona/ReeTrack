@@ -20,6 +20,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { isToday } from "date-fns";
 
 const C = {
   teal: "#0D9488",
@@ -156,7 +157,7 @@ export default function SubscriptionDetailsPage() {
   const features: string[] = subscription.plan.features?.features ?? [];
   const canRenew = status === "expired" || status === "cancelled";
   const canCancel = status === "active";
-  const hasExpired = subscription.expires_at < new Date().toISOString();
+  const hasExpired = isToday(subscription.expires_at);
 
   return (
     <div
