@@ -86,8 +86,34 @@ export default function AdminRegisterPage() {
     setIsLoading(true);
     setError(null);
 
-    // Step 1: Register user — only if they're new
-    if (!isExistingUser) {
+    // For existing users: Login first to verify credentials
+    if (isExistingUser) {
+      try {
+        await apiClient.post("/auth/login", {
+          email: formData.email,
+          password: formData.password,
+        });
+        toast.success("Login successful! Creating your organization...");
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const message = err?.response?.data?.message || "";
+
+        // Handle wrong credentials
+        if (status === 401 || status === 400) {
+          setError("Incorrect email or password. Please try again.");
+          toast.error("Incorrect email or password");
+          setIsLoading(false);
+          return;
+        }
+
+        const fallback = message || "Login failed. Please try again.";
+        setError(fallback);
+        toast.error(fallback);
+        setIsLoading(false);
+        return;
+      }
+    } else {
+      // For new users: Register user account first
       try {
         await apiClient.post("/auth/register-user", {
           firstName: formData.firstName,
@@ -96,6 +122,7 @@ export default function AdminRegisterPage() {
           phone: formData.phone,
           password: formData.password,
         });
+        toast.success("Account created! Setting up your organization...");
       } catch (err: any) {
         const status = err?.response?.status;
         const message = err?.response?.data?.message || "";
@@ -108,6 +135,7 @@ export default function AdminRegisterPage() {
           setError(
             'This email is already registered. Switch to "I already have an account" above to create your organization.',
           );
+          toast.error("Email already exists");
           setIsLoading(false);
           return;
         }
@@ -121,32 +149,42 @@ export default function AdminRegisterPage() {
       }
     }
 
-    // Step 2: Create organization
+    // Step 2: Create organization (user is now authenticated)
     try {
       await apiClient.post("/auth/register-organization", {
         organizationName: formData.organizationName,
         organizationEmail: formData.organizationEmail,
         email: formData.email,
       });
+      toast.success("Organization created successfully!");
     } catch (err: any) {
       const message =
         err?.response?.data?.message ||
         "Failed to create organization. Please try again.";
-      // Account was created but org failed — flip to existing user mode silently
-      // so if they retry, register-user is skipped and we go straight to org creation
-      setIsExistingUser(true);
-      setError(
-        `Your account was created but we couldn't set up your organization. Please click "Create Organization" again to retry — your account is already ready.`,
-      );
+
+      // If user account was created but org failed, flip to existing user mode
+      if (!isExistingUser) {
+        setIsExistingUser(true);
+        setError(
+          `Your account was created but we couldn't set up your organization. Please click "Create Organization" again to retry — your account is already ready.`,
+        );
+      } else {
+        setError(message);
+      }
+      
       toast.error(message);
       setIsLoading(false);
       return;
     }
 
-    // Registration complete — set flag so login page redirects to onboarding
+    // Registration complete — set flag for login page redirect
     localStorage.setItem("onboarding_pending", "true");
-    toast.success("Organization created! Please log in to continue.");
-    router.push("/auth/login");
+    toast.success("Success! Redirecting to login...");
+    
+    setTimeout(() => {
+      router.push("/auth/login");
+    }, 1000);
+    
     setIsLoading(false);
   };
 
@@ -298,7 +336,7 @@ export default function AdminRegisterPage() {
                   <div className="bg-[#0D9488]/5 border border-[#0D9488]/15 rounded-xl px-4 py-3">
                     <p className="text-xs text-[#0D9488] leading-relaxed">
                       Enter your existing ReeTrack email and password along with
-                      your organization details — we'll link everything
+                      your organization details — we'll verify your account and link everything
                       together.
                     </p>
                   </div>
