@@ -7,7 +7,7 @@ import { PaymentFilters } from "../../../components/organization/PaymentFilters"
 import { usePayments, usePaymentStats } from "../../../hooks/usePayments";
 import { mapApiPaymentsToUiPayments } from "../../../utils/paymentMapper";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 6;
 
 function TableSkeleton() {
   return (
@@ -162,86 +162,24 @@ export default function PaymentsPage() {
             </div>
           </div>
         </div>
+      ) : filteredPayments.length === 0 ? (
+        <div className="rounded-xl border border-gray-200 bg-white p-12 text-center">
+          <p className="text-sm text-gray-500">
+            {payments.length === 0
+              ? "No payments yet."
+              : "No payments match your current filters."}
+          </p>
+        </div>
       ) : (
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-          {filteredPayments.length === 0 ? (
-            <div className="p-12 text-center">
-              <p className="text-sm text-gray-500">
-                {payments.length === 0
-                  ? "No payments yet."
-                  : "No payments match your current filters."}
-              </p>
-            </div>
-          ) : (
-            <PaymentsTable payments={filteredPayments} />
-          )}
-
-          {/* Pagination footer */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-gray-100 px-4 sm:px-6 py-3 bg-[#F9FAFB]">
-              <p className="text-xs text-gray-500">
-                {totalCount === 0 ? (
-                  "No records"
-                ) : (
-                  <>
-                    Showing{" "}
-                    <span className="font-semibold text-gray-700">
-                      {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalCount)}
-                    </span>{" "}
-                    of{" "}
-                    <span className="font-semibold text-gray-700">{totalCount}</span>
-                  </>
-                )}
-              </p>
-
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  aria-label="Previous page"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
-                  .reduce<(number | "…")[]>((acc, p, idx, arr) => {
-                    if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("…");
-                    acc.push(p);
-                    return acc;
-                  }, [])
-                  .map((item, idx) =>
-                    item === "…" ? (
-                      <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-xs text-gray-400">
-                        …
-                      </span>
-                    ) : (
-                      <button
-                        key={item}
-                        onClick={() => setPage(item as number)}
-                        className={`w-8 h-8 rounded-lg text-xs font-semibold transition-colors ${
-                          page === item
-                            ? "bg-[#0D9488] text-white shadow-sm"
-                            : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                        }`}
-                      >
-                        {item}
-                      </button>
-                    ),
-                  )}
-
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  aria-label="Next page"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
+          <PaymentsTable
+            payments={filteredPayments}
+            page={page}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
         </div>
       )}
     </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import { Payment } from "../../types/organization";
-import Link from "next/link";
 import { CreditCard, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import clsx from "clsx";
 
@@ -142,12 +141,11 @@ export function PaymentsTable({
                         {initials}
                       </div>
                       <div className="min-w-0">
-                        <Link
-                          href={`/enterprise/members/${payment.payer_user?.id}`}
-                          className="text-sm font-semibold text-[#1F2937] hover:text-[#0D9488] transition-colors truncate block"
+                        <div
+                          className="text-sm font-semibold text-[#1F2937] transition-colors truncate block"
                         >
                           {memberName}
-                        </Link>
+                        </div>
                         <p className="text-xs text-[#9CA3AF] truncate">
                           {payment.payer_user?.email || "—"}
                         </p>
@@ -223,12 +221,11 @@ export function PaymentsTable({
                     {initials}
                   </div>
                   <div className="min-w-0">
-                    <Link
-                      href={`/enterprise/members/${payment.payer_user?.id}`}
-                      className="text-sm font-semibold text-[#1F2937] hover:text-[#0D9488] transition-colors truncate block"
+                    <div
+                      className="text-sm font-semibold text-[#1F2937] transition-colors truncate block"
                     >
                       {memberName}
-                    </Link>
+                    </div>
                     <p className="text-xs text-[#9CA3AF] truncate">
                       {payment.payer_user?.email || "—"}
                     </p>
