@@ -135,7 +135,6 @@ export function InviteStaffModal({
           toast.warning(
             `${successCount} sent, ${failCount} failed — check highlighted emails`,
           );
-          onSuccess?.();
         } else {
           toast.error("All invitations failed — check the highlighted emails");
         }

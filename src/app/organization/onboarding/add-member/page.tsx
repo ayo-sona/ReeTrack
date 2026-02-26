@@ -37,12 +37,12 @@ export default function OnboardingAddMemberPage() {
   const updateEmail = (id: string, value: string) => {
     setEmails((prev) =>
       prev.map((e) =>
-        e.id === id ? { ...e, value, status: "idle", error: undefined } : e
-      )
+        e.id === id ? { ...e, value, status: "idle", error: undefined } : e,
+      ),
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
     const validEmails = emails.filter((e) => e.value.trim() !== "");
@@ -53,55 +53,78 @@ export default function OnboardingAddMemberPage() {
 
     setIsSubmitting(true);
 
-    const results = await Promise.allSettled(
-      validEmails.map((entry) =>
-        apiClient
-          .post("/auth/custom/register-member", { email: entry.value.trim() })
-          .then(() => ({ id: entry.id, success: true }))
-          .catch((err) => ({
-            id: entry.id,
-            success: false,
-            error: err?.response?.data?.message || "Failed to send invitation",
-          }))
-      )
-    );
+    try {
+      // Send all emails in a single request
+      const response = await apiClient.post("/auth/custom/register-member", {
+        email: validEmails.map((entry) => entry.value.trim()),
+      });
 
-    const resultMap: Record<string, { success: boolean; error?: string }> = {};
-    results.forEach((result) => {
-      if (result.status === "fulfilled") {
-        resultMap[result.value.id] = {
-          success: result.value.success,
-          error: (result.value as any).error,
-        };
+      console.log(response);
+      // Handle the response structure
+      if (response.data.statusCode === 201) {
+        const resultMap: Record<
+          string,
+          { success: boolean; error?: string; userExists?: boolean }
+        > = {};
+
+        // Map results back to email entries
+        response.data.data.results.forEach((result: any) => {
+          const emailEntry = validEmails.find(
+            (entry) => entry.value.trim() === result.email,
+          );
+          if (emailEntry) {
+            resultMap[emailEntry.id] = {
+              success: result.status === "sent",
+              userExists: result.userExists,
+              error:
+                result.status !== "sent"
+                  ? "Failed to send invitation"
+                  : undefined,
+            };
+          }
+        });
+
+        setEmails((prev) =>
+          prev.map((entry) => {
+            const result = resultMap[entry.id];
+            if (!result) return entry; // wasn't submitted (empty)
+            return {
+              ...entry,
+              status: result.success ? "success" : "error",
+              error: result.error,
+              userExists: result.userExists,
+            };
+          }),
+        );
+
+        const successCount = Object.values(resultMap).filter(
+          (r) => r.success,
+        ).length;
+        const failCount = Object.values(resultMap).filter(
+          (r) => !r.success,
+        ).length;
+
+        if (successCount > 0 && failCount === 0) {
+          toast.success(
+            successCount === 1
+              ? "Invitation sent successfully"
+              : `${successCount} invitations sent successfully`,
+          );
+        } else if (successCount > 0 && failCount > 0) {
+          toast.warning(
+            `${successCount} sent, ${failCount} failed — check the highlighted emails`,
+          );
+        } else {
+          toast.error("All invitations failed — check the highlighted emails");
+        }
       }
-    });
-
-    setEmails((prev) =>
-      prev.map((entry) => {
-        const result = resultMap[entry.id];
-        if (!result) return entry;
-        return {
-          ...entry,
-          status: result.success ? "success" : "error",
-          error: result.error,
-        };
-      })
-    );
-
-    const successCount = Object.values(resultMap).filter((r) => r.success).length;
-    const failCount = Object.values(resultMap).filter((r) => !r.success).length;
-
-    if (successCount > 0 && failCount === 0) {
-      toast.success(
-        successCount === 1
-          ? "Invitation sent!"
-          : `${successCount} invitations sent!`
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Failed to send invitations",
       );
+      console.error("Error sending invitations:", error);
+    } finally {
       router.push("/organization/onboarding/invite-admin");
-    } else if (successCount > 0 && failCount > 0) {
-      toast.warning(`${successCount} sent, ${failCount} failed — check highlighted emails`);
-    } else {
-      toast.error("All invitations failed — check the highlighted emails");
     }
 
     setIsSubmitting(false);
@@ -118,7 +141,6 @@ export default function OnboardingAddMemberPage() {
       style={{ fontFamily: "Nunito, sans-serif" }}
     >
       <div className="w-full max-w-lg">
-
         {/* Step indicator */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -134,7 +156,11 @@ export default function OnboardingAddMemberPage() {
               <div
                 key={s}
                 className={`h-1.5 rounded-full transition-all duration-500 ${
-                  s < 3 ? "bg-[#0D9488] w-6" : s === 3 ? "bg-[#0D9488]/50 w-6" : "bg-gray-200 w-4"
+                  s < 3
+                    ? "bg-[#0D9488] w-6"
+                    : s === 3
+                      ? "bg-[#0D9488]/50 w-6"
+                      : "bg-gray-200 w-4"
                 }`}
               />
             ))}
@@ -157,15 +183,17 @@ export default function OnboardingAddMemberPage() {
               Bring your community in
             </h1>
             <p className="text-sm text-[#1F2937]/70 leading-relaxed">
-              To add a member, all you need is their email address. If they're new to ReeTrack,
-              they'll be asked to create an account. If they already have one, they'll simply
-              confirm they want to join your organization.
+              To add a member, all you need is their email address. If they're
+              new to ReeTrack, they'll be asked to create an account. If they
+              already have one, they'll simply confirm they want to join your
+              organization.
             </p>
 
             {/* Tip */}
             <div className="mt-5 rounded-xl bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
               <p className="text-xs text-[#0D9488] leading-relaxed">
-                💡 You can add multiple members at once — just enter their emails below.
+                💡 You can add multiple members at once — just enter their
+                emails below.
               </p>
             </div>
           </div>
@@ -187,8 +215,8 @@ export default function OnboardingAddMemberPage() {
                           entry.status === "error"
                             ? "border-red-300 focus:ring-red-200 focus:border-red-400"
                             : entry.status === "success"
-                            ? "border-[#0D9488] bg-[#0D9488]/5 text-[#0D9488]"
-                            : "border-gray-200 focus:ring-[#0D9488]/20 focus:border-[#0D9488]"
+                              ? "border-[#0D9488] bg-[#0D9488]/5 text-[#0D9488]"
+                              : "border-gray-200 focus:ring-[#0D9488]/20 focus:border-[#0D9488]"
                         }`}
                       />
                       {entry.status === "success" && (
@@ -209,7 +237,9 @@ export default function OnboardingAddMemberPage() {
                     )}
                   </div>
                   {entry.status === "error" && entry.error && (
-                    <p className="text-xs text-red-500 font-semibold pl-1">{entry.error}</p>
+                    <p className="text-xs text-red-500 font-semibold pl-1">
+                      {entry.error}
+                    </p>
                   )}
                 </div>
               ))}
@@ -231,7 +261,9 @@ export default function OnboardingAddMemberPage() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push("/organization/onboarding/invite-admin")}
+                onClick={() =>
+                  router.push("/organization/onboarding/invite-admin")
+                }
                 disabled={isSubmitting}
               >
                 Skip for now
@@ -246,8 +278,8 @@ export default function OnboardingAddMemberPage() {
                 {isSubmitting
                   ? "Sending..."
                   : filledCount > 1
-                  ? `Send ${filledCount} Invitations`
-                  : "Send Invitation"}
+                    ? `Send ${filledCount} Invitations`
+                    : "Send Invitation"}
               </Button>
             </div>
           </form>

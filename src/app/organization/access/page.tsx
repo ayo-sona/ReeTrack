@@ -164,6 +164,7 @@ export default function SubscriptionPage() {
           apiClient.get("/subscriptions/organizations"),
           apiClient.get("/invoices/organization"),
         ]);
+        console.log(subRes);
         setSubscription(subRes.data.data || null);
         setInvoices(invRes.data.data || []);
       } catch {
@@ -429,7 +430,7 @@ export default function SubscriptionPage() {
                   <div className="flex flex-col items-center justify-center py-14 text-center px-4">
                     <div className="w-14 h-14 rounded-2xl bg-[#0D9488]/10 flex items-center justify-center mb-4"></div>
                     <p className="text-lg font-extrabold text-[#1F2937] mb-1">
-                      No active subscription
+                      No active/pending subscription
                     </p>
                     <p className="text-sm text-[#9CA3AF] mb-6 max-w-xs">
                       Choose a plan to unlock the full power of ReeTrack for

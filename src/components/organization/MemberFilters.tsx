@@ -32,7 +32,13 @@ export function MemberFilters({
   };
 
   const clearFilters = () => {
-    onFiltersChange({ search: "", dateFrom: "", dateTo: "", plan: "all", status: "all" });
+    onFiltersChange({
+      search: "",
+      dateFrom: "",
+      dateTo: "",
+      plan: "all",
+      status: "all",
+    });
   };
 
   const hasActiveFilters =
@@ -112,7 +118,12 @@ export function MemberFilters({
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF] pointer-events-none" />
             <select
               value={filters.status}
-              onChange={(e) => updateFilter("status", e.target.value as MemberFiltersType["status"])}
+              onChange={(e) =>
+                updateFilter(
+                  "status",
+                  e.target.value as MemberFiltersType["status"],
+                )
+              }
               className={`${inputClass} pl-10 cursor-pointer`}
             >
               <option value="all">All Status</option>
@@ -129,12 +140,12 @@ export function MemberFilters({
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
             <span className="font-semibold text-[#1F2937]">Active:</span>
-            <span className="text-[#9CA3AF]">Currently active subscription</span>
+            <span className="text-[#9CA3AF]">Frequently logged in</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
             <span className="font-semibold text-[#1F2937]">Inactive:</span>
-            <span className="text-[#9CA3AF]">Last login over 6 months ago</span>
+            <span className="text-[#9CA3AF]">Last login over 3 months ago</span>
           </div>
         </div>
       </div>
@@ -144,8 +155,9 @@ export function MemberFilters({
         <div className="flex items-center justify-between pt-1 border-t border-gray-100">
           <p className="text-sm text-[#9CA3AF]">
             Showing{" "}
-            <span className="font-bold text-[#1F2937]">{filteredCount}</span>{" "}
-            of <span className="font-bold text-[#1F2937]">{totalCount}</span> members
+            <span className="font-bold text-[#1F2937]">{filteredCount}</span> of{" "}
+            <span className="font-bold text-[#1F2937]">{totalCount}</span>{" "}
+            members
           </p>
           <Button
             type="button"
