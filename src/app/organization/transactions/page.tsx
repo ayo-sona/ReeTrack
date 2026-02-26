@@ -4,17 +4,14 @@ import { useMemo, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { PaymentsTable } from "../../../components/organization/PaymentsTable";
 import { PaymentFilters } from "../../../components/organization/PaymentFilters";
-import {
-  usePayments,
-  usePaymentStats,
-} from "../../../hooks/usePayments";
+import { usePayments, usePaymentStats } from "../../../hooks/usePayments";
 import { mapApiPaymentsToUiPayments } from "../../../utils/paymentMapper";
 
 export default function PaymentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [selectedSource, setSelectedSource] = useState<string>("all");
+  const [selectedSource, setSelectedSource] = useState<string>("paystack");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
 
   const {
@@ -42,14 +39,18 @@ export default function PaymentsPage() {
       if (!matchesSearch) return false;
     }
 
-    if (dateFrom && new Date(payment.created_at) < new Date(dateFrom)) return false;
-    if (dateTo && new Date(payment.created_at) > new Date(dateTo + "T23:59:59")) return false;
+    if (dateFrom && new Date(payment.created_at) < new Date(dateFrom))
+      return false;
+    if (dateTo && new Date(payment.created_at) > new Date(dateTo + "T23:59:59"))
+      return false;
 
     if (selectedSource === "all") return true;
     if (selectedStatus === "all") return true;
-    if (selectedSource === "paystack" && payment.provider !== "paystack") return false;
+    if (selectedSource === "paystack" && payment.provider !== "paystack")
+      return false;
     if (selectedSource === "kora" && payment.provider !== "kora") return false;
-    if (selectedSource === "other" && payment.provider !== "other") return false;
+    if (selectedSource === "other" && payment.provider !== "other")
+      return false;
 
     return true;
   });
@@ -103,7 +104,8 @@ export default function PaymentsPage() {
                 Failed to load payments
               </h3>
               <p className="text-sm text-red-700">
-                The payments data could not be fetched. Check your connection or permissions and try again.
+                The payments data could not be fetched. Check your connection or
+                permissions and try again.
               </p>
               <button
                 onClick={() => refetch()}
@@ -122,9 +124,7 @@ export default function PaymentsPage() {
     <div className="space-y-6 p-4 sm:p-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Payment History
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900">Payment History</h1>
         <p className="mt-1 text-sm text-gray-500">
           View and manage all payment transactions
         </p>
@@ -139,7 +139,10 @@ export default function PaymentsPage() {
               className="rounded-xl border border-gray-200 bg-white p-4"
             >
               <p className="text-xs text-gray-500 font-medium">{stat.title}</p>
-              <p className={`text-xl font-bold mt-1 ${stat.accent}`} suppressHydrationWarning>
+              <p
+                className={`text-xl font-bold mt-1 ${stat.accent}`}
+                suppressHydrationWarning
+              >
                 {stat.value}
               </p>
               <p className="text-xs text-gray-400 mt-0.5">All time</p>
