@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   QrCode,
   Scan,
@@ -11,6 +11,8 @@ import {
   Award,
   Hash,
   Filter,
+  Search,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/ui/SearchBar";
@@ -24,7 +26,6 @@ import clsx from "clsx";
 function CheckInSkeleton() {
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto" style={{ fontFamily: "Nunito, sans-serif" }}>
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-2">
           <div className="h-6 w-48 bg-gray-100 rounded-lg animate-pulse" />
@@ -32,8 +33,6 @@ function CheckInSkeleton() {
         </div>
         <div className="h-10 w-48 bg-gray-100 rounded-lg animate-pulse" />
       </div>
-
-      {/* Stats cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[1, 2].map((i) => (
           <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
@@ -45,16 +44,11 @@ function CheckInSkeleton() {
           </div>
         ))}
       </div>
-
-      {/* Main content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Scan panel */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-5">
           <div className="h-5 w-48 bg-gray-100 rounded-lg animate-pulse" />
           <div className="h-10 w-full bg-gray-100 rounded-lg animate-pulse" />
         </div>
-
-        {/* Recent check-ins */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
           <div className="h-5 w-36 bg-gray-100 rounded-lg animate-pulse" />
           {[1, 2, 3, 4].map((i) => (
@@ -81,13 +75,13 @@ export default function OrganizationCheckInPage() {
   const [scanMode, setScanMode] = useState<"qr" | "manual" | "">("");
   const [manualCode, setManualCode] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [recentSearchQuery, setRecentSearchQuery] = useState("");
   const [timeFilter, setTimeFilter] = useState<"today" | "week" | "month">("month");
   const { data: members, isLoading } = useMembers(searchQuery);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [currentMember, setCurrentMember] = useState("");
 
-  // Stats
   const totalMembers = members?.length ?? 0;
   const todayCheckIns =
     members?.filter((m) => {
@@ -95,12 +89,27 @@ export default function OrganizationCheckInPage() {
       return checkInDate.toDateString() === new Date().toDateString();
     }).length ?? 0;
 
-  const recentCheckIns = members
-    ?.slice()
-    .sort(
-      (a, b) =>
-        new Date(b?.checked_in_at).getTime() - new Date(a?.checked_in_at).getTime(),
+  const recentCheckIns = useMemo(
+    () =>
+      members
+        ?.slice()
+        .sort(
+          (a, b) =>
+            new Date(b?.checked_in_at).getTime() - new Date(a?.checked_in_at).getTime(),
+        ),
+    [members],
+  );
+
+  const filteredRecentCheckIns = useMemo(() => {
+    if (!recentSearchQuery.trim()) return recentCheckIns;
+    const q = recentSearchQuery.toLowerCase();
+    return recentCheckIns?.filter(
+      (m) =>
+        m.user?.first_name?.toLowerCase().includes(q) ||
+        m.user?.last_name?.toLowerCase().includes(q) ||
+        `${m.user?.first_name} ${m.user?.last_name}`.toLowerCase().includes(q),
     );
+  }, [recentCheckIns, recentSearchQuery]);
 
   const filteredStats = members?.filter(
     (m) =>
@@ -180,19 +189,12 @@ export default function OrganizationCheckInPage() {
           </p>
         </div>
 
-        {/* Tab switcher */}
         <div className="inline-flex items-center bg-[#F9FAFB] border border-gray-100 rounded-lg p-1 self-start sm:self-auto">
-          <button
-            onClick={() => setActiveTab("scan")}
-            className={tabBtnClass(activeTab === "scan")}
-          >
+          <button onClick={() => setActiveTab("scan")} className={tabBtnClass(activeTab === "scan")}>
             <Scan className="w-4 h-4" />
             Check-In
           </button>
-          <button
-            onClick={() => setActiveTab("stats")}
-            className={tabBtnClass(activeTab === "stats")}
-          >
+          <button onClick={() => setActiveTab("stats")} className={tabBtnClass(activeTab === "stats")}>
             <TrendingUp className="w-4 h-4" />
             Statistics
           </button>
@@ -252,7 +254,6 @@ export default function OrganizationCheckInPage() {
                 onCheckInSuccess={handleCheckInSuccess}
               />
 
-              {/* Manual code entry */}
               {scanMode === "manual" && (
                 <div className="space-y-4 pt-2 border-t border-gray-100">
                   <div>
@@ -285,14 +286,39 @@ export default function OrganizationCheckInPage() {
 
           {/* Recent check-ins */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-            <h2 className="text-base font-bold text-[#1F2937] mb-4 flex items-center gap-2">
+            {/* Panel header */}
+            <h2 className="text-base font-bold text-[#1F2937] mb-3 flex items-center gap-2">
               <Clock className="w-4 h-4 text-[#0D9488]" />
               Recent Check-Ins
             </h2>
 
-            {recentCheckIns && recentCheckIns.length > 0 ? (
-              <div className="space-y-3 max-h-[560px] overflow-y-auto">
-                {recentCheckIns.map((checkIn) => {
+            {/* Search bar */}
+            <div className="relative mb-4">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] pointer-events-none"
+                size={14}
+              />
+              <input
+                type="text"
+                value={recentSearchQuery}
+                onChange={(e) => setRecentSearchQuery(e.target.value)}
+                placeholder="Search members…"
+                className="w-full rounded-lg border border-gray-200 bg-[#F9FAFB] pl-8 pr-8 py-2 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/20 focus:border-[#0D9488] transition-all"
+              />
+              {recentSearchQuery && (
+                <button
+                  onClick={() => setRecentSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#1F2937] transition-colors"
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            {/* Results */}
+            {filteredRecentCheckIns && filteredRecentCheckIns.length > 0 ? (
+              <div className="space-y-3 max-h-[520px] overflow-y-auto">
+                {filteredRecentCheckIns.map((checkIn) => {
                   const initials = `${checkIn.user.first_name} ${checkIn.user.last_name}`
                     .split(" ")
                     .map((n) => n[0])
@@ -337,10 +363,20 @@ export default function OrganizationCheckInPage() {
             ) : (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <div className="w-12 h-12 bg-[#0D9488]/10 rounded-full flex items-center justify-center mb-3">
-                  <Users className="w-6 h-6 text-[#0D9488]" />
+                  {recentSearchQuery ? (
+                    <Search className="w-5 h-5 text-[#0D9488]" />
+                  ) : (
+                    <Users className="w-6 h-6 text-[#0D9488]" />
+                  )}
                 </div>
-                <p className="text-sm font-bold text-[#1F2937] mb-0.5">No check-ins yet</p>
-                <p className="text-xs text-[#9CA3AF]">Check-ins will appear here</p>
+                <p className="text-sm font-bold text-[#1F2937] mb-0.5">
+                  {recentSearchQuery ? "No results found" : "No check-ins yet"}
+                </p>
+                <p className="text-xs text-[#9CA3AF]">
+                  {recentSearchQuery
+                    ? `No members match "${recentSearchQuery}"`
+                    : "Check-ins will appear here"}
+                </p>
               </div>
             )}
           </div>
@@ -348,7 +384,6 @@ export default function OrganizationCheckInPage() {
       ) : (
         /* Statistics tab */
         <div className="space-y-5">
-          {/* Filters */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1">
@@ -378,7 +413,6 @@ export default function OrganizationCheckInPage() {
             </div>
           </div>
 
-          {/* Stats table */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
             {/* Desktop */}
             <div className="hidden md:block overflow-x-auto">

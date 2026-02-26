@@ -1,0 +1,1 @@
+export const PENDING_JOIN_SLUG_KEY = "pendingJoinSlug";

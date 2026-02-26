@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Input } from "@heroui/react";
+import { Input, Spinner } from "@heroui/react";
 import { Mail, Lock, User, Phone, Eye, EyeOff } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
@@ -19,8 +19,17 @@ interface FormData {
   password: string;
 }
 
-export default function RegisterPage() {
+// ----------------------------------------
+// Inner component — uses useSearchParams
+// ----------------------------------------
+
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // ?redirect=/join/life-fitness — passed from the join page
+  const redirectParam = searchParams.get("redirect");
+
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
@@ -42,13 +51,22 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
 
     try {
       const response = await apiClient.post("auth/register-user", formData);
 
       if (response.data.statusCode === 201) {
-        toast.success("Registration successful! Please log in.");
-        router.push("/auth/login");
+        toast.success("Account created! Please sign in to continue.");
+
+        // Preserve the redirect param so after login the user lands on the join page
+        if (redirectParam) {
+          router.push(
+            `/auth/login?redirect=${encodeURIComponent(redirectParam)}`
+          );
+        } else {
+          router.push("/auth/login");
+        }
       }
     } catch (error: any) {
       const errorMessage =
@@ -65,109 +83,47 @@ export default function RegisterPage() {
     <div className="min-h-screen relative overflow-hidden bg-white">
       {/* Diagonal Split Background */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Top Coral Section */}
         <div
           className="absolute inset-0 bg-gradient-to-br from-[#F06543] to-[#D85436]"
-          style={{
-            clipPath: "polygon(0 0, 100% 0, 100% 45%, 0 55%)",
-          }}
+          style={{ clipPath: "polygon(0 0, 100% 0, 100% 45%, 0 55%)" }}
         />
-        {/* Bottom Teal Section */}
         <div
           className="absolute inset-0 bg-gradient-to-br from-[#0D9488] to-[#0B7A70]"
-          style={{
-            clipPath: "polygon(0 55%, 100% 45%, 100% 100%, 0 100%)",
-          }}
+          style={{ clipPath: "polygon(0 55%, 100% 45%, 100% 100%, 0 100%)" }}
         />
       </div>
 
-      {/* Scattered Avatar Illustrations - Different Set */}
+      {/* Scattered Avatar Illustrations */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Top left - Walking call */}
         <div className="absolute top-[10%] left-[25%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image
-            src="/undraw/walking_call.svg"
-            alt=""
-            fill
-            className="object-contain"
-          />
+          <Image src="/undraw/walking_call.svg" alt="" fill className="object-contain" />
         </div>
-
-        {/* Top right - Knowledge sharing */}
         <div className="absolute bottom-[8%] right-[19%] w-28 h-28 sm:w-36 sm:h-36 opacity-90">
-          <Image
-            src="/undraw/knowledge_sharing.svg"
-            alt=""
-            fill
-            className="object-contain"
-          />
+          <Image src="/undraw/knowledge_sharing.svg" alt="" fill className="object-contain" />
         </div>
-
-        {/* Middle left - Working */}
         <div className="absolute bottom-[34%] left-[23%] w-20 h-20 sm:w-28 sm:h-28 opacity-90">
-          <Image
-            src="/undraw/working.svg"
-            alt=""
-            fill
-            className="object-contain"
-          />
+          <Image src="/undraw/working.svg" alt="" fill className="object-contain" />
         </div>
-
-        {/* Middle right - Mindfulness */}
         <div className="absolute bottom-[15%] left-[16%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image
-            src="/undraw/mindfulness.svg"
-            alt=""
-            fill
-            className="object-contain"
-          />
+          <Image src="/undraw/mindfulness.svg" alt="" fill className="object-contain" />
         </div>
-
-        {/* Bottom left - Accept task */}
         <div className="absolute top-[30%] right-[20%] w-20 h-20 sm:w-28 sm:h-28 opacity-90">
-          <Image
-            src="/undraw/accept_task.svg"
-            alt=""
-            fill
-            className="object-contain"
-          />
+          <Image src="/undraw/accept_task.svg" alt="" fill className="object-contain" />
         </div>
-
-        {/* Bottom right - Processing */}
         <div className="absolute top-[8%] right-[23%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image
-            src="/undraw/processing.svg"
-            alt=""
-            fill
-            className="object-contain"
-          />
+          <Image src="/undraw/processing.svg" alt="" fill className="object-contain" />
         </div>
-
-        {/* Extra - Walking email (desktop only) */}
         <div className="hidden lg:block absolute top-[28%] left-[18%] w-28 h-28 opacity-80">
-          <Image
-            src="/undraw/walking_email.svg"
-            alt=""
-            fill
-            className="object-contain"
-          />
+          <Image src="/undraw/walking_email.svg" alt="" fill className="object-contain" />
         </div>
-
-        {/* Extra - Absorbed (desktop only) */}
         <div className="hidden lg:block absolute bottom-[32%] right-[25%] w-24 h-24 opacity-80">
-          <Image
-            src="/undraw/absorbed.svg"
-            alt=""
-            fill
-            className="object-contain"
-          />
+          <Image src="/undraw/absorbed.svg" alt="" fill className="object-contain" />
         </div>
       </div>
 
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-lg">
-          {/* Form Card */}
           <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 backdrop-blur-sm bg-white/95">
             {/* Header */}
             <div className="text-center mb-8">
@@ -180,7 +136,9 @@ export default function RegisterPage() {
                 Create Your Account
               </h1>
               <p className="text-[#1F2937]/60">
-                Join the community and start building
+                {redirectParam
+                  ? "Create an account to finish joining the organization"
+                  : "Join the community and start building"}
               </p>
             </div>
 
@@ -220,7 +178,6 @@ export default function RegisterPage() {
                     }}
                   />
                 </div>
-
                 <div>
                   <label
                     htmlFor="lastName"
@@ -248,7 +205,7 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Email Input */}
+              {/* Email */}
               <div>
                 <label
                   htmlFor="email"
@@ -276,7 +233,7 @@ export default function RegisterPage() {
                 />
               </div>
 
-              {/* Phone Input */}
+              {/* Phone */}
               <div>
                 <label
                   htmlFor="phone"
@@ -303,7 +260,7 @@ export default function RegisterPage() {
                 />
               </div>
 
-              {/* Password Input */}
+              {/* Password */}
               <div>
                 <label
                   htmlFor="password"
@@ -352,7 +309,6 @@ export default function RegisterPage() {
                 />
               </div>
 
-              {/* Submit Button */}
               <Button
                 type="submit"
                 variant="default"
@@ -376,31 +332,52 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Login Link */}
             <div className="text-center space-y-3">
               <Link
-                href="/auth/login"
+                href={
+                  redirectParam
+                    ? `/auth/login?redirect=${encodeURIComponent(redirectParam)}`
+                    : "/auth/login"
+                }
                 className="text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors block"
               >
                 Sign in instead →
               </Link>
 
-              {/* Organization Registration Link */}
-              <div className="pt-2 border-t border-gray-100">
-                <p className="text-xs text-[#1F2937]/50 mb-2">
-                  Building a community?
-                </p>
-                <Link
-                  href="/auth/org/register"
-                  className="text-xs font-semibold text-[#F06543] hover:text-[#D85436] transition-colors"
-                >
-                  Register as an organization →
-                </Link>
-              </div>
+              {!redirectParam && (
+                <div className="pt-2 border-t border-gray-100">
+                  <p className="text-xs text-[#1F2937]/50 mb-2">
+                    Building a community?
+                  </p>
+                  <Link
+                    href="/auth/org/register"
+                    className="text-xs font-semibold text-[#F06543] hover:text-[#D85436] transition-colors"
+                  >
+                    Register as an organization →
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+// ----------------------------------------
+// Page — wraps RegisterForm in Suspense because
+// useSearchParams() requires it in Next.js 13+
+// ----------------------------------------
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner color="success" size="lg" />
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
   );
 }

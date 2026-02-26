@@ -11,6 +11,9 @@ import {
   Pen,
   Users,
   X,
+  Link2,
+  Copy,
+  Check,
 } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
@@ -21,7 +24,6 @@ import clsx from "clsx";
 
 type Tab = "organisation" | "profile" | "team" | "banking";
 
-// ── Shared style tokens ───────────────────────────────────────────────────────
 const inputBase =
   "w-full rounded-lg border px-4 py-2.5 text-sm transition focus:outline-none focus:ring-2";
 const inputActive =
@@ -31,7 +33,6 @@ const inputLocked =
 const labelClass =
   "block text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1.5";
 
-// ── Field ─────────────────────────────────────────────────────────────────────
 function Field({
   id,
   label,
@@ -67,7 +68,6 @@ function Field({
   );
 }
 
-// ── Card section ──────────────────────────────────────────────────────────────
 function Section({
   title,
   subtitle,
@@ -90,9 +90,9 @@ function Section({
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<Tab>("organisation");
+  const [copied, setCopied] = useState(false);
 
   const [orgData, setOrgData] = useState({
     name: "",
@@ -126,7 +126,6 @@ export default function SettingsPage() {
         const { data } = await apiClient.get("/auth/profile");
         const d = data.data;
 
-        console.log(d);
         setProfileData({
           firstName: d.first_name,
           lastName: d.last_name,
@@ -140,7 +139,7 @@ export default function SettingsPage() {
           role: d.organizations[0].role,
           phone: d.organizations[0].phone ?? "",
           description: d.organizations[0].description ?? "",
-          slug: d.organizations[0].slug,
+          slug: d.organizations[0].slug ?? "",
         });
       } catch {
         toast.error("Failed to load settings. Please refresh.");
@@ -149,6 +148,23 @@ export default function SettingsPage() {
       }
     })();
   }, []);
+
+  const inviteLink =
+    orgData.slug
+      ? `${typeof window !== "undefined" ? window.location.origin : ""}/join/${orgData.slug}`
+      : "";
+
+  const handleCopyLink = async () => {
+    if (!inviteLink) return;
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      setCopied(true);
+      toast.success("Invite link copied!");
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      toast.error("Could not copy — please copy manually.");
+    }
+  };
 
   const handleOrgSubmit = async () => {
     setSavingOrg(true);
@@ -206,7 +222,7 @@ export default function SettingsPage() {
   return (
     <div className="font-[Nunito,sans-serif] bg-[#F9FAFB] min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* ── Page header ──────────────────────────────────────────────────── */}
+        {/* Page header */}
         <div className="mb-6">
           <p className="text-xs font-semibold tracking-widest uppercase text-[#0D9488] mb-1">
             Account
@@ -219,7 +235,7 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        {/* ── Tab bar — scrolls horizontally on small screens ──────────────── */}
+        {/* Tab bar */}
         <div className="mb-6 -mx-4 sm:mx-0 px-4 sm:px-0">
           <div className="flex gap-0 overflow-x-auto border-b border-gray-200 scrollbar-none">
             {tabs.map((tab) => (
@@ -241,7 +257,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* ── ORGANISATION tab ─────────────────────────────────────────────── */}
+        {/* ORGANISATION tab */}
         {activeTab === "organisation" && (
           <div className="space-y-4">
             <Section
@@ -312,6 +328,66 @@ export default function SettingsPage() {
               </div>
             </Section>
 
+            {/* Invite Link card */}
+            <Section
+              title="Member Invite Link"
+              subtitle="Share this link so anyone can join your organization"
+            >
+              {inviteLink ? (
+                <div className="space-y-3">
+                  <div className="rounded-lg bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
+                    <p className="text-xs text-[#0D9488] leading-relaxed">
+                      Anyone with this link can join your organization. Share it
+                      on WhatsApp, in emails, or on social media — they'll be
+                      walked through signup automatically.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-[#F9FAFB] px-3 py-2.5">
+                    <Link2 className="w-4 h-4 text-[#9CA3AF] flex-shrink-0" />
+                    <span className="flex-1 text-xs text-[#1F2937] truncate font-mono">
+                      {inviteLink}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCopyLink}
+                      className="flex items-center gap-1.5 text-xs font-bold text-[#0D9488] hover:text-[#0B7A70] transition-colors flex-shrink-0"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" /> Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" /> Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                    onClick={handleCopyLink}
+                  >
+                    {copied ? (
+                      <span className="flex items-center gap-2">
+                        <Check className="w-4 h-4" /> Link Copied!
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Copy className="w-4 h-4" /> Copy Invite Link
+                      </span>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-[#9CA3AF] text-center py-4">
+                  Invite link unavailable. Please refresh the page.
+                </p>
+              )}
+            </Section>
+
             <div className="flex justify-end gap-3">
               {editingOrg && (
                 <Button variant="outline" onClick={() => setEditingOrg(false)}>
@@ -343,10 +419,9 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* ── PROFILE tab ──────────────────────────────────────────────────── */}
+        {/* PROFILE tab */}
         {activeTab === "profile" && (
           <div className="space-y-4">
-            {/* Avatar card */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6 flex items-center gap-4">
               <div className="w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center flex-shrink-0">
                 <span className="text-lg font-extrabold text-[#0D9488]">
@@ -440,7 +515,7 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* ── TEAM tab ─────────────────────────────────────────────────────── */}
+        {/* TEAM tab */}
         {activeTab === "team" && (
           <Section
             title="Team Members"
@@ -469,7 +544,7 @@ export default function SettingsPage() {
           </Section>
         )}
 
-        {/* ── BANKING tab ──────────────────────────────────────────────────── */}
+        {/* BANKING tab */}
         {activeTab === "banking" && (
           <Section
             title="Bank Account"
@@ -499,7 +574,7 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* ── Modals ───────────────────────────────────────────────────────────── */}
+      {/* Modals */}
       <InviteStaffModal
         isOpen={isInviteModalOpen}
         onOpenChange={setIsInviteModalOpen}

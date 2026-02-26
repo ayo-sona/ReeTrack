@@ -158,12 +158,12 @@ const PricingSection = () => {
 
                 {/* Price */}
                 <div className="mb-8 pb-8 border-b border-gray-100">
-                  {typeof plan.price === "string" &&
+                  {/* {typeof plan.price === "string" &&
                   plan.price.includes("talk") ? (
                     <div className="text-3xl font-bold text-[#1F2937]">
                       {plan.price}
                     </div>
-                  ) : (
+                  ) : ( */}
                     <div className="flex items-baseline">
                       <span className="text-5xl font-bold text-[#1F2937]">
                         {`${plan.price === "" ? "Free" : "$"}${plan.price}`}
@@ -172,7 +172,7 @@ const PricingSection = () => {
                         {`${plan.price === "" ? "" : "/month"}`}
                       </span>
                     </div>
-                  )}
+                  {/* )} */}
                 </div>
 
                 {/* Features */}
