@@ -21,10 +21,11 @@ export function GrantAccessModal({
 }: GrantAccessModalProps) {
   const [reason, setReason] = useState("");
 
-  const memberName = `${member.user.first_name} ${member.user.last_name}`.trim();
+  const memberName =
+    `${member.user.first_name} ${member.user.last_name}`.trim();
   const memberEmail = member.user.email;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     onGrant({
       memberId: member.id,
@@ -41,7 +42,10 @@ export function GrantAccessModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
@@ -50,7 +54,9 @@ export function GrantAccessModal({
         >
           {/* Header */}
           <div className="border-b border-gray-100 px-6 py-5 flex-shrink-0">
-            <h2 className="text-lg font-bold text-[#1F2937]">Grant Subscription Access</h2>
+            <h2 className="text-lg font-bold text-[#1F2937]">
+              Grant Subscription Access
+            </h2>
             <p className="text-sm text-[#9CA3AF] mt-0.5">
               Manually extend access to a member
             </p>
@@ -58,7 +64,11 @@ export function GrantAccessModal({
 
           {/* Scrollable body */}
           <div className="overflow-y-auto flex-1">
-            <form onSubmit={handleSubmit} id="grant-form" className="p-6 space-y-4">
+            <form
+              onSubmit={handleSubmit}
+              id="grant-form"
+              className="p-6 space-y-4"
+            >
               {/* Member info */}
               <div className="rounded-lg bg-[#F9FAFB] border border-gray-100 p-4">
                 <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide mb-2">
@@ -76,7 +86,10 @@ export function GrantAccessModal({
                       {currentSubscription.plan.name}
                     </p>
                     <p className="text-xs text-[#9CA3AF] mt-0.5">
-                      Expires {new Date(currentSubscription.expires_at).toLocaleDateString()}
+                      Expires{" "}
+                      {new Date(
+                        currentSubscription.expires_at,
+                      ).toLocaleDateString()}
                     </p>
                   </div>
                 )}
@@ -87,7 +100,8 @@ export function GrantAccessModal({
                 <div className="rounded-lg bg-amber-50 border border-amber-100 px-4 py-3 flex items-start gap-2.5">
                   <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
                   <p className="text-xs text-amber-700 leading-relaxed">
-                    This member already has an active subscription. Granting access may override or conflict with the existing one.
+                    This member already has an active subscription. Granting
+                    access may override or conflict with the existing one.
                   </p>
                 </div>
               )}
@@ -99,7 +113,9 @@ export function GrantAccessModal({
                     Plan
                   </label>
                   <div className="rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-sm text-[#1F2937]">
-                    {currentSubscription.plan.name} — ₦{currentSubscription.plan.price?.toLocaleString()}/{currentSubscription.plan.interval}
+                    {currentSubscription.plan.name} — ₦
+                    {currentSubscription.plan.price?.toLocaleString()}/
+                    {currentSubscription.plan.interval}
                   </div>
                 </div>
               )}
@@ -126,7 +142,12 @@ export function GrantAccessModal({
             <Button type="button" variant="ghost" size="sm" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" form="grant-form" variant="secondary" size="sm">
+            <Button
+              type="submit"
+              form="grant-form"
+              variant="secondary"
+              size="sm"
+            >
               Grant Access
             </Button>
           </div>

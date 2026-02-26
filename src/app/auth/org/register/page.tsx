@@ -11,6 +11,7 @@ import { Mail, User, Building, Phone, Lock, Eye, EyeOff } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import Logo from "@/components/layout/Logo";
+import { deleteCookie } from "cookies-next";
 
 const inputClassNames = {
   input:
@@ -79,7 +80,7 @@ export default function AdminRegisterPage() {
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
@@ -124,7 +125,7 @@ export default function AdminRegisterPage() {
         });
         toast.success("Account created! Setting up your organization...");
       } catch (err: any) {
-        const status = err?.response?.status;
+        const status = err?.response?.data?.statusCode;
         const message = err?.response?.data?.message || "";
 
         if (
@@ -133,7 +134,7 @@ export default function AdminRegisterPage() {
           message.toLowerCase().includes("already")
         ) {
           setError(
-            'This email is already registered. Switch to "I already have an account" above to create your organization.',
+            'This login email is already registered. Switch to "I already have an account" above to create your organization.',
           );
           toast.error("Email already exists");
           setIsLoading(false);
@@ -149,14 +150,38 @@ export default function AdminRegisterPage() {
       }
     }
 
-    // Step 2: Create organization (user is now authenticated)
+    // Step 2: Login with credential
     try {
-      await apiClient.post("/auth/register-organization", {
+      const response = await apiClient.post("/auth/login", {
+        email: formData.email,
+        password: formData.password,
+      });
+      console.log("Logging in");
+    } catch (err: any) {
+      console.error("Login error:", err.response);
+      const { statusCode, message } = err.response.data;
+      if (err.response) setError(message);
+      setError(err.message || "Failed to complete registration");
+      setIsLoading(false);
+      return;
+    }
+
+    // Step 3: Create organization
+    try {
+      const response = await apiClient.post("/auth/register-organization", {
         organizationName: formData.organizationName,
         organizationEmail: formData.organizationEmail,
         email: formData.email,
       });
-      toast.success("Organization created successfully!");
+
+      console.log(response);
+      if (response.data.statusCode === 201) {
+        localStorage.setItem(
+          "newOrganizationId",
+          response.data.data.organization.id,
+        );
+        toast.success("Organization created successfully!");
+      }
     } catch (err: any) {
       const message =
         err?.response?.data?.message ||
@@ -177,7 +202,12 @@ export default function AdminRegisterPage() {
       return;
     }
 
-    // Registration complete — set flag for login page redirect
+    // Delete cookies
+    deleteCookie("access_token");
+    deleteCookie("user_roles");
+    deleteCookie("current_role");
+
+    // Registration complete — set flag so login page redirects to onboarding
     localStorage.setItem("onboarding_pending", "true");
     toast.success("Success! Redirecting to login...");
     

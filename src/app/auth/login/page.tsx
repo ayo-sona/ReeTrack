@@ -100,7 +100,7 @@ function LoginForm() {
     router.replace("/member/dashboard");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setIsRedirecting(true);
@@ -127,14 +127,11 @@ function LoginForm() {
         const roles = getUserRoles(response.data.data);
         await redirectAfterLogin(response.data.data, roles);
       }
-    } catch (err: unknown) {
-      console.error("Login error:", err);
-      const message =
-        err instanceof Error
-          ? err.message
-          : (err as { response?: { data?: { message?: string } } })?.response
-              ?.data?.message;
-      setError(message || "Failed to login. Please try again.");
+    } catch (err: any) {
+      console.error("Login error:", err.response);
+      const { statusCode, message } = err.response.data;
+      if (err.response) setError(message);
+      setError(err.message || "Failed to login. Please try again.");
       setIsRedirecting(false);
     } finally {
       setIsLoading(false);
@@ -189,7 +186,7 @@ function LoginForm() {
           <div className="bg-white rounded-3xl shadow-2xl p-4 sm:p-10 backdrop-blur-sm">
             {isMounting ? (
               <Spinner
-                color="success"
+                color="default"
                 className="w-full flex justify-center items-center"
               />
             ) : (

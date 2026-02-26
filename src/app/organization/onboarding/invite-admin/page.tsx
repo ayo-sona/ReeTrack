@@ -37,12 +37,12 @@ export default function OnboardingInviteAdminPage() {
   const updateEmail = (id: string, value: string) => {
     setEmails((prev) =>
       prev.map((e) =>
-        e.id === id ? { ...e, value, status: "idle", error: undefined } : e
-      )
+        e.id === id ? { ...e, value, status: "idle", error: undefined } : e,
+      ),
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
 
     const validEmails = emails.filter((e) => e.value.trim() !== "");
@@ -53,55 +53,79 @@ export default function OnboardingInviteAdminPage() {
 
     setIsSubmitting(true);
 
-    const results = await Promise.allSettled(
-      validEmails.map((entry) =>
-        apiClient
-          .post("/auth/custom/register-staff", { email: entry.value.trim() })
-          .then(() => ({ id: entry.id, success: true }))
-          .catch((err) => ({
-            id: entry.id,
-            success: false,
-            error: err?.response?.data?.message || "Failed to send invitation",
-          }))
-      )
-    );
+    try {
+      // Send all emails in a single request
+      const response = await apiClient.post("/auth/custom/register-staff", {
+        email: validEmails.map((entry) => entry.value.trim()),
+      });
 
-    const resultMap: Record<string, { success: boolean; error?: string }> = {};
-    results.forEach((result) => {
-      if (result.status === "fulfilled") {
-        resultMap[result.value.id] = {
-          success: result.value.success,
-          error: (result.value as any).error,
-        };
+      console.log(response);
+
+      // Handle the response structure
+      if (response.data.statusCode === 201) {
+        const resultMap: Record<
+          string,
+          { success: boolean; error?: string; userExists?: boolean }
+        > = {};
+
+        // Map results back to email entries
+        response.data.data.results.forEach((result: any) => {
+          const emailEntry = validEmails.find(
+            (entry) => entry.value.trim() === result.email,
+          );
+          if (emailEntry) {
+            resultMap[emailEntry.id] = {
+              success: result.status === "created",
+              userExists: result.userExists,
+              error:
+                result.status !== "created"
+                  ? "Failed to send invitation"
+                  : undefined,
+            };
+          }
+        });
+
+        setEmails((prev) =>
+          prev.map((entry) => {
+            const result = resultMap[entry.id];
+            if (!result) return entry; // wasn't submitted (empty)
+            return {
+              ...entry,
+              status: result.success ? "success" : "error",
+              error: result.error,
+              userExists: result.userExists,
+            };
+          }),
+        );
+
+        const successCount = Object.values(resultMap).filter(
+          (r) => r.success,
+        ).length;
+        const failCount = Object.values(resultMap).filter(
+          (r) => !r.success,
+        ).length;
+
+        if (successCount > 0 && failCount === 0) {
+          toast.success(
+            successCount === 1
+              ? "Staff invitation sent successfully"
+              : `${successCount} staff invitations sent successfully`,
+          );
+        } else if (successCount > 0 && failCount > 0) {
+          toast.warning(
+            `${successCount} sent, ${failCount} failed — check highlighted emails`,
+          );
+        } else {
+          toast.error("All invitations failed — check the highlighted emails");
+        }
       }
-    });
-
-    setEmails((prev) =>
-      prev.map((entry) => {
-        const result = resultMap[entry.id];
-        if (!result) return entry;
-        return {
-          ...entry,
-          status: result.success ? "success" : "error",
-          error: result.error,
-        };
-      })
-    );
-
-    const successCount = Object.values(resultMap).filter((r) => r.success).length;
-    const failCount = Object.values(resultMap).filter((r) => !r.success).length;
-
-    if (successCount > 0 && failCount === 0) {
-      toast.success(
-        successCount === 1
-          ? "Invitation sent!"
-          : `${successCount} invitations sent!`
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message || "Failed to send staff invitations",
       );
+      console.error("Error sending staff invitations:", error);
+    } finally {
       router.push("/organization/onboarding/highlights");
-    } else if (successCount > 0 && failCount > 0) {
-      toast.warning(`${successCount} sent, ${failCount} failed — check highlighted emails`);
-    } else {
-      toast.error("All invitations failed — check the highlighted emails");
     }
 
     setIsSubmitting(false);
@@ -118,7 +142,6 @@ export default function OnboardingInviteAdminPage() {
       style={{ fontFamily: "Nunito, sans-serif" }}
     >
       <div className="w-full max-w-lg">
-
         {/* Step indicator */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -157,16 +180,17 @@ export default function OnboardingInviteAdminPage() {
               Share the load
             </h1>
             <p className="text-sm text-[#1F2937]/70 leading-relaxed">
-              You don't have to run your organization alone. Invite staff members to help manage
-              members, handle check-ins, and keep things running. They'll get their own login
-              with full admin access to your organization.
+              You don't have to run your organization alone. Invite staff
+              members to help manage members, handle check-ins, and keep things
+              running. They'll get their own login with full admin access to
+              your organization.
             </p>
 
             {/* Tip */}
             <div className="mt-5 rounded-xl bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
               <p className="text-xs text-[#0D9488] leading-relaxed">
-                💡 Staff members can do everything you can — great for co-founders or managers.
-                You can invite as many as you need.
+                💡 Staff members can do everything you can — great for
+                co-founders or managers. You can invite as many as you need.
               </p>
             </div>
           </div>
@@ -188,8 +212,8 @@ export default function OnboardingInviteAdminPage() {
                           entry.status === "error"
                             ? "border-red-300 focus:ring-red-200 focus:border-red-400"
                             : entry.status === "success"
-                            ? "border-[#0D9488] bg-[#0D9488]/5 text-[#0D9488]"
-                            : "border-gray-200 focus:ring-[#0D9488]/20 focus:border-[#0D9488]"
+                              ? "border-[#0D9488] bg-[#0D9488]/5 text-[#0D9488]"
+                              : "border-gray-200 focus:ring-[#0D9488]/20 focus:border-[#0D9488]"
                         }`}
                       />
                       {entry.status === "success" && (
@@ -210,7 +234,9 @@ export default function OnboardingInviteAdminPage() {
                     )}
                   </div>
                   {entry.status === "error" && entry.error && (
-                    <p className="text-xs text-red-500 font-semibold pl-1">{entry.error}</p>
+                    <p className="text-xs text-red-500 font-semibold pl-1">
+                      {entry.error}
+                    </p>
                   )}
                 </div>
               ))}
@@ -232,7 +258,9 @@ export default function OnboardingInviteAdminPage() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push("/organization/onboarding/highlights")}
+                onClick={() =>
+                  router.push("/organization/onboarding/highlights")
+                }
                 disabled={isSubmitting}
               >
                 Skip for now
@@ -243,7 +271,9 @@ export default function OnboardingInviteAdminPage() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => router.push("/organization/onboarding/add-member")}
+                  onClick={() =>
+                    router.push("/organization/onboarding/add-member")
+                  }
                   disabled={isSubmitting}
                 >
                   ← Back
@@ -257,8 +287,8 @@ export default function OnboardingInviteAdminPage() {
                   {isSubmitting
                     ? "Sending..."
                     : filledCount > 1
-                    ? `Send ${filledCount} Invitations`
-                    : "Send Invitation"}
+                      ? `Send ${filledCount} Invitations`
+                      : "Send Invitation"}
                 </Button>
               </div>
             </div>
