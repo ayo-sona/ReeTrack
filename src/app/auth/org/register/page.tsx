@@ -11,6 +11,7 @@ import { Mail, User, Building, Phone, Lock, Eye, EyeOff } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import Logo from "@/components/layout/Logo";
+import { deleteCookie } from "cookies-next";
 
 const inputClassNames = {
   input:
@@ -139,11 +140,19 @@ export default function AdminRegisterPage() {
 
     // Step 3: Create organization
     try {
-      await apiClient.post("/auth/register-organization", {
+      const response = await apiClient.post("/auth/register-organization", {
         organizationName: formData.organizationName,
         organizationEmail: formData.organizationEmail,
         email: formData.email,
       });
+
+      console.log(response);
+      if (response.data.statusCode === 201) {
+        localStorage.setItem(
+          "newOrganizationId",
+          response.data.data.organization.id,
+        );
+      }
     } catch (err: any) {
       const message =
         err?.response?.data?.message ||
@@ -151,13 +160,15 @@ export default function AdminRegisterPage() {
       // Account was created but org failed — flip to existing user mode silently
       // so if they retry, register-user is skipped and we go straight to org creation
       setIsExistingUser(true);
-      setError(
-        `Your account was created but we couldn't set up your organization. Please click "Create Organization" again to retry — your account is already ready.`,
-      );
-      toast.error(message);
+      setError(message);
       setIsLoading(false);
       return;
     }
+
+    // Delete cookies
+    deleteCookie("access_token");
+    deleteCookie("user_roles");
+    deleteCookie("current_role");
 
     // Registration complete — set flag so login page redirects to onboarding
     localStorage.setItem("onboarding_pending", "true");

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, ArrowRight, Loader2, Search, LogOut } from "lucide-react";
-import { useToast } from "@/features/notifications/useToast";
 import apiClient from "@/lib/apiClient";
 import { setCookie, deleteCookie } from "cookies-next";
 import { toast } from "sonner";
@@ -40,7 +39,6 @@ function getInitials(name: string) {
 
 export default function OrganizationSelectPage() {
   const router = useRouter();
-  const { addToast } = useToast();
   const queryClient = useQueryClient();
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -52,11 +50,11 @@ export default function OrganizationSelectPage() {
       const stored = localStorage.getItem("userData");
       if (stored) setUserData(JSON.parse(stored));
     } catch {
-      addToast("error", "Error", "Failed to load organizations");
+      toast.error("Failed to load organizations");
     } finally {
       setLoading(false);
     }
-  }, [addToast]);
+  }, []);
 
   const handleSelectOrganization = async (orgId: string, role: string) => {
     setSelectedOrg(orgId);
@@ -76,17 +74,19 @@ export default function OrganizationSelectPage() {
 
         // Check if onboarding is pending — redirect there instead of dashboard
         const onboardingPending = localStorage.getItem("onboarding_pending");
-        if (onboardingPending) {
+        const newOrganizationId = localStorage.getItem("newOrganizationId");
+        if (onboardingPending && newOrganizationId === orgId) {
           localStorage.removeItem("onboarding_pending");
+          localStorage.removeItem("newOrganizationId");
           router.push("/organization/onboarding/bank-account");
           return;
         }
 
         router.push("/organization/dashboard");
-        toast("Organization selected");
+        toast.success("Organization selected");
       }
     } catch {
-      toast("Failed to select organization");
+      toast.error("Failed to select organization");
       setSelectedOrg(null);
     }
   };
@@ -99,7 +99,7 @@ export default function OrganizationSelectPage() {
     localStorage.removeItem("selectedOrganizationId");
     queryClient.clear();
     router.push("/auth/login");
-    toast("Logged out successfully");
+    toast.success("Logged out successfully");
   };
 
   const orgs: OrganizationWithRole[] =
