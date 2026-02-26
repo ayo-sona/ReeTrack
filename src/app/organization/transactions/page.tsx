@@ -7,19 +7,24 @@ import { PaymentFilters } from "../../../components/organization/PaymentFilters"
 import { usePayments, usePaymentStats } from "../../../hooks/usePayments";
 import { mapApiPaymentsToUiPayments } from "../../../utils/paymentMapper";
 
+const PAGE_SIZE = 10;
+
 export default function PaymentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [selectedSource, setSelectedSource] = useState<string>("paystack");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const resetPage = () => setPage(1);
 
   const {
     data: paymentsResponse,
     isLoading,
     error,
     refetch,
-  } = usePayments(1, 10, selectedStatus);
+  } = usePayments(page, PAGE_SIZE, selectedStatus);
 
   const { data: stats } = usePaymentStats();
 
@@ -27,6 +32,10 @@ export default function PaymentsPage() {
     const apiPayments = paymentsResponse?.data || [];
     return mapApiPaymentsToUiPayments(apiPayments);
   }, [paymentsResponse?.data]);
+
+  const meta = paymentsResponse?.meta;
+  const totalPages = meta?.totalPages ?? 1;
+  const totalCount = meta?.total ?? 0;
 
   const filteredPayments = payments.filter((payment) => {
     if (searchTerm) {
@@ -44,12 +53,7 @@ export default function PaymentsPage() {
     if (dateTo && new Date(payment.created_at) > new Date(dateTo + "T23:59:59"))
       return false;
 
-    if (selectedSource === "all") return true;
-    if (selectedStatus === "all") return true;
-    if (selectedSource === "paystack" && payment.provider !== "paystack")
-      return false;
-    if (selectedSource === "kora" && payment.provider !== "kora") return false;
-    if (selectedSource === "other" && payment.provider !== "other")
+    if (selectedSource !== "all" && payment.provider !== selectedSource)
       return false;
 
     return true;
@@ -154,19 +158,19 @@ export default function PaymentsPage() {
       {/* Filters */}
       <PaymentFilters
         searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
+        setSearchTerm={(v) => { setSearchTerm(v); resetPage(); }}
         dateFrom={dateFrom}
-        setDateFrom={setDateFrom}
+        setDateFrom={(v) => { setDateFrom(v); resetPage(); }}
         dateTo={dateTo}
-        setDateTo={setDateTo}
+        setDateTo={(v) => { setDateTo(v); resetPage(); }}
         selectedSource={selectedSource}
-        setSelectedSource={setSelectedSource}
+        setSelectedSource={(v) => { setSelectedSource(v); resetPage(); }}
         selectedStatus={selectedStatus}
-        setSelectedStatus={setSelectedStatus}
+        setSelectedStatus={(v) => { setSelectedStatus(v); resetPage(); }}
         filteredCount={filteredPayments.length}
       />
 
-      {/* Payments Table */}
+      {/* Payments Table — pagination lives inside the table component */}
       <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
         {filteredPayments.length === 0 ? (
           <div className="p-12 text-center">
@@ -177,7 +181,14 @@ export default function PaymentsPage() {
             </p>
           </div>
         ) : (
-          <PaymentsTable payments={filteredPayments} />
+          <PaymentsTable
+            payments={filteredPayments}
+            page={page}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
         )}
       </div>
     </div>
