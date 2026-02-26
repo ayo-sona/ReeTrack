@@ -7,7 +7,7 @@ import { PaymentFilters } from "../../../components/organization/PaymentFilters"
 import { usePayments, usePaymentStats } from "../../../hooks/usePayments";
 import { mapApiPaymentsToUiPayments } from "../../../utils/paymentMapper";
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 10;
 
 function TableSkeleton() {
   return (
