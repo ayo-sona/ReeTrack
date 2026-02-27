@@ -72,7 +72,7 @@ export class NotificationsService {
     const context = {
       ...data,
       registrationUrl: `${baseUrl}/auth/register`,
-      joinUrl: data.joinToken ? `${baseUrl}/auth/org/${data.joinToken}` : null,
+      joinUrl: data.joinToken ? `${baseUrl}/join/${data.joinToken}` : null,
     };
 
     await this.emailService.sendEmail({
