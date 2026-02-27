@@ -142,8 +142,13 @@ export default function JoinPage() {
           await joinOrganization(slug, name);
           return;
         }
-      } catch (error) {
-        setError("Organization not found.");
+      } catch (err: any) {
+        const { statusCode, message } = err.response.data;
+        if (err.response) {
+          setError(message);
+        } else {
+          setError(err.message || "Failed to join. Please try later.");
+        }
         return;
       } finally {
         setFetchLoading(false);
@@ -173,21 +178,21 @@ export default function JoinPage() {
       router.replace("/member/communities");
     } catch (err: any) {
       console.log(err.response?.data?.data?.message);
-      const message = String(
-        err.response?.data?.data?.message ?? "Failed to join organization.",
-      );
+      // const message = String(
+      //   err.response?.data?.data?.message ?? "Failed to join organization.",
+      // );
 
-      if (message.toLowerCase().includes("already")) {
-        if (typeof window !== "undefined") {
-          localStorage.removeItem(PENDING_JOIN_SLUG_KEY);
-        }
-        router.replace("/member");
-        return;
-      }
-
-      setError(message);
+      // if (message.toLowerCase().includes("already")) {
+      //   if (typeof window !== "undefined") {
+      //     localStorage.removeItem(PENDING_JOIN_SLUG_KEY);
+      //   }
+      //   router.replace("/member");
+      //   return;
+      // }
+      // setError(message);
       setJoining(false);
       setFetchLoading(false);
+      throw err;
     }
   };
 
@@ -245,7 +250,7 @@ export default function JoinPage() {
             </div>
             <div className="space-y-1.5">
               <h2 className="text-xl font-extrabold text-[#1F2937]">
-                Invalid Invite Link
+                Oops, an error occured!
               </h2>
               <p className="text-sm text-[#9CA3AF]">{error}</p>
             </div>
