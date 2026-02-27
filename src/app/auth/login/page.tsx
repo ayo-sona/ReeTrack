@@ -12,12 +12,14 @@ import { Button } from "@/components/ui/button";
 import { Input, Spinner } from "@heroui/react";
 import Logo from "@/components/layout/Logo";
 import { PENDING_JOIN_SLUG_KEY } from "@/lib/joinConstants";
+import { useQueryClient } from "@tanstack/react-query";
 
 // ----------------------------------------
 // Inner component — uses useSearchParams
 // ----------------------------------------
 
 function LoginForm() {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -113,6 +115,9 @@ function LoginForm() {
       });
 
       if (response.data.statusCode === 200) {
+        await queryClient.invalidateQueries({
+          queryKey: ["member"],
+        });
         setCookie("access_token", response.data.data.access_token);
         setCookie(
           "user_roles",
@@ -130,8 +135,11 @@ function LoginForm() {
     } catch (err: any) {
       console.error("Login error:", err.response);
       const { statusCode, message } = err.response.data;
-      if (err.response) setError(message);
-      setError(err.message || "Failed to login. Please try again.");
+      if (err.response) {
+        setError(message);
+      } else {
+        setError(err.message || "Failed to login. Please try again.");
+      }
       setIsRedirecting(false);
     } finally {
       setIsLoading(false);
