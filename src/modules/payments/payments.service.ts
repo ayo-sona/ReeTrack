@@ -662,7 +662,7 @@ export class PaymentsService {
 
     return {
       message: 'Member payments retrieved successfully',
-      ...paginate(payments, total, page, limit),
+      data: { ...paginate(payments, total, page, limit) },
     };
   }
 

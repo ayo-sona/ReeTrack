@@ -14,7 +14,7 @@ import { User } from 'src/database/entities/user.entity';
 import { CheckInDto } from './members.controller';
 import { PlanLimitService } from '../plans/plans-limit.service';
 import { Organization } from 'src/database/entities';
-// import
+import { PaginationDto, paginate } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class MembersService {
@@ -34,7 +34,10 @@ export class MembersService {
     private planLimitService: PlanLimitService,
   ) {}
 
-  async findAll(organizationId: string, search?: string): Promise<Member[]> {
+  async findAll(organizationId: string, paginationDto: PaginationDto) {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
     const queryBuilder = this.memberRepository
       .createQueryBuilder('member')
       .leftJoinAndSelect('member.user', 'user')
@@ -45,20 +48,26 @@ export class MembersService {
         organizationId,
       });
 
-    if (search) {
-      queryBuilder.andWhere(
-        new Brackets((qb) => {
-          qb.where('member.emergency_contact_name ILIKE :search', {
-            search: `%${search}%`,
-          })
-            .orWhere('user.email ILIKE :search', { search: `%${search}%` })
-            .orWhere('user.first_name ILIKE :search', { search: `%${search}%` })
-            .orWhere('user.last_name ILIKE :search', { search: `%${search}%` });
-        }),
-      );
-    }
+    // if (search) {
+    //   queryBuilder.andWhere(
+    //     new Brackets((qb) => {
+    //       qb.where('member.emergency_contact_name ILIKE :search', {
+    //         search: `%${search}%`,
+    //       })
+    //         .orWhere('user.email ILIKE :search', { search: `%${search}%` })
+    //         .orWhere('user.first_name ILIKE :search', { search: `%${search}%` })
+    //         .orWhere('user.last_name ILIKE :search', { search: `%${search}%` });
+    //     }),
+    //   );
+    // }
 
-    return queryBuilder.getMany();
+    queryBuilder.skip(skip).take(limit);
+    const memberData = await queryBuilder.getMany();
+
+    return {
+      message: 'Members retrieved successfully',
+      data: { ...paginate(memberData, memberData.length, page, limit) },
+    };
   }
 
   async findOne(userId: string): Promise<User> {

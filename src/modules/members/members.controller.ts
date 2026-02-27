@@ -32,6 +32,7 @@ import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { OrgRole } from 'src/common/enums/enums';
 import { Throttle } from '@nestjs/throttler';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 class SearchDto {
   @ApiPropertyOptional()
@@ -81,9 +82,9 @@ export class MembersController {
   @Get()
   findAll(
     @CurrentOrganization() organizationId: string,
-    @Query() searchDto: SearchDto,
+    @Query() paginationDto: PaginationDto,
   ) {
-    return this.membersService.findAll(organizationId, searchDto.search);
+    return this.membersService.findAll(organizationId, paginationDto);
   }
 
   @ApiBearerAuth('JWT-auth')
