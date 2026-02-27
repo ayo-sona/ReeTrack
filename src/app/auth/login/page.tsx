@@ -69,7 +69,7 @@ function LoginForm() {
 
   const redirectAfterLogin = async (
     data: any,
-    roles: ReturnType<typeof getUserRoles>
+    roles: ReturnType<typeof getUserRoles>,
   ) => {
     // If there's a redirect param (e.g. /join/life-fitness), always go there first
     if (redirectParam) {
@@ -120,7 +120,7 @@ function LoginForm() {
             ? response.data.data.organizations
                 .map((org: { role: string }) => org.role)
                 .join(",")
-            : ""
+            : "",
         );
         localStorage.setItem("userData", JSON.stringify(response.data.data));
 
@@ -155,28 +155,68 @@ function LoginForm() {
       {/* Scattered Avatar Illustrations */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[5%] left-[40%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/relaxing_hammock.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/relaxing_hammock.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute bottom-[35%] right-[25%] w-26 h-26 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/eating_together.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/eating_together.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute top-[3%] right-[35%] w-20 h-20 sm:w-24 sm:h-24 opacity-85">
-          <Image src="/undraw/hot_air_balloon.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/hot_air_balloon.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute top-[30%] right-[20%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/skateboarding.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/skateboarding.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute top-[44%] left-[27%] w-24 h-24 opacity-90">
-          <Image src="/undraw/fitness.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/fitness.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute top-[25%] left-[22%] w-22 h-22 sm:w-28 sm:h-28 opacity-85">
-          <Image src="/undraw/floating_balloon.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/floating_balloon.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute bottom-[10%] left-[25%] w-20 h-20 sm:w-28 sm:h-28 opacity-90">
-          <Image src="/undraw/playing_with_dog.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/playing_with_dog.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute bottom-[10%] right-[24%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/bike_driving.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/bike_driving.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
       </div>
 
@@ -338,11 +378,13 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <Spinner color="success" size="lg" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Spinner color="success" size="lg" />
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
   );
