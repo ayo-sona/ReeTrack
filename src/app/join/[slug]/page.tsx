@@ -84,6 +84,12 @@ export default function JoinPage() {
     const init = async () => {
       try {
         const res = await apiClient.get(`/organizations/${slug}`);
+        if( res.data.statusCode !== 200) {
+          setError("Organization not found.");
+          setFetchLoading(false);
+          return;
+
+        }
         const name = res.data?.data?.name ?? res.data?.name;
         if (!name) {
           setError("Organization not found.");
@@ -98,7 +104,8 @@ export default function JoinPage() {
       }
 
       if (typeof window !== "undefined") {
-        localStorage.setItem(PENDING_JOIN_SLUG_KEY, slug);
+
+        localStorage.setItem(PENDING_JOIN_SLUG_KEY, slug,);
       }
 
       const token = getCookie("access_token");
@@ -138,8 +145,8 @@ export default function JoinPage() {
         if (typeof window !== "undefined") {
           localStorage.removeItem(PENDING_JOIN_SLUG_KEY);
         }
-        toast.success(`Welcome back to ${organizationName}!`);
-        router.replace("/member/communities");
+        // toast.success(`Welcome back to ${organizationName}!`);
+        router.replace("/member/dashboard");
         return;
       }
 
