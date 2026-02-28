@@ -31,7 +31,7 @@ const FeaturesSection = () => {
       id: "payments",
       title: "Borderless Payments",
       description:
-        "Geography doesn't limit your reach anymore. Reetrack Pay opens the door to worldwide transactions—credit cards, direct bank transfers, cryptocurrency, and local payment methods all in one platform. Your members choose their preferred way to pay, you receive funds without friction.",
+        "Accept payments seamlessly from your members without the hassle. ReeTrack Pay makes it easy to collect membership fees, subscriptions, and dues — all in one place. Your members pay with ease, you receive funds without friction.",
       pic: "payment",
       accentColor: "#F06543",
       Icon: CheckCircle,
