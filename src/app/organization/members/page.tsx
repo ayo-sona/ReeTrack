@@ -9,6 +9,8 @@ import { Member } from "../../../types/organization";
 import { CreateMemberModal } from "../../../components/organization/CreateMemberModal";
 import { Button } from "@/components/ui/button";
 
+const PAGE_SIZE = 6;
+
 export default function MembersPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -18,8 +20,9 @@ export default function MembersPage() {
     plan: "all",
     status: "all" as "all" | "active" | "inactive",
   });
+  const [page, setPage] = useState(1);
 
-  const { data: membersData, isLoading, error } = useMembers(filters.search);
+  const { data: membersData, isLoading, error } = useMembers(page, PAGE_SIZE);
 
   const members = useMemo(() => {
     if (!membersData) return [];
@@ -29,6 +32,21 @@ export default function MembersPage() {
 
   const filteredMembers = useMemo(() => {
     return members.filter((member: Member) => {
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase();
+        const email = member.user?.email?.toLowerCase() || "";
+        const firstName = member.user?.first_name?.toLowerCase() || "";
+        const lastName = member.user?.last_name?.toLowerCase() || "";
+
+        if (
+          !email.includes(searchTerm) &&
+          !firstName.includes(searchTerm) &&
+          !lastName.includes(searchTerm)
+        ) {
+          return false;
+        }
+      }
+
       if (filters.dateFrom) {
         const joinedDate = new Date(member.created_at);
         const fromDate = new Date(filters.dateFrom);
@@ -41,8 +59,10 @@ export default function MembersPage() {
       }
       if (filters.status !== "all") {
         const memberStatus = member.user?.status;
-        if (filters.status === "active" && memberStatus !== "active") return false;
-        if (filters.status === "inactive" && memberStatus !== "inactive") return false;
+        if (filters.status === "active" && memberStatus !== "active")
+          return false;
+        if (filters.status === "inactive" && memberStatus !== "inactive")
+          return false;
       }
       return true;
     });
@@ -58,8 +78,12 @@ export default function MembersPage() {
         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
           <AlertCircle className="h-8 w-8 text-red-500" />
         </div>
-        <h2 className="text-base font-bold text-[#1F2937] mb-1">Failed to load members</h2>
-        <p className="text-sm text-[#9CA3AF] mb-5">Something went wrong. Please try again.</p>
+        <h2 className="text-base font-bold text-[#1F2937] mb-1">
+          Failed to load members
+        </h2>
+        <p className="text-sm text-[#9CA3AF] mb-5">
+          Something went wrong. Please try again.
+        </p>
         <Button
           type="button"
           variant="secondary"

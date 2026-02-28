@@ -43,12 +43,14 @@ interface TransformedMember {
 }
 
 const now = Date.now();
+const PAGE_SIZE = 6;
 
 export default function PingsPage() {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [showSendModal, setShowSendModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [page, setPage] = useState(1);
 
   const {
     data: rawMembers = [],
@@ -56,7 +58,7 @@ export default function PingsPage() {
     error: membersError,
   } = useQuery({
     queryKey: ["members"],
-    queryFn: () => membersApi.getAll(),
+    queryFn: () => membersApi.getAll(page, PAGE_SIZE),
   });
 
   // const { data: sentPings = [], isLoading: isLoadingPings } =

@@ -19,11 +19,11 @@ export const getProfile = async () => {
  * Get all members (with optional search)
  * GET /api/v1/members?search=...
  */
-export const getMembers = async (search?: string) => {
+export const getMembers = async (page: number = 1, limit: number = 10) => {
   const { data } = await apiClient.get("/members", {
-    params: { search },
+    params: { page, limit },
   });
-  return data;
+  return data.data;
 };
 
 /**
@@ -156,7 +156,7 @@ export const getPayments = async (page: number = 1, limit: number = 10) => {
   const { data } = await apiClient.get("/payments/member", {
     params: { page, limit },
   });
-  return data;
+  return data.data;
 };
 
 /**
