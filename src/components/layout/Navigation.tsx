@@ -6,12 +6,14 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import Logo from "./Logo"
+import Logo from "./Logo";
 
 const navItems = [
-  { label: "Features", href: "/features" },
+  { label: "About", href: "/about" },
+  { label: "How it Works", href: "/#how-it-works" },
   { label: "Pricing", href: "/pricing" },
-  { label: "About", href: "#about" },
+  { label: "FAQ", href: "/#faq" },
+  { label: "Contact", href: "/contact" },
 ];
 
 const ClientOnlyNavigation = () => {
@@ -75,7 +77,8 @@ const ClientOnlyNavigation = () => {
       >
         <div className="max-w-6xl mx-auto">
           <div className="transition-all duration-500 rounded-full" style={navStyle()}>
-            <div className="w-full px-8 py-3 flex items-center justify-between gap-8">
+            <div className="w-full px-8 py-3 flex items-center justify-between gap-6">
+              {/* Logo */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -87,9 +90,10 @@ const ClientOnlyNavigation = () => {
                 </Link>
               </motion.div>
 
+              {/* Nav items */}
               <div
                 ref={navRef}
-                className="relative flex items-center gap-2 px-3 py-2 rounded-full flex-1 justify-center max-w-md"
+                className="relative flex items-center gap-1 px-3 py-2 rounded-full flex-1 justify-center"
               >
                 <motion.div
                   className="absolute top-2 bottom-2 rounded-full bg-white shadow-lg shadow-[#0D9488]/10 border border-gray-100"
@@ -102,12 +106,14 @@ const ClientOnlyNavigation = () => {
                     href={item.href}
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 + idx * 0.1, duration: 0.5 }}
+                    transition={{ delay: 0.3 + idx * 0.08, duration: 0.5 }}
                     onClick={() => setActiveTab(item.label)}
                     onMouseEnter={() => setHoveredTab(item.label)}
                     onMouseLeave={() => setHoveredTab(null)}
-                    className={`relative z-10 px-4 py-2 text-[14px] font-semibold tracking-tight transition-colors duration-200 whitespace-nowrap ${
-                      activeTab === item.label ? "text-[#1F2937]" : "text-[#9CA3AF] hover:text-[#1F2937]"
+                    className={`relative z-10 px-3 py-2 text-[13px] font-semibold tracking-tight transition-colors duration-200 whitespace-nowrap ${
+                      activeTab === item.label
+                        ? "text-[#1F2937]"
+                        : "text-[#9CA3AF] hover:text-[#1F2937]"
                     }`}
                   >
                     {item.label}
@@ -115,6 +121,7 @@ const ClientOnlyNavigation = () => {
                 ))}
               </div>
 
+              {/* CTA buttons */}
               <div className="flex items-center gap-3 shrink-0">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -204,19 +211,29 @@ const ClientOnlyNavigation = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="h-full flex flex-col justify-center px-8 py-16">
-                <nav className="space-y-2 mt-20 mb-auto">
+                <nav className="space-y-1 mt-20 mb-auto">
                   {navItems.map((item, idx) => (
                     <motion.div
                       key={item.label}
                       initial={{ opacity: 0, x: -50 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1 + idx * 0.1, duration: 0.5, type: "spring", stiffness: 100 }}
+                      transition={{
+                        delay: 0.1 + idx * 0.08,
+                        duration: 0.5,
+                        type: "spring",
+                        stiffness: 100,
+                      }}
                     >
                       <Link
                         href={item.href}
-                        onClick={() => { setActiveTab(item.label); setIsMobileMenuOpen(false); }}
-                        className={`block dark:text-white text-left py-4 px-6 text-3xl font-bold transition-all rounded-2xl ${
-                          activeTab === item.label ? "text-[#0D9488] bg-gray-300" : "text-[#1F2937]/70"
+                        onClick={() => {
+                          setActiveTab(item.label);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`block text-left py-3.5 px-6 text-2xl font-bold transition-all rounded-2xl ${
+                          activeTab === item.label
+                            ? "text-[#0D9488] bg-[#0D9488]/8"
+                            : "text-[#1F2937]/70 hover:text-[#1F2937] hover:bg-gray-100"
                         }`}
                       >
                         {item.label}
@@ -228,15 +245,20 @@ const ClientOnlyNavigation = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4, duration: 0.5 }}
-                  className="space-y-4"
+                  transition={{ delay: 0.5, duration: 0.5 }}
+                  className="space-y-3"
                 >
                   <Button variant="outline" size="lg" asChild className="w-full">
                     <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
                       Sign In
                     </Link>
                   </Button>
-                  <Button variant="default" size="lg" asChild className="w-full shadow-2xl shadow-[#F06543]/20">
+                  <Button
+                    variant="default"
+                    size="lg"
+                    asChild
+                    className="w-full shadow-2xl shadow-[#F06543]/20"
+                  >
                     <Link href="/auth/register" onClick={() => setIsMobileMenuOpen(false)}>
                       Get Started
                     </Link>
@@ -246,10 +268,24 @@ const ClientOnlyNavigation = () => {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6, duration: 0.5 }}
-                  className="mt-auto pt-12"
+                  transition={{ delay: 0.7, duration: 0.5 }}
+                  className="mt-auto pt-12 flex items-center justify-between"
                 >
-                  <p className="text-[#1F2937]/50 text-sm">© {new Date().getFullYear()} ReeTrack.</p>
+                  <p className="text-[#1F2937]/40 text-sm">© {new Date().getFullYear()} ReeTrack.</p>
+                  <div className="flex items-center gap-4">
+                    <a
+                      href="/terms"
+                      className="text-xs text-[#1F2937]/40 hover:text-[#1F2937] transition-colors"
+                    >
+                      Terms
+                    </a>
+                    <a
+                      href="/privacy"
+                      className="text-xs text-[#1F2937]/40 hover:text-[#1F2937] transition-colors"
+                    >
+                      Privacy
+                    </a>
+                  </div>
                 </motion.div>
               </div>
             </motion.div>

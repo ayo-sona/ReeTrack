@@ -62,7 +62,7 @@ export default function MemberDashboard() {
         </div>
 
         {/* Wallet Card - 🔜 Coming Soon */}
-        <div className="bg-gradient-to-br from-[#0D9488] to-[#0B7A70] rounded-xl p-8 text-white shadow-lg border-2 border-white/20">
+        {/* <div className="bg-gradient-to-br from-[#0D9488] to-[#0B7A70] rounded-xl p-8 text-white shadow-lg border-2 border-white/20">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white/80 text-sm font-semibold">
@@ -79,7 +79,7 @@ export default function MemberDashboard() {
               <Wallet className="w-8 h-8" />
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Quick Stats - 2 Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
