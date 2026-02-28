@@ -109,6 +109,10 @@ export default function SettingsPage() {
     email: "",
     phone: "",
   });
+  const [bankAccount, setBankAccount] = useState({
+    bank: "",
+    account_number: "",
+  });
 
   const [loading, setLoading] = useState(true);
   const [savingOrg, setSavingOrg] = useState(false);
@@ -140,6 +144,10 @@ export default function SettingsPage() {
           phone: d.organizations[0].phone ?? "",
           description: d.organizations[0].description ?? "",
           slug: d.organizations[0].slug ?? "",
+        });
+        setBankAccount({
+          bank: d.organizations[0].bank ?? "",
+          account_number: d.organizations[0].account_number ?? "",
         });
       } catch {
         toast.error("Failed to load settings. Please refresh.");
@@ -550,26 +558,61 @@ export default function SettingsPage() {
             title="Bank Account"
             subtitle="Receive payouts from member subscriptions"
           >
-            <div className="py-8 flex flex-col items-center text-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center">
-                <Landmark className="w-6 h-6 text-[#0D9488]" />
+            {bankAccount.account_number ? (
+              <div className="space-y-4">
+                <div className="rounded-lg bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
+                  <p className="text-xs text-[#0D9488] leading-relaxed">
+                    Payouts from member subscriptions will be sent to this
+                    account. Contact support if you need to change your bank
+                    details.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field
+                    id="bank-name"
+                    label="Bank"
+                    value={bankAccount.bank}
+                    disabled
+                  />
+                  <Field
+                    id="account-number"
+                    label="Account Number"
+                    value={bankAccount.account_number}
+                    disabled
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setIsAddSubaccountModalOpen(true)}
+                  >
+                    <Pen className="h-4 w-4" /> Update Bank Account
+                  </Button>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-bold text-[#1F2937]">
-                  No bank account added
-                </p>
-                <p className="text-xs text-[#9CA3AF] mt-1 max-w-xs leading-relaxed">
-                  Add your organisation&apos;s bank account to enable direct
-                  payouts when members subscribe.
-                </p>
+            ) : (
+              <div className="py-8 flex flex-col items-center text-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center">
+                  <Landmark className="w-6 h-6 text-[#0D9488]" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-[#1F2937]">
+                    No bank account added
+                  </p>
+                  <p className="text-xs text-[#9CA3AF] mt-1 max-w-xs leading-relaxed">
+                    Add your organisation&apos;s bank account to enable direct
+                    payouts when members subscribe.
+                  </p>
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => setIsAddSubaccountModalOpen(true)}
+                >
+                  <Landmark className="h-4 w-4" /> Add Bank Account
+                </Button>
               </div>
-              <Button
-                variant="secondary"
-                onClick={() => setIsAddSubaccountModalOpen(true)}
-              >
-                <Landmark className="h-4 w-4" /> Add Bank Account
-              </Button>
-            </div>
+            )}
           </Section>
         )}
       </div>
