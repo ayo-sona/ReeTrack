@@ -19,9 +19,13 @@ export const getProfile = async () => {
  * Get all members (with optional search)
  * GET /api/v1/members?search=...
  */
-export const getMembers = async (page: number = 1, limit: number = 10) => {
+export const getMembers = async (
+  page: number = 1,
+  limit: number = 10,
+  status?: string,
+) => {
   const { data } = await apiClient.get("/members", {
-    params: { page, limit },
+    params: { page, limit, status },
   });
   return data.data;
 };

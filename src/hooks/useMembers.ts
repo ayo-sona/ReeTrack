@@ -2,10 +2,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { membersApi, UpdateMemberDto } from "../lib/organizationAPI/membersApi";
 
 // Get all members
-export const useMembers = (page: number = 1, limit: number = 10) => {
+export const useMembers = (
+  page: number = 1,
+  limit: number = 10,
+  status?: string,
+) => {
   return useQuery({
     queryKey: ["members", page, limit],
-    queryFn: () => membersApi.getAll(page, limit),
+    queryFn: () => membersApi.getAll(page, limit, status),
     retry: false,
     placeholderData: (previousData) => previousData, // ⭐ Keep previous data while loading new data
   });
