@@ -25,7 +25,10 @@ import clsx from "clsx";
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 function CheckInSkeleton() {
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto" style={{ fontFamily: "Nunito, sans-serif" }}>
+    <div
+      className="p-6 space-y-6 max-w-7xl mx-auto"
+      style={{ fontFamily: "Nunito, sans-serif" }}
+    >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-2">
           <div className="h-6 w-48 bg-gray-100 rounded-lg animate-pulse" />
@@ -35,7 +38,10 @@ function CheckInSkeleton() {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[1, 2].map((i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
+          <div
+            key={i}
+            className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3"
+          >
             <div className="flex items-center justify-between">
               <div className="h-3 w-28 bg-gray-100 rounded animate-pulse" />
               <div className="w-8 h-8 bg-gray-100 rounded-lg animate-pulse" />
@@ -52,7 +58,10 @@ function CheckInSkeleton() {
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
           <div className="h-5 w-36 bg-gray-100 rounded-lg animate-pulse" />
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-[#F9FAFB] border border-gray-100 rounded-lg p-3 space-y-2.5">
+            <div
+              key={i}
+              className="bg-[#F9FAFB] border border-gray-100 rounded-lg p-3 space-y-2.5"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-gray-100 animate-pulse flex-shrink-0" />
                 <div className="flex-1 space-y-1.5">
@@ -71,13 +80,17 @@ function CheckInSkeleton() {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function OrganizationCheckInPage() {
+  const PAGE_SIZE = 6;
+  const [page, setPage] = useState(1);
   const [activeTab, setActiveTab] = useState<"scan" | "stats">("scan");
   const [scanMode, setScanMode] = useState<"qr" | "manual" | "">("");
   const [manualCode, setManualCode] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [recentSearchQuery, setRecentSearchQuery] = useState("");
-  const [timeFilter, setTimeFilter] = useState<"today" | "week" | "month">("month");
-  const { data: members, isLoading } = useMembers(searchQuery);
+  const [timeFilter, setTimeFilter] = useState<"today" | "week" | "month">(
+    "month",
+  );
+  const { data: members, isLoading } = useMembers(page, PAGE_SIZE);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [currentMember, setCurrentMember] = useState("");
@@ -95,7 +108,8 @@ export default function OrganizationCheckInPage() {
         ?.slice()
         .sort(
           (a, b) =>
-            new Date(b?.checked_in_at).getTime() - new Date(a?.checked_in_at).getTime(),
+            new Date(b?.checked_in_at).getTime() -
+            new Date(a?.checked_in_at).getTime(),
         ),
     [members],
   );
@@ -163,8 +177,12 @@ export default function OrganizationCheckInPage() {
         <div className="w-16 h-16 bg-[#0D9488]/10 rounded-full flex items-center justify-center mb-4">
           <Users className="w-8 h-8 text-[#0D9488]" />
         </div>
-        <p className="text-base font-bold text-[#1F2937] mb-1">No members found</p>
-        <p className="text-sm text-[#9CA3AF]">Add members to start tracking check-ins</p>
+        <p className="text-base font-bold text-[#1F2937] mb-1">
+          No members found
+        </p>
+        <p className="text-sm text-[#9CA3AF]">
+          Add members to start tracking check-ins
+        </p>
       </div>
     );
   }
@@ -172,7 +190,9 @@ export default function OrganizationCheckInPage() {
   const tabBtnClass = (active: boolean) =>
     clsx(
       "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all",
-      active ? "bg-white text-[#1F2937] shadow-sm" : "text-[#9CA3AF] hover:text-[#1F2937]",
+      active
+        ? "bg-white text-[#1F2937] shadow-sm"
+        : "text-[#9CA3AF] hover:text-[#1F2937]",
     );
 
   return (
@@ -190,11 +210,17 @@ export default function OrganizationCheckInPage() {
         </div>
 
         <div className="inline-flex items-center bg-[#F9FAFB] border border-gray-100 rounded-lg p-1 self-start sm:self-auto">
-          <button onClick={() => setActiveTab("scan")} className={tabBtnClass(activeTab === "scan")}>
+          <button
+            onClick={() => setActiveTab("scan")}
+            className={tabBtnClass(activeTab === "scan")}
+          >
             <Scan className="w-4 h-4" />
             Check-In
           </button>
-          <button onClick={() => setActiveTab("stats")} className={tabBtnClass(activeTab === "stats")}>
+          <button
+            onClick={() => setActiveTab("stats")}
+            className={tabBtnClass(activeTab === "stats")}
+          >
             <TrendingUp className="w-4 h-4" />
             Statistics
           </button>
@@ -212,7 +238,9 @@ export default function OrganizationCheckInPage() {
               <Calendar className="w-4 h-4 text-[#0D9488]" />
             </div>
           </div>
-          <p className="text-3xl font-extrabold text-[#1F2937]">{todayCheckIns}</p>
+          <p className="text-3xl font-extrabold text-[#1F2937]">
+            {todayCheckIns}
+          </p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
@@ -224,7 +252,9 @@ export default function OrganizationCheckInPage() {
               <Users className="w-4 h-4 text-[#0D9488]" />
             </div>
           </div>
-          <p className="text-3xl font-extrabold text-[#1F2937]">{totalMembers}</p>
+          <p className="text-3xl font-extrabold text-[#1F2937]">
+            {totalMembers}
+          </p>
         </div>
       </div>
 
@@ -233,7 +263,9 @@ export default function OrganizationCheckInPage() {
           {/* Scan section */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-5">
-              <h2 className="text-base font-bold text-[#1F2937]">Select Check-In Method</h2>
+              <h2 className="text-base font-bold text-[#1F2937]">
+                Select Check-In Method
+              </h2>
 
               <Button
                 type="button"
@@ -264,7 +296,9 @@ export default function OrganizationCheckInPage() {
                       type="text"
                       value={manualCode}
                       onChange={(e) => setManualCode(e.target.value)}
-                      onKeyUp={(e) => e.key === "Enter" && handleManualCheckIn()}
+                      onKeyUp={(e) =>
+                        e.key === "Enter" && handleManualCheckIn()
+                      }
                       placeholder="ABC123XYZ"
                       maxLength={9}
                       className="w-full text-center rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all tracking-widest font-bold"
@@ -319,11 +353,12 @@ export default function OrganizationCheckInPage() {
             {filteredRecentCheckIns && filteredRecentCheckIns.length > 0 ? (
               <div className="space-y-3 max-h-[520px] overflow-y-auto">
                 {filteredRecentCheckIns.map((checkIn) => {
-                  const initials = `${checkIn.user.first_name} ${checkIn.user.last_name}`
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase();
+                  const initials =
+                    `${checkIn.user.first_name} ${checkIn.user.last_name}`
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase();
                   return (
                     <div
                       key={checkIn.id}
@@ -432,13 +467,17 @@ export default function OrganizationCheckInPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {filteredStats?.map((stat, index) => {
-                    const initials = `${stat.user.first_name} ${stat.user.last_name}`
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase();
+                    const initials =
+                      `${stat.user.first_name} ${stat.user.last_name}`
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase();
                     return (
-                      <tr key={stat.id} className="hover:bg-[#F9FAFB] transition-colors">
+                      <tr
+                        key={stat.id}
+                        className="hover:bg-[#F9FAFB] transition-colors"
+                      >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-full bg-[#0D9488]/10 flex items-center justify-center text-[#0D9488] text-xs font-bold flex-shrink-0">
@@ -454,7 +493,9 @@ export default function OrganizationCheckInPage() {
                             <span className="text-xl font-extrabold text-[#1F2937]">
                               {stat.check_in_count}
                             </span>
-                            {index === 0 && <Award className="w-4 h-4 text-amber-400" />}
+                            {index === 0 && (
+                              <Award className="w-4 h-4 text-amber-400" />
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -472,13 +513,17 @@ export default function OrganizationCheckInPage() {
             {/* Mobile cards */}
             <div className="md:hidden divide-y divide-gray-50">
               {filteredStats?.map((stat, index) => {
-                const initials = `${stat.user.first_name} ${stat.user.last_name}`
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase();
+                const initials =
+                  `${stat.user.first_name} ${stat.user.last_name}`
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase();
                 return (
-                  <div key={stat.id} className="flex items-center justify-between p-4">
+                  <div
+                    key={stat.id}
+                    className="flex items-center justify-between p-4"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-[#0D9488]/10 flex items-center justify-center text-[#0D9488] text-xs font-bold flex-shrink-0">
                         {initials}
@@ -496,7 +541,9 @@ export default function OrganizationCheckInPage() {
                       <span className="text-lg font-extrabold text-[#1F2937]">
                         {stat.check_in_count}
                       </span>
-                      {index === 0 && <Award className="w-4 h-4 text-amber-400" />}
+                      {index === 0 && (
+                        <Award className="w-4 h-4 text-amber-400" />
+                      )}
                     </div>
                   </div>
                 );
@@ -508,8 +555,12 @@ export default function OrganizationCheckInPage() {
                 <div className="w-14 h-14 bg-[#0D9488]/10 rounded-full flex items-center justify-center mb-4">
                   <Users className="w-7 h-7 text-[#0D9488]" />
                 </div>
-                <p className="text-sm font-bold text-[#1F2937] mb-1">No members found</p>
-                <p className="text-xs text-[#9CA3AF]">Try adjusting your search</p>
+                <p className="text-sm font-bold text-[#1F2937] mb-1">
+                  No members found
+                </p>
+                <p className="text-xs text-[#9CA3AF]">
+                  Try adjusting your search
+                </p>
               </div>
             )}
           </div>
