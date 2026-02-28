@@ -1,5 +1,5 @@
-import apiClient from '../apiClient';
-import { Member } from '../../types/organization'; // Import the correct type
+import apiClient from "../apiClient";
+import { Member } from "../../types/organization"; // Import the correct type
 
 export interface UpdateMemberDto {
   date_of_birth?: string;
@@ -12,11 +12,11 @@ export interface UpdateMemberDto {
 
 export const membersApi = {
   // Get all members
-  getAll: async (search?: string): Promise<Member[]> => {
-    const response = await apiClient.get('/members', {
-      params: search ? { search } : undefined,
+  getAll: async (page: number = 1, limit: number = 10): Promise<Member[]> => {
+    const response = await apiClient.get("/members", {
+      params: { page, limit },
     });
-    return response.data.data; // Extract from wrapper
+    return response.data.data.data; // Extract from wrapper
   },
 
   // Get member by ID
