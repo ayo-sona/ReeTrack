@@ -2,25 +2,30 @@
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const PricingSection = () => {
   const router = useRouter();
+  const [isAnnual, setIsAnnual] = useState(false);
 
   const plans = [
     {
       name: "Free",
-      price: "",
+      monthlyPrice: 0,
       description: "For individuals or small communities just getting started",
       features: [
-        { text: "Up to 20 members", included: true },
+        { text: "Unlimited members", included: true },
         { text: "1 staff / admin account", included: true },
-        { text: "Automated welcome messages", included: true },
-        { text: "Member newsletters", included: true },
+        { text: "1 membership plan", included: true },
         { text: "10% transaction fee", included: true },
-        { text: "Check-ins & reports", included: false },
-        { text: "Event announcements", included: false },
+        { text: "Payment history", included: true },
+        { text: "Invoice generation", included: true },
+        { text: "Analytics", included: true },
+        { text: "Member check-ins", included: false },
+        { text: "Reports", included: false },
+        { text: "Member notifications", included: false },
         { text: "Priority support", included: false },
       ],
       accent: "#F06543",
@@ -28,16 +33,19 @@ const PricingSection = () => {
     },
     {
       name: "Starter",
-      price: "75",
+      monthlyPrice: 75,
       description: "For growing communities ready to unlock professional tools",
       features: [
         { text: "Unlimited members", included: true },
         { text: "3 staff / admin accounts", included: true },
-        { text: "Automated welcome messages", included: true },
-        { text: "Member newsletters", included: true },
-        { text: "Event announcements", included: true },
-        { text: "Check-ins & reports", included: true },
+        { text: "3 membership plans", included: true },
         { text: "7.5% transaction fee", included: true },
+        { text: "Payment history", included: true },
+        { text: "Invoice generation", included: true },
+        { text: "Analytics", included: true },
+        { text: "Member check-ins", included: true },
+        { text: "3 reports / month", included: true },
+        { text: "50 notifications / month", included: true },
         { text: "Priority support", included: false },
       ],
       accent: "#6366F1",
@@ -45,16 +53,20 @@ const PricingSection = () => {
     },
     {
       name: "Growth",
-      price: "140",
+      monthlyPrice: 140,
       description: "For established organizations scaling their community",
       features: [
         { text: "Unlimited members", included: true },
         { text: "5 staff / admin accounts", included: true },
-        { text: "Broadcast scheduling", included: true },
-        { text: "Advanced analytics", included: true },
-        { text: "Audit logs", included: true },
-        { text: "Data import assistance", included: true },
+        { text: "5 membership plans", included: true },
         { text: "6% transaction fee", included: true },
+        { text: "Payment history", included: true },
+        { text: "Invoice generation", included: true },
+        { text: "Analytics", included: true },
+        { text: "Member check-ins", included: true },
+        { text: "20 reports / month", included: true },
+        { text: "120 notifications / month", included: true },
+        { text: "Notification scheduling", included: true },
         { text: "Priority support", included: true },
       ],
       accent: "#0D9488",
@@ -62,21 +74,30 @@ const PricingSection = () => {
     },
     {
       name: "Pro",
-      price: "250",
+      monthlyPrice: 250,
       description: "For large, high-volume organizations that need full power",
       features: [
-        { text: "Everything in Growth", included: true },
+        { text: "Unlimited members", included: true },
         { text: "10 staff / admin accounts", included: true },
-        { text: "Unlimited pings / broadcasts", included: true },
-        { text: "Full analytics suite & custom reports", included: true },
-        { text: "SSO / Single Sign-On", included: true },
-        { text: "Dedicated account manager", included: true },
+        { text: "Unlimited membership plans", included: true },
         { text: "4.5% transaction fee", included: true },
+        { text: "Payment history", included: true },
+        { text: "Invoice generation", included: true },
+        { text: "Analytics", included: true },
+        { text: "Member check-ins", included: true },
+        { text: "Unlimited reports", included: true },
+        { text: "Unlimited broadcasts", included: true },
+        { text: "Priority support", included: true },
       ],
       accent: "#1F2937",
       popular: false,
     },
   ];
+
+  const getPrice = (monthlyPrice: number) => {
+    if (monthlyPrice === 0) return null;
+    return isAnnual ? (monthlyPrice * 0.85).toFixed(2) : monthlyPrice;
+  };
 
   return (
     <section className="relative py-24 bg-[#F9FAFB] overflow-hidden">
@@ -114,132 +135,142 @@ const PricingSection = () => {
           <p className="text-lg text-[#1F2937]/55 max-w-2xl mx-auto leading-relaxed">
             No hidden fees. No riddles. Just the infrastructure you need to scale.
           </p>
+
+          {/* Billing toggle */}
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <span className={`text-sm font-semibold ${!isAnnual ? "text-[#1F2937]" : "text-[#1F2937]/40"}`}>
+              Monthly
+            </span>
+            <button
+              onClick={() => setIsAnnual(!isAnnual)}
+              className={`relative w-14 h-7 rounded-full border-2 border-[#1F2937] transition-colors duration-200 ${
+                isAnnual ? "bg-[#0D9488]" : "bg-white"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-[#1F2937] rounded-full shadow transition-transform duration-200 ${
+                  isAnnual ? "translate-x-7" : "translate-x-0"
+                }`}
+              />
+            </button>
+            <span className={`text-sm font-semibold ${isAnnual ? "text-[#1F2937]" : "text-[#1F2937]/40"}`}>
+              Annual
+              <span className="ml-2 inline-block bg-[#0D9488]/10 text-[#0D9488] text-xs font-bold px-2 py-0.5 rounded-full">
+                Save 15%
+              </span>
+            </span>
+          </div>
         </motion.div>
 
         {/* Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
-          {plans.map((plan, index) => (
-            <motion.div
-              key={plan.name}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="relative"
-            >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    whileInView={{ scale: 1, opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: 0.5, type: "spring", stiffness: 200 }}
-                    className="bg-[#0D9488] text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-[2px_2px_0px_#1F2937] whitespace-nowrap"
-                  >
-                    Most Popular
-                  </motion.div>
-                </div>
-              )}
-
+          {plans.map((plan, index) => {
+            const price = getPrice(plan.monthlyPrice);
+            return (
               <motion.div
-                whileHover={{ y: -4, x: -2 }}
-                transition={{ duration: 0.2 }}
-                className={`relative h-full bg-white rounded-2xl p-6 transition-all duration-300 ${
-                  plan.popular
-                    ? "border-2 border-[#1F2937] shadow-[4px_4px_0px_#0D9488]"
-                    : "border-2 border-[#1F2937] shadow-[4px_4px_0px_#1F2937] hover:shadow-[6px_6px_0px_#1F2937]"
-                }`}
+                key={plan.name}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="relative"
               >
-                {/* Accent line */}
-                <div
-                  className="absolute top-0 left-6 right-6 h-1 rounded-full"
-                  style={{ background: plan.accent }}
-                />
-
-                <div className="mb-5 mt-2">
-                  <h3 className="text-xl font-bold text-[#1F2937] mb-1">{plan.name}</h3>
-                  <p className="text-xs text-[#1F2937]/55 leading-relaxed">{plan.description}</p>
-                </div>
-
-                <div className="mb-6 pb-6 border-b-2 border-[#1F2937]/10">
-                  <div className="flex items-baseline">
-                    <span className="text-4xl font-bold text-[#1F2937]">
-                      {plan.price === "" ? "Free" : `$${plan.price}`}
-                    </span>
-                    <span className="text-sm text-[#1F2937]/45 ml-2">
-                      {plan.price !== "" && "/month"}
-                    </span>
-                  </div>
-                </div>
-
-                <ul className="space-y-3 mb-14">
-                  {plan.features.map((feature, i) => (
-                    <motion.li
-                      key={i}
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      whileInView={{ scale: 1, opacity: 1 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.3, delay: 0.6 + i * 0.05 }}
-                      className="flex items-start gap-2.5"
+                      transition={{ duration: 0.4, delay: 0.5, type: "spring", stiffness: 200 }}
+                      className="bg-[#0D9488] text-white px-4 py-1.5 rounded-full text-sm font-semibold shadow-[2px_2px_0px_#1F2937] whitespace-nowrap"
                     >
-                      {feature.included ? (
-                        <div
-                          className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 border border-transparent"
-                          style={{ background: plan.accent }}
-                        >
-                          <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
-                        </div>
-                      ) : (
-                        <div className="flex-shrink-0 w-4 h-4 rounded-full bg-[#F9FAFB] border border-[#1F2937]/15 flex items-center justify-center mt-0.5">
-                          <div className="w-1.5 h-0.5 bg-[#1F2937]/25 rounded-full" />
-                        </div>
-                      )}
-                      <span
-                        className={`text-xs leading-relaxed ${
-                          feature.included ? "text-[#1F2937]" : "text-[#1F2937]/35"
-                        }`}
-                      >
-                        {feature.text}
-                      </span>
-                    </motion.li>
-                  ))}
-                </ul>
+                      Most Popular
+                    </motion.div>
+                  </div>
+                )}
 
-                <Button
-                  variant={plan.popular ? "secondary" : "default"}
-                  size="default"
-                  className="absolute bottom-4 left-6 right-6 rounded-xl border-2 border-[#1F2937] shadow-[3px_3px_0px_#1F2937] hover:shadow-[4px_4px_0px_#1F2937] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all duration-150"
-                  asChild
+                <motion.div
+                  whileHover={{ y: -4, x: -2 }}
+                  transition={{ duration: 0.2 }}
+                  className={`relative h-full bg-white rounded-2xl p-6 transition-all duration-300 ${
+                    plan.popular
+                      ? "border-2 border-[#1F2937] shadow-[4px_4px_0px_#0D9488]"
+                      : "border-2 border-[#1F2937] shadow-[4px_4px_0px_#1F2937] hover:shadow-[6px_6px_0px_#1F2937]"
+                  }`}
                 >
-                  <Link href="/auth/login">Get Started</Link>
-                </Button>
-              </motion.div>
-            </motion.div>
-          ))}
-        </div>
+                  {/* Accent line */}
+                  <div
+                    className="absolute top-0 left-6 right-6 h-1 rounded-full"
+                    style={{ background: plan.accent }}
+                  />
 
-        {/* Enterprise */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-10 rounded-2xl bg-[#1F2937] p-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-2 border-[#1F2937] shadow-[4px_4px_0px_#F06543]"
-        >
-          <div>
-            <h3 className="text-lg font-bold text-white mb-1">Enterprise</h3>
-            <p className="text-sm text-white/60">
-              Need a fully tailored solution? Custom member caps, staff accounts, dedicated support, and a 4% transaction fee.
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            className="shrink-0 border-2 border-white text-white bg-transparent hover:bg-white hover:text-[#1F2937] rounded-xl shadow-[3px_3px_0px_#F06543] hover:shadow-[4px_4px_0px_#F06543] hover:-translate-y-0.5 transition-all duration-150"
-            asChild
-          >
-            <Link href="/contact">Contact Us</Link>
-          </Button>
-        </motion.div>
+                  <div className="mb-5 mt-2">
+                    <h3 className="text-xl font-bold text-[#1F2937] mb-1">{plan.name}</h3>
+                    <p className="text-xs text-[#1F2937]/55 leading-relaxed">{plan.description}</p>
+                  </div>
+
+                  <div className="mb-6 pb-6 border-b-2 border-[#1F2937]/10">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-bold text-[#1F2937]">
+                        {price === null ? "Free" : `$${price}`}
+                      </span>
+                      {price !== null && (
+                        <span className="text-sm text-[#1F2937]/45">/month</span>
+                      )}
+                    </div>
+                    {isAnnual && price !== null && (
+                      <p className="text-xs text-[#0D9488] font-semibold mt-1">
+                        Billed annually — save 15%
+                      </p>
+                    )}
+                  </div>
+
+                  <ul className="space-y-3 mb-14">
+                    {plan.features.map((feature, i) => (
+                      <motion.li
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.3, delay: 0.6 + i * 0.05 }}
+                        className="flex items-start gap-2.5"
+                      >
+                        {feature.included ? (
+                          <div
+                            className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 border border-transparent"
+                            style={{ background: plan.accent }}
+                          >
+                            <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                          </div>
+                        ) : (
+                          <div className="flex-shrink-0 w-4 h-4 rounded-full bg-[#F9FAFB] border border-[#1F2937]/15 flex items-center justify-center mt-0.5">
+                            <div className="w-1.5 h-0.5 bg-[#1F2937]/25 rounded-full" />
+                          </div>
+                        )}
+                        <span
+                          className={`text-xs leading-relaxed ${
+                            feature.included ? "text-[#1F2937]" : "text-[#1F2937]/35"
+                          }`}
+                        >
+                          {feature.text}
+                        </span>
+                      </motion.li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    variant={plan.popular ? "secondary" : "default"}
+                    size="default"
+                    className="absolute bottom-4 left-6 right-6 rounded-xl border-2 border-[#1F2937] shadow-[3px_3px_0px_#1F2937] hover:shadow-[4px_4px_0px_#1F2937] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all duration-150"
+                    asChild
+                  >
+                    <Link href="/auth/login">Get Started</Link>
+                  </Button>
+                </motion.div>
+              </motion.div>
+            );
+          })}
+        </div>
 
         <motion.p
           initial={{ opacity: 0 }}
