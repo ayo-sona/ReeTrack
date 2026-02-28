@@ -35,7 +35,7 @@ export function MemberSidebar({
   const navigation = [
     { name: "Dashboard", href: "/member/dashboard", icon: Home },
     { name: "Community", href: "/member/communities", icon: Building2 },
-    { name: "Wallet", href: "/member/wallet", icon: Wallet },
+    // { name: "Wallet", href: "/member/wallet", icon: Wallet },
     { name: "Subscriptions", href: "/member/subscriptions", icon: CreditCard },
     { name: "Check In", href: "/member/check-ins", icon: QrCode },
     { name: "Payments", href: "/member/payments", icon: CreditCard },
