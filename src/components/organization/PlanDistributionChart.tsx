@@ -71,6 +71,7 @@ export function PlanDistributionChart() {
   const { data: membersData, isLoading: isLoadingMembers } = useMembers(
     page,
     PAGE_SIZE,
+    "all",
   );
 
   const plans = useMemo(() => plansResponse?.data || [], [plansResponse?.data]);
