@@ -12,9 +12,13 @@ export interface UpdateMemberDto {
 
 export const membersApi = {
   // Get all members
-  getAll: async (page: number = 1, limit: number = 10): Promise<Member[]> => {
+  getAll: async (
+    page: number = 1,
+    limit: number = 10,
+    status?: string,
+  ): Promise<Member[]> => {
     const response = await apiClient.get("/members", {
-      params: { page, limit },
+      params: { page, limit, status },
     });
     return response.data.data.data; // Extract from wrapper
   },
