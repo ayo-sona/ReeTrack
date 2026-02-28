@@ -2,34 +2,34 @@ import { useQuery } from "@tanstack/react-query";
 import { memberApi } from "@/lib/memberAPI/memberAPI";
 
 interface Organization {
-    id: string;
-    name: string;
-    slug: string;
-    email: string;
-    status: string;
-    address: string;
-    website: string;
-    phone: string;
-    description: string;
-    created_at: string;
-    updated_at: string;
-  }
-  
-  interface Plan {
-    id: string;
-    organization_id: string;
-    name: string;
-    description: string;
-    price: number | null;
-    currency: string;
-    interval: string | null;
-    interval_count: number | null;
-    features: string[];
-    is_active: boolean;
-    created_at: string;
-    updated_at: string;
-    organization: Organization; // ✨ Add this line
-  }
+  id: string;
+  name: string;
+  slug: string;
+  email: string;
+  status: string;
+  address: string;
+  website: string;
+  phone: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Plan {
+  id: string;
+  organization_id: string;
+  name: string;
+  description: string;
+  price: number | null;
+  currency: string;
+  interval: string | null;
+  interval_count: number | null;
+  features: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  organization: Organization; // ✨ Add this line
+}
 
 interface Subscription {
   id: string;
@@ -86,28 +86,34 @@ export const useCommunity = () => {
     queryFn: async () => {
       try {
         // Fetch all data in parallel using memberApi
-        const [profileResponse, subscriptionResponse, statsResponse, plansResponse, paymentsResponse] =
-          await Promise.all([
-            memberApi.getProfile(),
-            memberApi.getMySubscription().catch(() => ({ data: [] })),
-            memberApi.getStats().catch(() => ({ data: {} })),
-            memberApi.getAvailablePlans().catch(() => ({ data: { plans: [] } })),
-            memberApi.getPayments(1, 100).catch(() => ({ data: { data: [] } })),
-          ]);
+        const [
+          profileResponse,
+          subscriptionResponse,
+          statsResponse,
+          plansResponse,
+          paymentsResponse,
+        ] = await Promise.all([
+          memberApi.getProfile(),
+          memberApi.getMySubscription().catch(() => ({ data: [] })),
+          memberApi.getStats().catch(() => ({ data: {} })),
+          memberApi.getAvailablePlans().catch(() => ({ data: { plans: [] } })),
+          memberApi.getPayments(1, 100).catch(() => ({ data: { data: [] } })),
+        ]);
 
         const profile = profileResponse.data;
         const subscriptions = Array.isArray(subscriptionResponse.data)
           ? subscriptionResponse.data
           : subscriptionResponse.data
-          ? [subscriptionResponse.data]
-          : [];
+            ? [subscriptionResponse.data]
+            : [];
         const stats = statsResponse.data || {};
-        
+
         // Handle plans - they're in data.data.plans
         const plansData = plansResponse.data?.plans || plansResponse.data || [];
         const plans: Plan[] = Array.isArray(plansData) ? plansData : [];
-        
-        const payments: Payment[] = paymentsResponse.data?.data || paymentsResponse.data || [];
+
+        const payments: Payment[] =
+          paymentsResponse.data?.data || paymentsResponse.data || [];
 
         // If no profile or organization, return null
         if (!profile || !profile.organization) {
@@ -118,7 +124,10 @@ export const useCommunity = () => {
         const totalSpent = Array.isArray(payments)
           ? payments
               .filter((p: Payment) => p.status === "success")
-              .reduce((sum: number, p: Payment) => sum + Number(p.amount || 0), 0)
+              .reduce(
+                (sum: number, p: Payment) => sum + Number(p.amount || 0),
+                0,
+              )
           : 0;
 
         // Generate recent activity from payments and subscriptions
@@ -147,12 +156,12 @@ export const useCommunity = () => {
           ...subscriptionActivities,
         ].sort(
           (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         );
 
         // Count active subscriptions
         const activeSubscriptionCount = subscriptions.filter(
-          (s: Subscription) => s.status === "active"
+          (s: Subscription) => s.status === "active",
         ).length;
 
         return {
@@ -186,11 +195,13 @@ export const useCommunities = () => {
           .getMySubscription()
           .catch(() => ({ data: [] }));
 
-        const subscriptions: Subscription[] = Array.isArray(subscriptionResponse.data)
+        const subscriptions: Subscription[] = Array.isArray(
+          subscriptionResponse.data,
+        )
           ? subscriptionResponse.data
           : subscriptionResponse.data
-          ? [subscriptionResponse.data]
-          : [];
+            ? [subscriptionResponse.data]
+            : [];
 
         // Group subscriptions by organization
         const organizationMap = new Map<string, Subscription[]>();
