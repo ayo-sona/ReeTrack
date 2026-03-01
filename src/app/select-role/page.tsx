@@ -3,16 +3,19 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Building2, User, ArrowRight } from "lucide-react";
-import { setCookie } from "cookies-next";
+import { deleteCookie, setCookie } from "cookies-next";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import Logo from "@/components/layout/Logo"
+import Logo from "@/components/layout/Logo";
+import apiClient from "@/lib/apiClient";
+import { toast } from "sonner";
 
 export default function SelectRolePage() {
   const router = useRouter();
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,6 +41,25 @@ export default function SelectRolePage() {
   const isOrgAdmin =
     userData?.organizations?.map((org: any) => org.role).includes("STAFF") ||
     userData?.organizations?.map((org: any) => org.role).includes("ADMIN");
+
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+      await apiClient.post("/auth/logout");
+      toast.success("Logged out successfully");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Logout failed");
+    } finally {
+      if (typeof window !== "undefined") localStorage.clear();
+      deleteCookie("access_token");
+      deleteCookie("current_role");
+      deleteCookie("user_roles");
+      setLoggingOut(false);
+      router.push("/auth/login");
+      router.refresh();
+    }
+  };
 
   if (loading) {
     return (
@@ -127,7 +149,7 @@ export default function SelectRolePage() {
           <div className="text-center mb-12">
             <div className="flex justify-center mb-4 text-white">
               <Link href="/">
-              <Logo size={32} variant="white" />
+                <Logo size={32} variant="white" />
               </Link>
             </div>
             <motion.h1
@@ -308,16 +330,17 @@ export default function SelectRolePage() {
           >
             <button
               onClick={() => {
-                localStorage.clear();
-                document.cookie.split(";").forEach((c) => {
-                  document.cookie = c
-                    .replace(/^ +/, "")
-                    .replace(
-                      /=.*/,
-                      "=;expires=" + new Date().toUTCString() + ";path=/",
-                    );
-                });
-                router.push("/auth/login");
+                // localStorage.clear();
+                // document.cookie.split(";").forEach((c) => {
+                //   document.cookie = c
+                //     .replace(/^ +/, "")
+                //     .replace(
+                //       /=.*/,
+                //       "=;expires=" + new Date().toUTCString() + ";path=/",
+                //     );
+                // });
+                // router.push("/auth/login");
+                handleLogout();
               }}
               className="text-sm font-bold text-white/90 hover:text-white transition-colors underline decoration-white/40 hover:decoration-white"
             >
