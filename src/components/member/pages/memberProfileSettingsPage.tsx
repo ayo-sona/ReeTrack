@@ -8,6 +8,8 @@ import { deleteCookie } from "cookies-next";
 import { Spinner } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import apiClient from "@/lib/apiClient";
 
 const C = {
   teal:     "#0D9488",
@@ -91,12 +93,23 @@ export default function ProfileSettingsPage() {
     } catch (error) { console.error("Failed to update profile:", error); }
   };
 
-  const handleLogout = () => {
-    setLoggingOut(true);
-    deleteCookie("access_token"); deleteCookie("current_role"); deleteCookie("user_roles");
-    localStorage.clear();
-    router.push("/auth/login");
-    setLoggingOut(false);
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+      await apiClient.post("/auth/logout");
+      toast.success("Logged out successfully");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Logout failed");
+    } finally {
+      if (typeof window !== "undefined") localStorage.clear();
+      deleteCookie("access_token");
+      deleteCookie("current_role");
+      deleteCookie("user_roles");
+      setLoggingOut(false);
+      router.push("/auth/login");
+      router.refresh();
+    }
   };
 
   if (isLoading) {
