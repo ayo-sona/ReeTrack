@@ -58,7 +58,7 @@ export default function PingsPage() {
     error: membersError,
   } = useQuery({
     queryKey: ["members"],
-    queryFn: () => membersApi.getAll(page, PAGE_SIZE),
+    queryFn: () => membersApi.getAll(page, PAGE_SIZE, "all"),
   });
 
   // const { data: sentPings = [], isLoading: isLoadingPings } =
