@@ -39,7 +39,11 @@ export default function AddSubaccountModal({
   useEffect(() => {
     if (isOpen) {
       fetchBanks();
-      setFormData({ businessName: organization.name, accountNumber: "", bankCode: "" });
+      setFormData({
+        businessName: organization.name,
+        accountNumber: "",
+        bankCode: "",
+      });
       setError("");
       setSubaccountData(null);
     }
@@ -60,7 +64,11 @@ export default function AddSubaccountModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!formData.businessName || !formData.accountNumber || !formData.bankCode) {
+    if (
+      !formData.businessName ||
+      !formData.accountNumber ||
+      !formData.bankCode
+    ) {
       setError("All fields are required");
       return;
     }
@@ -70,7 +78,6 @@ export default function AddSubaccountModal({
         business_name: formData.businessName,
         account_number: formData.accountNumber,
         bank_code: formData.bankCode,
-        percentage_charge: 8.5,
         primary_contact_name: `${profile.firstName} ${profile.lastName}`,
         primary_contact_email: profile.email,
       });
@@ -105,7 +112,6 @@ export default function AddSubaccountModal({
 
       {/* Modal */}
       <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-
         {/* Header */}
         <div className="flex items-start justify-between px-6 py-5 border-b border-gray-100">
           <div>
@@ -140,7 +146,9 @@ export default function AddSubaccountModal({
               <input
                 type="text"
                 value={formData.businessName}
-                onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, businessName: e.target.value })
+                }
                 required
                 placeholder="Your business name"
                 className={inputClass}
@@ -154,7 +162,9 @@ export default function AddSubaccountModal({
               <input
                 type="number"
                 value={formData.accountNumber}
-                onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, accountNumber: e.target.value })
+                }
                 required
                 placeholder="0000000000"
                 className={inputClass}
@@ -167,13 +177,17 @@ export default function AddSubaccountModal({
               </label>
               <select
                 value={formData.bankCode}
-                onChange={(e) => setFormData({ ...formData, bankCode: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, bankCode: e.target.value })
+                }
                 required
                 disabled={isLoading && banks.length === 0}
                 className={inputClass}
               >
                 <option value="">
-                  {isLoading && banks.length === 0 ? "Loading banks..." : "Select your bank"}
+                  {isLoading && banks.length === 0
+                    ? "Loading banks..."
+                    : "Select your bank"}
                 </option>
                 {banks.map((bank) => (
                   <option key={bank.code} value={bank.code}>
