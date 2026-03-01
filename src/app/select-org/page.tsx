@@ -91,16 +91,25 @@ export default function OrganizationSelectPage() {
     }
   };
 
-  const handleLogout = () => {
-    deleteCookie("access_token");
-    deleteCookie("current_role");
-    deleteCookie("user_roles");
-    localStorage.removeItem("userData");
-    localStorage.removeItem("selectedOrganizationId");
-    queryClient.clear();
-    router.push("/auth/login");
-    toast.success("Logged out successfully");
+  const handleLogout = async () => {
+    try {
+      setLoading(true);
+      await apiClient.post("/auth/logout");
+      toast.success("Logged out successfully");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Logout failed");
+    } finally {
+      if (typeof window !== "undefined") localStorage.clear();
+      deleteCookie("access_token");
+      deleteCookie("current_role");
+      deleteCookie("user_roles");
+      setLoading(false);
+      router.push("/auth/login");
+      router.refresh();
+    }
   };
+
 
   const orgs: OrganizationWithRole[] =
     userData?.organizations?.filter(

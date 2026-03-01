@@ -32,17 +32,14 @@ export function OrganizationHeader({
     try {
       setLoading(true);
       await apiClient.post("/auth/logout");
-            toast.success("Logged out successfully");
-
+      toast.success("Logged out successfully");
     } catch (error) {
       console.error("Logout failed:", error);
-            toast.error("Logout failed");
-
+      toast.error("Logout failed");
     } finally {
       if (typeof window !== "undefined") {
         localStorage.clear();
       }
-
       deleteCookie("access_token");
       deleteCookie("current_role");
       deleteCookie("user_roles");
@@ -92,7 +89,6 @@ export function OrganizationHeader({
 
         {/* Right Actions */}
         <div className="flex items-center gap-2">
-
           {/* Notifications */}
           <div className="relative">
             <button
