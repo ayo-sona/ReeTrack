@@ -68,6 +68,8 @@ export function PlanDistributionChart() {
   const [viewMode, setViewMode] = useState<ViewMode>("chart");
 
   const { data: plansResponse, isLoading: isLoadingPlans } = usePlans();
+
+  // All members, hence the "all" flag
   const { data: membersData, isLoading: isLoadingMembers } = useMembers(
     page,
     PAGE_SIZE,
