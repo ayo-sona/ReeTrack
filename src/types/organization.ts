@@ -1,4 +1,19 @@
+// types/organization.ts (add this interface at the top or where appropriate)
 import { Currency, PaymentGateway } from "./common";
+
+// Pagination Meta
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+// Paginated Response Wrapper
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
 
 // organization/Business Types
 export interface Organization {
@@ -116,6 +131,9 @@ export interface Member {
     };
   }>;
 }
+
+// Members Response Type
+export type MembersResponse = PaginatedResponse<Member>;
 
 // Payment Types
 export type PaymentMethod = "card" | "bank_transfer" | "ussd";
