@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { membersApi } from "@/lib/organizationAPI/membersApi";
 import { useQuery } from "@tanstack/react-query";
-import { Member } from "@/types/organization";
+import { Member } from "@/types/memberTypes/member";
 // import {
 //   useNotificationHistory,
 //   useSendNotification,
@@ -35,11 +35,6 @@ interface TransformedMember {
   name: string;
   email: string;
   phone: string;
-  // planName: string;
-  // expiryDate: string;
-  // daysUntilExpiry: number;
-  // status: "active" | "expiring_soon" | "expired";
-  // subscriptionStatus?: string;
 }
 
 const now = Date.now();

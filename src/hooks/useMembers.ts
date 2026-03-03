@@ -16,11 +16,14 @@ export const useMembers = (
 };
 
 // Get member by ID
-export const useMemberById = (id: string) => {
+export const useMemberById = (
+  memberId: string | null,
+  organizationId: string | null,
+) => {
   return useQuery({
-    queryKey: ["member", id],
-    queryFn: () => membersApi.getById(id),
-    enabled: !!id,
+    queryKey: ["member", memberId, organizationId],
+    queryFn: () => membersApi.getById(memberId, organizationId),
+    enabled: !!organizationId,
     retry: false,
   });
 };

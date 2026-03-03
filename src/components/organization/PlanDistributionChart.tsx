@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { usePlans } from "../../hooks/usePlans";
 import { useMembers } from "../../hooks/useMembers";
-import { Member } from "../../types/organization";
+import { Member } from "../../types/memberTypes/member";
 import clsx from "clsx";
 
 type ViewMode = "chart" | "list";

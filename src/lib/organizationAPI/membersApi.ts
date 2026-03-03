@@ -1,5 +1,5 @@
 import apiClient from "../apiClient";
-import { Member } from "../../types/organization"; // Import the correct type
+import { Member } from "../../types/memberTypes/member"; // Import the correct type
 
 export interface UpdateMemberDto {
   date_of_birth?: string;
@@ -24,8 +24,13 @@ export const membersApi = {
   },
 
   // Get member by ID
-  getById: async (id: string): Promise<Member> => {
-    const response = await apiClient.get(`/members/${id}`);
+  getById: async (
+    memberId: string | null,
+    organizationId: string | null,
+  ): Promise<Member> => {
+    const response = await apiClient.get(
+      `/members/${memberId}/${organizationId}`,
+    );
     return response.data.data;
   },
 
