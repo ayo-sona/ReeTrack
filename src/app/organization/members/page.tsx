@@ -5,7 +5,7 @@ import { MembersTable } from "../../../components/organization/MembersTable";
 import { MemberFilters } from "../../../components/organization/MemberFilters";
 import { UserPlus, AlertCircle } from "lucide-react";
 import { useMembers } from "../../../hooks/useMembers";
-import { Member } from "../../../types/organization";
+import { Member } from "../../../types/memberTypes/member";
 import { CreateMemberModal } from "../../../components/organization/CreateMemberModal";
 import { Button } from "@/components/ui/button";
 

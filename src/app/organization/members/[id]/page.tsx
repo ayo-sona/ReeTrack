@@ -20,6 +20,7 @@ import type { Member } from "@/types/organization";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { getCurrentOrganizationId } from "@/utils/organisationUtils";
 
 export interface GrantAccessData {
   memberId: string;
@@ -73,8 +74,8 @@ export default function MemberDetailPage() {
   const [currentSubscription, setCurrentSubscription] = useState<
     Member["subscriptions"][number] | null
   >(null);
-
-  const { data: member, isLoading, error } = useMemberById(memberId);
+  const orgId = getCurrentOrganizationId();
+  const { data: member, isLoading, error } = useMemberById(memberId, orgId);
   const updateSubscription = useUpdateSubscription();
 
   // ── Loading ──────────────────────────────────────────────────────────────

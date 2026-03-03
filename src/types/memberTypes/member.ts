@@ -33,6 +33,8 @@ export interface Member {
   organization_user_id: string;
   user_id: string;
   check_in_count: number;
+  checked_in_at: string;
+  check_in_code: string;
   metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;

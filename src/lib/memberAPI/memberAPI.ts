@@ -17,7 +17,7 @@ export const getProfile = async () => {
 
 /**
  * Get all members (with optional search)
- * GET /api/v1/members?search=...
+ * GET /api/v1/members?page&limit&status...
  */
 export const getMembers = async (
   page: number = 1,
@@ -81,7 +81,7 @@ export const getMemberOrgs = async () => {
  * GET /api/v1/subscriptions/members/subscription
  */
 export const getMySubscription = async () => {
-  const { data } = await apiClient.get("/subscriptions/members/subscription");
+  const { data } = await apiClient.get("/subscriptions/member/subscription");
   return data;
 };
 

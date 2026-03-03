@@ -1,7 +1,7 @@
 import { Currency, PaymentGateway } from "./common";
 import { PlanId } from "./subscription";
 
-export type MemberStatus = "active" | "inactive" | "expired";
+export type MemberStatus = "active" | "inactive";
 export type PaymentMethod = "card" | "bank_transfer" | "ussd" | "cash";
 export type PaymentStatus = "success" | "pending" | "failed" | "refunded";
 
@@ -11,7 +11,6 @@ export interface Member {
   organization_user_id: string;
   user_id: string;
   check_in_count: number;
-  metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
   organization_user: {
