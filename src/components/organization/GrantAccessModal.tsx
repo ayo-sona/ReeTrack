@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AlertCircle } from "lucide-react";
-import { Member } from "../../types/organization";
+import { Member } from "../../types/memberTypes/member";
 import { GrantAccessData } from "@/app/organization/members/[id]/page";
 import { Button } from "@/components/ui/button";
 

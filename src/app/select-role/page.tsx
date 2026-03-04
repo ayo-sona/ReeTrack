@@ -10,6 +10,7 @@ import Image from "next/image";
 import Logo from "@/components/layout/Logo";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
+import { Spinner } from "@heroui/react";
 
 export default function SelectRolePage() {
   const router = useRouter();
@@ -328,24 +329,28 @@ export default function SelectRolePage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
-            <button
-              onClick={() => {
-                // localStorage.clear();
-                // document.cookie.split(";").forEach((c) => {
-                //   document.cookie = c
-                //     .replace(/^ +/, "")
-                //     .replace(
-                //       /=.*/,
-                //       "=;expires=" + new Date().toUTCString() + ";path=/",
-                //     );
-                // });
-                // router.push("/auth/login");
-                handleLogout();
-              }}
-              className="text-sm font-bold text-white/90 hover:text-white transition-colors underline decoration-white/40 hover:decoration-white"
-            >
-              Not you? Sign out
-            </button>
+            {loggingOut ? (
+              <Spinner color="default" />
+            ) : (
+              <button
+                onClick={() => {
+                  // localStorage.clear();
+                  // document.cookie.split(";").forEach((c) => {
+                  //   document.cookie = c
+                  //     .replace(/^ +/, "")
+                  //     .replace(
+                  //       /=.*/,
+                  //       "=;expires=" + new Date().toUTCString() + ";path=/",
+                  //     );
+                  // });
+                  // router.push("/auth/login");
+                  handleLogout();
+                }}
+                className="text-sm font-bold text-white/90 hover:text-white transition-colors underline decoration-white/40 hover:decoration-white"
+              >
+                Not you? Sign out
+              </button>
+            )}
           </motion.div>
         </motion.div>
       </div>

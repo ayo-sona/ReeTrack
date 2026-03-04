@@ -36,8 +36,13 @@ export const membersApi = {
   },
 
   // Get member by ID
-  getById: async (id: string): Promise<Member> => {
-    const response = await apiClient.get(`/members/${id}`);
+  getById: async (
+    memberId: string | null,
+    organizationId: string | null,
+  ): Promise<Member> => {
+    const response = await apiClient.get(
+      `/members/${memberId}/${organizationId}`,
+    );
     return response.data.data;
   },
 
