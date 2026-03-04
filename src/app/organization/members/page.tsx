@@ -159,14 +159,6 @@ export default function MembersPage() {
         isSearching={filters.search.length > 0}
         isLoading={isLoading}
       />
-
-      {/* Pagination */}
-      {console.log("Should show pagination?", {
-        isLoading,
-        meta,
-        totalPages: meta?.totalPages,
-        condition: !isLoading && meta && meta.totalPages > 1
-      })}
       
       {!isLoading && meta && meta.totalPages > 1 && (
         <Pagination

@@ -53,7 +53,7 @@ export default function PingsPage() {
   const [page, setPage] = useState(1);
 
   const {
-    data: rawMembers = [],
+    data: rawMembers,
     isLoading: isLoadingMembers,
     error: membersError,
   } = useQuery({
@@ -61,63 +61,18 @@ export default function PingsPage() {
     queryFn: () => membersApi.getAll(page, PAGE_SIZE, "all"),
   });
 
-  // const { data: sentPings = [], isLoading: isLoadingPings } =
-  //   useNotificationHistory();
-  // const sendNotificationMutation = useSendNotification();
-
-  // Transform members
   const members = useMemo(() => {
-    return rawMembers.map((member: Member): TransformedMember => {
+    if (!rawMembers?.data) return [];
+
+    return rawMembers.data.map((member: Member): TransformedMember => {
       const user = member.user;
       const fullName = `${user.first_name} ${user.last_name}`.trim();
-      // const activeSubscription = member.subscriptions?.find(
-      //   (s) => s.status === "active",
-      // );
-
-      // let expiryDate = new Date();
-      // let daysUntilExpiry = 0;
-      // let status: "active" | "expiring_soon" | "expired" = "active";
-      // let planName = "No Plan";
-      // let subscriptionStatus = "none";
-
-      // if (activeSubscription) {
-      //   expiryDate = new Date(activeSubscription.expires_at);
-      //   daysUntilExpiry = Math.ceil(
-      //     (expiryDate.getTime() - now) / 86400000,
-      //   );
-      //   planName = activeSubscription.plan.name;
-      //   subscriptionStatus = activeSubscription.status;
-      //   status =
-      //     daysUntilExpiry < 0
-      //       ? "expired"
-      //       : daysUntilExpiry <= 14
-      //         ? "expiring_soon"
-      //         : "active";
-      // } else {
-      //   const expiredSub = member.subscriptions?.find(
-      //     (s) => s.status === "expired",
-      //   );
-      //   if (expiredSub) {
-      //     expiryDate = new Date(expiredSub.expires_at);
-      //     daysUntilExpiry = Math.ceil(
-      //       (expiryDate.getTime() - now) / 86400000,
-      //     );
-      //     status = "expired";
-      //     planName = expiredSub.plan.name;
-      //     subscriptionStatus = "expired";
-      //   }
-      // }
 
       return {
         id: member.id,
         name: fullName,
         email: user.email,
         phone: user.phone,
-        // planName,
-        // expiryDate: expiryDate.toISOString(),
-        // daysUntilExpiry,
-        // status,
-        // subscriptionStatus,
       };
     });
   }, [rawMembers]);
@@ -129,7 +84,6 @@ export default function PingsPage() {
         m.email.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [members, searchQuery]);
-
   // const expiringCount = members.filter(
   //   (m) => m.status === "expiring_soon",
   // ).length;

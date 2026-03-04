@@ -5,83 +5,72 @@ import { useRouter } from "next/navigation";
 import { Mail, ArrowLeft, CheckCircle, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import apiClient from "@/lib/apiClient";
 import Image from "next/image";
 import Logo from "@/components/layout/Logo";
+import { useForgotPassword } from "@/hooks/useForgotPassword";
+import { useResetPassword } from "@/hooks/useResetPassword";
 
 type FormState = "email" | "code" | "success";
 
 export default function ForgotPasswordPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [formState, setFormState] = useState<FormState>("email");
-  const [error, setError] = useState("");
-  const router = useRouter();
+
+  // Use hooks
+  const { sendResetEmail, sending, error: forgotError } = useForgotPassword();
+  const { resetPassword, resetting, error: resetError } = useResetPassword(email);
+
+  const error = forgotError || resetError;
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      setError("Please enter your email address");
       return;
     }
-    try {
-      setLoading(true);
-      setError("");
-      const response = await apiClient.post("/auth/forgot-password", { email });
-      if (response.data.statusCode !== 200) {
-        throw new Error(
-          response.data.data.message || "Failed to send verification code",
-        );
-      }
+
+    const success = await sendResetEmail(email);
+    
+    if (success) {
       setFormState("code");
       toast.success("Verification code sent to your email");
-    } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
+    } else if (forgotError) {
+      toast.error(forgotError);
     }
   };
 
   const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!code || !newPassword || !confirmPassword) {
-      setError("Please fill in all fields");
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
-    try {
-      setLoading(true);
-      setError("");
-      const response = await apiClient.post("/auth/reset-password", {
-        email,
-        token: code,
-        password: newPassword,
-      });
-      if (response.data.statusCode !== 200) {
-        throw new Error(
-          response.data.data.message || "Failed to reset password",
-        );
-      }
+
+    const success = await resetPassword({
+      token: code,
+      password: newPassword,
+      password_confirmation: confirmPassword,
+    });
+
+    if (success) {
       setFormState("success");
       toast.success("Password reset successfully");
       setTimeout(() => router.push("/auth/login"), 2000);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
+    } else if (resetError) {
+      toast.error(resetError);
     }
   };
 
   const inputClass =
-    "w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 dark:bg-white dark:text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-colors disabled:opacity-60w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 dark:bg-white dark:text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-colors disabled:opacity-60";
+    "w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 dark:bg-white dark:text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition-colors disabled:opacity-60";
 
   const labelClass = "block text-sm font-semibold text-[#1F2937] mb-1.5";
 
@@ -233,11 +222,8 @@ export default function ForgotPasswordPage() {
                       required
                       placeholder="you@example.com"
                       value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        setError("");
-                      }}
-                      disabled={loading}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={sending}
                       className={`${inputClass} pl-9`}
                     />
                   </div>
@@ -245,10 +231,10 @@ export default function ForgotPasswordPage() {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={sending}
                   className="w-full rounded-lg bg-[#0D9488] px-4 py-3 text-sm font-bold text-white hover:bg-[#0B7A70] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {loading ? "Sending..." : "Send Verification Code"}
+                  {sending ? "Sending..." : "Send Verification Code"}
                 </button>
               </form>
             )}
@@ -267,11 +253,8 @@ export default function ForgotPasswordPage() {
                     pattern="[0-9]*"
                     placeholder="000000"
                     value={code}
-                    onChange={(e) => {
-                      setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
-                      setError("");
-                    }}
-                    disabled={loading}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    disabled={resetting}
                     className={`${inputClass} text-center text-xl tracking-widest`}
                   />
                 </div>
@@ -288,11 +271,8 @@ export default function ForgotPasswordPage() {
                       required
                       placeholder="Enter new password"
                       value={newPassword}
-                      onChange={(e) => {
-                        setNewPassword(e.target.value);
-                        setError("");
-                      }}
-                      disabled={loading}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      disabled={resetting}
                       className={`${inputClass} pr-10`}
                     />
                     <button
@@ -321,11 +301,8 @@ export default function ForgotPasswordPage() {
                       required
                       placeholder="Confirm new password"
                       value={confirmPassword}
-                      onChange={(e) => {
-                        setConfirmPassword(e.target.value);
-                        setError("");
-                      }}
-                      disabled={loading}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={resetting}
                       className={`${inputClass} pr-10`}
                     />
                     <button
@@ -344,18 +321,15 @@ export default function ForgotPasswordPage() {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={resetting}
                   className="w-full rounded-lg bg-[#0D9488] px-4 py-3 text-sm font-bold text-white hover:bg-[#0B7A70] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  {loading ? "Resetting..." : "Reset Password"}
+                  {resetting ? "Resetting..." : "Reset Password"}
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setFormState("email");
-                    setError("");
-                  }}
+                  onClick={() => setFormState("email")}
                   className="w-full text-sm text-[#1F2937]/50 hover:text-[#1F2937] transition-colors"
                 >
                   Wrong email? Go back

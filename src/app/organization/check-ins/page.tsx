@@ -95,16 +95,18 @@ export default function OrganizationCheckInPage() {
   const [isChecking, setIsChecking] = useState(false);
   const [currentMember, setCurrentMember] = useState("");
 
-  const totalMembers = members?.length ?? 0;
+  // ✅ FIXED: Access data property
+  const totalMembers = members?.data?.length ?? 0;
   const todayCheckIns =
-    members?.filter((m) => {
+    members?.data?.filter((m) => {
       const checkInDate = new Date(m?.checked_in_at);
       return checkInDate.toDateString() === new Date().toDateString();
     }).length ?? 0;
 
+  // ✅ FIXED: Access data property
   const recentCheckIns = useMemo(
     () =>
-      members
+      members?.data
         ?.slice()
         .sort(
           (a, b) =>
@@ -125,7 +127,8 @@ export default function OrganizationCheckInPage() {
     );
   }, [recentCheckIns, recentSearchQuery]);
 
-  const filteredStats = members?.filter(
+  // ✅ FIXED: Access data property
+  const filteredStats = members?.data?.filter(
     (m) =>
       m.user?.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       m.user?.last_name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -168,7 +171,8 @@ export default function OrganizationCheckInPage() {
 
   if (isLoading) return <CheckInSkeleton />;
 
-  if (members?.length === 0) {
+  // ✅ FIXED: Access data property
+  if (!members?.data || members.data.length === 0) {
     return (
       <div
         className="flex flex-col items-center justify-center py-24 px-6"

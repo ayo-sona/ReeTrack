@@ -7,9 +7,9 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input, Spinner } from "@heroui/react";
 import { Mail, Lock, User, Phone, Eye, EyeOff } from "lucide-react";
-import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import Logo from "@/components/layout/Logo";
+import { useAuth } from "@/hooks/useAuth";
 
 interface FormData {
   firstName: string;
@@ -19,18 +19,11 @@ interface FormData {
   password: string;
 }
 
-// ----------------------------------------
-// Inner component — uses useSearchParams
-// ----------------------------------------
-
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  // ?redirect=/join/life-fitness — passed from the join page
   const redirectParam = searchParams.get("redirect");
 
-  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
@@ -39,43 +32,35 @@ function RegisterForm() {
     password: "",
   });
   const [isVisible, setIsVisible] = useState(false);
-  const [error, setError] = useState("");
+
+  const { register, registering, registerError, resetErrors } = useAuth();
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    resetErrors();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError("");
 
-    try {
-      const response = await apiClient.post("auth/register-user", formData);
+    const success = await register({
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phone: formData.phone,
+      password: formData.password,
+    });
 
-      if (response.data.statusCode === 201) {
-        toast.success("Account created! Please sign in to continue.");
+    if (success) {
+      toast.success("Account created! Please verify your email.");
 
-        // Preserve the redirect param so after login the user lands on the join page
-        if (redirectParam) {
-          router.push(
-            `/auth/login?redirect=${encodeURIComponent(redirectParam)}`
-          );
-        } else {
-          router.push("/auth/login");
-        }
-      }
-    } catch (error: any) {
-      const errorMessage =
-        error.response?.data?.message ||
-        "Registration failed. Please try again.";
-      toast.error(errorMessage);
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
+      // ✅ FIXED: Use your actual OTP page route
+      router.push(
+        `/auth/OTPVerification?email=${encodeURIComponent(formData.email)}`,
+      );
     }
   };
 
@@ -96,28 +81,68 @@ function RegisterForm() {
       {/* Scattered Avatar Illustrations */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[10%] left-[25%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/walking_call.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/walking_call.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute bottom-[8%] right-[19%] w-28 h-28 sm:w-36 sm:h-36 opacity-90">
-          <Image src="/undraw/knowledge_sharing.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/knowledge_sharing.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute bottom-[34%] left-[23%] w-20 h-20 sm:w-28 sm:h-28 opacity-90">
-          <Image src="/undraw/working.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/working.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute bottom-[15%] left-[16%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/mindfulness.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/mindfulness.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute top-[30%] right-[20%] w-20 h-20 sm:w-28 sm:h-28 opacity-90">
-          <Image src="/undraw/accept_task.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/accept_task.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="absolute top-[8%] right-[23%] w-24 h-24 sm:w-32 sm:h-32 opacity-90">
-          <Image src="/undraw/processing.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/processing.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="hidden lg:block absolute top-[28%] left-[18%] w-28 h-28 opacity-80">
-          <Image src="/undraw/walking_email.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/walking_email.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
         <div className="hidden lg:block absolute bottom-[32%] right-[25%] w-24 h-24 opacity-80">
-          <Image src="/undraw/absorbed.svg" alt="" fill className="object-contain" />
+          <Image
+            src="/undraw/absorbed.svg"
+            alt=""
+            fill
+            className="object-contain"
+          />
         </div>
       </div>
 
@@ -143,9 +168,9 @@ function RegisterForm() {
             </div>
 
             {/* Error Message */}
-            {error && (
+            {registerError && (
               <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-                <p className="text-sm text-red-700">{error}</p>
+                <p className="text-sm text-red-700">{registerError}</p>
               </div>
             )}
 
@@ -168,7 +193,7 @@ function RegisterForm() {
                     placeholder="John"
                     value={formData.firstName}
                     onChange={handleChange}
-                    disabled={isLoading}
+                    disabled={registering}
                     startContent={<User className="w-4 h-4 text-gray-400" />}
                     classNames={{
                       input:
@@ -193,7 +218,7 @@ function RegisterForm() {
                     placeholder="Doe"
                     value={formData.lastName}
                     onChange={handleChange}
-                    disabled={isLoading}
+                    disabled={registering}
                     startContent={<User className="w-4 h-4 text-gray-400" />}
                     classNames={{
                       input:
@@ -222,7 +247,7 @@ function RegisterForm() {
                   placeholder="you@example.com"
                   value={formData.email}
                   onChange={handleChange}
-                  disabled={isLoading}
+                  disabled={registering}
                   startContent={<Mail className="w-4 h-4 text-gray-400" />}
                   classNames={{
                     input:
@@ -249,7 +274,7 @@ function RegisterForm() {
                   placeholder="+1 (555) 000-0000"
                   value={formData.phone}
                   onChange={handleChange}
-                  disabled={isLoading}
+                  disabled={registering}
                   startContent={<Phone className="w-4 h-4 text-gray-400" />}
                   classNames={{
                     input:
@@ -277,7 +302,7 @@ function RegisterForm() {
                   placeholder="Create a strong password"
                   value={formData.password}
                   onChange={handleChange}
-                  disabled={isLoading}
+                  disabled={registering}
                   startContent={<Lock className="w-4 h-4 text-gray-400" />}
                   endContent={
                     <button
@@ -313,10 +338,10 @@ function RegisterForm() {
                 type="submit"
                 variant="default"
                 size="lg"
-                disabled={isLoading}
+                disabled={registering}
                 className="w-full mt-6"
               >
-                {isLoading ? "Creating account..." : "Create Account"}
+                {registering ? "Creating account..." : "Create Account"}
               </Button>
             </form>
 
@@ -365,18 +390,15 @@ function RegisterForm() {
   );
 }
 
-// ----------------------------------------
-// Page — wraps RegisterForm in Suspense because
-// useSearchParams() requires it in Next.js 13+
-// ----------------------------------------
-
 export default function RegisterPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <Spinner color="success" size="lg" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Spinner color="success" size="lg" />
+        </div>
+      }
+    >
       <RegisterForm />
     </Suspense>
   );
