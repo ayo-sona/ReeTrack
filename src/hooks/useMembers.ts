@@ -1,17 +1,29 @@
+// hooks/useMembers.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { membersApi, UpdateMemberDto } from "../lib/organizationAPI/membersApi";
+import { Member } from "@/types/organization"; // ✅ Add this import
 
-// Get all members
+interface MembersResponse {
+  data: Member[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+// Get all members with pagination
 export const useMembers = (
   page: number = 1,
   limit: number = 10,
   status?: string,
 ) => {
-  return useQuery({
-    queryKey: ["members", page, limit],
+  return useQuery<MembersResponse>({
+    queryKey: ["members", page, limit, status],
     queryFn: () => membersApi.getAll(page, limit, status),
     retry: false,
-    placeholderData: (previousData) => previousData, // ⭐ Keep previous data while loading new data
+    placeholderData: (previousData) => previousData,
   });
 };
 
@@ -46,7 +58,6 @@ export const useUpdateMember = () => {
     mutationFn: ({ id, data }: { id: string; data: UpdateMemberDto }) =>
       membersApi.update(id, data),
     onSuccess: (_, variables) => {
-      // Invalidate member queries
       queryClient.invalidateQueries({ queryKey: ["member", variables.id] });
       queryClient.invalidateQueries({ queryKey: ["members"] });
     },
@@ -60,7 +71,6 @@ export const useDeleteMember = () => {
   return useMutation({
     mutationFn: (id: string) => membersApi.delete(id),
     onSuccess: () => {
-      // Invalidate members list
       queryClient.invalidateQueries({ queryKey: ["members"] });
     },
   });

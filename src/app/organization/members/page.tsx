@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { MembersTable } from "../../../components/organization/MembersTable";
 import { MemberFilters } from "../../../components/organization/MemberFilters";
+import { Pagination } from "../../../components/organization/Pagination";
 import { UserPlus, AlertCircle } from "lucide-react";
 import { useMembers } from "../../../hooks/useMembers";
 import { Member } from "../../../types/memberTypes/member";
@@ -25,11 +26,19 @@ export default function MembersPage() {
   const { data: membersData, isLoading, error } = useMembers(page, PAGE_SIZE);
 
   const members = useMemo(() => {
-    if (!membersData) return [];
-    if (Array.isArray(membersData)) return membersData as Member[];
-    return (membersData as { data?: Member[] }).data || [];
+    if (!membersData?.data) return [];
+    return membersData.data;
   }, [membersData]);
 
+  const meta = useMemo(() => {
+    if (!membersData?.meta) {
+      return { page: 1, limit: PAGE_SIZE, total: 0, totalPages: 1 };
+    }
+    console.log("Meta from API:", membersData.meta); // 👈 Add this
+    return membersData.meta;
+  }, [membersData]);
+
+  // Client-side filtering (applied to current page only)
   const filteredMembers = useMemo(() => {
     return members.filter((member: Member) => {
       if (filters.search) {
@@ -68,6 +77,11 @@ export default function MembersPage() {
     });
   }, [members, filters]);
 
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   // ── Error ────────────────────────────────────────────────────────────────
   if (error) {
     return (
@@ -81,7 +95,7 @@ export default function MembersPage() {
         <h2 className="text-base font-bold text-[#1F2937] mb-1">
           Failed to load members
         </h2>
-        <p className="text-sm text-[#9CA3AF] mb-5">
+        <p className="text-sm text-[#1F2937]/60 mb-5">
           Something went wrong. Please try again.
         </p>
         <Button
@@ -104,8 +118,8 @@ export default function MembersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-[#1F2937]">Members</h1>
-          <p className="text-sm text-[#9CA3AF] mt-0.5">
+          <h1 className="text-xl font-extrabold text-[#1F2937]">Members</h1>
+          <p className="text-sm text-[#1F2937]/60 mt-0.5">
             Manage and monitor all member subscriptions
           </p>
         </div>
@@ -120,6 +134,15 @@ export default function MembersPage() {
           Add Member
         </Button>
       </div>
+
+      {/* Stats */}
+      {!isLoading && meta && meta.total > 0 && (
+        <div className="bg-[#0D9488]/5 border border-[#0D9488]/10 rounded-xl px-4 py-3">
+          <p className="text-sm text-[#0D9488] font-semibold">
+            Showing {members.length} of {meta.total} total members
+          </p>
+        </div>
+      )}
 
       {/* Filters */}
       <MemberFilters
@@ -136,6 +159,15 @@ export default function MembersPage() {
         isSearching={filters.search.length > 0}
         isLoading={isLoading}
       />
+      
+      {!isLoading && meta && meta.totalPages > 1 && (
+        <Pagination
+          currentPage={meta.page}
+          totalPages={meta.totalPages}
+          onPageChange={handlePageChange}
+          isLoading={isLoading}
+        />
+      )}
 
       {/* Create modal */}
       <CreateMemberModal

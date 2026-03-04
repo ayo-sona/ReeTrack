@@ -101,6 +101,24 @@ export const getSubscriptions = async (
 };
 
 /**
+ * Get a single subscription by ID
+ * GET /api/v1/subscriptions/member/:subscriptionId
+ *
+ * Note: The API returns the member object with nested subscriptions.
+ * We find the specific subscription by ID from the array.
+ */
+export const getSubscriptionById = async (subscriptionId: string) => {
+  const { data } = await apiClient.get(
+    `/subscriptions/member/${subscriptionId}`,
+  );
+  const member = data?.data;
+  if (!member?.subscriptions?.length) return null;
+  return (
+    member.subscriptions.find((sub: any) => sub.id === subscriptionId) ?? null
+  );
+};
+
+/**
  * Cancel a subscription
  * PATCH /api/v1/subscriptions/members/:subscriptionId/cancel
  */
@@ -179,8 +197,6 @@ export const initializePayment = async (paymentData: {
   );
   return data;
 };
-
-// Add this section to your member API file
 
 // ============================================
 // PLANS API - Member Plans
@@ -317,6 +333,7 @@ export const memberApi = {
   // Subscriptions
   getMySubscription,
   getSubscriptions,
+  getSubscriptionById,
   cancelSubscription,
   reactivateSubscription,
   renewSubscription,
@@ -335,7 +352,7 @@ export const memberApi = {
   markInvoiceAsPaid,
   cancelInvoice,
 
-  // Plans (NEW)
+  // Plans
   getAvailablePlans,
   getMemberPlans,
   getActivePlans,

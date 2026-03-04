@@ -80,7 +80,7 @@ export default function AdminRegisterPage() {
     return true;
   };
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
@@ -123,7 +123,22 @@ export default function AdminRegisterPage() {
           phone: formData.phone,
           password: formData.password,
         });
-        toast.success("Account created! Setting up your organization...");
+        
+        // Store organization details for after OTP verification
+        localStorage.setItem('pending_org_data', JSON.stringify({
+          organizationName: formData.organizationName,
+          organizationEmail: formData.organizationEmail,
+          email: formData.email,
+          password: formData.password,
+        }));
+        
+        toast.success("Account created! Please verify your email.");
+        
+        // Redirect to OTP page with org creation flag
+        router.push(`/auth/OTPVerification?email=${encodeURIComponent(formData.email)}&redirect=org-setup`);
+        setIsLoading(false);
+        return; // Exit here for new users - they'll complete org setup after OTP
+        
       } catch (err: any) {
         const status = err?.response?.data?.statusCode;
         const message = err?.response?.data?.message || "";
@@ -150,70 +165,63 @@ export default function AdminRegisterPage() {
       }
     }
 
-    // Step 2: Login with credential
-    try {
-      const response = await apiClient.post("/auth/login", {
-        email: formData.email,
-        password: formData.password,
-      });
-      console.log("Logging in");
-    } catch (err: any) {
-      console.error("Login error:", err.response);
-      const { statusCode, message } = err.response.data;
-      if (err.response) setError(message);
-      setError(err.message || "Failed to complete registration");
-      setIsLoading(false);
-      return;
-    }
-
-    // Step 3: Create organization
-    try {
-      const response = await apiClient.post("/auth/register-organization", {
-        organizationName: formData.organizationName,
-        organizationEmail: formData.organizationEmail,
-        email: formData.email,
-      });
-
-      console.log(response);
-      if (response.data.statusCode === 201) {
-        localStorage.setItem(
-          "newOrganizationId",
-          response.data.data.organization.id,
-        );
-        toast.success("Organization created successfully!");
-      }
-    } catch (err: any) {
-      const message =
-        err?.response?.data?.message ||
-        "Failed to create organization. Please try again.";
-
-      // If user account was created but org failed, flip to existing user mode
-      if (!isExistingUser) {
-        setIsExistingUser(true);
-        setError(
-          `Your account was created but we couldn't set up your organization. Please click "Create Organization" again to retry — your account is already ready.`,
-        );
-      } else {
+    // Step 2: Login with credential (only for existing users now)
+    if (isExistingUser) {
+      try {
+        await apiClient.post("/auth/login", {
+          email: formData.email,
+          password: formData.password,
+        });
+        console.log("Logging in");
+      } catch (err: any) {
+        console.error("Login error:", err.response);
+        const message = err?.response?.data?.message || "Failed to complete registration";
         setError(message);
+        setIsLoading(false);
+        return;
       }
-      
-      toast.error(message);
-      setIsLoading(false);
-      return;
     }
 
-    // Delete cookies
-    deleteCookie("access_token");
-    deleteCookie("user_roles");
-    deleteCookie("current_role");
+    // Step 3: Create organization (only for existing users now)
+    if (isExistingUser) {
+      try {
+        const response = await apiClient.post("/auth/register-organization", {
+          organizationName: formData.organizationName,
+          organizationEmail: formData.organizationEmail,
+          email: formData.email,
+        });
 
-    // Registration complete — set flag so login page redirects to onboarding
-    localStorage.setItem("onboarding_pending", "true");
-    toast.success("Success! Redirecting to login...");
-    
-    setTimeout(() => {
-      router.push("/auth/login");
-    }, 1000);
+        console.log(response);
+        if (response.data.statusCode === 201) {
+          localStorage.setItem(
+            "newOrganizationId",
+            response.data.data.organization.id,
+          );
+          toast.success("Organization created successfully!");
+        }
+      } catch (err: any) {
+        const message =
+          err?.response?.data?.message ||
+          "Failed to create organization. Please try again.";
+        setError(message);
+        toast.error(message);
+        setIsLoading(false);
+        return;
+      }
+
+      // Delete cookies
+      deleteCookie("access_token");
+      deleteCookie("user_roles");
+      deleteCookie("current_role");
+
+      // Registration complete — set flag so login page redirects to onboarding
+      localStorage.setItem("onboarding_pending", "true");
+      toast.success("Success! Redirecting to login...");
+      
+      setTimeout(() => {
+        router.push("/auth/login");
+      }, 1000);
+    }
     
     setIsLoading(false);
   };

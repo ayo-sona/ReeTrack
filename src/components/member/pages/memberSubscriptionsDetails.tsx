@@ -20,7 +20,6 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-// import { isBefore, startOfToday } from "date-fns";
 
 const C = {
   teal: "#0D9488",
@@ -51,7 +50,7 @@ const isExpiringSoon = (expiresAt: string) => {
 const STATUS_CONFIG: Record<string, { label: string }> = {
   active: { label: "Active" },
   expired: { label: "Expired" },
-  canceled: { label: "Canceled" },
+  cancelled: { label: "Cancelled" },
   pending: { label: "Pending" },
 };
 
@@ -151,10 +150,15 @@ export default function SubscriptionDetailsPage() {
   }
 
   const status = subscription.status;
-  const statusCfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.canceled;
-  const expiring =
-    status === "active" && isExpiringSoon(subscription.expires_at);
-  const features: string[] = subscription.plan.features?.features ?? [];
+  const statusCfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.cancelled;
+  const expiring = status === "active" && isExpiringSoon(subscription.expires_at);
+
+  // API returns features as a plain string array e.g. ["Cold water"]
+  const rawFeatures = subscription.plan.features;
+  const features: string[] = Array.isArray(rawFeatures)
+    ? rawFeatures
+    : (rawFeatures as any)?.features ?? [];
+
   const canRenew = status === "cancelled";
   const canCancel = status === "active";
   const hasExpired = subscription.expires_at < new Date().toISOString();
@@ -374,16 +378,12 @@ export default function SubscriptionDetailsPage() {
                 {[
                   {
                     label: "Started",
-                    value: new Date(
-                      subscription.started_at,
-                    ).toLocaleDateString(),
+                    value: new Date(subscription.started_at).toLocaleDateString(),
                     warn: false,
                   },
                   {
                     label: subscription.auto_renew ? "Renews" : "Expires",
-                    value: new Date(
-                      subscription.expires_at,
-                    ).toLocaleDateString(),
+                    value: new Date(subscription.expires_at).toLocaleDateString(),
                     warn: expiring,
                   },
                   {
@@ -500,8 +500,8 @@ export default function SubscriptionDetailsPage() {
           </motion.div>
         )}
 
-        {/* Canceled alert */}
-        {status === "cancelled" && subscription.canceled_at && (
+        {/* Cancelled alert */}
+        {status === "cancelled" && subscription.cancelled_at && (
           <motion.div
             variants={fadeUp}
             initial="hidden"
@@ -545,7 +545,7 @@ export default function SubscriptionDetailsPage() {
                     marginBottom: "4px",
                   }}
                 >
-                  Subscription Canceled
+                  Subscription Cancelled
                 </p>
                 <p
                   style={{
@@ -555,9 +555,9 @@ export default function SubscriptionDetailsPage() {
                     lineHeight: 1.6,
                   }}
                 >
-                  Canceled on{" "}
+                  Cancelled on{" "}
                   <strong style={{ color: C.ink }}>
-                    {new Date(subscription.canceled_at).toLocaleDateString()}
+                    {new Date(subscription.cancelled_at).toLocaleDateString()}
                   </strong>
                   . You can reactivate anytime.
                 </p>

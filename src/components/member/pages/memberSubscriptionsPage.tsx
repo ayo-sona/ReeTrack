@@ -261,7 +261,7 @@ export default function SubscriptionsPage() {
                     filter: "blur(14px)", opacity: 0.7, zIndex: 0,
                   }} />
                   <div style={{ position: "relative", zIndex: 1 }}>
-                    <Button variant="default" size="lg" onClick={() => router.push("/communities")}>
+                    <Button variant="default" size="lg" onClick={() => router.push("/member/communities")}>
                       Browse Plans
                     </Button>
                   </div>
