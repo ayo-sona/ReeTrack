@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { membersApi } from "@/lib/organizationAPI/membersApi";
 import { useQuery } from "@tanstack/react-query";
-import { Member } from "@/types/memberTypes/member";
+import { Member } from "@/types/organization";
 // import {
 //   useNotificationHistory,
 //   useSendNotification,

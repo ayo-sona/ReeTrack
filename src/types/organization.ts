@@ -84,20 +84,24 @@ export interface Member {
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+  organization_user?: OrganizationUser;
 
   // Direct user object from API
-  user: {
-    id: string;
-    email: string;
-    first_name: string;
-    last_name: string;
-    phone: string;
-    status: "active" | "inactive";
-    email_verified: boolean;
-    last_login_at: string;
-    created_at: string;
-    updated_at: string;
-  };
+  // Direct user object from API
+user: {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  date_of_birth?: string | null; // ✅ ADD THIS
+  address?: string | null; // ✅ ADD THIS
+  status: "active" | "inactive";
+  email_verified: boolean;
+  last_login_at: string | null; // ✅ Make this nullable
+  created_at: string;
+  updated_at: string;
+};
 
   // Subscriptions array
   subscriptions: Array<{
@@ -275,4 +279,171 @@ export interface OrganizationNotification {
   read: boolean;
   created_at: string;
   link?: string;
+}
+
+// ============================================
+// MEMBER-SPECIFIC TYPES (from memberTypes)
+// ============================================
+
+export interface MemberSubscription {
+  id: string;
+  member_id: string;
+  plan_id: string;
+  organization_id: string;
+  status: "active" | "expired" | "cancelled" | "pending";
+  started_at: string;
+  expires_at: string;
+  canceled_at: string | null;
+  auto_renew: boolean;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+  plan: {
+    id: string;
+    organization_id: string;
+    name: string;
+    description: string;
+    price: number;
+    currency: string;
+    interval: string;
+    interval_count: number;
+    features: {
+      features: string[];
+    };
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+  };
+}
+
+export interface OrganizationUser {
+  id: string;
+  user_id: string;
+  organization_id: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  role: string;
+  paystack_authorization_code?: string;
+  paystack_card_last4?: string;
+  paystack_card_brand?: string;
+  paystack_subaccount_code?: string;
+  organization?: Organization;
+}
+
+export interface MemberPayment {
+  id: string;
+  member_id: string;
+  invoice_id: string;
+  amount: number;
+  currency: string;
+  payment_method: string;
+  payment_provider: string;
+  provider_reference: string;
+  status: "pending" | "success" | "failed";
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+  invoice?: {
+    id: string;
+    amount: number;
+    due_date: string;
+    status: string;
+    member_subscription?: {
+      plan: SubscriptionPlan;
+    };
+  };
+}
+
+export interface MemberInvoice {
+  id: string;
+  member_id: string;
+  subscription_id: string;
+  amount: number;
+  currency: string;
+  status: "pending" | "paid" | "cancelled" | "failed";
+  due_date: string;
+  paid_at: string | null;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  subscription?: MemberSubscription;
+}
+
+export interface InvoiceStats {
+  total_invoices: number;
+  pending_invoices: number;
+  paid_invoices: number;
+  cancelled_invoices: number;
+  failed_invoices: number;
+  total_amount: number;
+  paid_amount: number;
+  pending_amount: number;
+}
+
+export interface MemberStats {
+  total_subscriptions: number;
+  active_subscriptions: number;
+  expired_subscriptions: number;
+  total_payments: number;
+  total_spent: number;
+  pending_invoices: number;
+  check_in_count: number;
+}
+
+export interface UpdateMemberDto {
+  date_of_birth?: string;
+  address?: string;
+  phone?: string;
+}
+
+export interface InitializePaymentDto {
+  email: string;
+  amount: number;
+  planId?: string;
+  subscriptionId?: string;
+}
+
+export interface SyntheticNotification {
+  id: string;
+  type: "success" | "warning" | "error" | "info";
+  title: string;
+  message: string;
+  link?: string;
+  createdAt: string;
+  category: "subscription" | "payment" | "achievement" | "system";
+}
+
+export interface SubscriptionDisplay {
+  id: string;
+  organizationId: string;
+  organizationName: string;
+  organizationLogo?: string;
+  planId: string;
+  planName: string;
+  planPrice: number;
+  planInterval: string;
+  planCurrency: string;
+  status: "active" | "expired" | "cancelled" | "pending";
+  features: string[];
+  autoRenew: boolean;
+  startedAt: string;
+  expiresAt: string;
+  nextBillingDate?: string;
+  canceledAt?: string | null;
+  createdAt: string;
+}
+
+export interface PaymentDisplay {
+  id: string;
+  amount: number;
+  currency: string;
+  status: "pending" | "success" | "failed";
+  paymentMethod: string;
+  reference: string;
+  organizationName: string;
+  planName: string;
+  description: string;
+  receiptUrl?: string;
+  createdAt: string;
 }

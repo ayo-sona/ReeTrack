@@ -4,7 +4,7 @@ import { Building2, MapPin } from "lucide-react";
 import { useMemberOrgs } from "@/hooks/memberHook/useMember";
 import { useRouter } from "next/navigation";
 import { useMemberStore } from "@/store/memberStore";
-import { Member } from "@/types/memberTypes/member";
+import { Member } from "@/types/organization";
 import React, { useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 

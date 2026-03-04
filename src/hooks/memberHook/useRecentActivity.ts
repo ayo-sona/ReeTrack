@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAllPayments } from "./useMember";
-import type { MemberPayment } from "@/types/memberTypes/member";
+import type { MemberPayment } from "@/types/organization";
 
 // ============================================
 // ACTIVITY TYPES
