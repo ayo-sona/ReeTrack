@@ -1,8 +1,8 @@
 "use client";
 
 import { Check, X, Clock, CreditCard } from "lucide-react";
-import { MemberPayment } from "@/types/memberTypes/member";
-import { useState } from "react";
+import { MemberPayment } from "@/types/organization";
+import { useState } from "react"; 
 
 const C = {
   teal:     "#0D9488",

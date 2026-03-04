@@ -4,7 +4,7 @@ import { Building2, MapPin, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
-import { Member } from "@/types/memberTypes/member";
+import { Member } from "@/types/organization";
 import { useMemberOrgs } from "@/hooks/memberHook/useMember";
 
 const C = {

@@ -482,7 +482,7 @@ export default function MemberDetailPage() {
 
       {showGrantAccessModal && (
         <GrantAccessModal
-          member={member}
+          member={member as any}
           onClose={() => setShowGrantAccessModal(false)}
           onGrant={handleGrantAccess}
           currentSubscription={currentSubscription}

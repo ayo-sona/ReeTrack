@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Info, AlertCircle, CheckCircle, XCircle, Check } from 'lucide-react';
-import { SyntheticNotification } from '@/types/memberTypes/member';
+import { SyntheticNotification } from '@/types/organization';
 import { useState } from 'react';
 
 const C = {

@@ -19,7 +19,7 @@ import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useMemberById } from "@/hooks/useMembers";
-import { Member } from "@/types/memberTypes/member";
+import { Member } from "@/types/organization";
 
 const C = {
   teal: "#0D9488",

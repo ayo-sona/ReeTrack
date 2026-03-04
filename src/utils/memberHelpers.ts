@@ -4,7 +4,7 @@ import type {
   MemberPayment,
   SubscriptionDisplay,
   PaymentDisplay,
-} from "@/types/memberTypes/member";
+} from "@/types/organization";
 
 // ============================================
 // DATA TRANSFORMATION HELPERS

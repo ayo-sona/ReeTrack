@@ -15,7 +15,7 @@ import type {
   UpdateMemberDto,
   InitializePaymentDto,
   PaginatedResponse,
-} from "@/types/memberTypes/member";
+} from "@/types/organization";
 
 // ============================================
 // TYPE DEFINITIONS FOR API RESPONSES

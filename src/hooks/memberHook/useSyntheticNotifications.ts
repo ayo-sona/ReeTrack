@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useAllSubscriptions, useAllPayments, useProfile } from "./useMember";
-import type { MemberPayment } from "@/types/memberTypes/member";
+import type { MemberPayment } from "@/types/organization";
 
 // ============================================
 // NOTIFICATION TYPES

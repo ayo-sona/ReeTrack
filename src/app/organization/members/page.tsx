@@ -6,7 +6,7 @@ import { MemberFilters } from "../../../components/organization/MemberFilters";
 import { Pagination } from "../../../components/organization/Pagination";
 import { UserPlus, AlertCircle } from "lucide-react";
 import { useMembers } from "../../../hooks/useMembers";
-import { Member } from "../../../types/memberTypes/member";
+import { Member } from "../../../types/organization";
 import { CreateMemberModal } from "../../../components/organization/CreateMemberModal";
 import { Button } from "@/components/ui/button";
 
