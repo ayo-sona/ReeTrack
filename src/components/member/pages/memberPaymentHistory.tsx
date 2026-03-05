@@ -81,11 +81,15 @@ function SkeletonCard() {
 function SkeletonRow() {
   return (
     <tr>
-      {[1, 2, 3].map((i) => (
-        <td key={i} style={{ padding: "16px 20px" }}>
-          <div style={{ height: "16px", borderRadius: "6px", background: C.border, animation: "pulse 1.5s ease-in-out infinite" }} />
-        </td>
-      ))}
+      <td className="invoice-id-col" style={{ padding: "16px 20px" }}>
+        <div style={{ height: "16px", borderRadius: "6px", background: C.border, animation: "pulse 1.5s ease-in-out infinite" }} />
+      </td>
+      <td style={{ padding: "16px 20px" }}>
+        <div style={{ height: "16px", borderRadius: "6px", background: C.border, animation: "pulse 1.5s ease-in-out infinite" }} />
+      </td>
+      <td style={{ padding: "16px 20px" }}>
+        <div style={{ height: "16px", borderRadius: "6px", background: C.border, animation: "pulse 1.5s ease-in-out infinite" }} />
+      </td>
     </tr>
   );
 }
@@ -141,7 +145,7 @@ function PaymentRow({ payment, index }: { payment: any; index: number }) {
         <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>
           {new Date(payment.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
         </p>
-        <p style={{ fontWeight: 400, fontSize: "11px", color: C.coolGrey, marginTop: "2px", maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <p className="payment-ref" style={{ fontWeight: 400, fontSize: "11px", color: C.coolGrey, marginTop: "2px", maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {reference}
         </p>
       </div>
@@ -218,26 +222,42 @@ export default function PaymentHistoryPage() {
   );
 
   return (
-    <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "32px 24px 96px" }}>
+    <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "24px 16px 96px" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
         * { box-sizing: border-box; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
         input::placeholder { color: #9CA3AF; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        @media (max-width: 640px) {
+          .stat-grid { grid-template-columns: 1fr 1fr; }
+          .stat-grid > *:last-child { grid-column: span 2; }
+          .payment-ref { display: none; }
+          .payment-method-tag { display: none; }
+          .invoice-id-col { display: none !important; }
+          .page-title { font-size: 24px !important; }
+          .section-title { font-size: 18px !important; }
+          .filter-btn { font-size: 11px !important; padding: 5px 10px !important; }
+        }
+        @media (max-width: 400px) {
+          .stat-grid { grid-template-columns: 1fr; }
+          .stat-grid > *:last-child { grid-column: span 1; }
+        }
       `}</style>
 
       <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
 
         {/* ── Page header ── */}
         <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} style={{ marginBottom: "32px" }}>
-          <h1 style={{ fontWeight: 800, fontSize: "32px", color: C.ink, letterSpacing: "-0.4px" }}>Payment History</h1>
+          <h1 className="page-title" style={{ fontWeight: 800, fontSize: "32px", color: C.ink, letterSpacing: "-0.4px" }}>Payment History</h1>
           <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, marginTop: "4px" }}>View all your payment transactions</p>
         </motion.div>
 
         {/* ── Search & filters ── */}
         <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1} style={{ marginBottom: "20px" }}>
           <div style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, padding: "20px 24px", display: "flex", flexWrap: "wrap", gap: "16px", alignItems: "center" }}>
-            <div style={{ position: "relative", flex: "1 1 260px" }}>
+            <div style={{ position: "relative", flex: "1 1 200px", minWidth: 0 }}>
               <Search size={15} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: searchFocused ? C.teal : C.coolGrey, transition: "color 300ms" }} />
               <input
                 type="text" placeholder="Search by plan, amount, or reference..."
@@ -267,7 +287,7 @@ export default function PaymentHistoryPage() {
         {/* ── Summary tiles ── */}
         {filteredPayments.length > 0 && (
           <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2} style={{ marginBottom: "20px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+            <div className="stat-grid">
               <StatTile label="Total Payments" value={String(paymentsMeta?.total ?? filteredPayments.length)} />
               <StatTile label="Total Amount"   value={formatCurrency(totalAmount)} />
               <StatTile label="Successful"     value={`${successfulItems.length} · ${formatCurrency(successfulAmount)}`} accent />
@@ -332,7 +352,7 @@ export default function PaymentHistoryPage() {
 
           {/* Invoice search & filters */}
           <div style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, padding: "20px 24px", display: "flex", flexWrap: "wrap", gap: "16px", alignItems: "center", marginBottom: "16px" }}>
-            <div style={{ position: "relative", flex: "1 1 240px" }}>
+            <div style={{ position: "relative", flex: "1 1 160px", minWidth: 0 }}>
               <Search size={15} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: invoiceSearchFocused ? C.teal : C.coolGrey, transition: "color 300ms" }} />
               <input
                 type="text" placeholder="Search invoices..."
@@ -364,15 +384,9 @@ export default function PaymentHistoryPage() {
             <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "Nunito, sans-serif" }}>
               <thead>
                 <tr style={{ background: C.snow, borderBottom: `1px solid ${C.border}` }}>
-                  {["Invoice ID", "Amount", "Status"].map((col) => (
-                    <th key={col} style={{
-                      padding: "14px 20px", textAlign: col === "Amount" ? "right" : "left",
-                      fontWeight: 700, fontSize: "12px", color: C.coolGrey,
-                      textTransform: "uppercase", letterSpacing: "0.5px",
-                    }}>
-                      {col}
-                    </th>
-                  ))}
+                  <th className="invoice-id-col" style={{ padding: "14px 20px", textAlign: "left", fontWeight: 700, fontSize: "12px", color: C.coolGrey, textTransform: "uppercase", letterSpacing: "0.5px" }}>Invoice ID</th>
+                  <th style={{ padding: "14px 20px", textAlign: "right", fontWeight: 700, fontSize: "12px", color: C.coolGrey, textTransform: "uppercase", letterSpacing: "0.5px" }}>Amount</th>
+                  <th style={{ padding: "14px 20px", textAlign: "left", fontWeight: 700, fontSize: "12px", color: C.coolGrey, textTransform: "uppercase", letterSpacing: "0.5px" }}>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -388,7 +402,7 @@ export default function PaymentHistoryPage() {
                         onMouseEnter={(e) => (e.currentTarget.style.background = C.snow)}
                         onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                       >
-                        <td style={{ padding: "16px 20px" }}>
+                        <td className="invoice-id-col" style={{ padding: "16px 20px" }}>
                           <span style={{ fontWeight: 600, fontSize: "13px", color: C.ink, fontFamily: "monospace" }}>
                             {inv.id?.slice(0, 8).toUpperCase()}…
                           </span>
