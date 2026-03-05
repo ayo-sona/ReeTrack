@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { ArrowLeft, Download, Check, X, Receipt, CreditCard, FileText } from "lucide-react";
-import { useAllPayments } from "@/hooks/memberHook/useMember";
+import { usePayment } from "@/hooks/usePayments";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -26,36 +26,36 @@ const fadeUp = {
   }),
 };
 
+const formatCurrency = (amount: number | string) => {
+  const n = typeof amount === "string" ? parseFloat(amount) : amount;
+  if (isNaN(n)) return "₦0.00";
+  return `₦${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
+const formatDate = (dateString: string) =>
+  new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric", month: "long", day: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+
 export default function PaymentReceiptPage() {
-  const params = useParams();
-  const router = useRouter();
-  const paymentId = params.id as string;
+  const params  = useParams();
+  const router  = useRouter();
+  const id      = params.id as string;
 
-  const { data: payments, isLoading } = useAllPayments();
-  const payment = payments?.find((p) => p.id === paymentId);
+  // Fetch the single payment directly — no need to load all payments
+  const { data: payment, isLoading } = usePayment(id);
 
+  // Pending payments have no receipt — redirect back
   useEffect(() => {
-    if (!isLoading && payment && payment.status === "pending") {
+    if (!isLoading && payment?.status === "pending") {
       router.push("/member/payments");
     }
   }, [payment, isLoading, router]);
 
-  const formatCurrency = (amount: number | string) => {
-    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    if (isNaN(numAmount)) return '₦0.00';
-    return `₦${numAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric', month: 'long', day: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
-  };
-
   const handlePrint = () => window.print();
 
-  // Loading state
+  // ─── Loading ────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "32px 24px" }}>
@@ -71,7 +71,7 @@ export default function PaymentReceiptPage() {
     );
   }
 
-  // Not found / pending state
+  // ─── Not found / pending ────────────────────────────────────────────────────
   if (!payment || payment.status === "pending") {
     return (
       <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "32px 24px" }}>
@@ -84,7 +84,7 @@ export default function PaymentReceiptPage() {
             {payment?.status === "pending" ? "Receipt Not Available" : "Payment not found"}
           </h3>
           <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, marginBottom: "24px", lineHeight: 1.6 }}>
-            {payment?.status === "pending" 
+            {payment?.status === "pending"
               ? "Receipts are only available for completed payments."
               : "The payment you're looking for doesn't exist or has been removed."}
           </p>
@@ -96,8 +96,14 @@ export default function PaymentReceiptPage() {
     );
   }
 
-  const planName = payment.invoice?.member_subscription?.plan.name || "Unknown Plan";
-  const planDescription = payment.invoice?.member_subscription?.plan.description || "";
+  // ─── Data ───────────────────────────────────────────────────────────────────
+  // Payment type has: provider, provider_reference, invoice (with member_subscription
+  // or organization_subscription), payer_user, amount, currency, status, created_at
+  const planName =
+    payment.invoice?.member_subscription?.plan?.name ||
+    payment.invoice?.organization_subscription?.plan?.name ||
+    "Unknown Plan";
+
   const reference = payment.provider_reference || payment.id;
   const isSuccess = payment.status === "success";
 
@@ -150,7 +156,7 @@ export default function PaymentReceiptPage() {
                   <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>Transaction ID: {payment.id}</p>
                 </div>
               </div>
-              
+
               <div style={{
                 display: "inline-flex", alignItems: "center", gap: "8px",
                 padding: "8px 16px", borderRadius: "999px",
@@ -176,26 +182,23 @@ export default function PaymentReceiptPage() {
 
           {/* Transaction details */}
           <div style={{ padding: "32px", display: "flex", flexDirection: "column", gap: "28px" }}>
-            
-            {/* Transaction info section */}
+
+            {/* Transaction info */}
             <div>
               <h2 style={{ fontWeight: 700, fontSize: "16px", color: C.teal, marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
                 <FileText size={18} />
                 Transaction Details
               </h2>
-              <div style={{ display: "grid", gap: "16px" }} className="md:grid-cols-2">
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   <div>
                     <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Reference Number</p>
                     <p style={{ fontWeight: 600, fontSize: "13px", color: C.ink, fontFamily: "monospace" }}>{reference}</p>
                   </div>
                   <div>
-                    <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment Method</p>
-                    <p style={{ fontWeight: 600, fontSize: "14px", color: C.ink, textTransform: "capitalize" }}>{payment.payment_method || "Card"}</p>
-                  </div>
-                  <div>
                     <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment Provider</p>
-                    <p style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}>{payment.payment_provider || "Paystack"}</p>
+                    {/* provider comes from the Payment type directly */}
+                    <p style={{ fontWeight: 600, fontSize: "14px", color: C.ink, textTransform: "capitalize" }}>{payment.provider || "Paystack"}</p>
                   </div>
                 </div>
 
@@ -208,17 +211,27 @@ export default function PaymentReceiptPage() {
                     <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Currency</p>
                     <p style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}>{payment.currency?.toUpperCase() || "NGN"}</p>
                   </div>
-                  {payment.invoice_id && (
-                    <div>
-                      <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Invoice ID</p>
-                      <p style={{ fontWeight: 600, fontSize: "13px", color: C.ink, fontFamily: "monospace" }}>{payment.invoice_id}</p>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
 
-            {/* Plan info section */}
+            {/* Payer info — comes from payer_user on the Payment type */}
+            {payment.payer_user && (
+              <div style={{ paddingTop: "28px", borderTop: `1px solid ${C.border}` }}>
+                <h2 style={{ fontWeight: 700, fontSize: "16px", color: C.teal, marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <FileText size={18} />
+                  Billed To
+                </h2>
+                <p style={{ fontWeight: 600, fontSize: "15px", color: C.ink }}>
+                  {payment.payer_user.first_name} {payment.payer_user.last_name}
+                </p>
+                <p style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey, marginTop: "4px" }}>
+                  {payment.payer_user.email}
+                </p>
+              </div>
+            )}
+
+            {/* Plan info */}
             <div style={{ paddingTop: "28px", borderTop: `1px solid ${C.border}` }}>
               <h2 style={{ fontWeight: 700, fontSize: "16px", color: C.teal, marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
                 <CreditCard size={18} />
@@ -234,10 +247,12 @@ export default function PaymentReceiptPage() {
                     {planName.charAt(0)}
                   </div>
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ fontWeight: 700, fontSize: "18px", color: C.ink, marginBottom: "4px" }}>{planName}</h3>
-                    {planDescription && (
-                      <p style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey, lineHeight: 1.6 }}>{planDescription}</p>
-                    )}
+                    <h3 style={{ fontWeight: 700, fontSize: "18px", color: C.ink }}>{planName}</h3>
+                    <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey, marginTop: "4px" }}>
+                      {payment.invoice?.member_subscription?.auto_renew
+                        ? "Auto-renews each period"
+                        : "Does not auto-renew"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -252,7 +267,7 @@ export default function PaymentReceiptPage() {
                   <span style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}>{formatCurrency(payment.amount)}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey }}>Tax/Fees</span>
+                  <span style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey }}>Tax / Fees</span>
                   <span style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}>{formatCurrency(0)}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "12px", borderTop: `2px solid ${C.border}` }}>
@@ -271,7 +286,7 @@ export default function PaymentReceiptPage() {
                 <div>
                   <h3 style={{ fontWeight: 600, fontSize: "15px", color: C.teal, marginBottom: "4px" }}>Payment Successful</h3>
                   <p style={{ fontWeight: 400, fontSize: "13px", color: C.ink, lineHeight: 1.6 }}>
-                    Your payment has been processed successfully. This receipt has been sent to your email.
+                    Your payment has been processed successfully. A copy of this receipt has been sent to {payment.payer_user?.email || "your email"}.
                   </p>
                 </div>
               </div>
@@ -283,7 +298,7 @@ export default function PaymentReceiptPage() {
                 <div>
                   <h3 style={{ fontWeight: 600, fontSize: "15px", color: C.coral, marginBottom: "4px" }}>Payment Failed</h3>
                   <p style={{ fontWeight: 400, fontSize: "13px", color: C.ink, lineHeight: 1.6 }}>
-                    This payment was not successful. Please contact support if you believe this is an error or try making the payment again.
+                    This payment was not successful. Please contact support if you believe this is an error, or try again.
                   </p>
                 </div>
               </div>
