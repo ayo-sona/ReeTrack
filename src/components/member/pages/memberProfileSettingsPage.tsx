@@ -56,6 +56,7 @@ function Field({ label, hint, value, onChange, type = "text", disabled = false, 
           color: disabled ? C.coolGrey : C.ink, outline: "none",
           cursor: disabled ? "not-allowed" : "text",
           transition: "border-color 300ms, box-shadow 300ms",
+          width: "100%",
         }}
       />
     </div>
@@ -147,18 +148,125 @@ export default function ProfileSettingsPage() {
   const initials = (actualProfile.first_name?.charAt(0) || "") + (actualProfile.last_name?.charAt(0) || "");
 
   return (
-    <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "32px 24px 96px" }}>
+    <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "24px 16px 96px" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
         * { box-sizing: border-box; }
         input[type=date]::-webkit-calendar-picker-indicator { opacity: 0.4; cursor: pointer; }
         input::placeholder { color: #9CA3AF; }
+
+        .settings-layout {
+          display: grid;
+          grid-template-columns: 200px 1fr;
+          gap: 20px;
+          align-items: start;
+        }
+        .settings-sidebar {
+          position: sticky;
+          top: 24px;
+        }
+        .fields-grid-2 {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          margin-bottom: 12px;
+        }
+        .fields-grid-editable {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+        .account-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+        .card-padding {
+          padding: 36px;
+        }
+        .avatar-section {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          margin-bottom: 28px;
+          padding-bottom: 28px;
+          border-bottom: 1px solid ${C.border};
+          flex-wrap: nowrap;
+        }
+        .edit-actions {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+        .tab-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 28px;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+        .page-header {
+          margin-bottom: 28px;
+        }
+
+        @media (max-width: 768px) {
+          .settings-layout {
+            grid-template-columns: 1fr;
+          }
+          .settings-sidebar {
+            position: static;
+          }
+          .settings-sidebar > div {
+            flex-direction: row !important;
+            padding: 8px !important;
+          }
+          .settings-sidebar button {
+            flex: 1;
+            justify-content: center !important;
+          }
+          .fields-grid-2 {
+            grid-template-columns: 1fr;
+          }
+          .fields-grid-editable {
+            grid-template-columns: 1fr;
+          }
+          .account-grid {
+            grid-template-columns: 1fr;
+          }
+          .card-padding {
+            padding: 24px 20px;
+          }
+          .avatar-section {
+            flex-wrap: wrap;
+            gap: 16px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .card-padding {
+            padding: 20px 16px;
+          }
+          .edit-actions {
+            width: 100%;
+          }
+          .tab-header {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .edit-actions {
+            justify-content: flex-start;
+          }
+        }
       `}</style>
 
       <div style={{ maxWidth: "900px", margin: "0 auto" }}>
 
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} style={{ marginBottom: "32px" }}>
-          <h1 style={{ fontWeight: 800, fontSize: "32px", color: C.ink, letterSpacing: "-0.4px" }}>Settings</h1>
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} className="page-header">
+          <h1 style={{ fontWeight: 800, fontSize: "clamp(24px, 5vw, 32px)", color: C.ink, letterSpacing: "-0.4px" }}>Settings</h1>
           <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, marginTop: "4px" }}>Manage your account settings and preferences</p>
         </motion.div>
 
@@ -178,10 +286,10 @@ export default function ProfileSettingsPage() {
           )}
         </AnimatePresence>
 
-        <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: "20px", alignItems: "start" }}>
+        <div className="settings-layout">
 
           {/* Sidebar */}
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1}>
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1} className="settings-sidebar">
             <div style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, padding: "10px", display: "flex", flexDirection: "column", gap: "4px" }}>
               {(["profile", "account"] as const).map((tab) => (
                 <Button
@@ -203,20 +311,23 @@ export default function ProfileSettingsPage() {
 
               {/* Profile tab */}
               {activeTab === "profile" && (
-                <motion.div key="profile" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                  style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "36px" }}
+                <motion.div
+                  key="profile"
+                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}` }}
+                  className="card-padding"
                 >
                   {/* Header */}
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+                  <div className="tab-header">
                     <h2 style={{ fontWeight: 700, fontSize: "18px", color: C.teal }}>Personal Information</h2>
                     {!isEditing ? (
                       <Button variant="outline" onClick={() => setIsEditing(true)}>Edit Profile</Button>
                     ) : (
-                      <div style={{ display: "flex", gap: "8px" }}>
+                      <div className="edit-actions">
                         <Button variant="ghost" onClick={() => { setIsEditing(false); setEditedDateOfBirth(null); setEditedAddress(null); }}>
                           Cancel
                         </Button>
-                        {/* Coral save CTA with glow */}
                         <div style={{ position: "relative" }}>
                           <div style={{ position: "absolute", inset: "-4px", borderRadius: "12px", background: `linear-gradient(to right, rgba(240,101,67,0.4), rgba(240,101,67,0.2), rgba(240,101,67,0.4))`, filter: "blur(12px)", opacity: 0.65, zIndex: 0 }} />
                           <div style={{ position: "relative", zIndex: 1 }}>
@@ -231,15 +342,15 @@ export default function ProfileSettingsPage() {
                   </div>
 
                   {/* Avatar */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "28px", paddingBottom: "28px", borderBottom: `1px solid ${C.border}` }}>
+                  <div className="avatar-section">
                     <div style={{ width: "72px", height: "72px", borderRadius: "18px", background: C.teal, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "24px", color: C.white, flexShrink: 0, letterSpacing: "-0.5px" }}>
                       {initials}
                     </div>
-                    <div>
-                      <p style={{ fontWeight: 700, fontSize: "18px", color: C.ink, marginBottom: "2px" }}>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ fontWeight: 700, fontSize: "18px", color: C.ink, marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {actualProfile.first_name} {actualProfile.last_name}
                       </p>
-                      <p style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey }}>{actualProfile.email}</p>
+                      <p style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{actualProfile.email}</p>
                       <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginTop: "4px" }}>
                         Member since {new Date(actualProfile.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
                       </p>
@@ -249,14 +360,14 @@ export default function ProfileSettingsPage() {
                   {/* Read-only fields */}
                   <div style={{ marginBottom: "28px", paddingBottom: "28px", borderBottom: `1px solid ${C.border}` }}>
                     <p style={{ fontWeight: 700, fontSize: "13px", color: C.coolGrey, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "16px" }}>Account Information</p>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "12px" }}>
+                    <div className="fields-grid-2">
                       <Field label="First Name" value={actualProfile.first_name || ""} disabled />
                       <Field label="Last Name"  value={actualProfile.last_name  || ""} disabled />
                       <Field label="Email"      value={actualProfile.email      || ""} disabled type="email" />
                       <Field label="Phone"      value={phone}                          disabled type="tel" />
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <AlertCircle size={13} style={{ color: C.coolGrey }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "4px" }}>
+                      <AlertCircle size={13} style={{ color: C.coolGrey, flexShrink: 0 }} />
                       <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey }}>Contact support to update these fields</p>
                     </div>
                   </div>
@@ -264,7 +375,7 @@ export default function ProfileSettingsPage() {
                   {/* Editable fields */}
                   <div>
                     <p style={{ fontWeight: 700, fontSize: "13px", color: C.coolGrey, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "16px" }}>Additional Information</p>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+                    <div className="fields-grid-editable">
                       <Field label="Date of Birth" hint="Required for age-restricted subscriptions" value={dateOfBirth} onChange={setEditedDateOfBirth} type="date" disabled={!isEditing} />
                       <Field label="Address" hint="Your residential address" value={address} onChange={setEditedAddress} placeholder="Enter your address" disabled={!isEditing} />
                     </div>
@@ -283,13 +394,16 @@ export default function ProfileSettingsPage() {
 
               {/* Account tab */}
               {activeTab === "account" && (
-                <motion.div key="account" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                <motion.div
+                  key="account"
+                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                   style={{ display: "flex", flexDirection: "column", gap: "16px" }}
                 >
                   {/* Overview */}
-                  <div style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "32px" }}>
+                  <div style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}` }} className="card-padding">
                     <h2 style={{ fontWeight: 700, fontSize: "18px", color: C.teal, marginBottom: "20px" }}>Account Overview</h2>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div className="account-grid">
                       {[
                         { label: "Account Status", value: actualProfile.status || "Active" },
                         { label: "Last Login", value: actualProfile.last_login_at ? new Date(actualProfile.last_login_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Never" },
@@ -303,7 +417,7 @@ export default function ProfileSettingsPage() {
                   </div>
 
                   {/* Sign out */}
-                  <div style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "32px" }}>
+                  <div style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}` }} className="card-padding">
                     <h3 style={{ fontWeight: 700, fontSize: "16px", color: C.ink, marginBottom: "6px" }}>Sign Out</h3>
                     <p style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey, lineHeight: 1.6, marginBottom: "20px" }}>
                       Sign out of your account on this device. You can sign back in anytime.
