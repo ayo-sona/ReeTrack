@@ -160,8 +160,8 @@ export default function SubscriptionDetailsPage() {
     : (rawFeatures as any)?.features ?? [];
 
   const canRenew = status === "cancelled";
-  const canCancel = status === "active";
-  const hasExpired = subscription.expires_at < new Date().toISOString();
+  const canCancel = status === "active" || status === "pending";
+  const hasExpired = status !== "pending" && subscription.expires_at < new Date().toISOString();
 
   return (
     <div

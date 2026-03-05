@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Check, X, Clock, CreditCard } from "lucide-react";
-import { useAllPayments } from "@/hooks/memberHook/useMember";
+import { Search, Check, X, Clock, CreditCard, FileText } from "lucide-react";
+import { usePayments, useInvoices } from "@/hooks/memberHook/useMember";
+import { Pagination } from "@/components/organization/Pagination";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ const C = {
   ink:      "#1F2937",
   coolGrey: "#9CA3AF",
   border:   "#E5E7EB",
+  amber:    "#D97706",
 };
 
 const fadeUp = {
@@ -25,8 +27,13 @@ const fadeUp = {
   }),
 };
 
-type StatusFilter = "all" | "success" | "pending" | "failed";
-const FILTERS: StatusFilter[] = ["all", "success", "pending", "failed"];
+type PaymentStatusFilter = "all" | "success" | "pending" | "failed";
+const PAYMENT_FILTERS: PaymentStatusFilter[] = ["all", "success", "pending", "failed"];
+
+type InvoiceStatusFilter = "all" | "pending" | "paid" | "cancelled" | "failed";
+const INVOICE_FILTERS: InvoiceStatusFilter[] = ["all", "pending", "paid", "cancelled", "failed"];
+
+const ITEMS_PER_PAGE = 5;
 
 const formatCurrency = (amount: number | string) => {
   const n = typeof amount === "string" ? parseFloat(amount) : amount;
@@ -39,10 +46,17 @@ const toNumber = (v: number | string) => {
   return isNaN(n) ? 0 : n;
 };
 
-const STATUS_CONFIG: Record<string, { bg: string; color: string; icon: React.ReactNode }> = {
+const PAYMENT_STATUS_CONFIG: Record<string, { bg: string; color: string; icon: React.ReactNode }> = {
   success: { bg: "rgba(13,148,136,0.1)",  color: C.teal,    icon: <Check size={11} /> },
-  pending: { bg: "rgba(251,191,36,0.12)", color: "#D97706", icon: <Clock size={11} /> },
+  pending: { bg: "rgba(251,191,36,0.12)", color: C.amber,   icon: <Clock size={11} /> },
   failed:  { bg: "rgba(240,101,67,0.1)",  color: C.coral,   icon: <X size={11} />    },
+};
+
+const INVOICE_STATUS_CONFIG: Record<string, { bg: string; color: string; label: string }> = {
+  paid:      { bg: "rgba(13,148,136,0.1)",  color: C.teal,    label: "Paid" },
+  pending:   { bg: "rgba(251,191,36,0.12)", color: C.amber,   label: "Pending" },
+  cancelled: { bg: "rgba(156,163,175,0.15)",color: C.coolGrey,label: "Cancelled" },
+  failed:    { bg: "rgba(240,101,67,0.1)",  color: C.coral,   label: "Failed" },
 };
 
 function StatTile({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
@@ -64,12 +78,24 @@ function SkeletonCard() {
   );
 }
 
+function SkeletonRow() {
+  return (
+    <tr>
+      {[1, 2, 3].map((i) => (
+        <td key={i} style={{ padding: "16px 20px" }}>
+          <div style={{ height: "16px", borderRadius: "6px", background: C.border, animation: "pulse 1.5s ease-in-out infinite" }} />
+        </td>
+      ))}
+    </tr>
+  );
+}
+
 function PaymentRow({ payment, index }: { payment: any; index: number }) {
   const [hovered, setHovered] = useState(false);
-  const planName    = payment.invoice?.member_subscription?.plan.name || "Unknown Plan";
+  const planName    = payment.invoice?.member_subscription?.plan?.name || "Unknown Plan";
   const reference   = payment.provider_reference || payment.id;
   const isClickable = payment.status === "success" || payment.status === "failed";
-  const cfg = STATUS_CONFIG[payment.status] ?? { bg: "rgba(156,163,175,0.12)", color: C.coolGrey, icon: null };
+  const cfg = PAYMENT_STATUS_CONFIG[payment.status] ?? { bg: "rgba(156,163,175,0.12)", color: C.coolGrey, icon: null };
 
   const inner = (
     <motion.div
@@ -123,35 +149,73 @@ function PaymentRow({ payment, index }: { payment: any; index: number }) {
   );
 
   return isClickable ? (
-    <Link key={payment.id} href={`/member/payments/${payment.id}`} style={{ display: "block", textDecoration: "none" }}>
+    <Link href={`/member/payments/${payment.id}`} style={{ display: "block", textDecoration: "none" }}>
       {inner}
     </Link>
   ) : (
-    <div key={payment.id}>{inner}</div>
+    <div>{inner}</div>
   );
 }
 
 export default function PaymentHistoryPage() {
-  const { data: payments, isLoading } = useAllPayments();
-  const [searchQuery, setSearchQuery]     = useState("");
-  const [statusFilter, setStatusFilter]   = useState<StatusFilter>("all");
-  const [searchFocused, setSearchFocused] = useState(false);
+  // ── Payments state ──────────────────────────────────────────────────────────
+  const [paymentPage, setPaymentPage]         = useState(1);
+  const [searchQuery, setSearchQuery]         = useState("");
+  const [statusFilter, setStatusFilter]       = useState<PaymentStatusFilter>("all");
+  const [searchFocused, setSearchFocused]     = useState(false);
 
-  const filtered = (payments || [])
-    .filter((p) => {
-      const planName  = p.invoice?.member_subscription?.plan.name || "Unknown Plan";
-      const reference = p.provider_reference || "";
-      const matchesSearch =
-        planName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.amount.toString().includes(searchQuery);
-      return matchesSearch && (statusFilter === "all" || p.status === statusFilter);
-    })
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const { data: paymentsData, isLoading: paymentsLoading } = usePayments(paymentPage, ITEMS_PER_PAGE);
+  const payments     = paymentsData?.data ?? [];
+  const paymentsMeta = paymentsData?.meta;
 
-  const totalAmount      = filtered.reduce((s, p) => s + toNumber(p.amount), 0);
-  const successfulItems  = filtered.filter((p) => p.status === "success");
+  const filteredPayments = payments.filter((p) => {
+    const planName  = p.invoice?.member_subscription?.plan?.name || "Unknown Plan";
+    const reference = p.provider_reference || "";
+    const matchesSearch =
+      planName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.amount.toString().includes(searchQuery);
+    return matchesSearch && (statusFilter === "all" || p.status === statusFilter);
+  }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const totalAmount      = filteredPayments.reduce((s, p) => s + toNumber(p.amount), 0);
+  const successfulItems  = filteredPayments.filter((p) => p.status === "success");
   const successfulAmount = successfulItems.reduce((s, p) => s + toNumber(p.amount), 0);
+
+  // ── Invoices state ──────────────────────────────────────────────────────────
+  const [invoicePage, setInvoicePage]           = useState(1);
+  const [invoiceFilter, setInvoiceFilter]       = useState<InvoiceStatusFilter>("all");
+  const [invoiceSearchQuery, setInvoiceSearch]  = useState("");
+  const [invoiceSearchFocused, setInvSearchFoc] = useState(false);
+
+  const { data: allInvoices, isLoading: invoicesLoading } = useInvoices(
+    invoiceFilter === "all" ? undefined : invoiceFilter as any
+  );
+
+  const raw = allInvoices as any;
+  const invoicesList: any[] = Array.isArray(raw)
+    ? raw
+    : Array.isArray(raw?.data)
+    ? raw.data
+    : Array.isArray(raw?.data?.data)
+    ? raw.data.data
+    : [];
+
+  const filteredInvoices = invoicesList.filter((inv: any) => {
+    if (!invoiceSearchQuery) return true;
+    const q = invoiceSearchQuery.toLowerCase();
+    return (
+      inv.id?.toLowerCase().includes(q) ||
+      inv.amount?.toString().includes(q) ||
+      inv.status?.toLowerCase().includes(q)
+    );
+  });
+
+  const invoiceTotalPages = Math.max(1, Math.ceil(filteredInvoices.length / ITEMS_PER_PAGE));
+  const paginatedInvoices = filteredInvoices.slice(
+    (invoicePage - 1) * ITEMS_PER_PAGE,
+    invoicePage * ITEMS_PER_PAGE
+  );
 
   return (
     <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "32px 24px 96px" }}>
@@ -164,19 +228,20 @@ export default function PaymentHistoryPage() {
 
       <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
 
+        {/* ── Page header ── */}
         <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} style={{ marginBottom: "32px" }}>
           <h1 style={{ fontWeight: 800, fontSize: "32px", color: C.ink, letterSpacing: "-0.4px" }}>Payment History</h1>
           <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, marginTop: "4px" }}>View all your payment transactions</p>
         </motion.div>
 
-        {/* Search & filters */}
+        {/* ── Search & filters ── */}
         <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1} style={{ marginBottom: "20px" }}>
           <div style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, padding: "20px 24px", display: "flex", flexWrap: "wrap", gap: "16px", alignItems: "center" }}>
             <div style={{ position: "relative", flex: "1 1 260px" }}>
               <Search size={15} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: searchFocused ? C.teal : C.coolGrey, transition: "color 300ms" }} />
               <input
                 type="text" placeholder="Search by plan, amount, or reference..."
-                value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setPaymentPage(1); }}
                 onFocus={() => setSearchFocused(true)} onBlur={() => setSearchFocused(false)}
                 style={{
                   width: "100%", paddingLeft: "34px", paddingRight: "14px", paddingTop: "10px", paddingBottom: "10px",
@@ -189,13 +254,9 @@ export default function PaymentHistoryPage() {
               />
             </div>
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              {FILTERS.map((s) => (
-                <Button
-                  key={s}
-                  variant={statusFilter === s ? "secondary" : "outline"}
-                  size="sm"
-                  onClick={() => setStatusFilter(s)}
-                >
+              {PAYMENT_FILTERS.map((s) => (
+                <Button key={s} variant={statusFilter === s ? "secondary" : "outline"} size="sm"
+                  onClick={() => { setStatusFilter(s); setPaymentPage(1); }}>
                   {s.charAt(0).toUpperCase() + s.slice(1)}
                 </Button>
               ))}
@@ -203,26 +264,40 @@ export default function PaymentHistoryPage() {
           </div>
         </motion.div>
 
-        {/* Summary */}
-        {filtered.length > 0 && (
+        {/* ── Summary tiles ── */}
+        {filteredPayments.length > 0 && (
           <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2} style={{ marginBottom: "20px" }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
-              <StatTile label="Total Payments" value={String(filtered.length)} />
+              <StatTile label="Total Payments" value={String(paymentsMeta?.total ?? filteredPayments.length)} />
               <StatTile label="Total Amount"   value={formatCurrency(totalAmount)} />
               <StatTile label="Successful"     value={`${successfulItems.length} · ${formatCurrency(successfulAmount)}`} accent />
             </div>
           </motion.div>
         )}
 
-        {/* List */}
-        {isLoading ? (
+        {/* ── Payments list ── */}
+        {paymentsLoading ? (
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
           </div>
-        ) : filtered.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {filtered.map((payment, i) => <PaymentRow key={payment.id} payment={payment} index={i} />)}
-          </div>
+        ) : filteredPayments.length > 0 ? (
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
+              {filteredPayments.map((payment, i) => (
+                <PaymentRow key={payment.id} payment={payment} index={i} />
+              ))}
+            </div>
+            {paymentsMeta && paymentsMeta.totalPages > 1 && (
+              <div style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, padding: "16px 24px" }}>
+                <Pagination
+                  currentPage={paymentPage}
+                  totalPages={paymentsMeta.totalPages}
+                  onPageChange={setPaymentPage}
+                  isLoading={paymentsLoading}
+                />
+              </div>
+            )}
+          </motion.div>
         ) : (
           <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}>
             <div style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "64px 32px", textAlign: "center" }}>
@@ -238,6 +313,136 @@ export default function PaymentHistoryPage() {
             </div>
           </motion.div>
         )}
+
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        {/* ── Invoices section ── */}
+        {/* ─────────────────────────────────────────────────────────────────── */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4} style={{ marginTop: "48px" }}>
+
+          {/* Section header */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+            <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(13,148,136,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <FileText size={18} style={{ color: C.teal }} />
+            </div>
+            <div>
+              <h2 style={{ fontWeight: 800, fontSize: "22px", color: C.ink, letterSpacing: "-0.3px" }}>Invoices</h2>
+              <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>All your billing invoices</p>
+            </div>
+          </div>
+
+          {/* Invoice search & filters */}
+          <div style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, padding: "20px 24px", display: "flex", flexWrap: "wrap", gap: "16px", alignItems: "center", marginBottom: "16px" }}>
+            <div style={{ position: "relative", flex: "1 1 240px" }}>
+              <Search size={15} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: invoiceSearchFocused ? C.teal : C.coolGrey, transition: "color 300ms" }} />
+              <input
+                type="text" placeholder="Search invoices..."
+                value={invoiceSearchQuery}
+                onChange={(e) => { setInvoiceSearch(e.target.value); setInvoicePage(1); }}
+                onFocus={() => setInvSearchFoc(true)} onBlur={() => setInvSearchFoc(false)}
+                style={{
+                  width: "100%", paddingLeft: "34px", paddingRight: "14px", paddingTop: "10px", paddingBottom: "10px",
+                  borderRadius: "8px", border: `1px solid ${invoiceSearchFocused ? C.teal : C.border}`,
+                  boxShadow: invoiceSearchFocused ? "0 0 0 3px rgba(13,148,136,0.12)" : "none",
+                  fontFamily: "Nunito, sans-serif", fontWeight: 400, fontSize: "14px",
+                  color: C.ink, background: C.white, outline: "none",
+                  transition: "border-color 300ms, box-shadow 300ms",
+                }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {INVOICE_FILTERS.map((s) => (
+                <Button key={s} variant={invoiceFilter === s ? "secondary" : "outline"} size="sm"
+                  onClick={() => { setInvoiceFilter(s); setInvoicePage(1); }}>
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Invoice table */}
+          <div style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, overflow: "hidden" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "Nunito, sans-serif" }}>
+              <thead>
+                <tr style={{ background: C.snow, borderBottom: `1px solid ${C.border}` }}>
+                  {["Invoice ID", "Amount", "Status"].map((col) => (
+                    <th key={col} style={{
+                      padding: "14px 20px", textAlign: col === "Amount" ? "right" : "left",
+                      fontWeight: 700, fontSize: "12px", color: C.coolGrey,
+                      textTransform: "uppercase", letterSpacing: "0.5px",
+                    }}>
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {invoicesLoading ? (
+                  [1, 2, 3].map((i) => <SkeletonRow key={i} />)
+                ) : paginatedInvoices.length > 0 ? (
+                  paginatedInvoices.map((inv, idx) => {
+                    const cfg = INVOICE_STATUS_CONFIG[inv.status] ?? INVOICE_STATUS_CONFIG.pending;
+                    const isLast = idx === paginatedInvoices.length - 1;
+                    return (
+                      <tr key={inv.id}
+                        style={{ borderBottom: isLast ? "none" : `1px solid ${C.border}`, transition: "background 200ms" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = C.snow)}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      >
+                        <td style={{ padding: "16px 20px" }}>
+                          <span style={{ fontWeight: 600, fontSize: "13px", color: C.ink, fontFamily: "monospace" }}>
+                            {inv.id?.slice(0, 8).toUpperCase()}…
+                          </span>
+                        </td>
+                        <td style={{ padding: "16px 20px", textAlign: "right" }}>
+                          <span style={{ fontWeight: 700, fontSize: "15px", color: C.ink }}>
+                            {formatCurrency(inv.amount)}
+                          </span>
+                        </td>
+                        <td style={{ padding: "16px 20px" }}>
+                          <span style={{
+                            display: "inline-flex", alignItems: "center", gap: "5px",
+                            padding: "4px 10px", borderRadius: "999px",
+                            background: cfg.bg, color: cfg.color,
+                            fontWeight: 600, fontSize: "12px",
+                          }}>
+                            {cfg.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={3} style={{ padding: "48px 24px", textAlign: "center" }}>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
+                        <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: C.snow, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: C.coolGrey }}>
+                          <FileText size={24} />
+                        </div>
+                        <p style={{ fontWeight: 700, fontSize: "15px", color: C.ink }}>No invoices found</p>
+                        <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>
+                          {invoiceSearchQuery || invoiceFilter !== "all" ? "Try adjusting your search or filters" : "Your invoices will appear here"}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+
+            {/* Invoice pagination */}
+            {!invoicesLoading && invoiceTotalPages > 1 && (
+              <div style={{ padding: "16px 24px", borderTop: `1px solid ${C.border}` }}>
+                <Pagination
+                  currentPage={invoicePage}
+                  totalPages={invoiceTotalPages}
+                  onPageChange={setInvoicePage}
+                  isLoading={invoicesLoading}
+                />
+              </div>
+            )}
+          </div>
+        </motion.div>
+
       </div>
     </div>
   );
