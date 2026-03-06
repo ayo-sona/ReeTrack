@@ -9,36 +9,48 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 const C = {
-  teal:     "#0D9488",
-  coral:    "#F06543",
-  snow:     "#F9FAFB",
-  white:    "#FFFFFF",
-  ink:      "#1F2937",
+  teal: "#0D9488",
+  coral: "#F06543",
+  snow: "#F9FAFB",
+  white: "#FFFFFF",
+  ink: "#1F2937",
   coolGrey: "#9CA3AF",
-  border:   "#E5E7EB",
-  amber:    "#D97706",
+  border: "#E5E7EB",
+  amber: "#D97706",
 };
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: (i = 0) => ({
-    opacity: 1, y: 0,
+    opacity: 1,
+    y: 0,
     transition: { duration: 0.5, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] },
   }),
 };
 
 type PaymentStatusFilter = "all" | "success" | "pending" | "failed";
-const PAYMENT_FILTERS: PaymentStatusFilter[] = ["all", "success", "pending", "failed"];
+const PAYMENT_FILTERS: PaymentStatusFilter[] = [
+  "all",
+  "success",
+  "pending",
+  "failed",
+];
 
 type InvoiceStatusFilter = "all" | "pending" | "paid" | "cancelled" | "failed";
-const INVOICE_FILTERS: InvoiceStatusFilter[] = ["all", "pending", "paid", "cancelled", "failed"];
+const INVOICE_FILTERS: InvoiceStatusFilter[] = [
+  "all",
+  "pending",
+  "paid",
+  "cancelled",
+  "failed",
+];
 
 const ITEMS_PER_PAGE = 5;
 
 const formatCurrency = (amount: number | string) => {
   const n = typeof amount === "string" ? parseFloat(amount) : amount;
   if (isNaN(n)) return "₦0.00";
-  return `₦${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `₦${n.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 const toNumber = (v: number | string) => {
@@ -46,49 +58,127 @@ const toNumber = (v: number | string) => {
   return isNaN(n) ? 0 : n;
 };
 
-const PAYMENT_STATUS_CONFIG: Record<string, { bg: string; color: string; icon: React.ReactNode }> = {
-  success: { bg: "rgba(13,148,136,0.1)",  color: C.teal,    icon: <Check size={11} /> },
-  pending: { bg: "rgba(251,191,36,0.12)", color: C.amber,   icon: <Clock size={11} /> },
-  failed:  { bg: "rgba(240,101,67,0.1)",  color: C.coral,   icon: <X size={11} />    },
+const PAYMENT_STATUS_CONFIG: Record<
+  string,
+  { bg: string; color: string; icon: React.ReactNode }
+> = {
+  success: {
+    bg: "rgba(13,148,136,0.1)",
+    color: C.teal,
+    icon: <Check size={11} />,
+  },
+  pending: {
+    bg: "rgba(251,191,36,0.12)",
+    color: C.amber,
+    icon: <Clock size={11} />,
+  },
+  failed: { bg: "rgba(240,101,67,0.1)", color: C.coral, icon: <X size={11} /> },
 };
 
-const INVOICE_STATUS_CONFIG: Record<string, { bg: string; color: string; label: string }> = {
-  paid:      { bg: "rgba(13,148,136,0.1)",  color: C.teal,    label: "Paid" },
-  pending:   { bg: "rgba(251,191,36,0.12)", color: C.amber,   label: "Pending" },
-  cancelled: { bg: "rgba(156,163,175,0.15)",color: C.coolGrey,label: "Cancelled" },
-  failed:    { bg: "rgba(240,101,67,0.1)",  color: C.coral,   label: "Failed" },
+const INVOICE_STATUS_CONFIG: Record<
+  string,
+  { bg: string; color: string; label: string }
+> = {
+  paid: { bg: "rgba(13,148,136,0.1)", color: C.teal, label: "Paid" },
+  pending: { bg: "rgba(251,191,36,0.12)", color: C.amber, label: "Pending" },
+  cancelled: {
+    bg: "rgba(156,163,175,0.15)",
+    color: C.coolGrey,
+    label: "Cancelled",
+  },
+  failed: { bg: "rgba(240,101,67,0.1)", color: C.coral, label: "Failed" },
 };
 
-function StatTile({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
+function StatTile({
+  label,
+  value,
+  accent = false,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
   return (
-    <div style={{
-      background: C.snow, borderRadius: "10px",
-      border: `1px solid ${accent ? "rgba(13,148,136,0.15)" : C.border}`,
-      padding: "16px 20px",
-    }}>
-      <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>{label}</p>
-      <p style={{ fontWeight: 800, fontSize: "22px", color: accent ? C.teal : C.ink, letterSpacing: "-0.3px" }}>{value}</p>
+    <div
+      style={{
+        background: C.snow,
+        borderRadius: "10px",
+        border: `1px solid ${accent ? "rgba(13,148,136,0.15)" : C.border}`,
+        padding: "16px 20px",
+      }}
+    >
+      <p
+        style={{
+          fontWeight: 400,
+          fontSize: "12px",
+          color: C.coolGrey,
+          textTransform: "uppercase",
+          letterSpacing: "0.5px",
+          marginBottom: "6px",
+        }}
+      >
+        {label}
+      </p>
+      <p
+        style={{
+          fontWeight: 800,
+          fontSize: "22px",
+          color: accent ? C.teal : C.ink,
+          letterSpacing: "-0.3px",
+        }}
+      >
+        {value}
+      </p>
     </div>
   );
 }
 
 function SkeletonCard() {
   return (
-    <div style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, height: "96px", animation: "pulse 1.5s ease-in-out infinite" }} />
+    <div
+      style={{
+        background: C.white,
+        borderRadius: "12px",
+        border: `1px solid ${C.border}`,
+        height: "96px",
+        animation: "pulse 1.5s ease-in-out infinite",
+      }}
+    />
   );
 }
 
 function SkeletonRow() {
   return (
     <tr>
-      <td className="invoice-id-col" style={{ padding: "16px 20px" }}>
-        <div style={{ height: "16px", borderRadius: "6px", background: C.border, animation: "pulse 1.5s ease-in-out infinite" }} />
+      <td className="invoice-number-col" style={{ padding: "16px 20px" }}>
+        <div
+          style={{
+            height: "16px",
+            borderRadius: "6px",
+            background: C.border,
+            animation: "pulse 1.5s ease-in-out infinite",
+          }}
+        />
       </td>
       <td style={{ padding: "16px 20px" }}>
-        <div style={{ height: "16px", borderRadius: "6px", background: C.border, animation: "pulse 1.5s ease-in-out infinite" }} />
+        <div
+          style={{
+            height: "16px",
+            borderRadius: "6px",
+            background: C.border,
+            animation: "pulse 1.5s ease-in-out infinite",
+          }}
+        />
       </td>
       <td style={{ padding: "16px 20px" }}>
-        <div style={{ height: "16px", borderRadius: "6px", background: C.border, animation: "pulse 1.5s ease-in-out infinite" }} />
+        <div
+          style={{
+            height: "16px",
+            borderRadius: "6px",
+            background: C.border,
+            animation: "pulse 1.5s ease-in-out infinite",
+          }}
+        />
       </td>
     </tr>
   );
@@ -96,56 +186,170 @@ function SkeletonRow() {
 
 function PaymentRow({ payment, index }: { payment: any; index: number }) {
   const [hovered, setHovered] = useState(false);
-  const planName    = payment.invoice?.member_subscription?.plan?.name || "Unknown Plan";
-  const reference   = payment.provider_reference || payment.id;
-  const isClickable = payment.status === "success" || payment.status === "failed";
-  const cfg = PAYMENT_STATUS_CONFIG[payment.status] ?? { bg: "rgba(156,163,175,0.12)", color: C.coolGrey, icon: null };
+  const planName =
+    payment.invoice?.member_subscription?.plan?.name || "Unknown Plan";
+  const reference = payment.provider_reference || payment.id;
+  const isClickable =
+    payment.status === "success" || payment.status === "failed";
+  const cfg = PAYMENT_STATUS_CONFIG[payment.status] ?? {
+    bg: "rgba(156,163,175,0.12)",
+    color: C.coolGrey,
+    icon: null,
+  };
 
   const inner = (
     <motion.div
-      variants={fadeUp} initial="hidden" animate="visible" custom={index}
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      variants={fadeUp}
+      initial="hidden"
+      animate="visible"
+      custom={index}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px",
-        padding: "20px 24px", background: C.white, borderRadius: "12px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "16px",
+        padding: "20px 24px",
+        background: C.white,
+        borderRadius: "12px",
         border: `1px solid ${hovered && isClickable ? C.teal : C.border}`,
-        boxShadow: hovered && isClickable ? "0 8px 24px rgba(13,148,136,0.1)" : "0 1px 4px rgba(0,0,0,0.04)",
+        boxShadow:
+          hovered && isClickable
+            ? "0 8px 24px rgba(13,148,136,0.1)"
+            : "0 1px 4px rgba(0,0,0,0.04)",
         cursor: isClickable ? "pointer" : "default",
         transition: "border-color 300ms, box-shadow 300ms",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "14px", minWidth: 0, flex: 1 }}>
-        <div style={{
-          width: "44px", height: "44px", borderRadius: "10px", background: C.teal, flexShrink: 0,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "18px", color: C.white,
-        }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "14px",
+          minWidth: 0,
+          flex: 1,
+        }}
+      >
+        <div
+          style={{
+            width: "44px",
+            height: "44px",
+            borderRadius: "10px",
+            background: C.teal,
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontFamily: "Nunito, sans-serif",
+            fontWeight: 800,
+            fontSize: "18px",
+            color: C.white,
+          }}
+        >
           {planName.charAt(0)}
         </div>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontWeight: 700, fontSize: "15px", color: C.ink, marginBottom: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <p
+            style={{
+              fontWeight: 700,
+              fontSize: "15px",
+              color: C.ink,
+              marginBottom: "4px",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
             {planName}
           </p>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px", borderRadius: "999px", background: cfg.bg, color: cfg.color, fontFamily: "Nunito, sans-serif", fontWeight: 600, fontSize: "12px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              flexWrap: "wrap",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                padding: "3px 10px",
+                borderRadius: "999px",
+                background: cfg.bg,
+                color: cfg.color,
+                fontFamily: "Nunito, sans-serif",
+                fontWeight: 600,
+                fontSize: "12px",
+              }}
+            >
               {cfg.icon}
               {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
             </span>
-            <span style={{ padding: "3px 10px", borderRadius: "999px", background: C.snow, border: `1px solid ${C.border}`, fontFamily: "Nunito, sans-serif", fontWeight: 600, fontSize: "12px", color: C.coolGrey, textTransform: "capitalize" }}>
+            <span
+              style={{
+                padding: "3px 10px",
+                borderRadius: "999px",
+                background: C.snow,
+                border: `1px solid ${C.border}`,
+                fontFamily: "Nunito, sans-serif",
+                fontWeight: 600,
+                fontSize: "12px",
+                color: C.coolGrey,
+                textTransform: "capitalize",
+              }}
+            >
               {payment.payment_method || "card"}
             </span>
             {payment.status === "pending" && (
-              <span style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, fontStyle: "italic" }}>Receipt not available</span>
+              <span
+                style={{
+                  fontWeight: 400,
+                  fontSize: "12px",
+                  color: C.coolGrey,
+                  fontStyle: "italic",
+                }}
+              >
+                Receipt not available
+              </span>
             )}
           </div>
         </div>
       </div>
       <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <p style={{ fontWeight: 800, fontSize: "20px", color: C.ink, letterSpacing: "-0.3px", marginBottom: "2px" }}>{formatCurrency(payment.amount)}</p>
-        <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>
-          {new Date(payment.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+        <p
+          style={{
+            fontWeight: 800,
+            fontSize: "20px",
+            color: C.ink,
+            letterSpacing: "-0.3px",
+            marginBottom: "2px",
+          }}
+        >
+          {formatCurrency(payment.amount)}
         </p>
-        <p className="payment-ref" style={{ fontWeight: 400, fontSize: "11px", color: C.coolGrey, marginTop: "2px", maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>
+          {new Date(payment.created_at).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })}
+        </p>
+        <p
+          className="payment-ref"
+          style={{
+            fontWeight: 400,
+            fontSize: "11px",
+            color: C.coolGrey,
+            marginTop: "2px",
+            maxWidth: "180px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
           {reference}
         </p>
       </div>
@@ -153,7 +357,10 @@ function PaymentRow({ payment, index }: { payment: any; index: number }) {
   );
 
   return isClickable ? (
-    <Link href={`/member/payments/${payment.id}`} style={{ display: "block", textDecoration: "none" }}>
+    <Link
+      href={`/member/payments/${payment.id}`}
+      style={{ display: "block", textDecoration: "none" }}
+    >
       {inner}
     </Link>
   ) : (
@@ -163,47 +370,67 @@ function PaymentRow({ payment, index }: { payment: any; index: number }) {
 
 export default function PaymentHistoryPage() {
   // ── Payments state ──────────────────────────────────────────────────────────
-  const [paymentPage, setPaymentPage]         = useState(1);
-  const [searchQuery, setSearchQuery]         = useState("");
-  const [statusFilter, setStatusFilter]       = useState<PaymentStatusFilter>("all");
-  const [searchFocused, setSearchFocused]     = useState(false);
+  const [paymentPage, setPaymentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<PaymentStatusFilter>("all");
+  const [searchFocused, setSearchFocused] = useState(false);
 
-  const { data: paymentsData, isLoading: paymentsLoading } = usePayments(paymentPage, ITEMS_PER_PAGE);
-  const payments     = paymentsData?.data ?? [];
+  const { data: paymentsData, isLoading: paymentsLoading } = usePayments(
+    paymentPage,
+    ITEMS_PER_PAGE,
+  );
+  const payments = paymentsData?.data ?? [];
   const paymentsMeta = paymentsData?.meta;
 
-  const filteredPayments = payments.filter((p) => {
-    const planName  = p.invoice?.member_subscription?.plan?.name || "Unknown Plan";
-    const reference = p.provider_reference || "";
-    const matchesSearch =
-      planName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.amount.toString().includes(searchQuery);
-    return matchesSearch && (statusFilter === "all" || p.status === statusFilter);
-  }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  const filteredPayments = payments
+    .filter((p) => {
+      const planName =
+        p.invoice?.member_subscription?.plan?.name || "Unknown Plan";
+      const reference = p.provider_reference || "";
+      const matchesSearch =
+        planName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.amount.toString().includes(searchQuery);
+      return (
+        matchesSearch && (statusFilter === "all" || p.status === statusFilter)
+      );
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
 
-  const totalAmount      = filteredPayments.reduce((s, p) => s + toNumber(p.amount), 0);
-  const successfulItems  = filteredPayments.filter((p) => p.status === "success");
-  const successfulAmount = successfulItems.reduce((s, p) => s + toNumber(p.amount), 0);
+  const totalAmount = filteredPayments.reduce(
+    (s, p) => s + toNumber(p.amount),
+    0,
+  );
+  const successfulItems = filteredPayments.filter(
+    (p) => p.status === "success",
+  );
+  const successfulAmount = successfulItems.reduce(
+    (s, p) => s + toNumber(p.amount),
+    0,
+  );
 
   // ── Invoices state ──────────────────────────────────────────────────────────
-  const [invoicePage, setInvoicePage]           = useState(1);
-  const [invoiceFilter, setInvoiceFilter]       = useState<InvoiceStatusFilter>("all");
-  const [invoiceSearchQuery, setInvoiceSearch]  = useState("");
+  const [invoicePage, setInvoicePage] = useState(1);
+  const [invoiceFilter, setInvoiceFilter] =
+    useState<InvoiceStatusFilter>("all");
+  const [invoiceSearchQuery, setInvoiceSearch] = useState("");
   const [invoiceSearchFocused, setInvSearchFoc] = useState(false);
 
   const { data: allInvoices, isLoading: invoicesLoading } = useInvoices(
-    invoiceFilter === "all" ? undefined : invoiceFilter as any
+    invoiceFilter === "all" ? undefined : (invoiceFilter as any),
   );
 
   const raw = allInvoices as any;
   const invoicesList: any[] = Array.isArray(raw)
     ? raw
     : Array.isArray(raw?.data)
-    ? raw.data
-    : Array.isArray(raw?.data?.data)
-    ? raw.data.data
-    : [];
+      ? raw.data
+      : Array.isArray(raw?.data?.data)
+        ? raw.data.data
+        : [];
 
   const filteredInvoices = invoicesList.filter((inv: any) => {
     if (!invoiceSearchQuery) return true;
@@ -215,14 +442,24 @@ export default function PaymentHistoryPage() {
     );
   });
 
-  const invoiceTotalPages = Math.max(1, Math.ceil(filteredInvoices.length / ITEMS_PER_PAGE));
+  const invoiceTotalPages = Math.max(
+    1,
+    Math.ceil(filteredInvoices.length / ITEMS_PER_PAGE),
+  );
   const paginatedInvoices = filteredInvoices.slice(
     (invoicePage - 1) * ITEMS_PER_PAGE,
-    invoicePage * ITEMS_PER_PAGE
+    invoicePage * ITEMS_PER_PAGE,
   );
 
   return (
-    <div style={{ minHeight: "100vh", background: C.snow, fontFamily: "Nunito, sans-serif", padding: "24px 16px 96px" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: C.snow,
+        fontFamily: "Nunito, sans-serif",
+        padding: "24px 16px 96px",
+      }}
+    >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
         * { box-sizing: border-box; }
@@ -235,7 +472,6 @@ export default function PaymentHistoryPage() {
           .stat-grid > *:last-child { grid-column: span 2; }
           .payment-ref { display: none; }
           .payment-method-tag { display: none; }
-          .invoice-id-col { display: none !important; }
           .page-title { font-size: 24px !important; }
           .section-title { font-size: 18px !important; }
           .filter-btn { font-size: 11px !important; padding: 5px 10px !important; }
@@ -247,36 +483,113 @@ export default function PaymentHistoryPage() {
       `}</style>
 
       <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
-
         {/* ── Page header ── */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} style={{ marginBottom: "32px" }}>
-          <h1 className="page-title" style={{ fontWeight: 800, fontSize: "32px", color: C.ink, letterSpacing: "-0.4px" }}>Payment History</h1>
-          <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, marginTop: "4px" }}>View all your payment transactions</p>
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          custom={0}
+          style={{ marginBottom: "32px" }}
+        >
+          <h1
+            className="page-title"
+            style={{
+              fontWeight: 800,
+              fontSize: "32px",
+              color: C.ink,
+              letterSpacing: "-0.4px",
+            }}
+          >
+            Payment History
+          </h1>
+          <p
+            style={{
+              fontWeight: 400,
+              fontSize: "15px",
+              color: C.coolGrey,
+              marginTop: "4px",
+            }}
+          >
+            View all your payment transactions
+          </p>
         </motion.div>
 
         {/* ── Search & filters ── */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1} style={{ marginBottom: "20px" }}>
-          <div style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, padding: "20px 24px", display: "flex", flexWrap: "wrap", gap: "16px", alignItems: "center" }}>
-            <div style={{ position: "relative", flex: "1 1 200px", minWidth: 0 }}>
-              <Search size={15} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: searchFocused ? C.teal : C.coolGrey, transition: "color 300ms" }} />
-              <input
-                type="text" placeholder="Search by plan, amount, or reference..."
-                value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setPaymentPage(1); }}
-                onFocus={() => setSearchFocused(true)} onBlur={() => setSearchFocused(false)}
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          custom={1}
+          style={{ marginBottom: "20px" }}
+        >
+          <div
+            style={{
+              background: C.white,
+              borderRadius: "12px",
+              border: `1px solid ${C.border}`,
+              padding: "20px 24px",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "16px",
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{ position: "relative", flex: "1 1 200px", minWidth: 0 }}
+            >
+              <Search
+                size={15}
                 style={{
-                  width: "100%", paddingLeft: "34px", paddingRight: "14px", paddingTop: "10px", paddingBottom: "10px",
-                  borderRadius: "8px", border: `1px solid ${searchFocused ? C.teal : C.border}`,
-                  boxShadow: searchFocused ? "0 0 0 3px rgba(13,148,136,0.12)" : "none",
-                  fontFamily: "Nunito, sans-serif", fontWeight: 400, fontSize: "14px",
-                  color: C.ink, background: C.white, outline: "none",
+                  position: "absolute",
+                  left: "12px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: searchFocused ? C.teal : C.coolGrey,
+                  transition: "color 300ms",
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Search by plan, amount, or reference..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPaymentPage(1);
+                }}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+                style={{
+                  width: "100%",
+                  paddingLeft: "34px",
+                  paddingRight: "14px",
+                  paddingTop: "10px",
+                  paddingBottom: "10px",
+                  borderRadius: "8px",
+                  border: `1px solid ${searchFocused ? C.teal : C.border}`,
+                  boxShadow: searchFocused
+                    ? "0 0 0 3px rgba(13,148,136,0.12)"
+                    : "none",
+                  fontFamily: "Nunito, sans-serif",
+                  fontWeight: 400,
+                  fontSize: "14px",
+                  color: C.ink,
+                  background: C.white,
+                  outline: "none",
                   transition: "border-color 300ms, box-shadow 300ms",
                 }}
               />
             </div>
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               {PAYMENT_FILTERS.map((s) => (
-                <Button key={s} variant={statusFilter === s ? "secondary" : "outline"} size="sm"
-                  onClick={() => { setStatusFilter(s); setPaymentPage(1); }}>
+                <Button
+                  key={s}
+                  variant={statusFilter === s ? "secondary" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    setStatusFilter(s);
+                    setPaymentPage(1);
+                  }}
+                >
                   {s.charAt(0).toUpperCase() + s.slice(1)}
                 </Button>
               ))}
@@ -286,29 +599,68 @@ export default function PaymentHistoryPage() {
 
         {/* ── Summary tiles ── */}
         {filteredPayments.length > 0 && (
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2} style={{ marginBottom: "20px" }}>
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            custom={2}
+            style={{ marginBottom: "20px" }}
+          >
             <div className="stat-grid">
-              <StatTile label="Total Payments" value={String(paymentsMeta?.total ?? filteredPayments.length)} />
-              <StatTile label="Total Amount"   value={formatCurrency(totalAmount)} />
-              <StatTile label="Successful"     value={`${successfulItems.length} · ${formatCurrency(successfulAmount)}`} accent />
+              <StatTile
+                label="Total Payments"
+                value={String(paymentsMeta?.total ?? filteredPayments.length)}
+              />
+              <StatTile
+                label="Total Amount"
+                value={formatCurrency(totalAmount)}
+              />
+              <StatTile
+                label="Successful"
+                value={`${successfulItems.length} · ${formatCurrency(successfulAmount)}`}
+                accent
+              />
             </div>
           </motion.div>
         )}
 
         {/* ── Payments list ── */}
         {paymentsLoading ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {[1, 2, 3].map((i) => <SkeletonCard key={i} />)}
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+          >
+            {[1, 2, 3].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : filteredPayments.length > 0 ? (
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            custom={3}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+                marginBottom: "20px",
+              }}
+            >
               {filteredPayments.map((payment, i) => (
                 <PaymentRow key={payment.id} payment={payment} index={i} />
               ))}
             </div>
             {paymentsMeta && paymentsMeta.totalPages > 1 && (
-              <div style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, padding: "16px 24px" }}>
+              <div
+                style={{
+                  background: C.white,
+                  borderRadius: "12px",
+                  border: `1px solid ${C.border}`,
+                  padding: "16px 24px",
+                }}
+              >
                 <Pagination
                   currentPage={paymentPage}
                   totalPages={paymentsMeta.totalPages}
@@ -319,16 +671,60 @@ export default function PaymentHistoryPage() {
             )}
           </motion.div>
         ) : (
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}>
-            <div style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "64px 32px", textAlign: "center" }}>
-              <div style={{ width: "68px", height: "68px", borderRadius: "18px", background: C.snow, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px", color: C.coolGrey }}>
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            custom={3}
+          >
+            <div
+              style={{
+                background: C.white,
+                borderRadius: "16px",
+                border: `1px solid ${C.border}`,
+                padding: "64px 32px",
+                textAlign: "center",
+              }}
+            >
+              <div
+                style={{
+                  width: "68px",
+                  height: "68px",
+                  borderRadius: "18px",
+                  background: C.snow,
+                  border: `1px solid ${C.border}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 18px",
+                  color: C.coolGrey,
+                }}
+              >
                 <CreditCard size={30} />
               </div>
-              <h3 style={{ fontWeight: 700, fontSize: "20px", color: C.ink, marginBottom: "8px" }}>
-                {searchQuery || statusFilter !== "all" ? "No payments found" : "No payment history yet"}
+              <h3
+                style={{
+                  fontWeight: 700,
+                  fontSize: "20px",
+                  color: C.ink,
+                  marginBottom: "8px",
+                }}
+              >
+                {searchQuery || statusFilter !== "all"
+                  ? "No payments found"
+                  : "No payment history yet"}
               </h3>
-              <p style={{ fontWeight: 400, fontSize: "14px", color: C.coolGrey, lineHeight: 1.6 }}>
-                {searchQuery || statusFilter !== "all" ? "Try adjusting your search or filters" : "Your payment history will appear here"}
+              <p
+                style={{
+                  fontWeight: 400,
+                  fontSize: "14px",
+                  color: C.coolGrey,
+                  lineHeight: 1.6,
+                }}
+              >
+                {searchQuery || statusFilter !== "all"
+                  ? "Try adjusting your search or filters"
+                  : "Your payment history will appear here"}
               </p>
             </div>
           </motion.div>
@@ -337,42 +733,124 @@ export default function PaymentHistoryPage() {
         {/* ─────────────────────────────────────────────────────────────────── */}
         {/* ── Invoices section ── */}
         {/* ─────────────────────────────────────────────────────────────────── */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4} style={{ marginTop: "48px" }}>
-
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          custom={4}
+          style={{ marginTop: "48px" }}
+        >
           {/* Section header */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
-            <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(13,148,136,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              marginBottom: "20px",
+            }}
+          >
+            <div
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "10px",
+                background: "rgba(13,148,136,0.1)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <FileText size={18} style={{ color: C.teal }} />
             </div>
             <div>
-              <h2 style={{ fontWeight: 800, fontSize: "22px", color: C.ink, letterSpacing: "-0.3px" }}>Invoices</h2>
-              <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>All your billing invoices</p>
+              <h2
+                style={{
+                  fontWeight: 800,
+                  fontSize: "22px",
+                  color: C.ink,
+                  letterSpacing: "-0.3px",
+                }}
+              >
+                Invoices
+              </h2>
+              <p
+                style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}
+              >
+                All your billing invoices
+              </p>
             </div>
           </div>
 
           {/* Invoice search & filters */}
-          <div style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, padding: "20px 24px", display: "flex", flexWrap: "wrap", gap: "16px", alignItems: "center", marginBottom: "16px" }}>
-            <div style={{ position: "relative", flex: "1 1 160px", minWidth: 0 }}>
-              <Search size={15} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: invoiceSearchFocused ? C.teal : C.coolGrey, transition: "color 300ms" }} />
-              <input
-                type="text" placeholder="Search invoices..."
-                value={invoiceSearchQuery}
-                onChange={(e) => { setInvoiceSearch(e.target.value); setInvoicePage(1); }}
-                onFocus={() => setInvSearchFoc(true)} onBlur={() => setInvSearchFoc(false)}
+          <div
+            style={{
+              background: C.white,
+              borderRadius: "12px",
+              border: `1px solid ${C.border}`,
+              padding: "20px 24px",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "16px",
+              alignItems: "center",
+              marginBottom: "16px",
+            }}
+          >
+            <div
+              style={{ position: "relative", flex: "1 1 160px", minWidth: 0 }}
+            >
+              <Search
+                size={15}
                 style={{
-                  width: "100%", paddingLeft: "34px", paddingRight: "14px", paddingTop: "10px", paddingBottom: "10px",
-                  borderRadius: "8px", border: `1px solid ${invoiceSearchFocused ? C.teal : C.border}`,
-                  boxShadow: invoiceSearchFocused ? "0 0 0 3px rgba(13,148,136,0.12)" : "none",
-                  fontFamily: "Nunito, sans-serif", fontWeight: 400, fontSize: "14px",
-                  color: C.ink, background: C.white, outline: "none",
+                  position: "absolute",
+                  left: "12px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: invoiceSearchFocused ? C.teal : C.coolGrey,
+                  transition: "color 300ms",
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Search invoices..."
+                value={invoiceSearchQuery}
+                onChange={(e) => {
+                  setInvoiceSearch(e.target.value);
+                  setInvoicePage(1);
+                }}
+                onFocus={() => setInvSearchFoc(true)}
+                onBlur={() => setInvSearchFoc(false)}
+                style={{
+                  width: "100%",
+                  paddingLeft: "34px",
+                  paddingRight: "14px",
+                  paddingTop: "10px",
+                  paddingBottom: "10px",
+                  borderRadius: "8px",
+                  border: `1px solid ${invoiceSearchFocused ? C.teal : C.border}`,
+                  boxShadow: invoiceSearchFocused
+                    ? "0 0 0 3px rgba(13,148,136,0.12)"
+                    : "none",
+                  fontFamily: "Nunito, sans-serif",
+                  fontWeight: 400,
+                  fontSize: "14px",
+                  color: C.ink,
+                  background: C.white,
+                  outline: "none",
                   transition: "border-color 300ms, box-shadow 300ms",
                 }}
               />
             </div>
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               {INVOICE_FILTERS.map((s) => (
-                <Button key={s} variant={invoiceFilter === s ? "secondary" : "outline"} size="sm"
-                  onClick={() => { setInvoiceFilter(s); setInvoicePage(1); }}>
+                <Button
+                  key={s}
+                  variant={invoiceFilter === s ? "secondary" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    setInvoiceFilter(s);
+                    setInvoicePage(1);
+                  }}
+                >
                   {s.charAt(0).toUpperCase() + s.slice(1)}
                 </Button>
               ))}
@@ -380,13 +858,68 @@ export default function PaymentHistoryPage() {
           </div>
 
           {/* Invoice table */}
-          <div style={{ background: C.white, borderRadius: "12px", border: `1px solid ${C.border}`, overflow: "hidden" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "Nunito, sans-serif" }}>
+          <div
+            style={{
+              background: C.white,
+              borderRadius: "12px",
+              border: `1px solid ${C.border}`,
+              overflow: "hidden",
+            }}
+          >
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontFamily: "Nunito, sans-serif",
+              }}
+            >
               <thead>
-                <tr style={{ background: C.snow, borderBottom: `1px solid ${C.border}` }}>
-                  <th className="invoice-id-col" style={{ padding: "14px 20px", textAlign: "left", fontWeight: 700, fontSize: "12px", color: C.coolGrey, textTransform: "uppercase", letterSpacing: "0.5px" }}>Invoice ID</th>
-                  <th style={{ padding: "14px 20px", textAlign: "right", fontWeight: 700, fontSize: "12px", color: C.coolGrey, textTransform: "uppercase", letterSpacing: "0.5px" }}>Amount</th>
-                  <th style={{ padding: "14px 20px", textAlign: "left", fontWeight: 700, fontSize: "12px", color: C.coolGrey, textTransform: "uppercase", letterSpacing: "0.5px" }}>Status</th>
+                <tr
+                  style={{
+                    background: C.snow,
+                    borderBottom: `1px solid ${C.border}`,
+                  }}
+                >
+                  <th
+                    className="invoice-number-col"
+                    style={{
+                      padding: "14px 20px",
+                      textAlign: "left",
+                      fontWeight: 700,
+                      fontSize: "12px",
+                      color: C.coolGrey,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Invoice No
+                  </th>
+                  <th
+                    style={{
+                      padding: "14px 20px",
+                      textAlign: "right",
+                      fontWeight: 700,
+                      fontSize: "12px",
+                      color: C.coolGrey,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Amount
+                  </th>
+                  <th
+                    style={{
+                      padding: "14px 20px",
+                      textAlign: "left",
+                      fontWeight: 700,
+                      fontSize: "12px",
+                      color: C.coolGrey,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Status
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -394,31 +927,68 @@ export default function PaymentHistoryPage() {
                   [1, 2, 3].map((i) => <SkeletonRow key={i} />)
                 ) : paginatedInvoices.length > 0 ? (
                   paginatedInvoices.map((inv, idx) => {
-                    const cfg = INVOICE_STATUS_CONFIG[inv.status] ?? INVOICE_STATUS_CONFIG.pending;
+                    const cfg =
+                      INVOICE_STATUS_CONFIG[inv.status] ??
+                      INVOICE_STATUS_CONFIG.pending;
                     const isLast = idx === paginatedInvoices.length - 1;
                     return (
-                      <tr key={inv.id}
-                        style={{ borderBottom: isLast ? "none" : `1px solid ${C.border}`, transition: "background 200ms" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = C.snow)}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      <tr
+                        key={inv.id}
+                        style={{
+                          borderBottom: isLast
+                            ? "none"
+                            : `1px solid ${C.border}`,
+                          transition: "background 200ms",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.background = C.snow)
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.background = "transparent")
+                        }
                       >
-                        <td className="invoice-id-col" style={{ padding: "16px 20px" }}>
-                          <span style={{ fontWeight: 600, fontSize: "13px", color: C.ink, fontFamily: "monospace" }}>
-                            {inv.id?.slice(0, 8).toUpperCase()}…
+                        <td
+                          className="invoice-number-col"
+                          style={{ padding: "16px 20px" }}
+                        >
+                          <span
+                            style={{
+                              fontWeight: 600,
+                              fontSize: "13px",
+                              color: C.ink,
+                              fontFamily: "monospace",
+                            }}
+                          >
+                            {inv.invoice_number?.slice(0, 8).toUpperCase()}…
                           </span>
                         </td>
-                        <td style={{ padding: "16px 20px", textAlign: "right" }}>
-                          <span style={{ fontWeight: 700, fontSize: "15px", color: C.ink }}>
+                        <td
+                          style={{ padding: "16px 20px", textAlign: "right" }}
+                        >
+                          <span
+                            style={{
+                              fontWeight: 700,
+                              fontSize: "15px",
+                              color: C.ink,
+                            }}
+                          >
                             {formatCurrency(inv.amount)}
                           </span>
                         </td>
                         <td style={{ padding: "16px 20px" }}>
-                          <span style={{
-                            display: "inline-flex", alignItems: "center", gap: "5px",
-                            padding: "4px 10px", borderRadius: "999px",
-                            background: cfg.bg, color: cfg.color,
-                            fontWeight: 600, fontSize: "12px",
-                          }}>
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "5px",
+                              padding: "4px 10px",
+                              borderRadius: "999px",
+                              background: cfg.bg,
+                              color: cfg.color,
+                              fontWeight: 600,
+                              fontSize: "12px",
+                            }}
+                          >
                             {cfg.label}
                           </span>
                         </td>
@@ -427,14 +997,52 @@ export default function PaymentHistoryPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={3} style={{ padding: "48px 24px", textAlign: "center" }}>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
-                        <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: C.snow, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: C.coolGrey }}>
+                    <td
+                      colSpan={3}
+                      style={{ padding: "48px 24px", textAlign: "center" }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: "12px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "52px",
+                            height: "52px",
+                            borderRadius: "14px",
+                            background: C.snow,
+                            border: `1px solid ${C.border}`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: C.coolGrey,
+                          }}
+                        >
                           <FileText size={24} />
                         </div>
-                        <p style={{ fontWeight: 700, fontSize: "15px", color: C.ink }}>No invoices found</p>
-                        <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey }}>
-                          {invoiceSearchQuery || invoiceFilter !== "all" ? "Try adjusting your search or filters" : "Your invoices will appear here"}
+                        <p
+                          style={{
+                            fontWeight: 700,
+                            fontSize: "15px",
+                            color: C.ink,
+                          }}
+                        >
+                          No invoices found
+                        </p>
+                        <p
+                          style={{
+                            fontWeight: 400,
+                            fontSize: "13px",
+                            color: C.coolGrey,
+                          }}
+                        >
+                          {invoiceSearchQuery || invoiceFilter !== "all"
+                            ? "Try adjusting your search or filters"
+                            : "Your invoices will appear here"}
                         </p>
                       </div>
                     </td>
@@ -445,7 +1053,12 @@ export default function PaymentHistoryPage() {
 
             {/* Invoice pagination */}
             {!invoicesLoading && invoiceTotalPages > 1 && (
-              <div style={{ padding: "16px 24px", borderTop: `1px solid ${C.border}` }}>
+              <div
+                style={{
+                  padding: "16px 24px",
+                  borderTop: `1px solid ${C.border}`,
+                }}
+              >
                 <Pagination
                   currentPage={invoicePage}
                   totalPages={invoiceTotalPages}
@@ -456,7 +1069,6 @@ export default function PaymentHistoryPage() {
             )}
           </div>
         </motion.div>
-
       </div>
     </div>
   );

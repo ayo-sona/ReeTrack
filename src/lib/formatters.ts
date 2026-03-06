@@ -1,36 +1,52 @@
-import { Currency } from '../types/common';
+import { Currency } from "../types/common";
 
 /**
  * Format currency based on currency type
  */
-export function formatCurrency(amount: number, currency: Currency = 'NGN'): string {
+export function formatCurrency(
+  amount: number,
+  currency: Currency = "NGN",
+): string {
   const formatters: Record<Currency, Intl.NumberFormat> = {
-    NGN: new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
-      minimumFractionDigits: 0,
+    NGN: new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }),
-    USD: new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    USD: new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }),
-    GBP: new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: 'GBP',
+    GBP: new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: "GBP",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }),
-    EUR: new Intl.NumberFormat('en-EU', {
-      style: 'currency',
-      currency: 'EUR',
+    EUR: new Intl.NumberFormat("en-EU", {
+      style: "currency",
+      currency: "EUR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }),
   };
 
-  return formatters[currency]?.format(amount) || `${currency} ${amount.toLocaleString()}`;
+  return (
+    formatters[currency].format(amount) ||
+    `${currency}${amount.toLocaleString()}`
+  );
 }
 
 /**
  * Calculate annual price with discount
  */
-export function calculateAnnualPrice(monthlyPrice: number, discountPercent: number): number {
+export function calculateAnnualPrice(
+  monthlyPrice: number,
+  discountPercent: number,
+): number {
   const annualPrice = monthlyPrice * 12;
   const discount = annualPrice * (discountPercent / 100);
   return annualPrice - discount;
@@ -62,64 +78,67 @@ export function formatPercent(value: number, decimals: number = 1): string {
 /**
  * Format date
  */
-export function formatDate(date: string | Date, format: 'short' | 'long' = 'short'): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  
-  if (format === 'long') {
-    return d.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+export function formatDate(
+  date: string | Date,
+  format: "short" | "long" = "short",
+): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+
+  if (format === "long") {
+    return d.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   }
-  
-  return d.toLocaleDateString('en-US');
+
+  return d.toLocaleDateString("en-US");
 }
 
 /**
  * Format relative time (e.g., "2 hours ago", "3 days ago")
  */
 export function formatRelativeTime(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === "string" ? new Date(date) : date;
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - d.getTime()) / 1000);
 
   // Less than a minute
   if (diffInSeconds < 60) {
-    return 'just now';
+    return "just now";
   }
 
   // Less than an hour
   const diffInMinutes = Math.floor(diffInSeconds / 60);
   if (diffInMinutes < 60) {
-    return `${diffInMinutes} ${diffInMinutes === 1 ? 'minute' : 'minutes'} ago`;
+    return `${diffInMinutes} ${diffInMinutes === 1 ? "minute" : "minutes"} ago`;
   }
 
   // Less than a day
   const diffInHours = Math.floor(diffInMinutes / 60);
   if (diffInHours < 24) {
-    return `${diffInHours} ${diffInHours === 1 ? 'hour' : 'hours'} ago`;
+    return `${diffInHours} ${diffInHours === 1 ? "hour" : "hours"} ago`;
   }
 
   // Less than a week
   const diffInDays = Math.floor(diffInHours / 24);
   if (diffInDays < 7) {
-    return `${diffInDays} ${diffInDays === 1 ? 'day' : 'days'} ago`;
+    return `${diffInDays} ${diffInDays === 1 ? "day" : "days"} ago`;
   }
 
   // Less than a month
   const diffInWeeks = Math.floor(diffInDays / 7);
   if (diffInWeeks < 4) {
-    return `${diffInWeeks} ${diffInWeeks === 1 ? 'week' : 'weeks'} ago`;
+    return `${diffInWeeks} ${diffInWeeks === 1 ? "week" : "weeks"} ago`;
   }
 
   // Less than a year
   const diffInMonths = Math.floor(diffInDays / 30);
   if (diffInMonths < 12) {
-    return `${diffInMonths} ${diffInMonths === 1 ? 'month' : 'months'} ago`;
+    return `${diffInMonths} ${diffInMonths === 1 ? "month" : "months"} ago`;
   }
 
   // More than a year
   const diffInYears = Math.floor(diffInDays / 365);
-  return `${diffInYears} ${diffInYears === 1 ? 'year' : 'years'} ago`;
+  return `${diffInYears} ${diffInYears === 1 ? "year" : "years"} ago`;
 }

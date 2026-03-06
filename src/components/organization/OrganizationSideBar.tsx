@@ -99,7 +99,7 @@ export function OrganizationSidebar({
       icon: CreditCard,
     },
     {
-      name: "My Access",
+      name: "Subscription & Billing",
       href: "/organization/access",
       icon: Receipt,
     },

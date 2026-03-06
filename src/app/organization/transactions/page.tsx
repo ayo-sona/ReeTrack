@@ -18,7 +18,10 @@ function TableSkeleton() {
         ))}
       </div>
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="border-b border-gray-50 px-6 py-3.5 grid grid-cols-6 gap-4 items-center">
+        <div
+          key={i}
+          className="border-b border-gray-50 px-6 py-3.5 grid grid-cols-6 gap-4 items-center"
+        >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-gray-200 shrink-0" />
             <div className="space-y-1.5 flex-1">
@@ -84,19 +87,42 @@ export default function PaymentsPage() {
         new Date(payment.created_at).toLocaleDateString().includes(search);
       if (!matchesSearch) return false;
     }
-    if (dateFrom && new Date(payment.created_at) < new Date(dateFrom)) return false;
-    if (dateTo && new Date(payment.created_at) > new Date(dateTo + "T23:59:59")) return false;
-    if (selectedSource !== "all" && payment.provider !== selectedSource) return false;
+    if (dateFrom && new Date(payment.created_at) < new Date(dateFrom))
+      return false;
+    if (dateTo && new Date(payment.created_at) > new Date(dateTo + "T23:59:59"))
+      return false;
+    if (selectedSource !== "all" && payment.provider !== selectedSource)
+      return false;
     return true;
   });
 
   const displayStats = stats
     ? [
-        { title: "Total Revenue", value: `₦${(stats.total_member_revenue / 1000).toFixed(1)}K`, accent: "text-[#0D9488]" },
-        { title: "Total Expenses", value: `₦${(stats.total_expenses / 1000).toFixed(1)}K`, accent: "text-gray-900" },
-        { title: "Successful Payments", value: stats.successful_member_payments, accent: "text-[#0D9488]" },
-        { title: "Failed Payments", value: stats.failed_member_payments, accent: "text-red-500" },
-        { title: "Pending Payments", value: stats.pending_member_payments, accent: "text-yellow-500" },
+        {
+          title: "Total Revenue",
+          value: `₦${(stats.total_member_revenue / 1000).toFixed(1)}K`,
+          accent: "text-[#0D9488]",
+        },
+        {
+          title: "Total Expenses",
+          value: `₦${(stats.total_expenses / 1000).toFixed(1)}K`,
+          accent: "text-gray-900",
+        },
+        {
+          title: "Successful Member Transactions",
+          value: stats.successful_member_payments,
+          accent: "text-[#0D9488]",
+        },
+        {
+          title: "Failed Member Transactions",
+          value: stats.failed_member_payments,
+          accent: "text-red-500",
+        },
+        {
+          title: "Pending Member Transactions",
+          value: stats.pending_member_payments,
+          accent: "text-yellow-500",
+        },
       ]
     : [];
 
@@ -114,9 +140,15 @@ export default function PaymentsPage() {
       {displayStats.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {displayStats.map((stat) => (
-            <div key={stat.title} className="rounded-xl border border-gray-200 bg-white p-4">
+            <div
+              key={stat.title}
+              className="rounded-xl border border-gray-200 bg-white p-4"
+            >
               <p className="text-xs text-gray-500 font-medium">{stat.title}</p>
-              <p className={`text-xl font-bold mt-1 ${stat.accent}`} suppressHydrationWarning>
+              <p
+                className={`text-xl font-bold mt-1 ${stat.accent}`}
+                suppressHydrationWarning
+              >
                 {stat.value}
               </p>
               <p className="text-xs text-gray-400 mt-0.5">All time</p>
@@ -128,13 +160,25 @@ export default function PaymentsPage() {
       {/* Filters — always visible */}
       <PaymentFilters
         searchTerm={searchTerm}
-        setSearchTerm={(v) => { setSearchTerm(v); setPage(1); }}
+        setSearchTerm={(v) => {
+          setSearchTerm(v);
+          setPage(1);
+        }}
         dateFrom={dateFrom}
-        setDateFrom={(v) => { setDateFrom(v); setPage(1); }}
+        setDateFrom={(v) => {
+          setDateFrom(v);
+          setPage(1);
+        }}
         dateTo={dateTo}
-        setDateTo={(v) => { setDateTo(v); setPage(1); }}
+        setDateTo={(v) => {
+          setDateTo(v);
+          setPage(1);
+        }}
         selectedSource={selectedSource}
-        setSelectedSource={(v) => { setSelectedSource(v); setPage(1); }}
+        setSelectedSource={(v) => {
+          setSelectedSource(v);
+          setPage(1);
+        }}
         selectedStatus={selectedStatus}
         setSelectedStatus={handleStatusChange}
         filteredCount={filteredPayments.length}
@@ -148,7 +192,9 @@ export default function PaymentsPage() {
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
             <div className="space-y-2">
-              <h3 className="font-semibold text-red-900">Failed to load payments</h3>
+              <h3 className="font-semibold text-red-900">
+                Failed to load payments
+              </h3>
               <p className="text-sm text-red-700">
                 The payments data could not be fetched. Check your connection or
                 permissions and try again.

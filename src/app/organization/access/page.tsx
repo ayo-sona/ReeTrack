@@ -620,7 +620,9 @@ export default function SubscriptionPage() {
                 {/* Plan cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
                   {groupedPlans.map((plan) => {
-                    const isCurrentPlan = subscription?.plan.name === plan.name;
+                    const isCurrentPlan =
+                      subscription?.plan.name === plan.name &&
+                      +subscription?.plan.price === +plan.price;
                     const isPopular = plan.name === "Platinum";
                     return (
                       <div
