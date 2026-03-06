@@ -86,7 +86,11 @@ export function OrganizationMobileHeader({
       href: "/organization/transactions",
       icon: CreditCard,
     },
-    { name: "My Access", href: "/organization/access", icon: Receipt },
+    {
+      name: "Subscription & Billing",
+      href: "/organization/access",
+      icon: Receipt,
+    },
     { name: "Check-ins", href: "/organization/check-ins", icon: ScanLine },
     { name: "Ping", href: "/organization/ping", icon: Send },
     { name: "Reports", href: "/organization/reports", icon: FileDown },
