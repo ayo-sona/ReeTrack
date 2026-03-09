@@ -24,6 +24,8 @@ export default function MembersPage() {
 
   const { data: membersData, isLoading, error } = useMembers(page, PAGE_SIZE);
 
+  console.log("Members data:", membersData);
+
   const members = useMemo(() => {
     if (!membersData?.data) return [];
     return membersData.data;

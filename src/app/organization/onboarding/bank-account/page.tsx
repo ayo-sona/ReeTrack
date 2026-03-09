@@ -64,10 +64,10 @@ export default function OnboardingBankAccountPage() {
           className="flex items-center justify-between mb-8"
         >
           <p className="text-xs font-extrabold uppercase tracking-widest text-[#0D9488]">
-            Step 1 of 4
+            Step 2 of 5
           </p>
           <div className="flex gap-1.5">
-            {[1, 2, 3, 4].map((s) => (
+            {[1, 2, 3, 4, 5].map((s) => (
               <div
                 key={s}
                 className={`h-1.5 rounded-full transition-all duration-500 ${
