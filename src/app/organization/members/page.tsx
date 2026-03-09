@@ -3,7 +3,6 @@
 import { useState, useMemo } from "react";
 import { MembersTable } from "../../../components/organization/MembersTable";
 import { MemberFilters } from "../../../components/organization/MemberFilters";
-import { Pagination } from "../../../components/organization/Pagination";
 import { UserPlus, AlertCircle } from "lucide-react";
 import { useMembers } from "../../../hooks/useMembers";
 import { Member } from "../../../types/organization";
@@ -34,11 +33,9 @@ export default function MembersPage() {
     if (!membersData?.meta) {
       return { page: 1, limit: PAGE_SIZE, total: 0, totalPages: 1 };
     }
-    console.log("Meta from API:", membersData.meta); // 👈 Add this
     return membersData.meta;
   }, [membersData]);
 
-  // Client-side filtering (applied to current page only)
   const filteredMembers = useMemo(() => {
     return members.filter((member: Member) => {
       if (filters.search) {
@@ -46,16 +43,12 @@ export default function MembersPage() {
         const email = member.user?.email?.toLowerCase() || "";
         const firstName = member.user?.first_name?.toLowerCase() || "";
         const lastName = member.user?.last_name?.toLowerCase() || "";
-
         if (
           !email.includes(searchTerm) &&
           !firstName.includes(searchTerm) &&
           !lastName.includes(searchTerm)
-        ) {
-          return false;
-        }
+        ) return false;
       }
-
       if (filters.dateFrom) {
         const joinedDate = new Date(member.created_at);
         const fromDate = new Date(filters.dateFrom);
@@ -68,10 +61,8 @@ export default function MembersPage() {
       }
       if (filters.status !== "all") {
         const memberStatus = member.user?.status;
-        if (filters.status === "active" && memberStatus !== "active")
-          return false;
-        if (filters.status === "inactive" && memberStatus !== "inactive")
-          return false;
+        if (filters.status === "active" && memberStatus !== "active") return false;
+        if (filters.status === "inactive" && memberStatus !== "inactive") return false;
       }
       return true;
     });
@@ -82,7 +73,6 @@ export default function MembersPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // ── Error ────────────────────────────────────────────────────────────────
   if (error) {
     return (
       <div
@@ -92,18 +82,9 @@ export default function MembersPage() {
         <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
           <AlertCircle className="h-8 w-8 text-red-500" />
         </div>
-        <h2 className="text-base font-bold text-[#1F2937] mb-1">
-          Failed to load members
-        </h2>
-        <p className="text-sm text-[#1F2937]/60 mb-5">
-          Something went wrong. Please try again.
-        </p>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => window.location.reload()}
-        >
+        <h2 className="text-base font-bold text-[#1F2937] mb-1">Failed to load members</h2>
+        <p className="text-sm text-[#1F2937]/60 mb-5">Something went wrong. Please try again.</p>
+        <Button type="button" variant="secondary" size="sm" onClick={() => window.location.reload()}>
           Retry
         </Button>
       </div>
@@ -153,23 +134,16 @@ export default function MembersPage() {
         isLoading={isLoading}
       />
 
-      {/* Table */}
+      {/* Table — pagination is now inside */}
       <MembersTable
         members={filteredMembers}
         isSearching={filters.search.length > 0}
         isLoading={isLoading}
+        currentPage={meta.page}
+        totalPages={meta.totalPages}
+        onPageChange={handlePageChange}
       />
-      
-      {!isLoading && meta && meta.totalPages > 1 && (
-        <Pagination
-          currentPage={meta.page}
-          totalPages={meta.totalPages}
-          onPageChange={handlePageChange}
-          isLoading={isLoading}
-        />
-      )}
 
-      {/* Create modal */}
       <CreateMemberModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
