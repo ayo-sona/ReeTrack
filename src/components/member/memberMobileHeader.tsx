@@ -40,7 +40,7 @@ const navigation = [
   { name: "Wallet", href: "/member/wallet", icon: Wallet },
   { name: "Subscriptions", href: "/member/subscriptions", icon: CreditCard },
   { name: "Check In", href: "/member/check-ins", icon: QrCode },
-  { name: "Payments", href: "/member/payments", icon: CreditCard },
+  { name: "Payments & Billing", href: "/member/payments", icon: CreditCard },
   // { name: "Notifications", href: "/member/notifications", icon: Bell },
 ];
 

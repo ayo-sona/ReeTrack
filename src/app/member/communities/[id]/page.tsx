@@ -65,7 +65,7 @@ function PlanCard({ plan, isSubscribed, index }: PlanCardProps) {
 
   const formatCurrency = (amount: number | null) => {
     if (amount === null) return "Free";
-    return `₦${amount.toLocaleString("en-US", {
+    return `₦${amount.toLocaleString("en-NG", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;

@@ -5,8 +5,8 @@ import { MembersGrowthChart } from "../../../components/organization/MembersGrow
 import { RevenueChart } from "../../../components/organization/RevenueChart";
 import { PlanDistributionChart } from "../../../components/organization/PlanDistributionChart";
 import { RecentMembersTable } from "../../../components/organization/RecentMembersTable";
-import { PaymentVerification } from "../../../components/organization/PaymentVerification";
-import { Suspense } from "react";
+// import { PaymentVerification } from "../../../components/organization/PaymentVerification";
+// import { Suspense } from "react";
 
 export default function OrganizationDashboardPage() {
   const currentHour = new Date().getHours();
@@ -20,12 +20,11 @@ export default function OrganizationDashboardPage() {
   return (
     <div className="min-h-screen bg-[#F9FAFB] font-[Nunito,sans-serif]">
       {/* Payment verification — silent, no visual footprint */}
-      <Suspense fallback={null}>
+      {/* <Suspense fallback={null}>
         <PaymentVerification />
-      </Suspense>
+      </Suspense> */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 space-y-6 sm:space-y-8">
-
         {/* ── Page Header ─────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           {/* Title block */}
@@ -64,7 +63,10 @@ export default function OrganizationDashboardPage() {
         {/* ── Charts Row ──────────────────────────────────────────────────
             1 col on mobile → 2 cols on large screens.
             min-h prevents collapse when chart data is loading.           */}
-        <section aria-label="Charts" className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <section
+          aria-label="Charts"
+          className="grid grid-cols-1 gap-6 lg:grid-cols-2"
+        >
           <div className="min-h-[280px] sm:min-h-[320px]">
             <MembersGrowthChart />
           </div>
@@ -76,7 +78,10 @@ export default function OrganizationDashboardPage() {
         {/* ── Bottom Row ──────────────────────────────────────────────────
             Mobile: all stack in a single column.
             Large: table takes 2 cols, distribution chart takes 1.        */}
-        <section aria-label="Members and plan distribution" className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <section
+          aria-label="Members and plan distribution"
+          className="grid grid-cols-1 gap-6 lg:grid-cols-3"
+        >
           <div className="lg:col-span-2 min-h-[300px]">
             <RecentMembersTable />
           </div>
@@ -84,7 +89,6 @@ export default function OrganizationDashboardPage() {
             <PlanDistributionChart />
           </div>
         </section>
-
       </div>
     </div>
   );
