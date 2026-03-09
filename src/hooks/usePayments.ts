@@ -10,9 +10,10 @@ import apiClient from "../lib/apiClient"; // adjust path if your apiClient lives
 export const usePayments = (
   page: number = 1,
   limit: number = 10,
-  status?: string,
+  paymentStatus?: string,
 ) => {
-  if (status === "all") status = undefined;
+  const status: string = paymentStatus === "all" ? "" : (paymentStatus ?? "");
+  
   return useQuery({
     queryKey: ["payments", page, limit, status],
     queryFn: () => paymentsApi.getAll(page, limit, status),

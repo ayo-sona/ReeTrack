@@ -48,7 +48,7 @@ export default function OnboardingHighlightsPage() {
             All done
           </p>
           <div className="flex gap-1.5">
-            {[1, 2, 3, 4].map((s) => (
+            {[1, 2, 3, 4, 5].map((s) => (
               <div
                 key={s}
                 className="h-1.5 w-6 rounded-full bg-[#0D9488] transition-all duration-500"
