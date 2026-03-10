@@ -17,6 +17,7 @@ interface FormData {
   email: string;
   phone: string;
   password: string;
+  confirmPassword: string;
 }
 
 function RegisterForm() {
@@ -30,6 +31,7 @@ function RegisterForm() {
     email: "",
     phone: "",
     password: "",
+    confirmPassword: "",
   });
   const [isVisible, setIsVisible] = useState(false);
 
@@ -53,6 +55,10 @@ function RegisterForm() {
       phone: formData.phone,
       password: formData.password,
     });
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
 
     if (success) {
       toast.success("Account created! Please verify your email.");
@@ -323,6 +329,42 @@ function RegisterForm() {
                   errorMessage={
                     formData.password.length > 0 && formData.password.length < 8
                       ? "Password should be at least 8 characters long"
+                      : ""
+                  }
+                  classNames={{
+                    input:
+                      "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
+                    inputWrapper:
+                      "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
+                  }}
+                />
+              </div>
+              {/* Confirm Password */}
+              <div>
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-semibold text-[#1F2937] mb-2"
+                >
+                  Confirm Password
+                </label>
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={isVisible ? "text" : "password"}
+                  required
+                  placeholder="Re-enter your password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  disabled={registering}
+                  startContent={<Lock className="w-4 h-4 text-gray-400" />}
+                  isInvalid={
+                    formData.confirmPassword.length > 0 &&
+                    formData.confirmPassword !== formData.password
+                  }
+                  errorMessage={
+                    formData.confirmPassword.length > 0 &&
+                    formData.confirmPassword !== formData.password
+                      ? "Passwords do not match"
                       : ""
                   }
                   classNames={{
