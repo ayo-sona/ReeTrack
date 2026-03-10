@@ -2,7 +2,9 @@ import apiClient from "@/lib/apiClient";
 
 export interface BvnVerificationPayload {
   bvn: string;
-  selfie: string; // base64 string (no data URL prefix)
+  first_name: string;
+  last_name: string;
+  date_of_birth: string; // YYYY-MM-DD
 }
 
 export interface BvnVerificationResult {
