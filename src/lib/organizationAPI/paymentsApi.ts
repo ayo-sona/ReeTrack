@@ -1,17 +1,12 @@
 import apiClient from "../apiClient";
 
 export interface InitializePaymentDto {
-  memberId: string;
-  amount: number;
-  currency: string;
-  method: string;
-  description?: string;
-  paidAt?: string;
+  invoiceId: string;
 }
 
 export interface Payment {
   id: string;
-  payer_user: {
+  payer_user?: {
     first_name: string;
     last_name: string;
     email: string;
@@ -34,6 +29,9 @@ export interface Payment {
       auto_renew: boolean;
     } | null;
   } | null;
+  plan_name?: string;
+  payment_method?: string;
+  payment_provider?: string;
   created_at: string;
   updated_at: string;
 }
@@ -57,8 +55,9 @@ export interface PaginatedResponse<T> {
 }
 
 export const paymentsApi = {
-  initialize: async (data: InitializePaymentDto): Promise<Payment> => {
-    const response = await apiClient.post("/payments/initialize", data);
+  // POST /payments/paystack/initialize — takes { invoiceId }
+  initialize: async (data: InitializePaymentDto): Promise<{ authorization_url: string; reference: string }> => {
+    const response = await apiClient.post("/payments/paystack/initialize", data);
     return response.data.data;
   },
 
@@ -68,11 +67,8 @@ export const paymentsApi = {
     status?: string,
   ): Promise<PaginatedResponse<Payment>> => {
     const response = await apiClient.get("/payments", {
-      params: { page, limit, status },
+      params: { page, limit, ...(status ? { status } : {}) },
     });
-    // Actual shape: { statusCode, message, data: { data: [...], meta: {} } }
-    // response.data       → { statusCode, message, data: { data: [...], meta: {} } }
-    // response.data.data  → { data: [...], meta: {} }  ← the paginated wrapper
     const paginated = response.data.data;
     return {
       data: paginated.data ?? [],
@@ -98,7 +94,6 @@ export const paymentsApi = {
     const response = await apiClient.get(`/payments/member/${memberId}`, {
       params: { page, limit },
     });
-    // Same envelope shape as getAll
     const paginated = response.data.data;
     return {
       data: paginated.data ?? [],
@@ -106,8 +101,9 @@ export const paymentsApi = {
     };
   },
 
+  // GET /payments/paystack/verify/{reference} — NOT a POST
   verify: async (reference: string): Promise<Payment> => {
-    const response = await apiClient.post(`/payments/verify/${reference}`);
+    const response = await apiClient.get(`/payments/paystack/verify/${reference}`);
     return response.data.data;
   },
 };

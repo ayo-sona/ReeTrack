@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { Fingerprint, Eye, EyeOff, User, Calendar } from "lucide-react";
+import { ShieldCheck, Fingerprint, Eye, EyeOff, ArrowLeft, User, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { verifyBvn } from "@/lib/organizationAPI/verifybvn";
 import { useKycStatus } from "@/hooks/useKYC";
@@ -15,7 +14,7 @@ const inputClass =
 const labelClass =
   "block text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1.5";
 
-export default function OnboardingVerifyIdentityPage() {
+export default function KycPage() {
   const router = useRouter();
   const { markVerified } = useKycStatus();
 
@@ -63,7 +62,7 @@ export default function OnboardingVerifyIdentityPage() {
       markVerified();
       setSuccess(true);
       toast.success("Identity verified!");
-      setTimeout(() => router.push("/organization/onboarding/bank-account"), 1500);
+      setTimeout(() => router.push("/organization/dashboard"), 1500);
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
@@ -76,63 +75,57 @@ export default function OnboardingVerifyIdentityPage() {
   };
 
   return (
-    <div
-      className="min-h-screen bg-[#F9FAFB] flex flex-col items-center justify-center px-4 py-12"
-      style={{ fontFamily: "Nunito, sans-serif" }}
-    >
-      <div className="w-full max-w-lg">
+    <div className="min-h-screen bg-[#F9FAFB] font-[Nunito,sans-serif]">
+      <div className="max-w-lg mx-auto px-4 sm:px-6 py-8 sm:py-12">
 
-        {/* Step indicator */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="flex items-center justify-between mb-8"
+        {/* Back link */}
+        <button
+          onClick={() => router.push("/organization/dashboard")}
+          className="flex items-center gap-1.5 text-sm font-semibold text-[#9CA3AF] hover:text-[#1F2937] transition-colors mb-8"
         >
-          <p className="text-xs font-extrabold uppercase tracking-widest text-[#0D9488]">
-            Step 1 of 5
+          <ArrowLeft className="w-4 h-4" />
+          Back to Dashboard
+        </button>
+
+        {/* Page header */}
+        <div className="mb-6">
+          <p className="text-xs font-semibold tracking-widest uppercase text-[#0D9488] mb-1">
+            Account
           </p>
-          <div className="flex gap-1.5">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <div
-                key={s}
-                className={`h-1.5 rounded-full transition-all duration-500 ${
-                  s === 1 ? "bg-[#0D9488]/50 w-6" : "bg-gray-200 w-4"
-                }`}
-              />
-            ))}
-          </div>
-        </motion.div>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#1F2937]">
+            Identity Verification
+          </h1>
+          <p className="text-sm text-[#9CA3AF] mt-0.5">
+            Verify your identity to add members and collect payments
+          </p>
+        </div>
 
         {/* Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.05 }}
-          className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
-        >
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+
           {/* Header */}
-          <div className="px-8 pt-8 pb-6 border-b border-gray-100">
-            <p className="text-xs font-extrabold uppercase tracking-widest text-[#0D9488] mb-3">
-              Identity Verification
-            </p>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1F2937] leading-snug mb-3">
-              Let's confirm it's you
-            </h1>
-            <p className="text-sm text-[#1F2937]/70 leading-relaxed">
-              We use your BVN to verify you're a real person — this keeps ReeTrack
-              safe for everyone and unlocks payments and member management.
-            </p>
-            <div className="mt-5 rounded-xl bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
+          <div className="px-6 sm:px-8 pt-6 pb-5 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#0D9488]/10 flex items-center justify-center flex-shrink-0">
+                <ShieldCheck className="w-5 h-5 text-[#0D9488]" />
+              </div>
+              <div>
+                <p className="text-sm font-extrabold text-[#1F2937]">BVN Verification</p>
+                <p className="text-xs text-[#9CA3AF] mt-0.5">
+                  One-time verification — takes less than a minute
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 rounded-xl bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
               <p className="text-xs text-[#0D9488] leading-relaxed">
-                🔒 Your BVN is encrypted and used only for identity verification. We never store or share it.
+                Your BVN is encrypted and used only for identity verification. We never store or share it.
               </p>
             </div>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit}>
-            <div className="px-8 py-6 space-y-5">
+            <div className="px-6 sm:px-8 py-6 space-y-5">
 
               {error && (
                 <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm">
@@ -142,7 +135,7 @@ export default function OnboardingVerifyIdentityPage() {
 
               {success && (
                 <div className="bg-[#0D9488]/5 border border-[#0D9488]/20 text-[#0D9488] px-4 py-3 rounded-lg text-sm font-semibold flex items-center gap-2">
-                  <span>✓</span> Identity verified{verifiedName ? ` — ${verifiedName}` : ""} — moving on...
+                  <span>✓</span> Identity verified{verifiedName ? ` — ${verifiedName}` : ""} — redirecting...
                 </div>
               )}
 
@@ -233,27 +226,17 @@ export default function OnboardingVerifyIdentityPage() {
             </div>
 
             {/* Footer */}
-            <div className="px-8 py-5 border-t border-gray-100 bg-[#F9FAFB] flex items-center justify-between">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push("/organization/onboarding/bank-account")}
-                disabled={isLoading || success}
-              >
-                Skip for now
-              </Button>
+            <div className="px-6 sm:px-8 py-5 border-t border-gray-100 bg-[#F9FAFB] flex justify-end">
               <Button
                 type="submit"
                 variant="secondary"
-                size="sm"
                 disabled={isLoading || success || !isValid}
               >
                 {isLoading ? "Verifying..." : "Verify Identity"}
               </Button>
             </div>
           </form>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

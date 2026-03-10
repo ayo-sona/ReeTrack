@@ -10,7 +10,6 @@ export function KycBanner() {
   const router = useRouter();
   const [dismissed, setDismissed] = useState(false);
 
-  // Don't render while reading localStorage, if already verified, or dismissed
   if (isLoading || isVerified || dismissed) return null;
 
   return (
@@ -30,7 +29,7 @@ export function KycBanner() {
 
       <div className="flex items-center gap-2 flex-shrink-0">
         <button
-          onClick={() => router.push("/organization/onboarding/verify-identity")}
+          onClick={() => router.push("/organization/kyc")}
           className="text-xs font-extrabold text-amber-700 hover:text-amber-900 transition-colors whitespace-nowrap bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg"
         >
           Verify now →
