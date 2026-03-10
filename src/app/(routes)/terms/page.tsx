@@ -41,7 +41,7 @@ We reserve the right to investigate and take appropriate action, including termi
     title: "Payments and Billing",
     content: `Subscription fees are billed monthly or annually depending on your chosen plan. By subscribing to a paid plan, you authorize ReeTrack to charge your selected payment method on a recurring basis.
 
-All prices are displayed in USD unless otherwise stated. Transaction fees apply to payments processed through your ReeTrack account and vary by plan tier.
+All prices are displayed in NGN unless otherwise stated. Transaction fees apply to payments processed through your ReeTrack account and vary by plan tier.
 
 Refunds: Annual plans may be refunded on a pro-rated basis for unused months if you cancel within the billing period. Monthly plans are not refunded for partial months. We reserve the right to modify pricing with 30 days' notice.`,
   },
