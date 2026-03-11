@@ -772,7 +772,7 @@ export default function SubscriptionPage() {
                               {feature.feature}
                             </td>
                             {comparisonPlans.map((plan) => {
-                              const planName = plan.name.toUpperCase();
+                              const planName = plan.name;
                               const featureValue =
                                 feature[planName as keyof typeof feature];
 
