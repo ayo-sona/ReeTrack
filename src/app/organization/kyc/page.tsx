@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Fingerprint, Eye, EyeOff, ArrowLeft, User, Calendar } from "lucide-react";
+import {
+  ShieldCheck,
+  Fingerprint,
+  Eye,
+  EyeOff,
+  ArrowLeft,
+  User,
+  Calendar,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { verifyBvn } from "@/lib/organizationAPI/verifybvn";
 import { useKycStatus } from "@/hooks/useKYC";
@@ -34,7 +42,7 @@ export default function KycPage() {
     lastName.trim().length > 0 &&
     dateOfBirth.length > 0;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setError("");
     if (!isValid) return;
@@ -55,7 +63,7 @@ export default function KycPage() {
           `${first} ${last}`
             .trim()
             .toLowerCase()
-            .replace(/\b\w/g, (c) => c.toUpperCase())
+            .replace(/\b\w/g, (c) => c.toUpperCase()),
         );
       }
 
@@ -77,7 +85,6 @@ export default function KycPage() {
   return (
     <div className="min-h-screen bg-[#F9FAFB] font-[Nunito,sans-serif]">
       <div className="max-w-lg mx-auto px-4 sm:px-6 py-8 sm:py-12">
-
         {/* Back link */}
         <button
           onClick={() => router.push("/organization/dashboard")}
@@ -102,7 +109,6 @@ export default function KycPage() {
 
         {/* Card */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-
           {/* Header */}
           <div className="px-6 sm:px-8 pt-6 pb-5 border-b border-gray-100">
             <div className="flex items-center gap-3">
@@ -110,7 +116,9 @@ export default function KycPage() {
                 <ShieldCheck className="w-5 h-5 text-[#0D9488]" />
               </div>
               <div>
-                <p className="text-sm font-extrabold text-[#1F2937]">BVN Verification</p>
+                <p className="text-sm font-extrabold text-[#1F2937]">
+                  BVN Verification
+                </p>
                 <p className="text-xs text-[#9CA3AF] mt-0.5">
                   One-time verification — takes less than a minute
                 </p>
@@ -118,7 +126,8 @@ export default function KycPage() {
             </div>
             <div className="mt-4 rounded-xl bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
               <p className="text-xs text-[#0D9488] leading-relaxed">
-                Your BVN is encrypted and used only for identity verification. We never store or share it.
+                Your BVN is encrypted and used only for identity verification.
+                We never store or share it.
               </p>
             </div>
           </div>
@@ -126,7 +135,6 @@ export default function KycPage() {
           {/* Form */}
           <form onSubmit={handleSubmit}>
             <div className="px-6 sm:px-8 py-6 space-y-5">
-
               {error && (
                 <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm">
                   {error}
@@ -135,7 +143,8 @@ export default function KycPage() {
 
               {success && (
                 <div className="bg-[#0D9488]/5 border border-[#0D9488]/20 text-[#0D9488] px-4 py-3 rounded-lg text-sm font-semibold flex items-center gap-2">
-                  <span>✓</span> Identity verified{verifiedName ? ` — ${verifiedName}` : ""} — redirecting...
+                  <span>✓</span> Identity verified
+                  {verifiedName ? ` — ${verifiedName}` : ""} — redirecting...
                 </div>
               )}
 
@@ -148,7 +157,10 @@ export default function KycPage() {
                     <input
                       type="text"
                       value={firstName}
-                      onChange={(e) => { setFirstName(e.target.value); setError(""); }}
+                      onChange={(e) => {
+                        setFirstName(e.target.value);
+                        setError("");
+                      }}
                       placeholder="As on BVN"
                       disabled={isLoading || success}
                       className={clsx(inputClass, "pl-10")}
@@ -162,7 +174,10 @@ export default function KycPage() {
                     <input
                       type="text"
                       value={lastName}
-                      onChange={(e) => { setLastName(e.target.value); setError(""); }}
+                      onChange={(e) => {
+                        setLastName(e.target.value);
+                        setError("");
+                      }}
                       placeholder="As on BVN"
                       disabled={isLoading || success}
                       className={clsx(inputClass, "pl-10")}
@@ -179,7 +194,11 @@ export default function KycPage() {
                   <input
                     type="date"
                     value={dateOfBirth}
-                    onChange={(e) => { setDateOfBirth(e.target.value); setError(""); }}
+                    onChange={(e) => {
+                      setDateOfBirth(e.target.value);
+                      setError("");
+                      // console.log("dateOfBirth", dateOfBirth);
+                    }}
                     disabled={isLoading || success}
                     className={clsx(inputClass, "pl-10")}
                   />
@@ -188,7 +207,9 @@ export default function KycPage() {
 
               {/* BVN */}
               <div>
-                <label className={labelClass}>BVN (Bank Verification Number)</label>
+                <label className={labelClass}>
+                  BVN (Bank Verification Number)
+                </label>
                 <div className="relative">
                   <Fingerprint className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF]" />
                   <input
@@ -196,33 +217,45 @@ export default function KycPage() {
                     inputMode="numeric"
                     value={bvn}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "").slice(0, 11);
+                      const val = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 11);
                       setBvn(val);
                       setError("");
                     }}
                     placeholder="Enter your 11-digit BVN"
                     disabled={isLoading || success}
-                    className={clsx(inputClass, "pl-10 pr-12 tracking-widest font-mono")}
+                    className={clsx(
+                      inputClass,
+                      "pl-10 pr-12 tracking-widest font-mono",
+                    )}
                   />
                   <button
                     type="button"
                     onClick={() => setShowBvn(!showBvn)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#1F2937] transition-colors"
                   >
-                    {showBvn ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showBvn ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
                 <div className="flex justify-between mt-1.5">
-                  <p className="text-xs text-[#9CA3AF]">Dial *565*0# to find your BVN</p>
-                  <p className={clsx(
-                    "text-xs font-semibold",
-                    bvn.length === 11 ? "text-[#0D9488]" : "text-[#9CA3AF]"
-                  )}>
+                  <p className="text-xs text-[#9CA3AF]">
+                    Dial *565*0# to find your BVN
+                  </p>
+                  <p
+                    className={clsx(
+                      "text-xs font-semibold",
+                      bvn.length === 11 ? "text-[#0D9488]" : "text-[#9CA3AF]",
+                    )}
+                  >
                     {bvn.length}/11
                   </p>
                 </div>
               </div>
-
             </div>
 
             {/* Footer */}
