@@ -65,6 +65,7 @@ export default function OrganizationSelectPage() {
       if (response.data.statusCode === 200) {
         setCookie("access_token", response.data.data.accessToken);
         setCookie("current_role", role);
+        localStorage.setItem("bvnVerified", String(response.data.data.verified));
 
         await queryClient.invalidateQueries({ queryKey: ["organizations"] });
         await queryClient.invalidateQueries({ queryKey: ["analytics"] });
