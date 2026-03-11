@@ -15,20 +15,7 @@ export function useKycStatus(): KycStatus {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem("userData");
-      if (!raw) {
-        setIsVerified(false);
-        return;
-      }
-      const userData = JSON.parse(raw);
-
-      // Support both single org and multi-org setups
-      const selectedOrgId = localStorage.getItem("selectedOrganizationId");
-      const org = selectedOrgId
-        ? userData?.organizations?.find((o: any) => o.id === selectedOrgId)
-        : userData?.organizations?.[0];
-
-      const verified = org?.metadata?.bvnVerified === true;
+      const verified = localStorage.getItem("bvnVerified") === "true";
       setIsVerified(verified);
     } catch {
       setIsVerified(false);
@@ -39,36 +26,7 @@ export function useKycStatus(): KycStatus {
 
   const markVerified = () => {
     setIsVerified(true);
-
-    // Also patch localStorage so other components reading it stay in sync
-    try {
-      const raw = localStorage.getItem("userData");
-      if (!raw) return;
-      const userData = JSON.parse(raw);
-
-      const selectedOrgId = localStorage.getItem("selectedOrganizationId");
-      const orgs = userData?.organizations ?? [];
-      const targetId = selectedOrgId ?? orgs[0]?.id;
-
-      const updated = {
-        ...userData,
-        organizations: orgs.map((org: any) =>
-          org.id === targetId
-            ? {
-                ...org,
-                metadata: {
-                  ...(org.metadata ?? {}),
-                  bvnVerified: true,
-                },
-              }
-            : org
-        ),
-      };
-
-      localStorage.setItem("userData", JSON.stringify(updated));
-    } catch {
-      // silently ignore — in-memory state is already updated
-    }
+    localStorage.setItem("bvnVerified", "true");
   };
 
   return { isVerified, isLoading, markVerified };
