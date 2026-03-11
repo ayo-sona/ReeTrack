@@ -32,7 +32,7 @@ const plans = [
   },
   {
     name: "Starter",
-    monthlyPrice: 50000,
+    monthlyPrice: 69000,
     description: "For growing communities ready to unlock professional tools",
     features: [
       { text: "Unlimited members", included: true },
@@ -52,7 +52,7 @@ const plans = [
   },
   {
     name: "Growth",
-    monthlyPrice: 80000,
+    monthlyPrice: 119000,
     description: "For established organizations scaling their community",
     features: [
       { text: "Unlimited members", included: true },
@@ -73,7 +73,7 @@ const plans = [
   },
   {
     name: "Pro",
-    monthlyPrice: 120000,
+    monthlyPrice: 249000,
     description: "For large, high-volume organizations that need full power",
     features: [
       { text: "Unlimited members", included: true },
