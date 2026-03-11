@@ -83,18 +83,49 @@ const invoiceStatusConfig = (status: string) => {
 };
 
 const includedFeatures = [
-  { feature: "Admin/staff accounts", BASIC: 1, PLATINUM: 3, GOLD: Infinity },
-  { feature: "Custom emails/month", BASIC: 2, PLATINUM: 20, GOLD: 200 },
-  { feature: "Transaction Fees", BASIC: "10%", PLATINUM: "7%", GOLD: "4%" },
-  { feature: "Member Plans access", BASIC: 1, PLATINUM: 3, GOLD: Infinity },
-  { feature: "Check-in service", BASIC: false, PLATINUM: true, GOLD: true },
+  { feature: "Admin/staff accounts", Free: 1, Starter: 3, Growth: 5, Pro: 10 },
+  {
+    feature: "Custom emails/month",
+    Free: 10,
+    Starter: 60,
+    Growth: 100,
+    Pro: 200,
+  },
+  {
+    feature: "Transaction Fees",
+    Free: "8%",
+    Starter: "7%",
+    Growth: "6%",
+    Pro: "5%",
+  },
+  {
+    feature: "Member Plans access",
+    Free: 1,
+    Starter: 3,
+    Growth: 5,
+    Pro: Infinity,
+  },
+  {
+    feature: "Check-in service",
+    Free: false,
+    Starter: true,
+    Growth: true,
+    Pro: true,
+  },
   {
     feature: "Organization Reports Generation",
-    BASIC: false,
-    PLATINUM: true,
-    GOLD: true,
+    Free: false,
+    Starter: true,
+    Growth: true,
+    Pro: true,
   },
-  { feature: "Priority support", BASIC: false, PLATINUM: true, GOLD: true },
+  {
+    feature: "Priority support",
+    Free: false,
+    Starter: true,
+    Growth: true,
+    Pro: true,
+  },
 ];
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
