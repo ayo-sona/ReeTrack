@@ -17,9 +17,9 @@ interface QueueItem {
   reject: (reason?: unknown) => void;
 }
 
-const BASE_URL = "https://reetrack-production.up.railway.app/api/v1";
-// const BASE_URL = "https://paypips.onrender.com/api/v1";
-// const BASE_URL = "http://localhost:4000/api/v1";
+export const BASE_URL = "https://reetrack-production.up.railway.app/api/v1";
+// export const BASE_URL = "https://paypips.onrender.com/api/v1";
+// export const BASE_URL = "http://localhost:4000/api/v1";
 
 // Prevent multiple simultaneous refresh requests
 let isRefreshing = false;
@@ -105,6 +105,7 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        const token = getCookie("access_token");
         const response = await axios.post(
           `${BASE_URL}/auth/refresh`,
           {},

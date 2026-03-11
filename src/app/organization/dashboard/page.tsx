@@ -19,7 +19,6 @@ export default function OrganizationDashboardPage() {
   return (
     <div className="min-h-screen bg-[#F9FAFB] font-[Nunito,sans-serif]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 space-y-6 sm:space-y-8">
-
         {/* ── KYC Banner — disappears once verified ───────────────────── */}
         <KycBanner />
 
@@ -80,7 +79,6 @@ export default function OrganizationDashboardPage() {
             <PlanDistributionChart />
           </div>
         </section>
-
       </div>
     </div>
   );

@@ -9,8 +9,8 @@ const AboutSection = () => {
   const [activeTab, setActiveTab] = useState<ContentKey>("who-we-are");
 
   const tabs = [
-    { id: "who-we-are" as const, label: "Who We Are", color: "#0D9488" },   // Growth Teal
-    { id: "what-we-do" as const, label: "What We Do", color: "#F06543" },   // Action Coral
+    { id: "who-we-are" as const, label: "Who We Are", color: "#0D9488" }, // Growth Teal
+    { id: "what-we-do" as const, label: "What We Do", color: "#F06543" }, // Action Coral
     { id: "the-problem" as const, label: "The Problem", color: "#0D9488" }, // Growth Teal
     { id: "our-solution" as const, label: "Our Solution", color: "#F06543" }, // Action Coral
   ];
@@ -196,7 +196,7 @@ const AboutSection = () => {
                   className="pt-4"
                 >
                   <a
-                    href="#pricing"
+                    href="/about"
                     className="inline-flex items-center gap-2 font-semibold hover:gap-3 transition-all"
                     style={{ color: activeColor }}
                   >

@@ -65,7 +65,7 @@ export default function OrganizationSelectPage() {
       if (response.data.statusCode === 200) {
         setCookie("access_token", response.data.data.accessToken);
         setCookie("current_role", role);
-        localStorage.setItem("bvnVerified", String(response.data.data.verified));
+        localStorage.setItem("verifiedOrg", response.data.data.verified);
 
         await queryClient.invalidateQueries({ queryKey: ["organizations"] });
         await queryClient.invalidateQueries({ queryKey: ["analytics"] });
@@ -110,7 +110,6 @@ export default function OrganizationSelectPage() {
       router.refresh();
     }
   };
-
 
   const orgs: OrganizationWithRole[] =
     userData?.organizations?.filter(
