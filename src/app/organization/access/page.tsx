@@ -195,7 +195,7 @@ export default function SubscriptionPage() {
           apiClient.get("/subscriptions/organizations"),
           apiClient.get("/invoices/organization"),
         ]);
-        console.log(subRes);
+        // console.log(subRes);
         setSubscription(subRes.data.data || null);
         setInvoices(invRes.data.data || []);
       } catch {
@@ -514,6 +514,19 @@ export default function SubscriptionPage() {
                             </p>
                           </div>
                           <div className="flex items-center gap-3 flex-shrink-0">
+                            {invoice.status === "failed" && (
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() =>
+                                  router.push(
+                                    `/organization/invoices/${invoice.id}/checkout?invoice=failed`,
+                                  )
+                                }
+                              >
+                                Pay Now
+                              </Button>
+                            )}
                             <p className="text-sm font-extrabold text-[#1F2937]">
                               ₦{invoice.amount.toLocaleString()}
                             </p>
@@ -525,7 +538,7 @@ export default function SubscriptionPage() {
                             >
                               {cfg.label}
                             </span>
-                            {invoice.status === "failed" && (
+                            {/* {invoice.status === "pending" && (
                               <Button
                                 variant="default"
                                 size="sm"
@@ -537,20 +550,7 @@ export default function SubscriptionPage() {
                               >
                                 Retry
                               </Button>
-                            )}
-                            {invoice.status === "pending" && (
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() =>
-                                  router.push(
-                                    `/organization/invoices/${invoice.id}/checkout`,
-                                  )
-                                }
-                              >
-                                Pay Now
-                              </Button>
-                            )}
+                            )} */}
                           </div>
                         </div>
                       </div>

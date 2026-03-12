@@ -6,11 +6,15 @@ import { AlertCircle } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { SharedCheckout, CheckoutPlan } from "@/components/shared/checkout";
 import { Button } from "@/components/ui/button";
+import { useSearchParams } from "next/navigation";
 
 export default function OrganizationCheckoutPage() {
   const params = useParams();
   const router = useRouter();
   const planId = params.id as string;
+  const searchParams = useSearchParams();
+  const invoiceStatus = searchParams.get("invoice");
+  const invoiceId = searchParams.get("id");
 
   const [plan, setPlan] = useState<CheckoutPlan | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,6 +80,8 @@ export default function OrganizationCheckoutPage() {
       plan={plan}
       backHref="/organization/access"
       backLabel="Back to plans"
+      failedInvoice={invoiceStatus === "failed" ? true : false}
+      failedInvoiceId={invoiceId || ""}
     />
   );
 }
