@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Check, X, Clock, CreditCard, FileText } from "lucide-react";
+import {
+  Search,
+  Check,
+  X,
+  Clock,
+  CreditCard,
+  FileText,
+  RefreshCw,
+} from "lucide-react";
 import { usePayments, useInvoices } from "@/hooks/memberHook/useMember";
 import { Pagination } from "@/components/organization/Pagination";
 import Link from "next/link";
@@ -431,6 +439,7 @@ export default function PaymentHistoryPage() {
       : Array.isArray(raw?.data?.data)
         ? raw.data.data
         : [];
+  // console.log(invoicesList);
 
   const filteredInvoices = invoicesList.filter((inv: any) => {
     if (!invoiceSearchQuery) return true;
@@ -920,6 +929,19 @@ export default function PaymentHistoryPage() {
                   >
                     Status
                   </th>
+                  <th
+                    style={{
+                      padding: "14px 20px",
+                      textAlign: "center",
+                      fontWeight: 700,
+                      fontSize: "12px",
+                      color: C.coolGrey,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -992,13 +1014,55 @@ export default function PaymentHistoryPage() {
                             {cfg.label}
                           </span>
                         </td>
+                        <td
+                          style={{ padding: "16px 20px", textAlign: "center" }}
+                        >
+                          {inv.status === "failed" &&
+                          inv.member_subscription?.plan?.id ? (
+                            <Link
+                              href={`/member/checkout/${inv.member_subscription.plan.id}?invoice=failed&id=${inv.id}`}
+                              style={{ textDecoration: "none" }}
+                            >
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "6px",
+                                  padding: "6px 12px",
+                                  fontSize: "12px",
+                                  fontWeight: 600,
+                                  borderRadius: "999px",
+                                  borderColor: C.coral,
+                                  color: C.coral,
+                                  background: "transparent",
+                                  transition: "all 200ms",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background =
+                                    "rgba(240,101,67,0.1)";
+                                  e.currentTarget.style.borderColor = C.coral;
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background =
+                                    "transparent";
+                                  e.currentTarget.style.borderColor = C.coral;
+                                }}
+                              >
+                                <RefreshCw size={12} />
+                                Retry
+                              </Button>
+                            </Link>
+                          ) : null}
+                        </td>
                       </tr>
                     );
                   })
                 ) : (
                   <tr>
                     <td
-                      colSpan={3}
+                      colSpan={4}
                       style={{ padding: "48px 24px", textAlign: "center" }}
                     >
                       <div

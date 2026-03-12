@@ -26,8 +26,6 @@ export interface CheckoutPlan {
     email?: string;
     phone?: string;
   };
-  /** When set, skip subscription creation and pay this invoice directly. */
-  invoiceId?: string;
 }
 
 export interface CheckoutConfig {
@@ -44,7 +42,13 @@ export interface CheckoutConfig {
   backLabel?: string;
 
   /** Email of the current user — required for member mode */
-  userEmail?: string;
+  // userEmail?: string;
+
+  // Failed Invoice
+  failedInvoice: boolean;
+
+  // Failed Invoice Id
+  failedInvoiceId: string;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -135,7 +139,9 @@ export function SharedCheckout({
   plan,
   backHref,
   backLabel = "Back",
-  userEmail,
+  // userEmail,
+  failedInvoice,
+  failedInvoiceId,
 }: CheckoutConfig) {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -145,10 +151,10 @@ export function SharedCheckout({
   const nextBillingDate = getNextBillingDate(plan.interval);
 
   const handleCheckout = async () => {
-    if (mode === "member" && !userEmail) {
-      setError("Unable to process payment. Please try again.");
-      return;
-    }
+    // if (mode === "member" && !userEmail) {
+    //   setError("Unable to process payment. Please try again.");
+    //   return;
+    // }
 
     setIsProcessing(true);
     setError(null);
@@ -156,29 +162,51 @@ export function SharedCheckout({
     try {
       let invoiceId: string;
 
-      if (mode === "member") {
-        // Member subscribing to a community plan
-        const {
-          data: {
-            data: { invoice },
-          },
-        } = await apiClient.post(
-          `/subscriptions/members/subscribe/${plan.organization_id}`,
-          { planId: plan.id },
-        );
-        invoiceId = invoice.id;
+      if (!failedInvoice) {
+        if (mode === "member") {
+          // Member subscribing to a community plan
+          const {
+            data: {
+              data: { invoice },
+            },
+          } = await apiClient.post(
+            `/subscriptions/members/subscribe/${plan.organization_id}`,
+            { planId: plan.id },
+          );
+          invoiceId = invoice.id;
+        } else {
+          // Use existing invoice
+          invoiceId = failedInvoiceId || "";
+        }
 
         const {
           data: { data: paymentData },
         } = await apiClient.post("/payments/paystack/initialize", {
           invoiceId,
+          ...(failedInvoice
+            ? {
+                metadata: {
+                  channels: [
+                    "card",
+                    "bank",
+                    "apple_pay",
+                    "ussd",
+                    "qr",
+                    "mobile_money",
+                    "bank_transfer",
+                    "eft",
+                    "capitec_pay",
+                    "payattitude",
+                  ],
+                },
+              }
+            : {}),
         });
         if (!isReady) return;
         resumeTransaction(paymentData.access_code);
       } else {
-        // If invoiceId is already on the plan, skip subscription creation
-        // (billing page pay-now flow — invoice already exists)
-        if (!plan.invoiceId) {
+        // Organization subscribing to a plan
+        if (!failedInvoice) {
           const {
             data: {
               data: { invoice },
@@ -188,13 +216,31 @@ export function SharedCheckout({
           });
           invoiceId = invoice.id;
         } else {
-          invoiceId = plan.invoiceId;
+          invoiceId = failedInvoiceId;
         }
 
         const {
           data: { data: paymentData },
         } = await apiClient.post("/payments/paystack/organization/initialize", {
           invoiceId,
+          ...(failedInvoice
+            ? {
+                metadata: {
+                  channels: [
+                    "card",
+                    "bank",
+                    "apple_pay",
+                    "ussd",
+                    "qr",
+                    "mobile_money",
+                    "bank_transfer",
+                    "eft",
+                    "capitec_pay",
+                    "payattitude",
+                  ],
+                },
+              }
+            : {}),
         });
         if (!isReady) return;
         resumeTransaction(paymentData.access_code);
