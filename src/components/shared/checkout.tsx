@@ -45,10 +45,10 @@ export interface CheckoutConfig {
   // userEmail?: string;
 
   // Failed Invoice
-  failedInvoice: boolean;
+  failedInvoice?: boolean;
 
   // Failed Invoice Id
-  failedInvoiceId: string;
+  failedInvoiceId?: string;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -160,10 +160,10 @@ export function SharedCheckout({
     setError(null);
 
     try {
-      let invoiceId: string;
+      let invoiceId;
 
-      if (!failedInvoice) {
-        if (mode === "member") {
+      if (mode === "member") {
+        if (!failedInvoice) {
           // Member subscribing to a community plan
           const {
             data: {
@@ -176,7 +176,7 @@ export function SharedCheckout({
           invoiceId = invoice.id;
         } else {
           // Use existing invoice
-          invoiceId = failedInvoiceId || "";
+          invoiceId = failedInvoiceId;
         }
 
         const {
