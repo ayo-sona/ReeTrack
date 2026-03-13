@@ -74,10 +74,20 @@ const invoiceStatusConfig = (status: string) => {
         className: "bg-red-50 text-red-600 border border-red-200",
         label: "Failed",
       };
-    default:
+    case "pending":
       return {
         className: "bg-amber-50 text-amber-700 border border-amber-200",
         label: "Pending",
+      };
+    case "cancelled":
+      return {
+        className: "bg-slate-50 text-slate-600 border border-slate-200",
+        label: "Cancelled",
+      };
+    default:
+      return {
+        className: "bg-blue-50 text-blue-700 border border-blue-200",
+        label: "Others",
       };
   }
 };
