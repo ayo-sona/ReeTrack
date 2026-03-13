@@ -19,9 +19,17 @@ export default function MemberDashboard() {
   const { data: allInvoices, isLoading: invoiceLoading } =
     useInvoices("failed");
 
-  const activeSubscriptionsCount = subscriptions?.length || 0;
+  const activeSubscriptionsCount = subscriptions.length;
 
-  const failedInvoiceCount = allInvoices?.length || 0;
+  const rawInvoice = allInvoices as any;
+  const invoicesList: any[] = Array.isArray(rawInvoice?.data)
+    ? rawInvoice.data
+    : Array.isArray(rawInvoice?.data?.data)
+      ? rawInvoice.data.data
+      : [];
+  console.log(invoicesList);
+
+  const failedInvoiceCount = invoicesList.length;
 
   // const upcomingPayments =
   //   subscriptions?.filter((s) => s.auto_renew).length || 0;
