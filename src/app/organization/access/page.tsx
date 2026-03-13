@@ -87,7 +87,7 @@ const invoiceStatusConfig = (status: string) => {
     default:
       return {
         className: "bg-blue-50 text-blue-700 border border-blue-200",
-        label: "Others",
+        label: "Unknown",
       };
   }
 };
