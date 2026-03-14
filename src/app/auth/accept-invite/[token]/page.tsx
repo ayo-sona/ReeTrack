@@ -294,7 +294,7 @@ export default function AcceptInvitationPage() {
               <div className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-[#0D9488] flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-[#0D9488] leading-relaxed">
-                  Your invitation is valid! Click "Join Organization" below to
+                  Your invitation is valid! Click &quot;Join Organization&quot; below to
                   accept and gain access to your new team.
                 </p>
               </div>

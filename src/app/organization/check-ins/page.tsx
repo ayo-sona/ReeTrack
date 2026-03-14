@@ -25,7 +25,7 @@ import clsx from "clsx";
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /** Get the latest timestamp from a member's checked_in_at array */
-function getLatestCheckIn(checked_in_at: string[] | string | null | undefined): string | null {
+function getLatestCheckIn(checked_in_at: string[] | string | undefined): string | null {
   if (!checked_in_at) return null;
   if (typeof checked_in_at === "string") return checked_in_at;
   if (checked_in_at.length === 0) return null;
@@ -100,7 +100,7 @@ export default function OrganizationCheckInPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [recentSearchQuery, setRecentSearchQuery] = useState("");
   const [timeFilter, setTimeFilter] = useState<"today" | "week" | "month">("month");
-  const { data: members, isLoading } = useMembers(pae, PAGE_SIZE);
+  const { data: members, isLoading } = useMembers(page, PAGE_SIZE);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [currentMember, setCurrentMember] = useState("");
