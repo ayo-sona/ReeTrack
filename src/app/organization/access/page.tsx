@@ -74,27 +74,68 @@ const invoiceStatusConfig = (status: string) => {
         className: "bg-red-50 text-red-600 border border-red-200",
         label: "Failed",
       };
-    default:
+    case "pending":
       return {
         className: "bg-amber-50 text-amber-700 border border-amber-200",
         label: "Pending",
+      };
+    case "cancelled":
+      return {
+        className: "bg-slate-50 text-slate-600 border border-slate-200",
+        label: "Cancelled",
+      };
+    default:
+      return {
+        className: "bg-blue-50 text-blue-700 border border-blue-200",
+        label: "Unknown",
       };
   }
 };
 
 const includedFeatures = [
-  { feature: "Admin/staff accounts", BASIC: 1, PLATINUM: 3, GOLD: Infinity },
-  { feature: "Custom emails/month", BASIC: 2, PLATINUM: 20, GOLD: 200 },
-  { feature: "Transaction Fees", BASIC: "10%", PLATINUM: "7%", GOLD: "4%" },
-  { feature: "Member Plans access", BASIC: 1, PLATINUM: 3, GOLD: Infinity },
-  { feature: "Check-in service", BASIC: false, PLATINUM: true, GOLD: true },
+  { feature: "Admin/staff accounts", Free: 1, Starter: 3, Growth: 5, Pro: 10 },
+  {
+    feature: "Custom emails/month",
+    Free: 10,
+    Starter: 60,
+    Growth: 100,
+    Pro: 200,
+  },
+  {
+    feature: "Transaction Fees",
+    Free: "8%",
+    Starter: "7%",
+    Growth: "6%",
+    Pro: "5%",
+  },
+  {
+    feature: "Member Plans access",
+    Free: 1,
+    Starter: 3,
+    Growth: 5,
+    Pro: Infinity,
+  },
+  {
+    feature: "Check-in service",
+    Free: false,
+    Starter: true,
+    Growth: true,
+    Pro: true,
+  },
   {
     feature: "Organization Reports Generation",
-    BASIC: false,
-    PLATINUM: true,
-    GOLD: true,
+    Free: false,
+    Starter: true,
+    Growth: true,
+    Pro: true,
   },
-  { feature: "Priority support", BASIC: false, PLATINUM: true, GOLD: true },
+  {
+    feature: "Priority support",
+    Free: false,
+    Starter: true,
+    Growth: true,
+    Pro: true,
+  },
 ];
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -164,7 +205,7 @@ export default function SubscriptionPage() {
           apiClient.get("/subscriptions/organizations"),
           apiClient.get("/invoices/organization"),
         ]);
-        console.log(subRes);
+        // console.log(subRes);
         setSubscription(subRes.data.data || null);
         setInvoices(invRes.data.data || []);
       } catch {
@@ -483,6 +524,19 @@ export default function SubscriptionPage() {
                             </p>
                           </div>
                           <div className="flex items-center gap-3 flex-shrink-0">
+                            {invoice.status === "failed" && (
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() =>
+                                  router.push(
+                                    `/organization/invoices/${invoice.id}/checkout?invoice=failed`,
+                                  )
+                                }
+                              >
+                                Pay Now
+                              </Button>
+                            )}
                             <p className="text-sm font-extrabold text-[#1F2937]">
                               ₦{invoice.amount.toLocaleString()}
                             </p>
@@ -494,7 +548,7 @@ export default function SubscriptionPage() {
                             >
                               {cfg.label}
                             </span>
-                            {invoice.status === "failed" && (
+                            {/* {invoice.status === "pending" && (
                               <Button
                                 variant="default"
                                 size="sm"
@@ -506,20 +560,7 @@ export default function SubscriptionPage() {
                               >
                                 Retry
                               </Button>
-                            )}
-                            {invoice.status === "pending" && (
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() =>
-                                  router.push(
-                                    `/organization/invoices/${invoice.id}/checkout`,
-                                  )
-                                }
-                              >
-                                Pay Now
-                              </Button>
-                            )}
+                            )} */}
                           </div>
                         </div>
                       </div>
@@ -741,7 +782,7 @@ export default function SubscriptionPage() {
                               {feature.feature}
                             </td>
                             {comparisonPlans.map((plan) => {
-                              const planName = plan.name.toUpperCase();
+                              const planName = plan.name;
                               const featureValue =
                                 feature[planName as keyof typeof feature];
 

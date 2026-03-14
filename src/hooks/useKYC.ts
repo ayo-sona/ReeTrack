@@ -15,7 +15,7 @@ export function useKycStatus(): KycStatus {
 
   useEffect(() => {
     try {
-      const verified = localStorage.getItem("bvnVerified") === "true";
+      const verified = localStorage.getItem("verifiedOrg") === "true";
       setIsVerified(verified);
     } catch {
       setIsVerified(false);
@@ -26,7 +26,7 @@ export function useKycStatus(): KycStatus {
 
   const markVerified = () => {
     setIsVerified(true);
-    localStorage.setItem("bvnVerified", "true");
+    localStorage.setItem("verifiedOrg", "true");
   };
 
   return { isVerified, isLoading, markVerified };

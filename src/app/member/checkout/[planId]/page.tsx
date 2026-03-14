@@ -4,13 +4,17 @@ import { useParams } from "next/navigation";
 import { useAvailablePlans } from "@/hooks/memberHook/useCommunity";
 import { useProfile } from "@/hooks/memberHook/useMember";
 import { SharedCheckout } from "@/components/shared/checkout";
+import { useSearchParams } from "next/navigation";
 
 export default function MemberCheckoutPage() {
   const params = useParams();
   const planId = params.planId as string;
+  const searchParams = useSearchParams();
+  const invoiceStatus = searchParams.get("invoice");
+  const invoiceId = searchParams.get("id");
 
   const { data: allPlans, isLoading: plansLoading } = useAvailablePlans();
-  const { data: profile } = useProfile();
+  // const { data: profile } = useProfile();
 
   const plan = allPlans?.find((p) => p.id === planId);
 
@@ -44,7 +48,9 @@ export default function MemberCheckoutPage() {
       plan={plan}
       backHref={`/member/communities/${plan.organization_id}`}
       backLabel="Back to Plans"
-      userEmail={profile?.email}
+      // userEmail={profile?.email}
+      failedInvoice={invoiceStatus === "failed" ? true : false}
+      failedInvoiceId={invoiceId || ""}
     />
   );
 }

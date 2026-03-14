@@ -4,17 +4,23 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import apiClient from "@/lib/apiClient";
-import { SharedCheckout, CheckoutPlan } from "@/components/shared/checkout";
+import { SharedCheckout } from "@/components/shared/checkout";
 import { Button } from "@/components/ui/button";
+import { useSearchParams } from "next/navigation";
 
 export default function InvoiceCheckoutPage() {
   const params = useParams();
   const router = useRouter();
   const invoiceId = params.id as string;
+  const searchParams = useSearchParams();
+  const invoiceStatus = searchParams.get("invoice");
 
-  const [plan, setPlan] = useState<CheckoutPlan | null>(null);
+  const [invoice, setInvoice] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // const [plan, setPlan] = useState<CheckoutPlan | null>(null);
+
+  // console.log(invoice);
 
   useEffect(() => {
     if (!invoiceId) return;
@@ -25,20 +31,21 @@ export default function InvoiceCheckoutPage() {
           `/invoices/organization/${invoiceId}`,
         );
         const invoice = data.data;
+        setInvoice(invoice);
 
         // Shape the invoice into CheckoutPlan so SharedCheckout
         // can render it without any changes to the shared component
-        const shaped: CheckoutPlan = {
-          id: invoice.id,
-          name: invoice.plan?.name ?? "Subscription",
-          description: invoice.description ?? undefined,
-          price: invoice.amount,
-          interval: invoice.plan?.interval ?? null,
-          features: invoice.plan?.features ?? [],
-          invoiceId: invoice.id, // tells SharedCheckout to use invoiceId directly
-        };
+        // const shaped: CheckoutPlan = {
+        //   id: invoice.id,
+        //   name: invoice.plan?.name ?? "Subscription",
+        //   description: invoice.description ?? undefined,
+        //   price: invoice.amount,
+        //   interval: invoice.plan?.interval ?? null,
+        //   features: invoice.plan?.features ?? [],
+        //   invoiceId: invoice.id, // tells SharedCheckout to use invoiceId directly
+        // };
 
-        setPlan(shaped);
+        // setPlan(shaped);
       } catch {
         setError("Failed to load invoice. Please go back and try again.");
       } finally {
@@ -58,7 +65,7 @@ export default function InvoiceCheckoutPage() {
     );
   }
 
-  if (error || !plan) {
+  if (error) {
     return (
       <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center font-[Nunito,sans-serif] px-4">
         <div className="text-center space-y-3 max-w-sm">
@@ -78,9 +85,11 @@ export default function InvoiceCheckoutPage() {
   return (
     <SharedCheckout
       mode="organization"
-      plan={plan}
+      plan={invoice.organization_subscription.plan}
       backHref="/organization/access"
       backLabel="Back to My Access"
+      failedInvoice={invoiceStatus === "failed" ? true : false}
+      failedInvoiceId={invoiceId || ""}
     />
   );
 }

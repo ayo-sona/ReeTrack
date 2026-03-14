@@ -9,21 +9,31 @@ import RecentActivity from "@/components/member/memberRecentActivity";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useInvoices } from "@/hooks/memberHook/useMember";
 
 export default function MemberDashboard() {
   const router = useRouter();
   const { data: profile } = useProfile();
   const { data: subscriptions, isLoading: subsLoading } =
     useActiveSubscriptions();
+  const { data: allInvoices, isLoading: invoiceLoading } =
+    useInvoices("failed");
 
-  // ✅ Calculate stats from real data
-  const activeSubscriptionsCount = subscriptions?.length || 0;
+  const activeSubscriptionsCount = subscriptions.length;
 
-  // ✅ Calculate upcoming payments (active subscriptions with auto-renew)
-  const upcomingPayments =
-    subscriptions?.filter((s) => s.auto_renew).length || 0;
+  const rawInvoice = allInvoices as any;
+  const invoicesList: any[] = Array.isArray(rawInvoice?.data)
+    ? rawInvoice.data
+    : Array.isArray(rawInvoice?.data?.data)
+      ? rawInvoice.data.data
+      : [];
 
-  // ✅ Sort subscriptions by expiry date (soonest first)
+  const failedInvoiceCount = invoicesList.length;
+
+  // const upcomingPayments =
+  //   subscriptions?.filter((s) => s.auto_renew).length || 0;
+
+  // Sort subscriptions by expiry date (soonest first)
   const sortedSubscriptions = subscriptions
     ? [...subscriptions].sort(
         (a, b) =>
@@ -31,7 +41,7 @@ export default function MemberDashboard() {
       )
     : [];
 
-  // ✅ Check if subscription expires within 7 days
+  // Check if subscription expires within 7 days
   const isExpiringSoon = (expiresAt: string) => {
     const now = new Date();
     const expiry = new Date(expiresAt);
@@ -61,7 +71,7 @@ export default function MemberDashboard() {
           </div>
         </div>
 
-        {/* Wallet Card - 🔜 Coming Soon */}
+        {/* Wallet Card - Coming Soon */}
         {/* <div className="bg-gradient-to-br from-[#0D9488] to-[#0B7A70] rounded-xl p-8 text-white shadow-lg border-2 border-white/20">
           <div className="flex items-center justify-between">
             <div>
@@ -108,10 +118,10 @@ export default function MemberDashboard() {
               </div>
               <div>
                 <p className="text-[#9CA3AF] text-sm font-semibold">
-                  Pending Payments
+                  Pending Invoices
                 </p>
                 <p className="text-3xl font-extrabold text-[#1F2937]">
-                  {upcomingPayments}
+                  {failedInvoiceCount}
                 </p>
               </div>
             </div>
@@ -132,7 +142,7 @@ export default function MemberDashboard() {
             </Link>
           </div>
 
-          {subsLoading ? (
+          {subsLoading || invoiceLoading ? (
             <div className="space-y-4">
               {[1, 2].map((i) => (
                 <div key={i} className="animate-pulse">
@@ -165,7 +175,7 @@ export default function MemberDashboard() {
                           <p className="text-sm text-[#9CA3AF] mt-1 font-medium">
                             {expiringSoon ? (
                               <span className="text-[#F06543] font-semibold">
-                                ⚠️ Expires{" "}
+                                Expires{" "}
                                 {new Date(sub.expires_at).toLocaleDateString()}
                               </span>
                             ) : (
@@ -242,7 +252,7 @@ export default function MemberDashboard() {
               </div>
               <p className="text-sm font-bold text-[#1F2937]">Payments</p>
               <p className="text-xs text-[#9CA3AF] mt-2 font-semibold">
-                {upcomingPayments} upcoming
+                {failedInvoiceCount} pending
               </p>
             </button>
           </Link>
