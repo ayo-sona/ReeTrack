@@ -27,7 +27,6 @@ export default function MemberDashboard() {
     : Array.isArray(rawInvoice?.data?.data)
       ? rawInvoice.data.data
       : [];
-  console.log(invoicesList);
 
   const failedInvoiceCount = invoicesList.length;
 
@@ -119,7 +118,7 @@ export default function MemberDashboard() {
               </div>
               <div>
                 <p className="text-[#9CA3AF] text-sm font-semibold">
-                  Pending Payments
+                  Pending Invoices
                 </p>
                 <p className="text-3xl font-extrabold text-[#1F2937]">
                   {failedInvoiceCount}
@@ -253,7 +252,7 @@ export default function MemberDashboard() {
               </div>
               <p className="text-sm font-bold text-[#1F2937]">Payments</p>
               <p className="text-xs text-[#9CA3AF] mt-2 font-semibold">
-                {failedInvoiceCount} upcoming
+                {failedInvoiceCount} pending
               </p>
             </button>
           </Link>
