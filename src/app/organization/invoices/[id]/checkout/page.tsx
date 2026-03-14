@@ -20,7 +20,7 @@ export default function InvoiceCheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   // const [plan, setPlan] = useState<CheckoutPlan | null>(null);
 
-  console.log(invoice);
+  // console.log(invoice);
 
   useEffect(() => {
     if (!invoiceId) return;
