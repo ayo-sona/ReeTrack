@@ -100,7 +100,7 @@ export default function OrganizationCheckInPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [recentSearchQuery, setRecentSearchQuery] = useState("");
   const [timeFilter, setTimeFilter] = useState<"today" | "week" | "month">("month");
-  const { data: members, isLoading } = useMembers(page, PAGE_SIZE);
+  const { data: members, isLoading } = useMembers(pae, PAGE_SIZE);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [currentMember, setCurrentMember] = useState("");
