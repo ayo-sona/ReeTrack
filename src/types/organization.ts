@@ -368,6 +368,13 @@ export interface MemberInvoice {
   created_at: string;
   updated_at: string;
   subscription?: MemberSubscription;
+  member_subscription?: {
+    id: string;
+    plan_id: string;
+    member_id: string;
+    organization_id: string;
+    status: string;
+  };
 }
 
 export interface InvoiceStats {

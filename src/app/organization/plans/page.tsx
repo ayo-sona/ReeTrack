@@ -78,7 +78,7 @@ export default function PlansPage() {
     total: allPlans.length,
     active: allPlans.filter((p) => p.isActive).length,
     totalMembers: allPlans.reduce(
-      (sum, p) => sum + (p.subscriptions?.length || 0),
+      (sum, p) => sum + (p.subscriptions?.filter((s) => s.status === "active").length || 0),
       0,
     ),
     avgPrice:

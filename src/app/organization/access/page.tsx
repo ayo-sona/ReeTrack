@@ -507,7 +507,8 @@ export default function SubscriptionPage() {
                         key={invoice.id}
                         className="px-6 py-4 hover:bg-[#F9FAFB] transition-colors"
                       >
-                        <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-start justify-between gap-3">
+                          {/* Left: invoice number + date */}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-[#1F2937] truncate">
                               {invoice.invoice_number}
@@ -523,7 +524,20 @@ export default function SubscriptionPage() {
                               )}
                             </p>
                           </div>
-                          <div className="flex items-center gap-3 flex-shrink-0">
+
+                          {/* Right: amount + status (stacked on mobile, row on desktop) */}
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-shrink-0 items-end">
+                            <p className="text-sm font-extrabold text-[#1F2937]">
+                              ₦{invoice.amount.toLocaleString()}
+                            </p>
+                            <span
+                              className={clsx(
+                                "inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold",
+                                cfg.className,
+                              )}
+                            >
+                              {cfg.label}
+                            </span>
                             {invoice.status === "failed" && (
                               <Button
                                 variant="secondary"
@@ -537,30 +551,6 @@ export default function SubscriptionPage() {
                                 Pay Now
                               </Button>
                             )}
-                            <p className="text-sm font-extrabold text-[#1F2937]">
-                              ₦{invoice.amount.toLocaleString()}
-                            </p>
-                            <span
-                              className={clsx(
-                                "inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold",
-                                cfg.className,
-                              )}
-                            >
-                              {cfg.label}
-                            </span>
-                            {/* {invoice.status === "pending" && (
-                              <Button
-                                variant="default"
-                                size="sm"
-                                onClick={() =>
-                                  router.push(
-                                    `/organization/invoices/${invoice.id}/pay`,
-                                  )
-                                }
-                              >
-                                Retry
-                              </Button>
-                            )} */}
                           </div>
                         </div>
                       </div>

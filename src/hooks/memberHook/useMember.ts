@@ -236,11 +236,14 @@ export const useVerifyPayment = () => {
 // ============================================
 
 export const useInvoices = (
+  page: number = 1,
+  limit: number = 5,
   status?: "pending" | "paid" | "cancelled" | "failed",
 ) => {
-  return useQuery<MemberInvoice[], Error>({
-    queryKey: ["member", "invoices", status],
-    queryFn: () => memberApi.getInvoices(status),
+  return useQuery<PaginatedResponse<MemberInvoice>, Error>({
+    queryKey: ["member", "invoices", page, limit, status],
+    queryFn: () => memberApi.getInvoices(page, limit, status),
+    placeholderData: keepPreviousData,
     retry: 1,
   });
 };

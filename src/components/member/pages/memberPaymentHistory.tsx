@@ -15,6 +15,7 @@ import { Pagination } from "@/components/organization/Pagination";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import type { MemberInvoice, MemberPayment } from "@/types/organization";
 
 const C = {
   teal: "#0D9488",
@@ -192,7 +193,13 @@ function SkeletonRow() {
   );
 }
 
-function PaymentRow({ payment, index }: { payment: any; index: number }) {
+function PaymentRow({
+  payment,
+  index,
+}: {
+  payment: MemberPayment;
+  index: number;
+}) {
   const [hovered, setHovered] = useState(false);
   const planName =
     payment.invoice?.member_subscription?.plan?.name || "Unknown Plan";
@@ -427,37 +434,24 @@ export default function PaymentHistoryPage() {
   const [invoiceSearchQuery, setInvoiceSearch] = useState("");
   const [invoiceSearchFocused, setInvSearchFoc] = useState(false);
 
-  const { data: allInvoices, isLoading: invoicesLoading } = useInvoices(
-    invoiceFilter === "all" ? undefined : (invoiceFilter as any),
+  const { data: invoicesData, isLoading: invoicesLoading } = useInvoices(
+    invoicePage,
+    ITEMS_PER_PAGE,
+    invoiceFilter === "all" ? undefined : invoiceFilter,
   );
 
-  const raw = allInvoices as any;
-  const invoicesList: any[] = Array.isArray(raw)
-    ? raw
-    : Array.isArray(raw?.data)
-      ? raw.data
-      : Array.isArray(raw?.data?.data)
-        ? raw.data.data
-        : [];
-  // console.log(invoicesList);
+  const invoiceTotalPages = invoicesData?.meta?.totalPages ?? 1;
 
-  const filteredInvoices = invoicesList.filter((inv: any) => {
-    if (!invoiceSearchQuery) return true;
-    const q = invoiceSearchQuery.toLowerCase();
-    return (
-      inv.id?.toLowerCase().includes(q) ||
-      inv.amount?.toString().includes(q) ||
-      inv.status?.toLowerCase().includes(q)
-    );
-  });
-
-  const invoiceTotalPages = Math.max(
-    1,
-    Math.ceil(filteredInvoices.length / ITEMS_PER_PAGE),
-  );
-  const paginatedInvoices = filteredInvoices.slice(
-    (invoicePage - 1) * ITEMS_PER_PAGE,
-    invoicePage * ITEMS_PER_PAGE,
+  const paginatedInvoices = (invoicesData?.data ?? []).filter(
+    (inv: MemberInvoice) => {
+      if (!invoiceSearchQuery) return true;
+      const q = invoiceSearchQuery.toLowerCase();
+      return (
+        inv.id?.toLowerCase().includes(q) ||
+        inv.amount?.toString().includes(q) ||
+        inv.status?.toLowerCase().includes(q)
+      );
+    },
   );
 
   return (
@@ -470,26 +464,31 @@ export default function PaymentHistoryPage() {
       }}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
-        * { box-sizing: border-box; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
-        input::placeholder { color: #9CA3AF; }
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+  * { box-sizing: border-box; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+  input::placeholder { color: #9CA3AF; }
 
-        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        @media (max-width: 640px) {
-          .stat-grid { grid-template-columns: 1fr 1fr; }
-          .stat-grid > *:last-child { grid-column: span 2; }
-          .payment-ref { display: none; }
-          .payment-method-tag { display: none; }
-          .page-title { font-size: 24px !important; }
-          .section-title { font-size: 18px !important; }
-          .filter-btn { font-size: 11px !important; padding: 5px 10px !important; }
-        }
-        @media (max-width: 400px) {
-          .stat-grid { grid-template-columns: 1fr; }
-          .stat-grid > *:last-child { grid-column: span 1; }
-        }
-      `}</style>
+  .invoice-desktop-table { display: table; }
+  .invoice-mobile-cards { display: none; }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 640px) {
+    .invoice-desktop-table { display: none; }
+    .invoice-mobile-cards { display: block; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .stat-grid > *:last-child { grid-column: span 2; }
+    .payment-ref { display: none; }
+    .payment-method-tag { display: none; }
+    .page-title { font-size: 24px !important; }
+    .section-title { font-size: 18px !important; }
+    .filter-btn { font-size: 11px !important; padding: 5px 10px !important; }
+  }
+  @media (max-width: 400px) {
+    .stat-grid { grid-template-columns: 1fr; }
+    .stat-grid > *:last-child { grid-column: span 1; }
+  }
+`}</style>
 
       <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
         {/* ── Page header ── */}
@@ -866,7 +865,7 @@ export default function PaymentHistoryPage() {
             </div>
           </div>
 
-          {/* Invoice table */}
+          {/* Invoice table / cards */}
           <div
             style={{
               background: C.white,
@@ -875,7 +874,9 @@ export default function PaymentHistoryPage() {
               overflow: "hidden",
             }}
           >
+            {/* ── Desktop table (hidden on mobile) ── */}
             <table
+              className="invoice-desktop-table"
               style={{
                 width: "100%",
                 borderCollapse: "collapse",
@@ -889,59 +890,30 @@ export default function PaymentHistoryPage() {
                     borderBottom: `1px solid ${C.border}`,
                   }}
                 >
-                  <th
-                    className="invoice-number-col"
-                    style={{
-                      padding: "14px 20px",
-                      textAlign: "left",
-                      fontWeight: 700,
-                      fontSize: "12px",
-                      color: C.coolGrey,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    Invoice No
-                  </th>
-                  <th
-                    style={{
-                      padding: "14px 20px",
-                      textAlign: "right",
-                      fontWeight: 700,
-                      fontSize: "12px",
-                      color: C.coolGrey,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    Amount
-                  </th>
-                  <th
-                    style={{
-                      padding: "14px 20px",
-                      textAlign: "left",
-                      fontWeight: 700,
-                      fontSize: "12px",
-                      color: C.coolGrey,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    Status
-                  </th>
-                  <th
-                    style={{
-                      padding: "14px 20px",
-                      textAlign: "center",
-                      fontWeight: 700,
-                      fontSize: "12px",
-                      color: C.coolGrey,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    Action
-                  </th>
+                  {(["Invoice No", "Amount", "Status", "Action"] as const).map(
+                    (h) => (
+                      <th
+                        key={h}
+                        style={{
+                          padding: "14px 20px",
+                          textAlign:
+                            h === "Amount"
+                              ? "right"
+                              : h === "Action"
+                                ? "center"
+                                : "left",
+                          fontWeight: 700,
+                          fontSize: "12px",
+                          color: C.coolGrey,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                          width: h === "Action" ? "120px" : undefined,
+                        }}
+                      >
+                        {h}
+                      </th>
+                    ),
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -969,10 +941,7 @@ export default function PaymentHistoryPage() {
                           (e.currentTarget.style.background = "transparent")
                         }
                       >
-                        <td
-                          className="invoice-number-col"
-                          style={{ padding: "16px 20px" }}
-                        >
+                        <td style={{ padding: "16px 20px" }}>
                           <span
                             style={{
                               fontWeight: 600,
@@ -981,7 +950,8 @@ export default function PaymentHistoryPage() {
                               fontFamily: "monospace",
                             }}
                           >
-                            {inv.invoice_number?.slice(0, 8).toUpperCase()}…
+                            {(inv as any).invoice_number ??
+                              `${inv.id?.slice(0, 8).toUpperCase()}…`}
                           </span>
                         </td>
                         <td
@@ -1018,9 +988,9 @@ export default function PaymentHistoryPage() {
                           style={{ padding: "16px 20px", textAlign: "center" }}
                         >
                           {inv.status === "failed" &&
-                          inv.member_subscription?.plan?.id ? (
+                          inv.member_subscription?.plan_id ? (
                             <Link
-                              href={`/member/checkout/${inv.member_subscription.plan.id}?invoice=failed&id=${inv.id}`}
+                              href={`/member/checkout/${inv.member_subscription.plan_id}?invoice=failed&id=${inv.id}`}
                               style={{ textDecoration: "none" }}
                             >
                               <Button
@@ -1030,7 +1000,7 @@ export default function PaymentHistoryPage() {
                                   display: "inline-flex",
                                   alignItems: "center",
                                   gap: "6px",
-                                  padding: "6px 12px",
+                                  padding: "6px 14px",
                                   fontSize: "12px",
                                   fontWeight: 600,
                                   borderRadius: "999px",
@@ -1038,23 +1008,28 @@ export default function PaymentHistoryPage() {
                                   color: C.coral,
                                   background: "transparent",
                                   transition: "all 200ms",
+                                  whiteSpace: "nowrap",
                                 }}
                                 onMouseEnter={(e) => {
                                   e.currentTarget.style.background =
                                     "rgba(240,101,67,0.1)";
-                                  e.currentTarget.style.borderColor = C.coral;
                                 }}
                                 onMouseLeave={(e) => {
                                   e.currentTarget.style.background =
                                     "transparent";
-                                  e.currentTarget.style.borderColor = C.coral;
                                 }}
                               >
                                 <RefreshCw size={12} />
                                 Retry
                               </Button>
                             </Link>
-                          ) : null}
+                          ) : (
+                            <span
+                              style={{ color: C.coolGrey, fontSize: "12px" }}
+                            >
+                              —
+                            </span>
+                          )}
                         </td>
                       </tr>
                     );
@@ -1114,6 +1089,176 @@ export default function PaymentHistoryPage() {
                 )}
               </tbody>
             </table>
+
+            {/* ── Mobile cards (hidden on desktop) ── */}
+            <div className="invoice-mobile-cards">
+              {invoicesLoading ? (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                    padding: "12px",
+                  }}
+                >
+                  {[1, 2, 3].map((i) => (
+                    <SkeletonCard key={i} />
+                  ))}
+                </div>
+              ) : paginatedInvoices.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  {paginatedInvoices.map((inv, idx) => {
+                    const cfg =
+                      INVOICE_STATUS_CONFIG[inv.status] ??
+                      INVOICE_STATUS_CONFIG.pending;
+                    const isLast = idx === paginatedInvoices.length - 1;
+                    return (
+                      <div
+                        key={inv.id}
+                        style={{
+                          padding: "16px 20px",
+                          borderBottom: isLast
+                            ? "none"
+                            : `1px solid ${C.border}`,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "10px",
+                        }}
+                      >
+                        {/* Top row: invoice number + amount */}
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontWeight: 600,
+                              fontSize: "13px",
+                              color: C.ink,
+                              fontFamily: "monospace",
+                            }}
+                          >
+                            {(inv as any).invoice_number ??
+                              `${inv.id?.slice(0, 8).toUpperCase()}…`}
+                          </span>
+                          <span
+                            style={{
+                              fontWeight: 800,
+                              fontSize: "16px",
+                              color: C.ink,
+                              letterSpacing: "-0.3px",
+                            }}
+                          >
+                            {formatCurrency(inv.amount)}
+                          </span>
+                        </div>
+                        {/* Bottom row: status + retry */}
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "5px",
+                              padding: "4px 10px",
+                              borderRadius: "999px",
+                              background: cfg.bg,
+                              color: cfg.color,
+                              fontWeight: 600,
+                              fontSize: "12px",
+                            }}
+                          >
+                            {cfg.label}
+                          </span>
+                          {inv.status === "failed" &&
+                          inv.member_subscription?.plan_id ? (
+                            <Link
+                              href={`/member/checkout/${inv.member_subscription.plan_id}?invoice=failed&id=${inv.id}`}
+                              style={{ textDecoration: "none" }}
+                            >
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "6px",
+                                  padding: "6px 14px",
+                                  fontSize: "12px",
+                                  fontWeight: 600,
+                                  borderRadius: "999px",
+                                  borderColor: C.coral,
+                                  color: C.coral,
+                                  background: "transparent",
+                                }}
+                              >
+                                <RefreshCw size={12} />
+                                Retry
+                              </Button>
+                            </Link>
+                          ) : null}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ padding: "48px 24px", textAlign: "center" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: "12px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "52px",
+                        height: "52px",
+                        borderRadius: "14px",
+                        background: C.snow,
+                        border: `1px solid ${C.border}`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: C.coolGrey,
+                      }}
+                    >
+                      <FileText size={24} />
+                    </div>
+                    <p
+                      style={{
+                        fontWeight: 700,
+                        fontSize: "15px",
+                        color: C.ink,
+                      }}
+                    >
+                      No invoices found
+                    </p>
+                    <p
+                      style={{
+                        fontWeight: 400,
+                        fontSize: "13px",
+                        color: C.coolGrey,
+                      }}
+                    >
+                      {invoiceSearchQuery || invoiceFilter !== "all"
+                        ? "Try adjusting your search or filters"
+                        : "Your invoices will appear here"}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Invoice pagination */}
             {!invoicesLoading && invoiceTotalPages > 1 && (

@@ -17,21 +17,37 @@ export function PlanMembersModal({ isOpen, onClose, plan }: PlanMembersModalProp
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "pending" | "cancelled" | "expired">("all");
 
+  // Deduplicate — one row per member, preferring active subscription
+  const uniqueSubscriptions = useMemo(() => {
+    if (!plan?.subscriptions) return [];
+    const seen = new Map<string, typeof plan.subscriptions[0]>();
+    const sorted = [...plan.subscriptions].sort((a, b) => {
+      if (a.status === "active" && b.status !== "active") return -1;
+      if (b.status === "active" && a.status !== "active") return 1;
+      return new Date(b.expires_at).getTime() - new Date(a.expires_at).getTime();
+    });
+    for (const sub of sorted) {
+      const key = sub.member.user.email;
+      if (!seen.has(key)) seen.set(key, sub);
+    }
+    return Array.from(seen.values());
+  }, [plan]);
+
   const filteredSubscriptions = useMemo(() => {
-    return plan?.subscriptions?.filter((sub) => {
+    return uniqueSubscriptions.filter((sub) => {
       const matchesSearch =
         sub.member.user.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         sub.member.user.email.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = statusFilter === "all" || sub.status === statusFilter;
       return matchesSearch && matchesStatus;
-    }) || [];
-  }, [searchQuery, statusFilter, plan]);
+    });
+  }, [searchQuery, statusFilter, uniqueSubscriptions]);
 
   const stats = {
-    total: plan?.subscriptions?.length || 0,
-    active: plan?.subscriptions?.filter((s) => s.status === "active").length || 0,
-    cancelled: plan?.subscriptions?.filter((s) => s.status === "cancelled").length || 0,
-    expired: plan?.subscriptions?.filter((s) => s.status === "expired").length || 0,
+    total: uniqueSubscriptions.length,
+    active: uniqueSubscriptions.filter((s) => s.status === "active").length,
+    cancelled: uniqueSubscriptions.filter((s) => s.status === "cancelled").length,
+    expired: uniqueSubscriptions.filter((s) => s.status === "expired").length,
   };
 
   const formatDate = (dateString: string) =>
