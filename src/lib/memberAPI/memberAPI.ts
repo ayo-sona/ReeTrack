@@ -260,12 +260,14 @@ export const verifyPayment = async (reference: string) => {
  * GET /api/v1/invoices/member?status=...
  */
 export const getInvoices = async (
+  page: number = 1,
+  limit: number = 5,
   status?: "pending" | "paid" | "cancelled" | "failed",
 ) => {
   const { data } = await apiClient.get("/invoices/member", {
-    params: { status },
+    params: { page, limit, status },
   });
-  return data;
+  return data.data;
 };
 
 /**

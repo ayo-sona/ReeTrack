@@ -16,8 +16,8 @@ export default function MemberDashboard() {
   const { data: profile } = useProfile();
   const { data: subscriptions, isLoading: subsLoading } =
     useActiveSubscriptions();
-  const { data: allInvoices, isLoading: invoiceLoading } =
-    useInvoices("failed");
+    const { data: allInvoices, isLoading: invoiceLoading } =
+    useInvoices(1, 100, "failed");
 
   const activeSubscriptionsCount = subscriptions.length;
 
