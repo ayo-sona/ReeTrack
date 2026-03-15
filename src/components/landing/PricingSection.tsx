@@ -34,7 +34,7 @@ const PricingSection = () => {
     },
     {
       name: "Starter",
-      monthlyPrice: 69000,
+      monthlyPrice: 65000,
       description: "For growing communities ready to unlock professional tools",
       features: [
         { text: "Unlimited members", included: true },
@@ -54,7 +54,7 @@ const PricingSection = () => {
     },
     {
       name: "Growth",
-      monthlyPrice: 149000,
+      monthlyPrice: 110000,
       description: "For established organizations scaling their community",
       features: [
         { text: "Unlimited members", included: true },
@@ -75,7 +75,7 @@ const PricingSection = () => {
     },
     {
       name: "Pro",
-      monthlyPrice: 359000,
+      monthlyPrice: 200000,
       description: "For large, high-volume organizations that need full power",
       features: [
         { text: "Unlimited members", included: true },
