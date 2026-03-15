@@ -3,11 +3,29 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, CreditCard, Crown, XCircle } from "lucide-react";
+import {
+  CheckCircle,
+  CreditCard,
+  Crown,
+  XCircle,
+  RefreshCw,
+} from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
+import Link from "next/link";
+
+const C = {
+  teal: "#0D9488",
+  coral: "#F06543",
+  snow: "#F9FAFB",
+  white: "#FFFFFF",
+  ink: "#1F2937",
+  coolGrey: "#9CA3AF",
+  border: "#E5E7EB",
+  amber: "#D97706",
+};
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -205,9 +223,10 @@ export default function SubscriptionPage() {
           apiClient.get("/subscriptions/organizations"),
           apiClient.get("/invoices/organization"),
         ]);
+        console.log("invoices response:", invRes.data);
         // console.log(subRes);
         setSubscription(subRes.data.data || null);
-        setInvoices(invRes.data.data || []);
+        setInvoices(invRes.data.data.data || []);
       } catch {
         toast.error("Failed to load billing information");
       } finally {
@@ -524,7 +543,42 @@ export default function SubscriptionPage() {
                               )}
                             </p>
                           </div>
-
+                          {invoice.status === "failed" && (
+                            <Link
+                              href={`/organization/invoices/${invoice.id}/checkout?invoice=failed`}
+                              style={{ textDecoration: "none" }}
+                            >
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "6px",
+                                  padding: "6px 14px",
+                                  fontSize: "12px",
+                                  fontWeight: 600,
+                                  borderRadius: "999px",
+                                  borderColor: C.coral,
+                                  color: C.coral,
+                                  background: "transparent",
+                                  transition: "all 200ms",
+                                  whiteSpace: "nowrap",
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background =
+                                    "rgba(240,101,67,0.1)";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background =
+                                    "transparent";
+                                }}
+                              >
+                                <RefreshCw size={12} />
+                                Retry
+                              </Button>
+                            </Link>
+                          )}
                           {/* Right: amount + status (stacked on mobile, row on desktop) */}
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-shrink-0 items-end">
                             <p className="text-sm font-extrabold text-[#1F2937]">
@@ -538,19 +592,6 @@ export default function SubscriptionPage() {
                             >
                               {cfg.label}
                             </span>
-                            {invoice.status === "failed" && (
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() =>
-                                  router.push(
-                                    `/organization/invoices/${invoice.id}/checkout?invoice=failed`,
-                                  )
-                                }
-                              >
-                                Pay Now
-                              </Button>
-                            )}
                           </div>
                         </div>
                       </div>
