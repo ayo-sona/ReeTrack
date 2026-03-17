@@ -209,7 +209,7 @@ export function AnalyticsCards() {
       dropdownType: "members" as const,
     },
     {
-      name: "This Month Revenue",
+      name: "Month Revenue",
       value: `₦${((analytics.revenue.period_revenue || 0) / 1000).toFixed(1)}K`,
       change: `${analytics.revenue.growth_rate >= 0 ? "+" : ""}${(analytics.revenue.growth_rate || 0).toFixed(1)}% from last period`,
       changeType:
@@ -220,11 +220,11 @@ export function AnalyticsCards() {
       accent: "teal" as const,
       subStats: [
         {
-          label: "Payments",
+          label: "Successful Payments",
           value: analytics.payments.successful_payments || 0,
         },
         {
-          label: "Total",
+          label: "Total Revenue",
           value: `₦${(analytics.revenue.total_revenue || 0).toLocaleString()}`,
         },
       ],

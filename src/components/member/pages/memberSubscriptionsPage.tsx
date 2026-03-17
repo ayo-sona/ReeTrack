@@ -166,7 +166,7 @@ function StatCard({
 }
 
 function SubscriptionCard({ sub, index }: { sub: any; index: number }) {
-  console.log("sub", sub);
+  // console.log("sub", sub);
   const [hovered, setHovered] = useState(false);
   const expiringSoon =
     sub.status === "active" && isExpiringSoon(sub.expires_at);
