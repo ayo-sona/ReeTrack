@@ -3,6 +3,7 @@ import "./globals.css";
 import { Providers } from "../providers/Providers";
 import { Toaster } from "sonner";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata: Metadata = {
   title: "ReeTrack - Community and Payment Management",
@@ -26,6 +27,7 @@ export default function RootLayout({
           <Toaster position="top-right" />
         </Providers>
         <GoogleAnalytics gaId="G-NFCEF78QJN" />
+        <Analytics />
       </body>
     </html>
   );
