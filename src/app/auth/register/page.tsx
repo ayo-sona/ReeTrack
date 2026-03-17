@@ -20,6 +20,12 @@ interface FormData {
   confirmPassword: string;
 }
 
+const inputClassNames = {
+  input:
+    "outline-none focus:outline-none !text-gray-900 dark:!text-gray-100 placeholder:text-gray-400",
+  inputWrapper: "bg-white dark:bg-black",
+};
+
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -201,12 +207,7 @@ function RegisterForm() {
                     onChange={handleChange}
                     disabled={registering}
                     startContent={<User className="w-4 h-4 text-gray-400" />}
-                    classNames={{
-                      input:
-                        "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                      inputWrapper:
-                        "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                    }}
+                    classNames={inputClassNames}
                   />
                 </div>
                 <div>
@@ -226,12 +227,7 @@ function RegisterForm() {
                     onChange={handleChange}
                     disabled={registering}
                     startContent={<User className="w-4 h-4 text-gray-400" />}
-                    classNames={{
-                      input:
-                        "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                      inputWrapper:
-                        "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                    }}
+                    classNames={inputClassNames}
                   />
                 </div>
               </div>
@@ -255,12 +251,7 @@ function RegisterForm() {
                   onChange={handleChange}
                   disabled={registering}
                   startContent={<Mail className="w-4 h-4 text-gray-400" />}
-                  classNames={{
-                    input:
-                      "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                    inputWrapper:
-                      "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                  }}
+                  classNames={inputClassNames}
                 />
               </div>
 
@@ -282,12 +273,7 @@ function RegisterForm() {
                   onChange={handleChange}
                   disabled={registering}
                   startContent={<Phone className="w-4 h-4 text-gray-400" />}
-                  classNames={{
-                    input:
-                      "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                    inputWrapper:
-                      "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                  }}
+                  classNames={inputClassNames}
                 />
               </div>
 
@@ -331,12 +317,7 @@ function RegisterForm() {
                       ? "Password should be at least 8 characters long"
                       : ""
                   }
-                  classNames={{
-                    input:
-                      "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                    inputWrapper:
-                      "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                  }}
+                  classNames={inputClassNames}
                 />
               </div>
               {/* Confirm Password */}
@@ -367,12 +348,7 @@ function RegisterForm() {
                       ? "Passwords do not match"
                       : ""
                   }
-                  classNames={{
-                    input:
-                      "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-                    inputWrapper:
-                      "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-                  }}
+                  classNames={inputClassNames}
                 />
               </div>
 
