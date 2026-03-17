@@ -105,7 +105,6 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const token = getCookie("access_token");
         const response = await axios.post(
           `${BASE_URL}/auth/refresh`,
           {},
@@ -120,7 +119,7 @@ apiClient.interceptors.response.use(
         // Update tokens in cookies
         setCookie("access_token", access_token);
 
-        // Server will set new access_token cookie automatically
+        // Server will set new access_token cookie
         processQueue(null); // Tell waiting requests to retry
 
         // Retry the original request
@@ -128,6 +127,7 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         // Refresh failed - redirect to login
         processQueue(new Error("Token refresh failed")); // Reject all waiting requests
+        // console.error("refreshError", refreshError);
 
         if (typeof window !== "undefined") {
           // Clear local storage items

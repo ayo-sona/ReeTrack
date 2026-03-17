@@ -13,11 +13,17 @@ import { toast } from "sonner";
 import Logo from "@/components/layout/Logo";
 import { deleteCookie } from "cookies-next";
 
+// const inputClassNames = {
+//   input:
+//     "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
+//   inputWrapper:
+//     "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
+// };
+
 const inputClassNames = {
   input:
-    "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-  inputWrapper:
-    "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
+    "outline-none focus:outline-none !text-gray-900 dark:!text-gray-100 placeholder:text-gray-400",
+  inputWrapper: "bg-white dark:bg-black",
 };
 
 export default function AdminRegisterPage() {
