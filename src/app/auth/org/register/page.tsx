@@ -487,40 +487,6 @@ export default function AdminRegisterPage() {
                         classNames={inputClassNames}
                       />
                     </div>
-
-                    {/* Confirm Password — new users only */}
-                    <div>
-                      <label
-                        htmlFor="confirmPassword"
-                        className="block text-sm font-semibold text-[#1F2937] mb-2"
-                      >
-                        Confirm Password *
-                      </label>
-                      <Input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type={isVisible ? "text" : "password"}
-                        required={!isExistingUser}
-                        placeholder="Re-enter your password"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        disabled={isLoading}
-                        startContent={
-                          <Lock className="w-4 h-4 text-gray-400" />
-                        }
-                        isInvalid={
-                          formData.confirmPassword.length > 0 &&
-                          formData.confirmPassword !== formData.password
-                        }
-                        errorMessage={
-                          formData.confirmPassword.length > 0 &&
-                          formData.confirmPassword !== formData.password
-                            ? "Passwords do not match"
-                            : ""
-                        }
-                        classNames={inputClassNames}
-                      />
-                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -608,6 +574,39 @@ export default function AdminRegisterPage() {
                     classNames={inputClassNames}
                   />
                 </div>
+                 {/* Confirm Password — new users only */}
+                 <div>
+                      <label
+                        htmlFor="confirmPassword"
+                        className="block text-sm font-semibold text-[#1F2937] mb-2"
+                      >
+                        Confirm Password *
+                      </label>
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type={isVisible ? "text" : "password"}
+                        required={!isExistingUser}
+                        placeholder="Re-enter your password"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        disabled={isLoading}
+                        startContent={
+                          <Lock className="w-4 h-4 text-gray-400" />
+                        }
+                        isInvalid={
+                          formData.confirmPassword.length > 0 &&
+                          formData.confirmPassword !== formData.password
+                        }
+                        errorMessage={
+                          formData.confirmPassword.length > 0 &&
+                          formData.confirmPassword !== formData.password
+                            ? "Passwords do not match"
+                            : ""
+                        }
+                        classNames={inputClassNames}
+                      />
+                    </div>
               </div>
 
               {/* Organization Details */}
