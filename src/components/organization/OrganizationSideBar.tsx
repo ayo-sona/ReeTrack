@@ -11,7 +11,6 @@ import {
   Receipt,
   ScanLine,
   LogOut,
-  Bell,
 } from "lucide-react";
 import { Sidebar } from "@/components/ui/SideBar";
 import { useState, useEffect } from "react";
