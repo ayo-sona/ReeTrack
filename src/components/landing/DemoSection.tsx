@@ -2732,18 +2732,7 @@ export default function ReetrackDualDemo() {
 
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 48 }}>
-          <p
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: C.teal,
-              textTransform: "uppercase",
-              letterSpacing: "2.5px",
-              marginBottom: 8,
-            }}
-          >
-            Live Demo
-          </p>
+
           <h2
             style={{
               fontSize: 32,
@@ -2755,18 +2744,6 @@ export default function ReetrackDualDemo() {
           >
             See Reetrack in action
           </h2>
-          <p
-            style={{
-              fontSize: 15,
-              color: C.grey,
-              maxWidth: 480,
-              margin: "0 auto",
-              lineHeight: 1.6,
-            }}
-          >
-            The organization dashboard lives on the left. Your members
-            experience it on the right.
-          </p>
         </div>
 
         {/* Side by side */}
