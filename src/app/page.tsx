@@ -11,6 +11,7 @@ import FAQSection from "@/components/landing/FAQSection";
 import ContactSection from "@/components/landing/contact";
 import AboutSection from "@/components/landing/AboutSection";
 import { ScrollReveal } from "@/components/effects/scrollReveal";
+import Demo from "@/components/landing/DemoSection";
 
 export default function HomePage() {
   return (
@@ -19,6 +20,10 @@ export default function HomePage() {
 
       {/* Hero shows immediately - no animation needed */}
       <HeroSection />
+
+      <ScrollReveal>
+      <Demo />
+      </ScrollReveal>
 
       {/* Sections reveal as you scroll */}
       <ScrollReveal>
