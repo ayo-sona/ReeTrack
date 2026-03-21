@@ -2590,7 +2590,7 @@ function PhoneApp({
               fontFamily: "Nunito, sans-serif",
             }}
           >
-            app.reetrack.com/member
+            reetrack.com/member
           </span>
         </div>
       </div>
@@ -2732,7 +2732,6 @@ export default function ReetrackDualDemo() {
 
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 48 }}>
-
           <h2
             style={{
               fontSize: 32,
@@ -2825,7 +2824,7 @@ export default function ReetrackDualDemo() {
                     fontFamily: "Nunito, sans-serif",
                   }}
                 >
-                  app.reetrack.com/organization/{orgPage}
+                  reetrack.com/organization/{orgPage}
                 </div>
               </div>
               <div style={{ height: 400 }}>

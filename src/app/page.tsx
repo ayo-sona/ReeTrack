@@ -22,7 +22,7 @@ export default function HomePage() {
       <HeroSection />
 
       <ScrollReveal>
-      <Demo />
+        <Demo />
       </ScrollReveal>
 
       {/* Sections reveal as you scroll */}

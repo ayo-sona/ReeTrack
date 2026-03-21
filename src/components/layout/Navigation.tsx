@@ -10,9 +10,9 @@ import Logo from "./Logo";
 
 const navItems = [
   { label: "About", href: "/about" },
-  { label: "How it Works", href: "/#how-it-works" },
+  // { label: "How it Works", href: "/#how-it-works" },
   { label: "Pricing", href: "/pricing" },
-  { label: "FAQ", href: "/#faq" },
+  // { label: "FAQ", href: "/#faq" },
   { label: "Contact", href: "/contact" },
 ];
 
@@ -76,7 +76,10 @@ const ClientOnlyNavigation = () => {
         className="fixed top-6 left-0 right-0 z-50 px-6 py-4 hidden md:block"
       >
         <div className="max-w-6xl mx-auto">
-          <div className="transition-all duration-500 rounded-full" style={navStyle()}>
+          <div
+            className="transition-all duration-500 rounded-full"
+            style={navStyle()}
+          >
             <div className="w-full px-8 py-3 flex items-center justify-between gap-6">
               {/* Logo */}
               <motion.div
@@ -102,7 +105,9 @@ const ClientOnlyNavigation = () => {
                 {navItems.map((item, idx) => (
                   <motion.a
                     key={item.label}
-                    ref={(el) => { itemRefs.current[item.label] = el; }}
+                    ref={(el) => {
+                      itemRefs.current[item.label] = el;
+                    }}
                     href={item.href}
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -183,7 +188,11 @@ const ClientOnlyNavigation = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </motion.button>
           </div>
         </div>
@@ -207,7 +216,10 @@ const ClientOnlyNavigation = () => {
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="fixed inset-0 z-30 md:hidden overflow-y-auto rounded-[30px]"
-              style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}
+              style={{
+                backdropFilter: "blur(24px)",
+                WebkitBackdropFilter: "blur(24px)",
+              }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="h-full flex flex-col justify-center px-8 py-16">
@@ -248,8 +260,16 @@ const ClientOnlyNavigation = () => {
                   transition={{ delay: 0.5, duration: 0.5 }}
                   className="space-y-3"
                 >
-                  <Button variant="outline" size="lg" asChild className="w-full">
-                    <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    asChild
+                    className="w-full"
+                  >
+                    <Link
+                      href="/auth/login"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
                       Sign In
                     </Link>
                   </Button>
@@ -259,7 +279,10 @@ const ClientOnlyNavigation = () => {
                     asChild
                     className="w-full shadow-2xl shadow-[#F06543]/20"
                   >
-                    <Link href="/auth/register" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Link
+                      href="/auth/register"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
                       Get Started
                     </Link>
                   </Button>
@@ -271,7 +294,9 @@ const ClientOnlyNavigation = () => {
                   transition={{ delay: 0.7, duration: 0.5 }}
                   className="mt-auto pt-12 flex items-center justify-between"
                 >
-                  <p className="text-[#1F2937]/40 text-sm">© {new Date().getFullYear()} ReeTrack.</p>
+                  <p className="text-[#1F2937]/40 text-sm">
+                    © {new Date().getFullYear()} ReeTrack.
+                  </p>
                   <div className="flex items-center gap-4">
                     <a
                       href="/terms"
