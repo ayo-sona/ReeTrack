@@ -13,6 +13,7 @@ import {
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/organization/Pagination";
 import clsx from "clsx";
 import Link from "next/link";
 
@@ -156,6 +157,8 @@ const includedFeatures = [
   },
 ];
 
+const INVOICES_PER_PAGE = 3;
+
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
 function Skeleton() {
@@ -206,7 +209,10 @@ export default function SubscriptionPage() {
   // Overview data
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [invoicePage, setInvoicePage] = useState(1);
+  const [invoiceTotalPages, setInvoiceTotalPages] = useState(1);
   const [loadingOverview, setLoadingOverview] = useState(true);
+  const [loadingInvoices, setLoadingInvoices] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
 
   // Plans data
@@ -214,19 +220,13 @@ export default function SubscriptionPage() {
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [plansLoaded, setPlansLoaded] = useState(false);
 
-  // Load overview data on mount
+  // Load subscription on mount
   useEffect(() => {
     (async () => {
       setLoadingOverview(true);
       try {
-        const [subRes, invRes] = await Promise.all([
-          apiClient.get("/subscriptions/organizations"),
-          apiClient.get("/invoices/organization"),
-        ]);
-        console.log("invoices response:", invRes.data);
-        // console.log(subRes);
+        const subRes = await apiClient.get("/subscriptions/organizations");
         setSubscription(subRes.data.data || null);
-        setInvoices(invRes.data.data.data || []);
       } catch {
         toast.error("Failed to load billing information");
       } finally {
@@ -234,6 +234,25 @@ export default function SubscriptionPage() {
       }
     })();
   }, []);
+
+  // Load invoices whenever page changes
+  useEffect(() => {
+    (async () => {
+      setLoadingInvoices(true);
+      try {
+        const invRes = await apiClient.get("/invoices/organization", {
+          params: { page: invoicePage, limit: INVOICES_PER_PAGE },
+        });
+        const payload = invRes.data.data;
+        setInvoices(payload.data || []);
+        setInvoiceTotalPages(payload.meta?.totalPages ?? 1);
+      } catch {
+        toast.error("Failed to load invoices");
+      } finally {
+        setLoadingInvoices(false);
+      }
+    })();
+  }, [invoicePage]);
 
   // Lazy load plans when tab switches
   useEffect(() => {
@@ -306,7 +325,6 @@ export default function SubscriptionPage() {
             Manage your ReeTrack plan and billing history
           </p>
         </div>
-
         {subscription && (
           <div className="flex items-center gap-2 px-4 py-2 bg-[#0D9488]/5 border border-[#0D9488]/20 rounded-xl self-start sm:self-auto">
             <Crown className="w-4 h-4 text-[#0D9488]" />
@@ -377,7 +395,6 @@ export default function SubscriptionPage() {
                   </button>
                 )}
               </div>
-
               <div className="px-6 py-6">
                 {subscription ? (
                   <div className="space-y-6">
@@ -418,7 +435,6 @@ export default function SubscriptionPage() {
                         {subscription.status}
                       </span>
                     </div>
-
                     {/* Info grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
@@ -464,7 +480,6 @@ export default function SubscriptionPage() {
                         </div>
                       )}
                     </div>
-
                     {/* Actions */}
                     <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100">
                       <Button
@@ -488,7 +503,7 @@ export default function SubscriptionPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-14 text-center px-4">
-                    <div className="w-14 h-14 rounded-2xl bg-[#0D9488]/10 flex items-center justify-center mb-4"></div>
+                    <div className="w-14 h-14 rounded-2xl bg-[#0D9488]/10 flex items-center justify-center mb-4" />
                     <p className="text-lg font-extrabold text-[#1F2937] mb-1">
                       No active/pending subscription
                     </p>
@@ -518,7 +533,21 @@ export default function SubscriptionPage() {
               </div>
 
               <div className="divide-y divide-gray-50">
-                {invoices.length > 0 ? (
+                {loadingInvoices ? (
+                  // Skeleton rows while fetching
+                  [1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="px-6 py-4 flex items-center justify-between gap-4"
+                    >
+                      <div className="space-y-1.5 flex-1">
+                        <div className="h-4 w-40 bg-gray-100 rounded animate-pulse" />
+                        <div className="h-3 w-28 bg-gray-100 rounded animate-pulse" />
+                      </div>
+                      <div className="h-6 w-16 bg-gray-100 rounded-lg animate-pulse" />
+                    </div>
+                  ))
+                ) : invoices.length > 0 ? (
                   invoices.map((invoice) => {
                     const cfg = invoiceStatusConfig(invoice.status);
                     return (
@@ -527,7 +556,6 @@ export default function SubscriptionPage() {
                         className="px-6 py-4 hover:bg-[#F9FAFB] transition-colors"
                       >
                         <div className="flex items-start justify-between gap-3">
-                          {/* Left: invoice number + date */}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-[#1F2937] truncate">
                               {invoice.invoice_number}
@@ -574,12 +602,10 @@ export default function SubscriptionPage() {
                                     "transparent";
                                 }}
                               >
-                                <RefreshCw size={12} />
-                                Retry
+                                <RefreshCw size={12} /> Retry
                               </Button>
                             </Link>
                           )}
-                          {/* Right: amount + status (stacked on mobile, row on desktop) */}
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-shrink-0 items-end">
                             <p className="text-sm font-extrabold text-[#1F2937]">
                               ₦{invoice.amount.toLocaleString()}
@@ -599,7 +625,7 @@ export default function SubscriptionPage() {
                   })
                 ) : (
                   <div className="flex flex-col items-center justify-center py-14 text-center px-4">
-                    <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-4"></div>
+                    <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mb-4" />
                     <p className="text-base font-extrabold text-[#1F2937] mb-1">
                       No invoices yet
                     </p>
@@ -610,6 +636,18 @@ export default function SubscriptionPage() {
                   </div>
                 )}
               </div>
+
+              {/* Pagination */}
+              {invoiceTotalPages > 1 && (
+                <div className="px-6 py-4 border-t border-gray-100">
+                  <Pagination
+                    currentPage={invoicePage}
+                    totalPages={invoiceTotalPages}
+                    onPageChange={(page) => setInvoicePage(page)}
+                    isLoading={loadingInvoices}
+                  />
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -720,7 +758,6 @@ export default function SubscriptionPage() {
                             </span>
                           </div>
                         )}
-
                         <div className="px-6 pt-8 pb-5 border-b border-gray-100">
                           <h3 className="text-base font-extrabold text-[#1F2937] mb-1">
                             {plan.name}
@@ -739,7 +776,6 @@ export default function SubscriptionPage() {
                               </p>
                             )}
                         </div>
-
                         <div className="px-6 py-5 flex-1">
                           <ul className="space-y-2.5">
                             {plan.features.map((feature, i) => (
@@ -752,7 +788,6 @@ export default function SubscriptionPage() {
                             ))}
                           </ul>
                         </div>
-
                         <div className="px-6 pb-6">
                           <Button
                             variant={isPopular ? "default" : "outline"}
@@ -813,10 +848,8 @@ export default function SubscriptionPage() {
                               {feature.feature}
                             </td>
                             {comparisonPlans.map((plan) => {
-                              const planName = plan.name;
                               const featureValue =
-                                feature[planName as keyof typeof feature];
-
+                                feature[plan.name as keyof typeof feature];
                               return (
                                 <td
                                   key={plan.id}

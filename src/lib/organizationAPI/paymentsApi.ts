@@ -23,10 +23,12 @@ export interface Payment {
     member_subscription: {
       plan: { name: string };
       auto_renew: boolean;
+      organization?: { name: string };
     } | null;
     organization_subscription: {
       plan: { name: string };
       auto_renew: boolean;
+      organization?: { name: string };
     } | null;
   } | null;
   plan_name?: string;
@@ -55,7 +57,6 @@ export interface PaginatedResponse<T> {
 }
 
 export const paymentsApi = {
-  // POST /payments/paystack/initialize — takes { invoiceId }
   initialize: async (data: InitializePaymentDto): Promise<{ authorization_url: string; reference: string }> => {
     const response = await apiClient.post("/payments/paystack/initialize", data);
     return response.data.data;
@@ -101,7 +102,6 @@ export const paymentsApi = {
     };
   },
 
-  // GET /payments/paystack/verify/{reference} — NOT a POST
   verify: async (reference: string): Promise<Payment> => {
     const response = await apiClient.get(`/payments/paystack/verify/${reference}`);
     return response.data.data;
