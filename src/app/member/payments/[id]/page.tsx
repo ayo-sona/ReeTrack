@@ -10,6 +10,8 @@ import {
   Receipt,
   CreditCard,
   FileText,
+  Building2,
+  RefreshCw,
 } from "lucide-react";
 import { usePayment } from "@/hooks/usePayments";
 import Link from "next/link";
@@ -55,15 +57,18 @@ export default function PaymentReceiptPage() {
   const router = useRouter();
   const id = params.id as string;
 
-  // Fetch the single payment directly — no need to load all payments
   const { data: payment, isLoading } = usePayment(id);
 
-  // Pending payments have no receipt — redirect back
+  // Redirect non-success payments — no receipt for pending or failed
   useEffect(() => {
-    if (!isLoading && payment?.status === "pending") {
-      router.push("/member/payments");
+    if (!isLoading && payment && payment.status !== "success") {
+      if (payment.status === "failed") {
+        router.replace(`/member/payments/${id}/failed`);
+      } else {
+        router.replace("/member/payments");
+      }
     }
-  }, [payment, isLoading, router]);
+  }, [payment, isLoading, router, id]);
 
   const handlePrint = () => window.print();
 
@@ -84,7 +89,7 @@ export default function PaymentReceiptPage() {
         `}</style>
         <div
           style={{
-            maxWidth: "1000px",
+            maxWidth: "720px",
             margin: "0 auto",
             display: "flex",
             flexDirection: "column",
@@ -115,8 +120,8 @@ export default function PaymentReceiptPage() {
     );
   }
 
-  // ─── Not found / pending ────────────────────────────────────────────────────
-  if (!payment || payment.status === "pending") {
+  // ─── Not found ──────────────────────────────────────────────────────────────
+  if (!payment) {
     return (
       <div
         style={{
@@ -129,7 +134,7 @@ export default function PaymentReceiptPage() {
         <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');`}</style>
         <div
           style={{
-            maxWidth: "1000px",
+            maxWidth: "720px",
             margin: "0 auto",
             textAlign: "center",
             paddingTop: "80px",
@@ -159,9 +164,7 @@ export default function PaymentReceiptPage() {
               marginBottom: "8px",
             }}
           >
-            {payment?.status === "pending"
-              ? "Receipt Not Available"
-              : "Payment not found"}
+            Payment not found
           </h3>
           <p
             style={{
@@ -172,9 +175,7 @@ export default function PaymentReceiptPage() {
               lineHeight: 1.6,
             }}
           >
-            {payment?.status === "pending"
-              ? "Receipts are only available for completed payments."
-              : "The payment you're looking for doesn't exist or has been removed."}
+            The payment you're looking for doesn't exist or has been removed.
           </p>
           <Button variant="secondary" asChild>
             <Link href="/member/payments">Back to Payments</Link>
@@ -184,16 +185,19 @@ export default function PaymentReceiptPage() {
     );
   }
 
-  // ─── Data ───────────────────────────────────────────────────────────────────
-  // Payment type has: provider, provider_reference, invoice (with member_subscription
-  // or organization_subscription), payer_user, amount, currency, status, created_at
-  const planName =
-    payment.invoice?.member_subscription?.plan?.name ||
-    payment.invoice?.organization_subscription?.plan?.name ||
-    "Unknown Plan";
+  // Non-success payments are being redirected — show nothing while that happens
+  if (payment.status !== "success") return null;
 
+  // ─── Data ───────────────────────────────────────────────────────────────────
+  const subscription =
+    payment.invoice?.member_subscription ||
+    payment.invoice?.organization_subscription;
+
+  const planName = subscription?.plan?.name || "Unknown Plan";
+  const communityName =
+    payment.metadata?.webhook_data?.subaccount?.business_name || null;
   const reference = payment.provider_reference || payment.id;
-  const isSuccess = payment.status === "success";
+  const autoRenew = subscription?.auto_renew ?? false;
 
   return (
     <div
@@ -214,7 +218,7 @@ export default function PaymentReceiptPage() {
         }
       `}</style>
 
-      <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "720px", margin: "0 auto" }}>
         {/* Header actions */}
         <motion.div
           variants={fadeUp}
@@ -231,13 +235,11 @@ export default function PaymentReceiptPage() {
         >
           <Button variant="ghost" size="sm" asChild>
             <Link href="/member/payments">
-              <ArrowLeft size={16} />
-              Back to Payments
+              <ArrowLeft size={16} /> Back to Payments
             </Link>
           </Button>
           <Button variant="secondary" size="sm" onClick={handlePrint}>
-            <Download size={16} />
-            Print Receipt
+            <Download size={16} /> Print Receipt
           </Button>
         </motion.div>
 
@@ -259,10 +261,8 @@ export default function PaymentReceiptPage() {
           <div
             style={{
               padding: "32px",
-              borderBottom: `4px solid ${isSuccess ? C.teal : C.coral}`,
-              background: isSuccess
-                ? "rgba(13,148,136,0.06)"
-                : "rgba(240,101,67,0.06)",
+              borderBottom: `4px solid ${C.teal}`,
+              background: "rgba(13,148,136,0.06)",
             }}
           >
             <div
@@ -297,11 +297,10 @@ export default function PaymentReceiptPage() {
                       color: C.coolGrey,
                     }}
                   >
-                    Transaction ID: {payment.id}
+                    Ref: {reference}
                   </p>
                 </div>
               </div>
-
               <div
                 style={{
                   display: "inline-flex",
@@ -309,21 +308,16 @@ export default function PaymentReceiptPage() {
                   gap: "8px",
                   padding: "8px 16px",
                   borderRadius: "999px",
-                  background: isSuccess
-                    ? "rgba(13,148,136,0.1)"
-                    : "rgba(240,101,67,0.1)",
-                  color: isSuccess ? C.teal : C.coral,
-                  border: `2px solid ${isSuccess ? "rgba(13,148,136,0.3)" : "rgba(240,101,67,0.3)"}`,
+                  background: "rgba(13,148,136,0.1)",
+                  color: C.teal,
+                  border: "2px solid rgba(13,148,136,0.3)",
                   fontWeight: 600,
                   fontSize: "14px",
                 }}
               >
-                {isSuccess ? <Check size={18} /> : <X size={18} />}
-                {payment.status.charAt(0).toUpperCase() +
-                  payment.status.slice(1)}
+                <Check size={18} /> Payment Successful
               </div>
             </div>
-
             <div style={{ marginTop: "20px" }}>
               <p
                 style={{
@@ -333,7 +327,7 @@ export default function PaymentReceiptPage() {
                   marginBottom: "6px",
                 }}
               >
-                Amount {isSuccess ? "Paid" : "Attempted"}
+                Amount Paid
               </p>
               <p
                 style={{
@@ -348,7 +342,7 @@ export default function PaymentReceiptPage() {
             </div>
           </div>
 
-          {/* Transaction details */}
+          {/* Body */}
           <div
             style={{
               padding: "32px",
@@ -357,7 +351,7 @@ export default function PaymentReceiptPage() {
               gap: "28px",
             }}
           >
-            {/* Transaction info */}
+            {/* Plan + Community */}
             <div>
               <h2
                 style={{
@@ -370,170 +364,138 @@ export default function PaymentReceiptPage() {
                   gap: "8px",
                 }}
               >
-                <FileText size={18} />
-                Transaction Details
+                <CreditCard size={18} /> What You Paid For
               </h2>
               <div
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                  gap: "20px",
+                  background: "rgba(13,148,136,0.05)",
+                  borderRadius: "12px",
+                  padding: "20px",
+                  border: "1px solid rgba(13,148,136,0.12)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "16px",
                 }}
               >
+                {/* Plan row */}
                 <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                  }}
+                  style={{ display: "flex", alignItems: "center", gap: "14px" }}
                 >
-                  <div>
-                    <p
-                      style={{
-                        fontWeight: 400,
-                        fontSize: "12px",
-                        color: C.coolGrey,
-                        marginBottom: "4px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                      }}
-                    >
-                      Reference Number
-                    </p>
-                    <p
-                      style={{
-                        fontWeight: 600,
-                        fontSize: "13px",
-                        color: C.ink,
-                        fontFamily: "monospace",
-                      }}
-                    >
-                      {reference}
-                    </p>
+                  <div
+                    style={{
+                      width: "44px",
+                      height: "44px",
+                      borderRadius: "10px",
+                      background: C.teal,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: C.white,
+                      fontWeight: 800,
+                      fontSize: "18px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {planName.charAt(0)}
                   </div>
                   <div>
                     <p
                       style={{
                         fontWeight: 400,
-                        fontSize: "12px",
+                        fontSize: "11px",
                         color: C.coolGrey,
-                        marginBottom: "4px",
                         textTransform: "uppercase",
-                        letterSpacing: "0.5px",
+                        letterSpacing: "0.6px",
+                        marginBottom: "2px",
                       }}
                     >
-                      Payment Provider
+                      Plan
                     </p>
-                    {/* provider comes from the Payment type directly */}
                     <p
                       style={{
-                        fontWeight: 600,
-                        fontSize: "14px",
+                        fontWeight: 700,
+                        fontSize: "16px",
                         color: C.ink,
-                        textTransform: "capitalize",
                       }}
                     >
-                      {payment.provider || "Paystack"}
+                      {planName}
+                    </p>
+                    <p
+                      style={{
+                        fontWeight: 400,
+                        fontSize: "12px",
+                        color: C.coolGrey,
+                        marginTop: "2px",
+                      }}
+                    >
+                      {autoRenew
+                        ? "Auto-renews each period"
+                        : "Does not auto-renew"}
                     </p>
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                  }}
-                >
-                  <div>
-                    <p
+                {/* Community row */}
+                {communityName && (
+                  <>
+                    <div
                       style={{
-                        fontWeight: 400,
-                        fontSize: "12px",
-                        color: C.coolGrey,
-                        marginBottom: "4px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
+                        height: "1px",
+                        background: "rgba(13,148,136,0.12)",
+                      }}
+                    />
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "14px",
                       }}
                     >
-                      Transaction Date
-                    </p>
-                    <p
-                      style={{
-                        fontWeight: 600,
-                        fontSize: "14px",
-                        color: C.ink,
-                      }}
-                    >
-                      {formatDate(payment.created_at)}
-                    </p>
-                  </div>
-                  <div>
-                    <p
-                      style={{
-                        fontWeight: 400,
-                        fontSize: "12px",
-                        color: C.coolGrey,
-                        marginBottom: "4px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
-                      }}
-                    >
-                      Currency
-                    </p>
-                    <p
-                      style={{
-                        fontWeight: 600,
-                        fontSize: "14px",
-                        color: C.ink,
-                      }}
-                    >
-                      {payment.currency?.toUpperCase() || "NGN"}
-                    </p>
-                  </div>
-                </div>
+                      <div
+                        style={{
+                          width: "44px",
+                          height: "44px",
+                          borderRadius: "10px",
+                          background: "rgba(13,148,136,0.15)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: C.teal,
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Building2 size={20} />
+                      </div>
+                      <div>
+                        <p
+                          style={{
+                            fontWeight: 400,
+                            fontSize: "11px",
+                            color: C.coolGrey,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.6px",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          Community
+                        </p>
+                        <p
+                          style={{
+                            fontWeight: 700,
+                            fontSize: "16px",
+                            color: C.ink,
+                          }}
+                        >
+                          {communityName}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Payer info — comes from payer_user on the Payment type */}
-            {payment.payer_user && (
-              <div
-                style={{
-                  paddingTop: "28px",
-                  borderTop: `1px solid ${C.border}`,
-                }}
-              >
-                <h2
-                  style={{
-                    fontWeight: 700,
-                    fontSize: "16px",
-                    color: C.teal,
-                    marginBottom: "16px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  <FileText size={18} />
-                  Billed To
-                </h2>
-                <p style={{ fontWeight: 600, fontSize: "15px", color: C.ink }}>
-                  {payment.payer_user.first_name} {payment.payer_user.last_name}
-                </p>
-                <p
-                  style={{
-                    fontWeight: 400,
-                    fontSize: "14px",
-                    color: C.coolGrey,
-                    marginTop: "4px",
-                  }}
-                >
-                  {payment.payer_user.email}
-                </p>
-              </div>
-            )}
-
-            {/* Plan info */}
+            {/* Transaction Details */}
             <div
               style={{ paddingTop: "28px", borderTop: `1px solid ${C.border}` }}
             >
@@ -548,68 +510,81 @@ export default function PaymentReceiptPage() {
                   gap: "8px",
                 }}
               >
-                <CreditCard size={18} />
-                Plan Details
+                <FileText size={18} /> Transaction Details
               </h2>
               <div
                 style={{
-                  background: "rgba(13,148,136,0.06)",
-                  borderRadius: "12px",
-                  padding: "24px",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                  gap: "20px",
                 }}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "16px",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  <div
+                <div>
+                  <p
                     style={{
-                      width: "56px",
-                      height: "56px",
-                      borderRadius: "12px",
-                      background: C.teal,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: C.white,
-                      fontWeight: 800,
-                      fontSize: "20px",
-                      flexShrink: 0,
+                      fontWeight: 400,
+                      fontSize: "12px",
+                      color: C.coolGrey,
+                      marginBottom: "4px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
                     }}
                   >
-                    {planName.charAt(0)}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <h3
-                      style={{
-                        fontWeight: 700,
-                        fontSize: "18px",
-                        color: C.ink,
-                      }}
-                    >
-                      {planName}
-                    </h3>
-                    <p
-                      style={{
-                        fontWeight: 400,
-                        fontSize: "13px",
-                        color: C.coolGrey,
-                        marginTop: "4px",
-                      }}
-                    >
-                      {payment.invoice?.member_subscription?.auto_renew
-                        ? "Auto-renews each period"
-                        : "Does not auto-renew"}
-                    </p>
-                  </div>
+                    Reference Number
+                  </p>
+                  <p
+                    style={{
+                      fontWeight: 600,
+                      fontSize: "13px",
+                      color: C.ink,
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    {reference}
+                  </p>
+                </div>
+                <div>
+                  <p
+                    style={{
+                      fontWeight: 400,
+                      fontSize: "12px",
+                      color: C.coolGrey,
+                      marginBottom: "4px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Transaction Date
+                  </p>
+                  <p
+                    style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}
+                  >
+                    {formatDate(payment.created_at)}
+                  </p>
+                </div>
+                <div>
+                  <p
+                    style={{
+                      fontWeight: 400,
+                      fontSize: "12px",
+                      color: C.coolGrey,
+                      marginBottom: "4px",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Currency
+                  </p>
+                  <p
+                    style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}
+                  >
+                    {payment.currency?.toUpperCase() || "NGN"}
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Payment summary */}
+            {/* Payment Summary */}
             <div
               style={{ paddingTop: "28px", borderTop: `1px solid ${C.border}` }}
             >
@@ -677,7 +652,7 @@ export default function PaymentReceiptPage() {
                   <span
                     style={{ fontWeight: 700, fontSize: "18px", color: C.ink }}
                   >
-                    Total {isSuccess ? "Paid" : "Amount"}
+                    Total Paid
                   </span>
                   <span
                     style={{
@@ -693,107 +668,55 @@ export default function PaymentReceiptPage() {
               </div>
             </div>
 
-            {/* Status message */}
-            {isSuccess ? (
+            {/* Success notice */}
+            <div
+              style={{
+                background: "rgba(13,148,136,0.08)",
+                border: "1px solid rgba(13,148,136,0.3)",
+                borderRadius: "12px",
+                padding: "20px",
+                display: "flex",
+                gap: "12px",
+              }}
+            >
               <div
                 style={{
-                  background: "rgba(13,148,136,0.08)",
-                  border: "1px solid rgba(13,148,136,0.3)",
-                  borderRadius: "12px",
-                  padding: "20px",
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "8px",
+                  background: "rgba(13,148,136,0.15)",
                   display: "flex",
-                  gap: "12px",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
                 }}
               >
-                <div
+                <Check size={18} style={{ color: C.teal }} />
+              </div>
+              <div>
+                <h3
                   style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "8px",
-                    background: "rgba(13,148,136,0.15)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
+                    fontWeight: 600,
+                    fontSize: "15px",
+                    color: C.teal,
+                    marginBottom: "4px",
                   }}
                 >
-                  <Check size={18} style={{ color: C.teal }} />
-                </div>
-                <div>
-                  <h3
-                    style={{
-                      fontWeight: 600,
-                      fontSize: "15px",
-                      color: C.teal,
-                      marginBottom: "4px",
-                    }}
-                  >
-                    Payment Successful
-                  </h3>
-                  <p
-                    style={{
-                      fontWeight: 400,
-                      fontSize: "13px",
-                      color: C.ink,
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    Your payment has been processed successfully. A copy of this
-                    receipt has been sent to{" "}
-                    {payment.payer_user?.email || "your email"}.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div
-                style={{
-                  background: "rgba(240,101,67,0.08)",
-                  border: "1px solid rgba(240,101,67,0.3)",
-                  borderRadius: "12px",
-                  padding: "20px",
-                  display: "flex",
-                  gap: "12px",
-                }}
-              >
-                <div
+                  Payment Confirmed
+                </h3>
+                <p
                   style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "8px",
-                    background: "rgba(240,101,67,0.15)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
+                    fontWeight: 400,
+                    fontSize: "13px",
+                    color: C.ink,
+                    lineHeight: 1.6,
                   }}
                 >
-                  <X size={18} style={{ color: C.coral }} />
-                </div>
-                <div>
-                  <h3
-                    style={{
-                      fontWeight: 600,
-                      fontSize: "15px",
-                      color: C.coral,
-                      marginBottom: "4px",
-                    }}
-                  >
-                    Payment Failed
-                  </h3>
-                  <p
-                    style={{
-                      fontWeight: 400,
-                      fontSize: "13px",
-                      color: C.ink,
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    This payment was not successful. Please contact support if
-                    you believe this is an error, or try again.
-                  </p>
-                </div>
+                  Your payment has been processed and your subscription is now
+                  active. Keep this receipt for your records.
+                </p>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Footer */}

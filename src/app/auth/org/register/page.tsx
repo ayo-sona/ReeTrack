@@ -13,13 +13,6 @@ import { toast } from "sonner";
 import Logo from "@/components/layout/Logo";
 import { deleteCookie } from "cookies-next";
 
-// const inputClassNames = {
-//   input:
-//     "outline-none focus-visible:outline-none !text-gray-900 dark:!text-gray-900 placeholder:text-gray-400",
-//   inputWrapper:
-//     "bg-white hover:bg-white focus-within:!bg-white dark:bg-white dark:hover:bg-white dark:focus-within:!bg-white [&_input]:!text-gray-900",
-// };
-
 const inputClassNames = {
   input:
     "outline-none focus:outline-none !text-gray-900 dark:!text-gray-100 placeholder:text-gray-400",
@@ -92,32 +85,21 @@ export default function AdminRegisterPage() {
     return true;
   };
 
-  const handleSubmit = async (e: React.SubmitEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsLoading(true);
     setError(null);
 
-    // For existing users: Login first to verify credentials
     if (isExistingUser) {
       try {
         await apiClient.post("/auth/login", {
           email: formData.email,
           password: formData.password,
         });
-        // toast.success("Login successful! Creating your organization...");
       } catch (err: any) {
-        const status = err?.response?.data?.statusCode;
         const message = err?.response?.data?.message || "";
-
-        // if (status === 401 || status === 400) {
-        //   setError("Incorrect email or password. Please try again.");
-        //   toast.error("Incorrect email or password");
-        //   setIsLoading(false);
-        //   return;
-        // }
-
         const fallback = message || "Incorrect email or password";
         setError(fallback);
         toast.error(fallback);
@@ -125,7 +107,6 @@ export default function AdminRegisterPage() {
         return;
       }
     } else {
-      // For new users: Register user account first
       try {
         await apiClient.post("/auth/register-user", {
           firstName: formData.firstName,
@@ -177,25 +158,6 @@ export default function AdminRegisterPage() {
       }
     }
 
-    // Step 2: Login with credential (only for existing users now)
-    // if (isExistingUser) {
-    //   try {
-    //     await apiClient.post("/auth/login", {
-    //       email: formData.email,
-    //       password: formData.password,
-    //     });
-    //     console.log("Logging in");
-    //   } catch (err: any) {
-    //     console.error("Login error:", err.response);
-    //     const message =
-    //       err?.response?.data?.message || "Failed to complete registration";
-    //     setError(message);
-    //     setIsLoading(false);
-    //     return;
-    //   }
-    // }
-
-    // Step 3: Create organization (only for existing users now)
     if (isExistingUser) {
       try {
         const response = await apiClient.post("/auth/register-organization", {
@@ -204,7 +166,6 @@ export default function AdminRegisterPage() {
           email: formData.email,
         });
 
-        console.log(response);
         if (response.data.statusCode === 201) {
           localStorage.setItem(
             "newOrganizationId",
@@ -347,11 +308,7 @@ export default function AdminRegisterPage() {
                     setIsExistingUser(false);
                     setError(null);
                   }}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 ${
-                    !isExistingUser
-                      ? "bg-white text-[#0D9488] shadow-sm"
-                      : "text-[#9CA3AF] hover:text-[#1F2937]"
-                  }`}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 ${!isExistingUser ? "bg-white text-[#0D9488] shadow-sm" : "text-[#9CA3AF] hover:text-[#1F2937]"}`}
                 >
                   I'm new here
                 </button>
@@ -361,11 +318,7 @@ export default function AdminRegisterPage() {
                     setIsExistingUser(true);
                     setError(null);
                   }}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 ${
-                    isExistingUser
-                      ? "bg-white text-[#0D9488] shadow-sm"
-                      : "text-[#9CA3AF] hover:text-[#1F2937]"
-                  }`}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 ${isExistingUser ? "bg-white text-[#0D9488] shadow-sm" : "text-[#9CA3AF] hover:text-[#1F2937]"}`}
                 >
                   I already have an account
                 </button>
@@ -491,7 +444,7 @@ export default function AdminRegisterPage() {
                 )}
               </AnimatePresence>
 
-              {/* Email + Password — always shown */}
+              {/* Email + Password */}
               <div className="space-y-5">
                 <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
                   <Mail className="w-5 h-5 text-[#F06543]" />
@@ -574,39 +527,37 @@ export default function AdminRegisterPage() {
                     classNames={inputClassNames}
                   />
                 </div>
-                 {/* Confirm Password — new users only */}
-                 <div>
-                      <label
-                        htmlFor="confirmPassword"
-                        className="block text-sm font-semibold text-[#1F2937] mb-2"
-                      >
-                        Confirm Password *
-                      </label>
-                      <Input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type={isVisible ? "text" : "password"}
-                        required={!isExistingUser}
-                        placeholder="Re-enter your password"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        disabled={isLoading}
-                        startContent={
-                          <Lock className="w-4 h-4 text-gray-400" />
-                        }
-                        isInvalid={
-                          formData.confirmPassword.length > 0 &&
-                          formData.confirmPassword !== formData.password
-                        }
-                        errorMessage={
-                          formData.confirmPassword.length > 0 &&
-                          formData.confirmPassword !== formData.password
-                            ? "Passwords do not match"
-                            : ""
-                        }
-                        classNames={inputClassNames}
-                      />
-                    </div>
+
+                <div>
+                  <label
+                    htmlFor="confirmPassword"
+                    className="block text-sm font-semibold text-[#1F2937] mb-2"
+                  >
+                    Confirm Password *
+                  </label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={isVisible ? "text" : "password"}
+                    required={!isExistingUser}
+                    placeholder="Re-enter your password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    startContent={<Lock className="w-4 h-4 text-gray-400" />}
+                    isInvalid={
+                      formData.confirmPassword.length > 0 &&
+                      formData.confirmPassword !== formData.password
+                    }
+                    errorMessage={
+                      formData.confirmPassword.length > 0 &&
+                      formData.confirmPassword !== formData.password
+                        ? "Passwords do not match"
+                        : ""
+                    }
+                    classNames={inputClassNames}
+                  />
+                </div>
               </div>
 
               {/* Organization Details */}
@@ -718,22 +669,70 @@ export default function AdminRegisterPage() {
               </div>
             </div>
 
-            <div className="text-center space-y-3">
+            <div className="space-y-4">
               <Link
                 href="/auth/login"
-                className="text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors block"
+                className="text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors block text-center"
               >
                 Sign in instead →
               </Link>
+
               <div className="pt-2 border-t border-gray-100">
-                <p className="text-xs text-[#1F2937]/50 mb-2">
+                <p className="text-xs text-[#1F2937]/50 mb-3 text-center">
                   Just joining a community?
                 </p>
-                <Link
-                  href="/auth/register"
-                  className="text-xs font-semibold text-[#F06543] hover:text-[#D85436] transition-colors"
-                >
-                  Sign up as a member →
+
+                <Link href="/auth/register" className="group block">
+                  <div className="relative overflow-hidden rounded-2xl border-2 border-[#0D9488]/30 bg-gradient-to-br from-[#F0FFFE] to-[#F7FFFF] p-5 transition-all duration-300 hover:border-[#0D9488] hover:shadow-lg hover:shadow-[#0D9488]/10 hover:-translate-y-0.5">
+                    {/* Decorative corner accent */}
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-[#0D9488]/15 to-transparent rounded-bl-3xl" />
+
+                    <div className="flex items-center gap-4">
+                      {/* Icon */}
+                      <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#0D9488] to-[#0B7A70] flex items-center justify-center shadow-md shadow-[#0D9488]/30 transition-transform duration-300 group-hover:scale-110">
+                        <svg
+                          className="w-6 h-6 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
+                        </svg>
+                      </div>
+
+                      {/* Text */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-[#1F2937] mb-0.5">
+                          Sign up as a Member
+                        </p>
+                        <p className="text-xs text-[#1F2937]/55 leading-snug">
+                          Join a community and manage your memberships
+                        </p>
+                      </div>
+
+                      {/* Arrow */}
+                      <div className="flex-shrink-0 text-[#0D9488] transition-transform duration-300 group-hover:translate-x-1">
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2.5}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
                 </Link>
               </div>
             </div>
