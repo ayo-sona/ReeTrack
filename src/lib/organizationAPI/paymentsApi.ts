@@ -18,7 +18,13 @@ export interface Payment {
   provider: string;
   provider_reference: string;
   description?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown> & {
+    webhook_data?: Record<string, unknown> & {
+      subaccount?: {
+        business_name?: string;
+      };
+    };
+  };
   invoice: {
     member_subscription: {
       plan: { name: string };
@@ -57,8 +63,13 @@ export interface PaginatedResponse<T> {
 }
 
 export const paymentsApi = {
-  initialize: async (data: InitializePaymentDto): Promise<{ authorization_url: string; reference: string }> => {
-    const response = await apiClient.post("/payments/paystack/initialize", data);
+  initialize: async (
+    data: InitializePaymentDto,
+  ): Promise<{ authorization_url: string; reference: string }> => {
+    const response = await apiClient.post(
+      "/payments/paystack/initialize",
+      data,
+    );
     return response.data.data;
   },
 
@@ -103,7 +114,9 @@ export const paymentsApi = {
   },
 
   verify: async (reference: string): Promise<Payment> => {
-    const response = await apiClient.get(`/payments/paystack/verify/${reference}`);
+    const response = await apiClient.get(
+      `/payments/paystack/verify/${reference}`,
+    );
     return response.data.data;
   },
 };
