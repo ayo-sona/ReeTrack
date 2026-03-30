@@ -7,257 +7,132 @@ import { useRouter } from "next/navigation";
 
 const EnhancedCTASection = () => {
   const router = useRouter();
-  // Items for the 3D sphere - using CTA images
+
   const sphereItems = [
-    {
-      image: "/CTA/CTA1.jpg",
-      link: "#",
-      title: "Unite & Grow",
-      description: "Build authentic connections that last",
-    },
-    {
-      image: "/CTA/CTA2.jpg",
-      link: "#",
-      title: "Team Power",
-      description: "Collaborate like never before",
-    },
-    {
-      image: "/CTA/CTA3.jpg",
-      link: "#",
-      title: "Scale Smart",
-      description: "From startup to enterprise seamlessly",
-    },
-    {
-      image: "/CTA/CTA4.jpg",
-      link: "#",
-      title: "Win Together",
-      description: "Celebrate every milestone achieved",
-    },
-    {
-      image: "/CTA/CTA5.jpg",
-      link: "#",
-      title: "Stay Active",
-      description: "Keep your community buzzing daily",
-    },
-    {
-      image: "/CTA/CTA6.jpg",
-      link: "#",
-      title: "Track Growth",
-      description: "See your impact in real-time",
-    },
+    { image: "/CTA/CTA1.jpg", link: "#", title: "Unite & Grow", description: "Build authentic connections that last" },
+    { image: "/CTA/CTA2.jpg", link: "#", title: "Team Power", description: "Collaborate like never before" },
+    { image: "/CTA/CTA3.jpg", link: "#", title: "Scale Smart", description: "From startup to enterprise seamlessly" },
+    { image: "/CTA/CTA4.jpg", link: "#", title: "Win Together", description: "Celebrate every milestone achieved" },
+    { image: "/CTA/CTA5.jpg", link: "#", title: "Stay Active", description: "Keep your community buzzing daily" },
+    { image: "/CTA/CTA6.jpg", link: "#", title: "Track Growth", description: "See your impact in real-time" },
   ];
 
   return (
-    <section className="relative py-24 sm:py-32 bg-[#0D9488] overflow-hidden">
-      {/* Subtle pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-        }}
-      />
-
-      {/* Animated gradient orbs */}
-      <motion.div
-        className="absolute top-20 left-[10%] w-96 h-96 bg-white/10 rounded-full blur-3xl"
-        animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.1, 0.15, 0.1],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-      <motion.div
-        className="absolute bottom-20 right-[15%] w-80 h-80 bg-[#F06543]/20 rounded-full blur-3xl"
-        animate={{
-          scale: [1, 1.3, 1],
-          opacity: [0.2, 0.3, 0.2],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 2,
-        }}
-      />
+    <section className="relative py-24 sm:py-32 bg-[#F9FAFB] overflow-hidden">
+      {/* Soft background blobs */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#0D9488]/6 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/4" />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#F06543]/6 rounded-full blur-3xl pointer-events-none translate-y-1/2 -translate-x-1/4" />
 
       <div className="max-w-7xl mx-auto px-6 relative">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left side - Interactive 3D Sphere */}
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+
+          {/* Left — 3D Sphere */}
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="relative h-[500px] lg:h-[600px] order-2 lg:order-1"
+            transition={{ duration: 0.7 }}
+            className="relative h-[480px] lg:h-[560px] order-2 lg:order-1"
           >
-            {/* Glow effect behind sphere */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#F06543]/30 to-[#F06543]/10 rounded-3xl blur-3xl" />
-
-            {/* 3D Sphere Menu Container with border and shadow */}
-            <div className="relative h-full rounded-3xl overflow-hidden border-4 border-white/20 shadow-2xl bg-gradient-to-br from-[#0D9488] to-[#0B7A70]">
+            <div className="relative h-full rounded-2xl overflow-hidden bg-gradient-to-br from-[#0D9488] to-[#0a6e63] shadow-xl">
               <InfiniteMenu items={sphereItems} scale={1.2} />
-
-              {/* Subtle inner glow */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0B7A70]/50 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
             </div>
 
-            {/* Floating hint text */}
+            {/* Hint pill */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.6 }}
-              className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/15 backdrop-blur-md px-5 py-3 rounded-full border border-white/30 shadow-lg"
+              transition={{ delay: 1, duration: 0.5 }}
+              className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-md border border-gray-100"
             >
-              <p className="text-white text-sm font-semibold flex items-center gap-2">
-                <span className="w-2 h-2 bg-[#F06543] rounded-full animate-pulse" />
+              <p className="text-[#1F2937] text-xs font-medium flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-[#0D9488] rounded-full animate-pulse" />
                 Drag to explore
               </p>
             </motion.div>
           </motion.div>
 
-          {/* Right side - Content */}
-          <div className="text-left order-1 lg:order-2">
-            {/* Main Headline */}
-            <motion.h2
-              initial={{ opacity: 0, y: 30 }}
+          {/* Right — Content */}
+          <div className="order-1 lg:order-2">
+            {/* Eyebrow */}
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight"
+              transition={{ duration: 0.5 }}
+              className="text-[#0D9488] text-sm font-semibold uppercase tracking-widest mb-4"
             >
-              Ready to build a{" "}
-              <span className="relative inline-block">
-                <span className="relative z-10">community</span>
-                {/* Soft highlight underline */}
-                <motion.span
-                  initial={{ scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
-                  className="absolute bottom-2 left-0 right-0 h-4 bg-[#F06543]/40 -z-0 origin-left blur-sm"
-                />
-                <motion.span
-                  initial={{ scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.7, delay: 0.35, ease: "easeOut" }}
-                  className="absolute bottom-2 left-0 right-0 h-3 bg-[#F06543]/60 -z-0 origin-left"
-                />
-              </span>{" "}
-              that thrives?
+              Community management, simplified
+            </motion.p>
+
+            {/* Headline */}
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-4xl sm:text-5xl font-bold text-[#1F2937] mb-5 leading-tight"
+            >
+              Ready to build a community{" "}
+              <span className="text-[#0D9488]">that thrives?</span>
             </motion.h2>
 
             {/* Subheadline */}
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg sm:text-xl text-white/90 mb-8 leading-relaxed"
+              className="text-[#1F2937]/60 text-lg mb-8 leading-relaxed"
             >
-              Stop managing spreadsheets. Start building meaningful connections
-              with the infrastructure that scales.
+              ReeTrack helps communities manage members, track payments, and
+              reward consistency — all in one place.
             </motion.p>
 
-            {/* CTA Button */}
+            {/* CTA */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex mb-8"
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="flex items-center gap-4 mb-10"
             >
               <Button
                 onClick={() => router.push("/auth/login")}
                 size="lg"
-                className="group bg-white text-[#1F2937] hover:bg-white/95 text-lg font-bold py-6 px-10 h-auto shadow-2xl hover:shadow-[#F06543]/20 transition-all duration-300"
+                className="bg-[#F06543] hover:bg-[#e05535] text-white text-base font-semibold px-8 py-5 h-auto rounded-xl shadow-md hover:shadow-lg transition-all duration-200 group"
               >
-                Start today
-                <motion.div
-                  className="inline-block ml-2"
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                >
-                  <ArrowRight className="w-5 h-5" strokeWidth={2.5} />
-                </motion.div>
+                Get started free
+                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
               </Button>
+              <span className="text-[#1F2937]/40 text-sm">No credit card required</span>
             </motion.div>
 
-            {/* Trust indicators */}
+            {/* Feature pills */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="flex flex-wrap gap-6 text-white/90 mb-10"
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-white/80 rounded-full" />
-                <span className="text-sm font-semibold">
-                  No credit card required
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-white/80 rounded-full" />
-                <span className="text-sm font-semibold">14-day free trial</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-white/80 rounded-full" />
-                <span className="text-sm font-semibold">Cancel anytime</span>
-              </div>
-            </motion.div>
-
-            {/* Feature highlights - Compact */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.7 }}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="flex flex-wrap gap-3"
             >
               {[
-                {
-                  icon: Shield,
-                  title: "Bank-grade Security",
-                },
-                {
-                  icon: Zap,
-                  title: "Lightning Setup",
-                },
-                {
-                  icon: Users,
-                  title: "Scale Effortlessly",
-                },
-              ].map((feature, index) => {
-                const Icon = feature.icon;
-                return (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
-                    className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300 flex items-center gap-3"
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-5 h-5 text-white" strokeWidth={2} />
-                    </div>
-                    <h3 className="text-white font-bold text-sm">
-                      {feature.title}
-                    </h3>
-                  </motion.div>
-                );
-              })}
+                { icon: Shield, label: "Bank-grade security" },
+                { icon: Zap, label: "Quick setup" },
+                { icon: Users, label: "Scales with you" },
+              ].map(({ icon: Icon, label }, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-2 shadow-sm"
+                >
+                  <Icon className="w-3.5 h-3.5 text-[#0D9488]" strokeWidth={2.5} />
+                  <span className="text-[#1F2937]/70 text-sm font-medium">{label}</span>
+                </div>
+              ))}
             </motion.div>
           </div>
+
         </div>
       </div>
     </section>

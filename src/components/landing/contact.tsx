@@ -33,7 +33,7 @@ const ContactSection = () => {
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#1F2937] mb-4 leading-tight">
             Ready to{" "}
             <span className="relative inline-block">
-              <span className="relative z-10">transform</span>
+              <span className="relative z-10">get started?</span>
               <motion.span
                 initial={{ scaleX: 0 }}
                 whileInView={{ scaleX: 1 }}
@@ -41,12 +41,10 @@ const ContactSection = () => {
                 transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
                 className="absolute bottom-1 left-0 right-0 h-3 bg-[#F06543]/20 -z-0 origin-left"
               />
-            </span>{" "}
-            your community?
+            </span>
           </h2>
           <p className="text-lg text-[#1F2937]/60 max-w-2xl mx-auto leading-relaxed">
-            Let&apos;s discuss how Reetrack can help you automate billing, grow
-            your membership, and focus on what matters most.
+            Reach out and we'll get your organization set up on Reetrack.
           </p>
         </motion.div>
 
@@ -56,19 +54,19 @@ const ContactSection = () => {
             {
               icon: MessageSquare,
               title: "Quick Questions",
-              description: "Get answers from our team in minutes",
+              description: "Chat with us on WhatsApp and get a response fast",
               color: "#F06543",
             },
             {
               icon: Calendar,
               title: "Schedule a Demo",
-              description: "See Reetrack in action with a walkthrough",
+              description: "See Reetrack in action with a live walkthrough",
               color: "#0D9488",
             },
             {
               icon: Mail,
-              title: "Custom Solutions",
-              description: "Discuss enterprise plans and integrations",
+              title: "Send an Email",
+              description: "Reach us at reetrack.inc@gmail.com anytime",
               color: "#1F2937",
             },
           ].map((option, index) => {
@@ -134,10 +132,8 @@ const ContactSection = () => {
                 Let&apos;s Talk
               </h3>
               <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
-                Whether you have questions, need a demo, or want to discuss
-                custom solutions.
-                <br />
-                We&apos;re here to help you succeed.
+                Whether you have questions, want a demo, or are ready to onboard
+                your organization we&apos;re one message away.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -158,7 +154,7 @@ const ContactSection = () => {
                   className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#0D9488] font-bold"
                   asChild
                 >
-                  <a href="mailto:reetrack.inc@gmail.com">Email Us Directly</a>
+                  <a href="mailto:reetrack.inc@gmail.com">Email Us</a>
                 </Button>
               </div>
             </div>

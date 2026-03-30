@@ -27,28 +27,28 @@ const AboutSection = () => {
     "who-we-are": {
       title: "Built by Community Builders",
       description:
-        "We're a team of community builders who got tired of juggling multiple tools and fighting with spreadsheets. We've been in the trenches, managing memberships manually, dealing with failed payments at 2 AM, and wishing for better infrastructure. So we built it.",
+        "We're a team of community builders who got tired of burning money trying to hold on to members while chasing new ones at the same time all while manually tracking payments and hoping people would stay engaged. We knew there had to be a better way to keep a community thriving without it consuming everything. So we built it.",
       image: "/about/who_we_are.webp",
       imagePosition: "right",
     },
     "what-we-do": {
-      title: "Subscription Management Made Effortless",
+      title: "Your Members Stay. Your Revenue Grows.",
       description:
-        "We automate subscription management for communities, turning billing chaos into effortless revenue. From payment processing to member notifications, we handle the infrastructure so you can focus on building relationships, not spreadsheets.",
+        "We give your community the tools to stay engaged and keep showing up leaderboards, check-ins, rewards, and seamless payments all in one place. You focus on building something people love. We handle everything that keeps them coming back.",
       image: "/about/what_we_do.webp",
       imagePosition: "left",
     },
     "the-problem": {
-      title: "The Manual Membership Nightmare",
+      title: "Half Your Members Are Gone Within 6 Months.",
       description:
-        "Communities waste countless hours on manual billing, chasing failed payments, and tracking members across scattered tools. Instead of building meaningful connections and growing their impact, founders are stuck playing accountant, dealing with payment processors, and managing spreadsheets.",
+        "50% of gym and coworking members quit within their first 6 months and most owners never know why. You're spending 5× more replacing lost members than it would cost to keep them. Meanwhile, payments are being chased manually, check-ins go untracked, and members feel nothing when they show up. That's not a membership problem. That's an engagement problem.",
       image: "/about/the_problem.webp",
       imagePosition: "left",
     },
     "our-solution": {
-      title: "Infrastructure That Just Works",
+      title: "The Retention Engine Your Community Needs.",
       description:
-        "Automated billing cycles, intelligent payment retries, seamless integrations with Telegram and WhatsApp, and real-time analytics that actually help you grow. We give you the infrastructure of a Fortune 500 company with the simplicity your community deserves.",
+        "Reetrack keeps your members engaged with leaderboards that reward consistency, check-ins that track attendance, and payments that flow without the friction. Members who feel recognised stay longer and members who stay longer mean revenue you don't have to go looking for. Simple to set up, powerful enough to keep your community thriving month after month.",
       image: "/about/the_solution.webp",
       imagePosition: "right",
     },

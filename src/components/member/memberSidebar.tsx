@@ -9,6 +9,7 @@ import {
   LogOut,
   Settings,
   Building2,
+  Trophy,
 } from "lucide-react";
 import { Sidebar } from "@/components/ui/SideBar";
 import { User } from "@/types/user";
@@ -38,6 +39,7 @@ export function MemberSidebar({
     // { name: "Wallet", href: "/member/wallet", icon: Wallet },
     { name: "Subscriptions", href: "/member/subscriptions", icon: CreditCard },
     { name: "Check In", href: "/member/check-ins", icon: QrCode },
+    { name: "Leaderboard", href: "/member/leaderboards", icon: Trophy },
     { name: "Payments & Billing", href: "/member/payments", icon: CreditCard },
     // {
     //   name: "Notifications",
