@@ -1,4 +1,4 @@
-// Client-side WebSocket
+// Client-side WebSocket usage example
 
 import { io, Socket } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
