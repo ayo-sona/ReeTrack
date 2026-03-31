@@ -1,4 +1,4 @@
-// Client-side WebSocket usage example
+// Client-side WebSocket
 
 import { io, Socket } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
@@ -56,7 +56,8 @@ interface SubscriptionEvents {
   error: (data: { message: string }) => void;
 }
 
-const BASE_URL = "https://reetrack-production.up.railway.app";
+const BASE_URL = "https://reetrack-production-f1dc.up.railway.app";
+// const BASE_URL = "https://reetrack-production.up.railway.app";
 // const BASE_URL = "https://paypips.onrender.com";
 // const BASE_URL = "http://localhost:4000";
 
