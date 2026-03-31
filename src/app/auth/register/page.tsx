@@ -320,7 +320,6 @@ function RegisterForm() {
                   classNames={inputClassNames}
                 />
               </div>
-
               {/* Confirm Password */}
               <div>
                 <label
@@ -364,90 +363,44 @@ function RegisterForm() {
               </Button>
             </form>
 
-            {/* Already have an account */}
-            <div className="mt-6 text-center">
+            {/* Divider */}
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-[#1F2937]/60">
+                  Already have an account?
+                </span>
+              </div>
+            </div>
+
+            <div className="text-center space-y-3">
               <Link
                 href={
                   redirectParam
                     ? `/auth/login?redirect=${encodeURIComponent(redirectParam)}`
                     : "/auth/login"
                 }
-                className="text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors"
+                className="text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors block"
               >
-                Already have an account? Sign in →
+                Sign in instead →
               </Link>
-            </div>
 
-            {/* Organization CTA — only shown when not in redirect flow */}
-            {!redirectParam && (
-              <div className="mt-6">
-                {/* Divider */}
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200" />
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="px-3 bg-white text-[#1F2937]/40 uppercase tracking-widest font-semibold">
-                      or
-                    </span>
-                  </div>
+              {!redirectParam && (
+                <div className="pt-2 border-t border-gray-100">
+                  <p className="text-xs text-[#1F2937]/50 mb-2">
+                    Building a community?
+                  </p>
+                  <Link
+                    href="/auth/org/register"
+                    className="text-xs font-semibold text-[#F06543] hover:text-[#D85436] transition-colors"
+                  >
+                    Register as an organization →
+                  </Link>
                 </div>
-
-                {/* Org Registration Card */}
-                <Link href="/auth/org/register" className="group block">
-                  <div className="relative overflow-hidden rounded-2xl border-2 border-[#F06543]/30 bg-gradient-to-br from-[#FFF4F0] to-[#FFF9F7] p-5 transition-all duration-300 hover:border-[#F06543] hover:shadow-lg hover:shadow-[#F06543]/10 hover:-translate-y-0.5">
-                    {/* Decorative corner accent */}
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-[#F06543]/15 to-transparent rounded-bl-3xl" />
-
-                    <div className="flex items-center gap-4">
-                      {/* Icon */}
-                      <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#F06543] to-[#D85436] flex items-center justify-center shadow-md shadow-[#F06543]/30 transition-transform duration-300 group-hover:scale-110">
-                        <svg
-                          className="w-6 h-6 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                          />
-                        </svg>
-                      </div>
-
-                      {/* Text */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-[#1F2937] mb-0.5">
-                          Register as an Organization
-                        </p>
-                        <p className="text-xs text-[#1F2937]/55 leading-snug">
-                          Build a community, manage members, and grow together
-                        </p>
-                      </div>
-
-                      {/* Arrow */}
-                      <div className="flex-shrink-0 text-[#F06543] transition-transform duration-300 group-hover:translate-x-1">
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2.5}
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

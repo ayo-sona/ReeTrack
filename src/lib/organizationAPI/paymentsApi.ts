@@ -18,23 +18,15 @@ export interface Payment {
   provider: string;
   provider_reference: string;
   description?: string;
-  metadata?: Record<string, unknown> & {
-    webhook_data?: Record<string, unknown> & {
-      subaccount?: {
-        business_name?: string;
-      };
-    };
-  };
+  metadata?: Record<string, unknown>;
   invoice: {
     member_subscription: {
       plan: { name: string };
       auto_renew: boolean;
-      organization?: { name: string };
     } | null;
     organization_subscription: {
       plan: { name: string };
       auto_renew: boolean;
-      organization?: { name: string };
     } | null;
   } | null;
   plan_name?: string;
@@ -63,13 +55,9 @@ export interface PaginatedResponse<T> {
 }
 
 export const paymentsApi = {
-  initialize: async (
-    data: InitializePaymentDto,
-  ): Promise<{ authorization_url: string; reference: string }> => {
-    const response = await apiClient.post(
-      "/payments/paystack/initialize",
-      data,
-    );
+  // POST /payments/paystack/initialize — takes { invoiceId }
+  initialize: async (data: InitializePaymentDto): Promise<{ authorization_url: string; reference: string }> => {
+    const response = await apiClient.post("/payments/paystack/initialize", data);
     return response.data.data;
   },
 
@@ -113,10 +101,9 @@ export const paymentsApi = {
     };
   },
 
+  // GET /payments/paystack/verify/{reference} — NOT a POST
   verify: async (reference: string): Promise<Payment> => {
-    const response = await apiClient.get(
-      `/payments/paystack/verify/${reference}`,
-    );
+    const response = await apiClient.get(`/payments/paystack/verify/${reference}`);
     return response.data.data;
   },
 };
