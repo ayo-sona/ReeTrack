@@ -124,11 +124,17 @@ const FeaturesSection = () => {
                 />
 
                 <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1F2937] mb-6 leading-tight relative">
-                  {feature.title.split(feature.highlight)[0]}
-                  <span className="relative inline-block mx-2">
-                    {feature.highlight}
-                  </span>
-                  {feature.title.split(feature.highlight)[1]}
+                  {feature.highlight ? (
+                    <>
+                      {feature.title.split(feature.highlight)[0]}
+                      <span className="relative inline-block mx-2">
+                        {feature.highlight}
+                      </span>
+                      {feature.title.split(feature.highlight)[1]}
+                    </>
+                  ) : (
+                    feature.title
+                  )}
                 </h3>
 
                 <p className="text-lg text-[#1F2937]/70 leading-relaxed mb-8">
