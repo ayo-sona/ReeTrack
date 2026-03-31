@@ -9,7 +9,7 @@ const FeaturesSection = () => {
       id: "memberships",
       title: "Effortless Subscriptions",
       description:
-        "Configure your pricing once, and let Reetrack handle the rest. From payment collection to renewal tracking, access management to automated reminders—your entire membership operation flows without manual intervention. No spreadsheets, no chasing payments, just seamless automation.",
+        "Set up your plans once and let Reetrack handle the rest. Members pay, renewals happen, and you get notified when something needs attention. No more chasing payments or losing track of who's active your revenue flows without you lifting a finger.",
       pic: "reports",
       accentColor: "#F06543",
       Icon: Crown,
@@ -20,7 +20,7 @@ const FeaturesSection = () => {
       id: "crm",
       title: "Know Your People",
       description:
-        "Transform raw data into real understanding. See who your members are, group them by what matters, and track how your community evolves over time. Every interaction tells a story Reetrack helps you read it. Smart segmentation meets intuitive analytics.",
+        "See exactly who's showing up, who's at risk of leaving, and who your most engaged members are. Reetrack turns your member activity into real insight — so you can act before someone walks out the door instead of after.",
       pic: "community",
       accentColor: "#0D9488",
       Icon: TrendingUp,
@@ -29,24 +29,24 @@ const FeaturesSection = () => {
     },
     {
       id: "payments",
-      title: "Borderless Payments",
+      title: "Payments without frction",
       description:
-        "Accept payments seamlessly from your members without the hassle. ReeTrack Pay makes it easy to collect membership fees, subscriptions, and dues — all in one place. Your members pay with ease, you receive funds without friction.",
+        "Members pay directly through Reetrack — clean, fast, and tracked automatically. No more manual confirmations, no more missed dues. Every transaction is recorded, every member account stays up to date.",
       pic: "payment",
       accentColor: "#F06543",
       Icon: CheckCircle,
-      highlight: "Borderless",
+      // highlight: "Friction",
       reverse: false,
     },
     {
-      id: "chat",
-      title: "Community That Connects",
+      id: "rewards",
+      title: "Rewards that retain",
       description:
-        "Build something deeper than a member list. Reetrack creates spaces where people actually feel like they belong—where conversations flow, connections form, and members become friends. It's not about managing users; it's about nurturing relationships that keep people coming back.",
+        "Every check-in builds a streak. Every streak earns recognition. Reetrack's leaderboard system rewards your most consistent members giving them a reason to keep showing up that goes beyond just their goals. Engaged members stay. Staying members pay.",
       pic: "rewards",
       accentColor: "#0D9488",
       Icon: Users,
-      highlight: "Connects",
+      highlight: "Rewards",
       reverse: true,
     },
   ];
@@ -124,11 +124,9 @@ const FeaturesSection = () => {
                 />
 
                 <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1F2937] mb-6 leading-tight relative">
-                  {/* Split title to highlight key word */}
                   {feature.title.split(feature.highlight)[0]}
                   <span className="relative inline-block mx-2">
                     {feature.highlight}
-                    {/* Hand-drawn circle highlight */}
                   </span>
                   {feature.title.split(feature.highlight)[1]}
                 </h3>
@@ -163,7 +161,6 @@ const FeaturesSection = () => {
                 }
               >
                 <div className="relative mx-auto w-80 h-80 lg:w-[480px] lg:h-[480px]">
-                  {/* Main brutalist circle - HARD SHADOW, NO BLUR */}
                   <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     whileInView={{ scale: 1, opacity: 1 }}
@@ -174,7 +171,6 @@ const FeaturesSection = () => {
                       boxShadow: "12px 12px 0px 0px rgba(31, 41, 55, 1)",
                     }}
                   >
-                    {/* Image */}
                     <Image
                       src={`/features/${feature.pic}.webp`}
                       alt={feature.title}

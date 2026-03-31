@@ -4,7 +4,7 @@ import { Navigation } from "@/components/layout/Navigation";
 import HeroSection from "@/components/landing/HeroSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
-import PricingSection from "@/components/landing/PricingSection";
+// import PricingSection from "@/components/landing/PricingSection";
 import CTASection from "@/components/landing/CTASection";
 import { Footer } from "@/components/layout/Footer";
 import FAQSection from "@/components/landing/FAQSection";
@@ -38,9 +38,9 @@ export default function HomePage() {
         <HowItWorksSection />
       </ScrollReveal>
 
-      <ScrollReveal delay={0.1}>
+      {/* <ScrollReveal delay={0.1}>
         <PricingSection />
-      </ScrollReveal>
+      </ScrollReveal> */}
 
       <ScrollReveal delay={0.1}>
         <FAQSection />

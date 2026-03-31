@@ -7,7 +7,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { CreditCard, BarChart3, Users, Zap, Shield, Bell } from "lucide-react";
+import { CreditCard, BarChart3, Users, Gift, CheckSquare, Bell } from "lucide-react";
 
 type ContentKey = "who-we-are" | "what-we-do" | "the-problem" | "our-solution";
 
@@ -30,28 +30,28 @@ const aboutContent: Record<
   "who-we-are": {
     title: "Built by Community Builders",
     description:
-      "We're a team of community builders who got tired of juggling multiple tools and fighting with spreadsheets. We've been in the trenches, managing memberships manually, dealing with failed payments at 2 AM, and wishing for better infrastructure. So we built it.",
+      "We're a team of community builders who got tired of burning money trying to hold on to members while chasing new ones at the same time all while manually tracking payments and hoping people would stay engaged. We knew there had to be a better way to keep a community thriving without it consuming everything. So we built it.",
     image: "/about/who_we_are.webp",
     imagePosition: "right",
   },
   "what-we-do": {
-    title: "Subscription Management Made Effortless",
+    title: "Your Members Stay. Your Revenue Grows.",
     description:
-      "We automate subscription management for communities, turning billing chaos into effortless revenue. From payment processing to member notifications, we handle the infrastructure so you can focus on building relationships, not spreadsheets.",
+      "We give your community the tools to stay engaged and keep showing up leaderboards, check-ins, rewards, and seamless payments all in one place. You focus on building something people love. We handle everything that keeps them coming back.",
     image: "/about/what_we_do.webp",
     imagePosition: "left",
   },
   "the-problem": {
-    title: "The Manual Membership Nightmare",
+    title: "Half Your Members Are Gone Within 6 Months.",
     description:
-      "Communities waste countless hours on manual billing, chasing failed payments, and tracking members across scattered tools. Instead of building meaningful connections and growing their impact, founders are stuck playing accountant, dealing with payment processors, and managing spreadsheets.",
+      "50% of gym and coworking members quit within their first 6 months and most owners never know why. You're spending 5× more replacing lost members than it would cost to keep them. Meanwhile, payments are being chased manually, check-ins go untracked, and members feel nothing when they show up. That's not a membership problem. That's an engagement problem.",
     image: "/about/the_problem.webp",
     imagePosition: "left",
   },
   "our-solution": {
-    title: "Infrastructure That Just Works",
+    title: "The Retention Engine Your Community Needs.",
     description:
-      "Automated billing cycles, intelligent payment retries, and real-time analytics that actually help you grow. We give you the infrastructure of a Fortune 500 company with the simplicity your community deserves.",
+      "Reetrack keeps your members engaged with leaderboards that reward consistency, check-ins that track attendance, and payments that flow without the friction. Members who feel recognised stay longer and members who stay longer mean revenue you don't have to go looking for. Simple to set up, powerful enough to keep your community thriving month after month.",
     image: "/about/the_solution.webp",
     imagePosition: "right",
   },
@@ -62,18 +62,18 @@ const featureTabs = [
     id: "billing",
     label: "Billing",
     icon: CreditCard,
-    title: "Automated Billing",
-    subtitle: "Set it once, collect forever",
+    title: "Payment Tracking",
+    subtitle: "Every naira accounted for",
     description:
-      "Stop chasing payments manually. Set up flexible billing cycles and let ReeTrack handle the rest — retries, receipts, and reconciliation included.",
+      "Track every member payment in real time. Full transaction history, automated receipts, and instant visibility into who's paid and who hasn't.",
     benefits: [
-      "Customizable billing schedules",
-      "Automatic payment retries",
-      "Failed payment recovery",
-      "Multiple payment gateways",
+      "Real-time payment updates",
+      "Full transaction history",
+      "Automated receipts",
+      "Failed payment notifications",
     ],
     accent: "#0D9488",
-    stat: { value: "98%", label: "payment success rate" },
+    stat: { value: "100%", label: "transaction visibility" },
   },
   {
     id: "analytics",
@@ -82,12 +82,12 @@ const featureTabs = [
     title: "Analytics & Reporting",
     subtitle: "Know your numbers, grow your community",
     description:
-      "Real-time dashboards that tell you what's working and what isn't. Track revenue, monitor churn, and make decisions backed by data.",
+      "Real-time dashboards that show you what's working. Track revenue, monitor member activity, and understand your community's growth at a glance.",
     benefits: [
       "Real-time revenue tracking",
-      "Member growth analytics",
-      "Churn prediction",
-      "Custom report builder",
+      "Member activity insights",
+      "Growth trends",
+      "Exportable reports",
     ],
     accent: "#F06543",
     stat: { value: "3×", label: "faster reporting" },
@@ -99,63 +99,63 @@ const featureTabs = [
     title: "Member Management",
     subtitle: "Your entire community, one place",
     description:
-      "A powerful member database with filtering, segmentation, and bulk actions. Spend less time managing spreadsheets and more time building community.",
+      "Add members manually or let them sign up directly. Search, filter, and manage your entire member base without touching a spreadsheet.",
     benefits: [
-      "Advanced member search",
-      "Custom member fields",
-      "Bulk member operations",
+      "Manual or self-signup onboarding",
+      "Member search and filtering",
+      "Membership plan assignment",
       "Member activity tracking",
     ],
     accent: "#0D9488",
     stat: { value: "10×", label: "faster than spreadsheets" },
   },
   {
-    id: "payments",
-    label: "Payments",
-    icon: Zap,
-    title: "Payment Tracking",
-    subtitle: "Every naira accounted for",
+    id: "checkins",
+    label: "Check-ins",
+    icon: CheckSquare,
+    title: "Member Check-ins",
+    subtitle: "Know who's showing up",
     description:
-      "Monitor every transaction in real time. Full payment history, automatic reconciliation, and one-click exports for your accountant.",
+      "Track attendance across your organization. See which members are active, spot drop-off early, and use that data to keep engagement high.",
     benefits: [
-      "Real-time payment updates",
-      "Full transaction history",
-      "Reconciliation tools",
-      "Export to CSV/Excel",
+      "Real-time attendance tracking",
+      "Check-in history per member",
+      "Drop-off visibility",
+      "Feeds into rewards system",
     ],
     accent: "#F06543",
-    stat: { value: "100%", label: "transaction visibility" },
+    stat: { value: "Live", label: "attendance tracking" },
   },
   {
-    id: "security",
-    label: "Security",
-    icon: Shield,
-    title: "Security & Compliance",
-    subtitle: "Bank-grade protection, always on",
+    id: "rewards",
+    label: "Rewards",
+    icon: Gift,
+    title: "Member Rewards",
+    subtitle: "Reward consistency, reduce churn",
     description:
-      "Your members trust you with their data. We make sure that trust is never broken — with encryption, compliance, and proactive monitoring.",
+      "Members earn points by checking in and completing challenges set by your organization. Those points can be redeemed at partner communities.",
     benefits: [
-      "256-bit SSL encryption",
-      "PCI DSS Level 1",
-      "SOC 2 Type II certified",
-      "GDPR compliant",
+      "Points-based rewards system",
+      "Customizable challenges",
+      "Free month redemptions",
+      "Automatic point tracking",
     ],
     accent: "#0D9488",
-    stat: { value: "0", label: "breaches to date" },
+    stat: { value: "↑", label: "member retention" },
   },
   {
     id: "notifications",
     label: "Notifications",
     icon: Bell,
-    title: "Smart Notifications",
+    title: "Member Notifications",
     subtitle: "Right message, right time",
     description:
-      "Automated emails and SMS that keep your members informed — payment confirmations, renewal reminders, and everything in between.",
+      "Keep your members in the loop automatically — payment confirmations, renewal reminders, and reward updates sent without you lifting a finger.",
     benefits: [
-      "Customizable email templates",
-      "SMS notifications",
-      "Payment reminders",
-      "Renewal alerts",
+      "Payment confirmation alerts",
+      "Renewal reminders",
+      "Reward milestone notifications",
+      "Broadcast messages",
     ],
     accent: "#F06543",
     stat: { value: "40%", label: "fewer missed renewals" },
@@ -480,13 +480,6 @@ export default function AboutPage() {
                 className="border-2 border-white text-[#1F2937] bg-white hover:bg-white/90 rounded-xl shadow-[3px_3px_0px_#F06543] hover:-translate-y-0.5 transition-all duration-150"
               >
                 <Link href="/auth/register">Get started free</Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="border-2 border-white text-white bg-transparent hover:bg-white/10 hover:text-white rounded-xl transition-all duration-150"
-              >
-                <Link href="/pricing">See pricing</Link>
               </Button>
             </div>
           </motion.div>
