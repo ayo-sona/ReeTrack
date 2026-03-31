@@ -5,10 +5,7 @@ import { Button } from "@/components/ui/button";
 
 const ContactSection = () => {
   return (
-    <section
-      id="contact"
-      className="relative py-24 bg-white overflow-hidden"
-    >
+    <section id="contact" className="relative py-24 bg-white overflow-hidden">
       {/* Subtle background pattern */}
       <div
         className="absolute inset-0 opacity-[0.015] pointer-events-none"
@@ -154,7 +151,13 @@ const ContactSection = () => {
                   className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#0D9488] font-bold"
                   asChild
                 >
-                  <a href="mailto:reetrack.inc@gmail.com">Email Us</a>
+                  <a
+                    href="https://mail.google.com/mail/?view=cm&to=reetrack.inc@gmail.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Email Us
+                  </a>
                 </Button>
               </div>
             </div>
