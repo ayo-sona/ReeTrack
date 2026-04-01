@@ -37,7 +37,7 @@ export default function PlansPage() {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({
     status: "all" as "all" | "active" | "inactive",
-    duration: "all" as "all" | "weekly" | "monthly" | "quarterly" | "yearly",
+    duration: "all" as "all" | "daily" | "weekly" | "monthly" | "quarterly" | "yearly",
     priceMin: "",
     priceMax: "",
   });
@@ -132,6 +132,7 @@ export default function PlansPage() {
         price: parseFloat(planData.price),
         currency: "NGN",
         interval: planData.duration as
+          | "daily"
           | "weekly"
           | "monthly"
           | "yearly"
@@ -153,10 +154,9 @@ export default function PlansPage() {
 
       setShowCreateModal(false);
       setEditingPlan(null);
-    } catch (error: any) {
-      console.log(error.response);
-      const { data } = error.response;
-      toast.error(data.message || "Failed to save plan. Please try again.");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to save plan. Please try again.");
     }
   };
 
@@ -344,6 +344,7 @@ export default function PlansPage() {
 
       {/* ── Create / Edit modal ───────────────────────────────────────────── */}
       <CreatePlanModal
+        key={editingPlan?.id ?? "create"}
         isOpen={showCreateModal}
         onClose={() => {
           setShowCreateModal(false);

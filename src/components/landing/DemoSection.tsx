@@ -2659,7 +2659,9 @@ export default function ReetrackDualDemo() {
             tourStarted.current = true;
             setTimeout(() => {
               setOrgTourStep(0);
+              setOrgPage(ORG_STEPS[0].page);
               setMemberTourStep(0);
+              setMemberPage(MEMBER_STEPS[0].page);
             }, 700);
           }
         }
@@ -2669,16 +2671,6 @@ export default function ReetrackDualDemo() {
     if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
   }, []);
-
-  useEffect(() => {
-    if (orgTourStep !== null && ORG_STEPS[orgTourStep])
-      setOrgPage(ORG_STEPS[orgTourStep].page);
-  }, [orgTourStep]);
-
-  useEffect(() => {
-    if (memberTourStep !== null && MEMBER_STEPS[memberTourStep])
-      setMemberPage(MEMBER_STEPS[memberTourStep].page);
-  }, [memberTourStep]);
   // ── END HOOKS ────────────────────────────────────────────────────────────────
 
   // Safe to return null now — all hooks are above this line
@@ -2686,15 +2678,18 @@ export default function ReetrackDualDemo() {
 
   const handleOrgNext = () => {
     if (orgTourStep === null) return;
-    if (orgTourStep < ORG_STEPS.length - 1) setOrgTourStep(orgTourStep + 1);
-    else setOrgTourStep(null);
+    if (orgTourStep < ORG_STEPS.length - 1) {
+      setOrgTourStep(orgTourStep + 1);
+      setOrgPage(ORG_STEPS[orgTourStep + 1].page);
+    } else setOrgTourStep(null);
   };
 
   const handleMemberNext = () => {
     if (memberTourStep === null) return;
-    if (memberTourStep < MEMBER_STEPS.length - 1)
+    if (memberTourStep < MEMBER_STEPS.length - 1) {
       setMemberTourStep(memberTourStep + 1);
-    else setMemberTourStep(null);
+      setMemberPage(MEMBER_STEPS[memberTourStep + 1].page);
+    } else setMemberTourStep(null);
   };
 
   return (

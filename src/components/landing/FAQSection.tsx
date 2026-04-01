@@ -12,12 +12,12 @@ const FAQSection = () => {
     {
       question: "Is my money safe?",
       answer:
-        "100%. We use bank grade encryption and your funds are processed through secure payment gateways with industry-leading security standards.",
+        "100%. We use bank-grade encryption and your funds are processed through secure payment gateways with industry-leading security standards.",
     },
     {
       question: "Can I add members manually?",
       answer:
-        "Yes. You have full control over who joins your community add members manually or let them sign up directly through your organization's page.",
+        "Yes. You have full control over who joins your community — add members manually or let them sign up directly through your organization's page.",
     },
     {
       question: "Does Reetrack handle failed payments?",
@@ -27,31 +27,33 @@ const FAQSection = () => {
     {
       question: "How does the rewards system work?",
       answer:
-        "Members earn points by checking in regularly and completing challenges set by their community. Those points can be redeemed and used in our partner communities.",
+        "Members earn points by checking in regularly and completing challenges set by their community. What you can redeem those points for depends on your organization — each community defines its own rewards.",
+    },
+    {
+      question: "How much does it cost to become a community on reetrack?",
+      answer:
+        "There are no upfront costs. You only provide a 10% margin on payments processed through Reetrack, and you receive instant settlement for every transaction.",
     },
     {
       question: "Can I export my data?",
       answer:
-        "Yes. Your data is yours export member lists, payment history, and analytics anytime. No lock-in, no hidden fees.",
+        "Yes. Your data is yours — export member lists, payment history, and analytics anytime. No lock-in, no hidden fees.",
     },
   ];
 
   return (
-    <section className="relative py-24 bg-white overflow-hidden">
-      {/* Subtle background pattern */}
+    <section id="faq" className="relative py-24 bg-white overflow-hidden">
       <div
         className="absolute inset-0 opacity-[0.015] pointer-events-none"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
         }}
       />
-
-      {/* Soft gradient accents */}
       <div className="absolute top-20 left-[10%] w-64 h-64 bg-[#F06543]/5 rounded-full blur-3xl" />
       <div className="absolute bottom-20 right-[10%] w-80 h-80 bg-[#0D9488]/5 rounded-full blur-3xl" />
 
       <div className="max-w-4xl mx-auto px-6 relative">
-        {/* Section Header */}
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -77,7 +79,7 @@ const FAQSection = () => {
           </p>
         </motion.div>
 
-        {/* FAQ Accordion */}
+        {/* Accordion */}
         <div className="space-y-4">
           {faqs.map((faq, index) => (
             <motion.div
@@ -95,7 +97,6 @@ const FAQSection = () => {
                     : "border-gray-200 shadow-md hover:shadow-lg"
                 }`}
               >
-                {/* Question Bar */}
                 <button
                   onClick={() => setOpenIndex(openIndex === index ? -1 : index)}
                   className="w-full flex items-center justify-between p-6 text-left transition-colors"
@@ -124,7 +125,6 @@ const FAQSection = () => {
                   </motion.div>
                 </button>
 
-                {/* Answer */}
                 <AnimatePresence initial={false}>
                   {openIndex === index && (
                     <motion.div
@@ -150,36 +150,25 @@ const FAQSection = () => {
 
         {/* Bottom CTA */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-12 text-center"
+          className="mt-12 rounded-2xl bg-[#1F2937] border-2 border-[#1F2937] shadow-[4px_4px_0px_#F06543] px-6 sm:px-10 py-10 text-center"
         >
-         <section className="px-4 sm:px-6 lg:px-8 pb-24 bg-[#F9FAFB]">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="rounded-2xl bg-[#1F2937] border-2 border-[#1F2937] shadow-[4px_4px_0px_#F06543] px-6 sm:px-8 py-10 sm:py-14 text-center"
+          <h2 className="text-xl sm:text-2xl font-extrabold text-white mb-2">
+            Ready to bring your community onto Reetrack?
+          </h2>
+          <p className="text-white/70 text-sm mb-6 max-w-lg mx-auto">
+            Set up your organization, add your members, and start rewarding the
+            ones who show up.
+          </p>
+          <Button
+            asChild
+            className="border-2 border-white text-[#1F2937] bg-white hover:bg-white/90 rounded-xl shadow-[3px_3px_0px_#F06543] hover:-translate-y-0.5 transition-all duration-150"
           >
-            <h2 className="text-xl sm:text-2xl font-extrabold text-white mb-2">
-              Ready to bring your community onto Reetrack?
-            </h2>
-            <p className="text-white/70 text-sm mb-6 sm:mb-8 max-w-lg mx-auto">
-              Set up your organization, add your members, and start rewarding the ones who show up.
-            </p>
-            <Button
-              asChild
-              className="border-2 border-white text-[#1F2937] bg-white hover:bg-white/90 rounded-xl shadow-[3px_3px_0px_#F06543] hover:-translate-y-0.5 transition-all duration-150"
-            >
-              <Link href="/auth/register">Get started free</Link>
-            </Button>
-          </motion.div>
-        </div>
-      </section>
+            <Link href="/auth/register">Get started free</Link>
+          </Button>
         </motion.div>
       </div>
     </section>

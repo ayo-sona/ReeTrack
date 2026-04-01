@@ -6,7 +6,7 @@ export interface CreatePlanDto {
   description: string;
   price: number;
   currency: string;
-  interval: "weekly" | "monthly" | "yearly" | "quarterly";
+  interval: "daily" | "weekly" | "monthly" | "yearly" | "quarterly";
   intervalCount: number;
   features: string[];
 }
@@ -16,7 +16,7 @@ export interface UpdatePlanDto {
   description?: string;
   price?: number;
   currency?: string;
-  interval?: "weekly" | "monthly" | "yearly" | "quarterly";
+  interval?: "daily" | "weekly" | "monthly" | "yearly" | "quarterly";
   intervalCount?: number;
   features?: string[];
   isActive?: boolean;
