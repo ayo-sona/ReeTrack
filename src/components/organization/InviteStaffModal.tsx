@@ -29,12 +29,6 @@ export function InviteStaffModal({
     { id: crypto.randomUUID(), value: "", status: "idle" },
   ]);
 
-  useEffect(() => {
-    if (!isOpen) {
-      setEmails([{ id: crypto.randomUUID(), value: "", status: "idle" }]);
-    }
-  }, [isOpen]);
-
   const addEmail = () => {
     setEmails((prev) => [
       ...prev,
@@ -87,7 +81,7 @@ export function InviteStaffModal({
         > = {};
 
         // Map results back to email entries
-        response.data.data.results.forEach((result: any) => {
+        response.data.data.results.forEach((result: { email: string; status: string; userExists?: boolean }) => {
           const emailEntry = validEmails.find(
             (entry) => entry.value.trim() === result.email,
           );
@@ -139,11 +133,11 @@ export function InviteStaffModal({
           toast.error("All invitations failed — check the highlighted emails");
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
       toast.error(
-        error?.response?.data?.message || "Failed to send staff invitations",
+        err.response?.data?.message || "Failed to send staff invitations",
       );
-      console.error("Error sending staff invitations:", error);
     }
 
     setIsSubmitting(false);
@@ -174,7 +168,7 @@ export function InviteStaffModal({
               Invite Staff Members
             </h2>
             <p className="text-sm text-[#9CA3AF] mt-0.5">
-              They'll receive an email to complete their setup
+              They&apos;ll receive an email to complete their setup
             </p>
           </div>
           <button
@@ -190,7 +184,7 @@ export function InviteStaffModal({
         <div className="mx-6 mt-5 rounded-lg bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
           <p className="text-xs text-[#0D9488] leading-relaxed">
             Staff members can log in to manage members, plans, and check-ins on
-            your behalf. They'll get full admin access to your organization.
+            your behalf. They&apos;ll get full admin access to your organization.
           </p>
         </div>
 

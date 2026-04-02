@@ -10,7 +10,6 @@ export interface UpdateMemberDto {
   metadata?: Record<string, unknown>;
 }
 
-// ✅ Add response interface
 interface MembersResponse {
   data: Member[];
   meta: {
@@ -27,12 +26,11 @@ export const membersApi = {
     page: number = 1,
     limit: number = 10,
     status?: string,
-  ): Promise<MembersResponse> => { // ✅ Changed return type
+  ): Promise<MembersResponse> => {
     const response = await apiClient.get("/members", {
       params: { page, limit, status },
     });
-    // ✅ Return the full object with data and meta
-    return response.data.data; // This should have { data: [...], meta: {...} }
+    return response.data.data;
   },
 
   // Get member by ID
@@ -57,9 +55,15 @@ export const membersApi = {
     await apiClient.delete(`/members/${id}`);
   },
 
-  // Get member stats
-  getStats: async (id: string) => {
-    const response = await apiClient.get(`/members/${id}/stats`);
+  // Get member stats (own stats, no path param)
+  getStats: async () => {
+    const response = await apiClient.get("/members/stats");
+    return response.data.data;
+  },
+
+  // Get leaderboard stats for an organization
+  getLeaderboardStats: async (organizationId: string): Promise<Member[]> => {
+    const response = await apiClient.get(`/members/${organizationId}/stats`);
     return response.data.data;
   },
 };

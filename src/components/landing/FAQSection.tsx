@@ -117,15 +117,9 @@ const FAQSection = () => {
                       }`}
                     >
                       {openIndex === index ? (
-                        <Minus
-                          className="w-5 h-5 text-white"
-                          strokeWidth={2.5}
-                        />
+                        <Minus className="w-5 h-5 text-white" strokeWidth={2.5} />
                       ) : (
-                        <Plus
-                          className="w-5 h-5 text-[#1F2937]/60"
-                          strokeWidth={2.5}
-                        />
+                        <Plus className="w-5 h-5 text-[#1F2937]/60" strokeWidth={2.5} />
                       )}
                     </div>
                   </motion.div>

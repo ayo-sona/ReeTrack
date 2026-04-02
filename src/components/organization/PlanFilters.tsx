@@ -6,7 +6,7 @@ import { SearchBar } from "@/components/ui/SearchBar";
 
 interface PlanFiltersType {
   status: "all" | "active" | "inactive";
-  duration: "all" | "weekly" | "monthly" | "quarterly" | "yearly";
+  duration: "all" | "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
   priceMin: string;
   priceMax: string;
 }
@@ -84,6 +84,7 @@ export function PlanFilters({ filters, onFiltersChange, filteredCount, totalCoun
               className={`${inputClass} pl-10 cursor-pointer`}
             >
               <option value="all">All Cycles</option>
+              <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
               <option value="monthly">Monthly</option>
               <option value="quarterly">Quarterly</option>

@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  Home,
-  Wallet,
-  CreditCard,
-  QrCode,
-  Bell,
-  LogOut,
-  Settings,
-  Building2,
-} from "lucide-react";
+import { Home, Building2, Wallet, CreditCard, Compass, QrCode, Trophy, Receipt, Settings, LogOut } from "lucide-react";
 import { Sidebar } from "@/components/ui/SideBar";
 import { User } from "@/types/user";
 
@@ -37,8 +28,10 @@ export function MemberSidebar({
     { name: "Community", href: "/member/communities", icon: Building2 },
     // { name: "Wallet", href: "/member/wallet", icon: Wallet },
     { name: "Subscriptions", href: "/member/subscriptions", icon: CreditCard },
+    { name: "Explore", href: "/member/explore", icon: Compass },
     { name: "Check In", href: "/member/check-ins", icon: QrCode },
-    { name: "Payments & Billing", href: "/member/payments", icon: CreditCard },
+    { name: "Leaderboard", href: "/member/leaderboards", icon: Trophy },
+    { name: "Payments & Billing", href: "/member/payments", icon: Receipt },
     // {
     //   name: "Notifications",
     //   href: "/member/notifications",

@@ -96,7 +96,7 @@ export default function WalletPage() {
         </motion.div>
 
         {/* Beta notice */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1}
+        {/* <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1}
           style={{ display: 'flex', gap: '12px', background: C.white, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '16px 20px', marginBottom: '24px' }}
         >
           <AlertCircle size={18} style={{ color: C.teal, flexShrink: 0, marginTop: '2px' }} />
@@ -106,7 +106,7 @@ export default function WalletPage() {
               Virtual wallet, top-up, and transaction features are in development.
             </p>
           </div>
-        </motion.div>
+        </motion.div> */}
 
         {/* Balance card */}
         <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2} style={{ position: 'relative', background: C.teal, borderRadius: '16px', padding: '36px', marginBottom: '24px', overflow: 'hidden' }}>

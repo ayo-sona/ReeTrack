@@ -41,7 +41,7 @@ const ContactSection = () => {
             </span>
           </h2>
           <p className="text-lg text-[#1F2937]/60 max-w-2xl mx-auto leading-relaxed">
-            Reach out and we'll get your organization set up on Reetrack.
+            Reach out and we&apos;ll get your organization set up on Reetrack.
           </p>
         </motion.div>
 

@@ -11,6 +11,9 @@ import {
   Menu,
   X,
   LogOut,
+  Trophy, 
+  Receipt,
+  Compass,
   Settings,
   Building2,
 } from "lucide-react";
@@ -37,11 +40,12 @@ interface MemberMobileHeaderProps {
 const navigation = [
   { name: "Dashboard", href: "/member/dashboard", icon: Home },
   { name: "Community", href: "/member/communities", icon: Building2 },
-  { name: "Wallet", href: "/member/wallet", icon: Wallet },
+  // { name: "Wallet", href: "/member/wallet", icon: Wallet },
   { name: "Subscriptions", href: "/member/subscriptions", icon: CreditCard },
+  { name: "Explore", href: "/member/explore", icon: Compass },
   { name: "Check In", href: "/member/check-ins", icon: QrCode },
-  { name: "Payments & Billing", href: "/member/payments", icon: CreditCard },
-  // { name: "Notifications", href: "/member/notifications", icon: Bell },
+  { name: "Leaderboards", href: "/member/leaderboards", icon: Trophy },
+  { name: "Payments & Billing", href: "/member/payments", icon: Receipt },
 ];
 
 export function MemberMobileHeader({
