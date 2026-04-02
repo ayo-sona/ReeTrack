@@ -204,7 +204,7 @@ function InfoTooltip() {
           <strong style={{ color: "#5EEAD4" }}>
             {MONTHLY_THRESHOLD} check-ins
           </strong>{" "}
-          this month to qualify for rewards. Rankings reset monthly.
+          this month to be considered locked in. Rankings reset monthly.
           <div
             style={{
               position: "absolute",
@@ -559,7 +559,7 @@ export default function CommunityLeaderboardPage() {
               accent: false,
             },
             {
-              label: "Qualifying",
+              label: "Locked in",
               value: qualifyingCount,
               icon: <Trophy size={16} />,
               accent: false,

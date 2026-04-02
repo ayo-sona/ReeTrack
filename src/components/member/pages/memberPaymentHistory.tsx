@@ -16,6 +16,8 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import type { MemberInvoice, MemberPayment } from "@/types/organization";
+import { toast } from "sonner";
+import { useCancelInvoice } from "@/hooks/memberHook/useMember";
 
 const C = {
   teal: "#0D9488",
@@ -389,6 +391,8 @@ export default function PaymentHistoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<PaymentStatusFilter>("all");
   const [searchFocused, setSearchFocused] = useState(false);
+  const cancelInvoice = useCancelInvoice();
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const { data: paymentsData, isLoading: paymentsLoading } = usePayments(
     paymentPage,
@@ -414,6 +418,18 @@ export default function PaymentHistoryPage() {
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
+
+  const confirmCancel = async () => {
+    if (!cancellingId) return;
+    try {
+      await cancelInvoice.mutateAsync(cancellingId);
+      toast.success("Invoice cancelled");
+    } catch {
+      toast.error("Failed to cancel invoice");
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   const totalAmount = filteredPayments.reduce(
     (s, p) => s + toNumber(p.amount),
@@ -987,8 +1003,39 @@ export default function PaymentHistoryPage() {
                         <td
                           style={{ padding: "16px 20px", textAlign: "center" }}
                         >
-                          {inv.status === "failed" &&
-                          inv.member_subscription?.plan_id ? (
+                          {inv.status === "pending" ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setCancellingId(inv.id)}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                padding: "6px 14px",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                borderRadius: "999px",
+                                borderColor: C.coral,
+                                color: C.coral,
+                                background: "transparent",
+                                transition: "all 200ms",
+                                whiteSpace: "nowrap",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background =
+                                  "rgba(240,101,67,0.1)";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background =
+                                  "transparent";
+                              }}
+                            >
+                              <X size={12} />
+                              Cancel
+                            </Button>
+                          ) : inv.status === "failed" &&
+                            inv.member_subscription?.plan_id ? (
                             <Link
                               href={`/member/checkout/${inv.member_subscription.plan_id}?invoice=failed&id=${inv.id}`}
                               style={{ textDecoration: "none" }}
@@ -1178,8 +1225,29 @@ export default function PaymentHistoryPage() {
                           >
                             {cfg.label}
                           </span>
-                          {inv.status === "failed" &&
-                          inv.member_subscription?.plan_id ? (
+                          {inv.status === "pending" ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setCancellingId(inv.id)}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                padding: "6px 14px",
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                borderRadius: "999px",
+                                borderColor: C.coral,
+                                color: C.coral,
+                                background: "transparent",
+                              }}
+                            >
+                              <X size={12} />
+                              Cancel
+                            </Button>
+                          ) : inv.status === "failed" &&
+                            inv.member_subscription?.plan_id ? (
                             <Link
                               href={`/member/checkout/${inv.member_subscription.plan_id}?invoice=failed&id=${inv.id}`}
                               style={{ textDecoration: "none" }}
@@ -1279,6 +1347,76 @@ export default function PaymentHistoryPage() {
           </div>
         </motion.div>
       </div>
+      {cancellingId && (
+        <div
+          onClick={() => setCancellingId(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 50,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.3)",
+            backdropFilter: "blur(4px)",
+            padding: 16,
+            fontFamily: "Nunito, sans-serif",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: C.white,
+              borderRadius: 16,
+              border: `1px solid ${C.border}`,
+              padding: 24,
+              maxWidth: 380,
+              width: "100%",
+            }}
+          >
+            <h3
+              style={{
+                fontWeight: 800,
+                fontSize: 16,
+                color: C.ink,
+                marginBottom: 6,
+              }}
+            >
+              Cancel invoice?
+            </h3>
+            <p
+              style={{
+                fontSize: 13,
+                color: C.coolGrey,
+                lineHeight: 1.6,
+                marginBottom: 20,
+              }}
+            >
+              This will cancel the invoice permanently. This action cannot be
+              undone.
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCancellingId(null)}
+                style={{ flex: 1 }}
+              >
+                Keep it
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={confirmCancel}
+                disabled={cancelInvoice.isPending}
+                style={{ flex: 1 }}
+              >
+                {cancelInvoice.isPending ? "Cancelling..." : "Cancel Invoice"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

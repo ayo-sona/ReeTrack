@@ -10,6 +10,7 @@ export const usePlans = (page: number = 1, limit: number = 10) => {
   return useQuery({
     queryKey: ["plans", page, limit],
     queryFn: () => plansApi.getAll(page, limit),
+    staleTime: 5 * 60 * 1000, // 5 min
   });
 };
 

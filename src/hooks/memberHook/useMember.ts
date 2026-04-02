@@ -53,7 +53,7 @@ export const useProfile = () => {
   return useQuery<UserProfile, Error>({
     queryKey: ["member", "profile"],
     queryFn: memberApi.getProfile,
-    retry: 1,
+    staleTime: 10 * 60 * 1000, // 10 min
   });
 };
 
@@ -83,7 +83,7 @@ export const useMemberStats = () => {
   return useQuery<MemberStats, Error>({
     queryKey: ["member", "stats"],
     queryFn: memberApi.getStats,
-    retry: 1,
+    staleTime: 2 * 60 * 1000, // 2 min
   });
 };
 
@@ -91,7 +91,7 @@ export const useMemberOrgs = () => {
   return useQuery<Member[], Error>({
     queryKey: ["member", "orgs"],
     queryFn: memberApi.getMemberOrgs,
-    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 min
   });
 };
 

@@ -5,6 +5,7 @@ export function useAllCommunities() {
   return useQuery({
     queryKey: ["communities"],
     queryFn: () => communitiesApi.getAll(),
+    staleTime: 10 * 60 * 1000, // 10 min
   });
 }
 
