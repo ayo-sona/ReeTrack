@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { X, Zap, Calendar, Target, Star, Sparkles, Trophy } from "lucide-react";
+import { X, Sparkles, Trophy } from "lucide-react";
 import { Member } from "@/types/organization";
 import { useState } from "react";
 
@@ -220,7 +220,10 @@ export function MemberStatsModal({
           />
 
           <button
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
             style={{
               position: "absolute",
               top: 16,
@@ -534,7 +537,6 @@ export function MemberStatsModal({
             >
               {[
                 { value: totalCheckIns, label: "total check-ins" },
-                { value: `${daysInCommunity}d`, label: "as member" },
                 {
                   value: `${streak?.longestStreak ?? 0}wk`,
                   label: "best streak",

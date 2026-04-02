@@ -13,7 +13,6 @@ import {
   Search,
   X,
   Crown,
-  Flame,
   ArrowLeft,
 } from "lucide-react";
 import { useMemberStore } from "@/store/memberStore";
@@ -1013,7 +1012,7 @@ export default function CommunityLeaderboardPage() {
                               marginLeft: 8,
                             }}
                           >
-                            {!member.qualifies ? (
+                            {/* {!member.qualifies ? (
                               <span
                                 style={{
                                   display: "inline-flex",
@@ -1046,7 +1045,7 @@ export default function CommunityLeaderboardPage() {
                                 <Flame size={10} />
                                 {member.monthCount} mo
                               </span>
-                            ) : null}
+                            ) : null} */}
                             <span
                               style={{
                                 fontWeight: 800,
