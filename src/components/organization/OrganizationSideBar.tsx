@@ -107,6 +107,7 @@ export function OrganizationSidebar({
       href: "/organization/check-ins",
       icon: ScanLine,
     },
+
     // {
     //   name: "Notifications",
     //   href: "/organization/notifications",

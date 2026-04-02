@@ -1,7 +1,7 @@
 // hooks/useMembers.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { membersApi, UpdateMemberDto } from "../lib/organizationAPI/membersApi";
-import { Member } from "@/types/organization"; // ✅ Add this import
+import { Member } from "@/types/organization";
 
 interface MembersResponse {
   data: Member[];
@@ -40,12 +40,21 @@ export const useMemberById = (
   });
 };
 
-// Get member stats
-export const useMemberStats = (id: string) => {
+// Get member stats (own stats)
+export const useMemberStats = () => {
   return useQuery({
-    queryKey: ["member", id, "stats"],
-    queryFn: () => membersApi.getStats(id),
-    enabled: !!id,
+    queryKey: ["member", "stats"],
+    queryFn: () => membersApi.getStats(),
+    retry: false,
+  });
+};
+
+// Get leaderboard stats for an organization
+export const useLeaderboardStats = (organizationId: string) => {
+  return useQuery<Member[]>({
+    queryKey: ["leaderboard", organizationId],
+    queryFn: () => membersApi.getLeaderboardStats(organizationId),
+    enabled: !!organizationId,
     retry: false,
   });
 };

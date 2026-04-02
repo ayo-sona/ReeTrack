@@ -36,6 +36,7 @@ function SkeletonCard() {
   );
 }
 
+
 export default function LeaderboardIndexPage() {
   const router = useRouter();
   const { data: memberDetails, isLoading } = useMemberOrgs();
