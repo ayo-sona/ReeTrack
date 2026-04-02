@@ -277,6 +277,7 @@ function CommunitySheet({ org, isJoined, onClose }: { org: Organization; isJoine
             )}
           </div>
         </div>
+
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
           {[
             { icon: <Mail size={15} />, label: "Email", value: org.email },
@@ -299,17 +300,22 @@ function CommunitySheet({ org, isJoined, onClose }: { org: Organization; isJoine
               </div>
             ))}
         </div>
-        {!isJoined ? (
-          <button
-            style={{ width: "100%", padding: "14px", borderRadius: 14, background: C.teal, border: "none", color: C.white, fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: 15, cursor: "pointer" }}
-            onClick={() => {}}
+
+        {/* Bottom action: members get a link to their community, non-members see nothing */}
+        {isJoined && (
+          <a
+            href={`/member/communities/${org.id}`}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              width: "100%", padding: "14px", borderRadius: 14,
+              background: C.teal, color: C.white,
+              fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: 15,
+              textDecoration: "none",
+            }}
           >
-            Join Community
-          </button>
-        ) : (
-          <div style={{ textAlign: "center", padding: "14px", borderRadius: 14, background: "rgba(13,148,136,0.06)", border: "1px solid rgba(13,148,136,0.15)" }}>
-            <p style={{ fontWeight: 700, fontSize: 14, color: C.teal }}>You&apos;re already a member of this community</p>
-          </div>
+            Go to Community
+            <ArrowRight size={16} />
+          </a>
         )}
       </motion.div>
     </motion.div>
