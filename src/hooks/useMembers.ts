@@ -55,7 +55,7 @@ export const useLeaderboardStats = (organizationId: string) => {
     queryKey: ["leaderboard", organizationId],
     queryFn: () => membersApi.getLeaderboardStats(organizationId),
     enabled: !!organizationId,
-    retry: false,
+    staleTime: 3 * 60 * 1000, // 3 min
   });
 };
 

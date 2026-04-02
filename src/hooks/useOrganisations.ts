@@ -28,13 +28,13 @@ export const useOrganizationBySlug = (slug: string) => {
 // Get team members
 export const useTeamMembers = () => {
   const organizationId = getCurrentOrganizationId();
-
   return useQuery({
     queryKey: ["organizations", organizationId, "team"],
     queryFn: () =>
       organizationId
         ? organizationsApi.getTeamMembers(organizationId)
         : Promise.resolve([]),
+    staleTime: 5 * 60 * 1000, // 5 min
   });
 };
 
@@ -43,6 +43,7 @@ export const useOrganizationStats = () => {
   return useQuery({
     queryKey: ["organizations", "stats"],
     queryFn: () => organizationsApi.getStats(),
+    staleTime: 5 * 60 * 1000, // 5 min
   });
 };
 
