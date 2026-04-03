@@ -120,13 +120,6 @@ const includedFeatures = [
     Pro: 200,
   },
   {
-    feature: "Transaction Fees",
-    Free: "8%",
-    Starter: "7%",
-    Growth: "6%",
-    Pro: "5%",
-  },
-  {
     feature: "Member Plans access",
     Free: 1,
     Starter: 3,
