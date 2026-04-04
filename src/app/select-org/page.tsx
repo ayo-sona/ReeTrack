@@ -66,9 +66,6 @@ export default function OrganizationSelectPage() {
         // setCookie("access_token", response.data.data.accessToken);
         setCookie("current_role", role, {
           maxAge: 60 * 60 * 24 * 7,
-          sameSite: "lax",
-          // secure: true,
-          secure: true,
           path: "/",
         });
         // localStorage.setItem("verifiedOrg", response.data.data.verified);

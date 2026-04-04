@@ -29,18 +29,12 @@ export default function SelectRolePage() {
     if (role === "member") {
       setCookie("current_role", "MEMBER", {
         maxAge: 60 * 60 * 24 * 7,
-        sameSite: "lax",
-        // secure: true,
-        secure: true,
         path: "/",
       });
       router.push("/member/dashboard");
     } else {
       setCookie("current_role", "ORG", {
         maxAge: 60 * 60 * 24 * 7,
-        sameSite: "lax",
-        // secure: true,
-        secure: true,
         path: "/",
       });
       router.push("/select-org");
