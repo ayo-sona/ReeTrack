@@ -11,7 +11,6 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  access_token: string;
   user: {
     id: string;
     email: string;
@@ -108,7 +107,9 @@ export const authApi = {
   /**
    * Send verification code to user's email
    */
-  sendVerificationCode: async (data: SendVerificationRequest): Promise<SendVerificationResponse> => {
+  sendVerificationCode: async (
+    data: SendVerificationRequest,
+  ): Promise<SendVerificationResponse> => {
     const response = await apiClient.post("/auth/send-verification", data);
     return response.data;
   },
@@ -116,7 +117,9 @@ export const authApi = {
   /**
    * Verify email with OTP code
    */
-  verifyEmail: async (data: VerifyEmailRequest): Promise<VerifyEmailResponse> => {
+  verifyEmail: async (
+    data: VerifyEmailRequest,
+  ): Promise<VerifyEmailResponse> => {
     const response = await apiClient.post("/auth/verify-email", data);
     return response.data;
   },
@@ -124,7 +127,9 @@ export const authApi = {
   /**
    * Request password reset email
    */
-  forgotPassword: async (data: ForgotPasswordRequest): Promise<ForgotPasswordResponse> => {
+  forgotPassword: async (
+    data: ForgotPasswordRequest,
+  ): Promise<ForgotPasswordResponse> => {
     const response = await apiClient.post("/auth/forgot-password", data);
     return response.data;
   },
@@ -132,7 +137,9 @@ export const authApi = {
   /**
    * Reset password with token
    */
-  resetPassword: async (data: ResetPasswordRequest): Promise<ResetPasswordResponse> => {
+  resetPassword: async (
+    data: ResetPasswordRequest,
+  ): Promise<ResetPasswordResponse> => {
     const response = await apiClient.post("/auth/reset-password", data);
     return response.data;
   },

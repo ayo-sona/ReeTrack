@@ -9,14 +9,16 @@ import { deleteCookie } from "cookies-next";
 
 export default function CompleteOrgSetupPage() {
   const router = useRouter();
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "success" | "error">(
+    "loading",
+  );
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const completeOrgSetup = async () => {
       // Get stored org data
-      const pendingOrgData = localStorage.getItem('pending_org_data');
-      
+      const pendingOrgData = localStorage.getItem("pending_org_data");
+
       if (!pendingOrgData) {
         setError("No pending organization setup found");
         setStatus("error");
@@ -44,21 +46,21 @@ export default function CompleteOrgSetupPage() {
             "newOrganizationId",
             response.data.data.organization.id,
           );
-          
+
           // Clean up
-          localStorage.removeItem('pending_org_data');
-          
+          localStorage.removeItem("pending_org_data");
+
           // Delete cookies
-          deleteCookie("access_token");
+          // deleteCookie("access_token");
           deleteCookie("user_roles");
           deleteCookie("current_role");
 
           // Set onboarding flag
           localStorage.setItem("onboarding_pending", "true");
-          
+
           setStatus("success");
           toast.success("Organization created successfully!");
-          
+
           setTimeout(() => {
             router.push("/auth/login");
           }, 2000);

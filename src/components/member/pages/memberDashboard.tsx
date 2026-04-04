@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Wallet, CreditCard, Calendar, QrCode, ArrowRight, X, AlertTriangle, Loader2 } from "lucide-react";
+import {
+  Wallet,
+  CreditCard,
+  Calendar,
+  QrCode,
+  ArrowRight,
+  X,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
 import {
   useProfile,
   useActiveSubscriptions,
@@ -27,7 +36,12 @@ interface CancelModalProps {
   isLoading: boolean;
 }
 
-function CancelModal({ subscription, onConfirm, onClose, isLoading }: CancelModalProps) {
+function CancelModal({
+  subscription,
+  onConfirm,
+  onClose,
+  isLoading,
+}: CancelModalProps) {
   if (!subscription) return null;
 
   return (
@@ -71,7 +85,11 @@ function CancelModal({ subscription, onConfirm, onClose, isLoading }: CancelModa
               year: "numeric",
             })}
           </span>
-          , and <span className="font-semibold text-[#EF4444]">no further billing will occur</span> after that date.
+          , and{" "}
+          <span className="font-semibold text-[#EF4444]">
+            no further billing will occur
+          </span>{" "}
+          after that date.
         </p>
 
         {/* Plan summary pill */}
@@ -85,12 +103,14 @@ function CancelModal({ subscription, onConfirm, onClose, isLoading }: CancelModa
                 {subscription.plan.name}
               </p>
               <p className="text-xs text-[#9CA3AF]">
-                ₦{subscription.plan.price.toLocaleString()} / {subscription.plan.interval}
+                ₦{subscription.plan.price.toLocaleString()} /{" "}
+                {subscription.plan.interval}
               </p>
             </div>
           </div>
           <span className="text-xs bg-[#DCFCE7] text-[#16A34A] font-semibold px-2.5 py-1 rounded-full">
-            Active until {new Date(subscription.expires_at).toLocaleDateString()}
+            Active until{" "}
+            {new Date(subscription.expires_at).toLocaleDateString()}
           </span>
         </div>
 
@@ -129,11 +149,19 @@ function CancelModal({ subscription, onConfirm, onClose, isLoading }: CancelModa
 export default function MemberDashboard() {
   const router = useRouter();
   const { data: profile } = useProfile();
-  const { data: subscriptions, isLoading: subsLoading } = useActiveSubscriptions();
-  const { data: allInvoices, isLoading: invoiceLoading } = useInvoices(1, 100, "failed");
-  const { mutate: cancelSubscription, isPending: isCancelling } = useCancelSubscription();
+  const { data: subscriptions, isLoading: subsLoading } =
+    useActiveSubscriptions();
+  const { data: allInvoices, isLoading: invoiceLoading } = useInvoices(
+    1,
+    100,
+    "failed",
+  );
+  const { mutate: cancelSubscription, isPending: isCancelling } =
+    useCancelSubscription();
 
-  const [cancelTarget, setCancelTarget] = useState<typeof subscriptions[number] | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<
+    (typeof subscriptions)[number] | null
+  >(null);
 
   const activeSubscriptionsCount = subscriptions.length;
 
@@ -166,7 +194,9 @@ export default function MemberDashboard() {
     if (!cancelTarget) return;
     cancelSubscription(cancelTarget.id, {
       onSuccess: () => {
-        toast.success(`${cancelTarget.plan.name} has been cancelled. You'll retain access until ${new Date(cancelTarget.expires_at).toLocaleDateString()}.`);
+        toast.success(
+          `${cancelTarget.plan.name} has been cancelled. You'll retain access until ${new Date(cancelTarget.expires_at).toLocaleDateString()}.`,
+        );
         setCancelTarget(null);
       },
       onError: () => {
@@ -358,7 +388,7 @@ export default function MemberDashboard() {
               </button>
             </Link>
 
-            <Link href="/member/wallet">
+            {/* <Link href="/member/wallet">
               <button className="w-full p-6 bg-white rounded-xl shadow-sm border border-[#E5E7EB] hover:border-[#0D9488]/40 hover:shadow-md transition-all duration-300 h-full group">
                 <div className="bg-[#0D9488]/10 w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#0D9488]/20 transition-colors duration-300">
                   <Wallet className="w-7 h-7 text-[#0D9488]" />
@@ -368,7 +398,7 @@ export default function MemberDashboard() {
                   Coming soon
                 </p>
               </button>
-            </Link>
+            </Link> */}
 
             <Link href="/member/payments">
               <button className="w-full p-6 bg-white rounded-xl shadow-sm border border-[#E5E7EB] hover:border-[#0D9488]/40 hover:shadow-md transition-all duration-300 h-full group">

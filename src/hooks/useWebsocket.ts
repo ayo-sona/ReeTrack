@@ -3,6 +3,7 @@
 import { io, Socket } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import apiClient from "@/lib/apiClient";
 
 interface SubscriptionEvents {
   "plan:upgraded": (data: { newPlan: string; timestamp: string }) => void;
@@ -64,14 +65,16 @@ const BASE_URL = "https://reetrack-production-f1dc.up.railway.app";
 class ReeTrackWebSocket {
   private socket: Socket<SubscriptionEvents> | null = null;
 
-  constructor(private token: string) {}
+  // constructor(private token: string) {}
+  constructor() {}
 
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.socket = io(`${BASE_URL}/subscriptions`, {
-        auth: {
-          token: this.token,
-        },
+        // auth: {
+        //   token: this.token,
+        // },
+        withCredentials: true,
         transports: ["polliing", "websocket"],
         reconnection: true,
         reconnectionAttempts: 5,
@@ -91,12 +94,13 @@ class ReeTrackWebSocket {
         }
       });
 
-      this.socket.on("connect_error", (error) => {
+      this.socket.on("connect_error", async (error) => {
         console.error("WebSocket connection error:", error);
-
-        // Resolve anyway so the app continues working
-        // resolve();
-        reject(error);
+        if (error.message.includes("Unauthorized")) {
+          await apiClient.post("/auth/refresh"); // sets new cookie
+          this.socket?.connect(); // reconnect with new cookie
+        }
+        // reject(error);
       });
 
       // Set up event listeners
@@ -303,15 +307,13 @@ class ReeTrackWebSocket {
 export { ReeTrackWebSocket };
 
 // React hook for WebSocket
-export function useWebSocket(token: string | null) {
+export function useWebSocket() {
   const [isConnected, setIsConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<any>(null);
   const wsRef = useRef<ReeTrackWebSocket | null>(null);
 
   useEffect(() => {
-    if (!token) return;
-
-    const ws = new ReeTrackWebSocket(token);
+    const ws = new ReeTrackWebSocket();
     wsRef.current = ws;
 
     // Try to connect, but don't fail if server doesn't support WebSocket yet
@@ -333,7 +335,7 @@ export function useWebSocket(token: string | null) {
       ws.disconnect();
       wsRef.current = null;
     };
-  }, [token]);
+  }, []);
 
   const subscribeToSubscription = (subscriptionId: string) => {
     wsRef.current?.subscribeToSubscription(subscriptionId);

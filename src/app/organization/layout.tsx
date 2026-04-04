@@ -16,12 +16,12 @@ export default function OrganizationLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const accessToken = getCookie("access_token") ?? null;
+  // const accessToken = getCookie("access_token") ?? null;
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
   // Initialize WebSocket connection
-  const { isConnected } = useWebSocket(accessToken);
+  const { isConnected } = useWebSocket();
 
   // Set up cache invalidation listener
   useWebSocketCacheInvalidation();
