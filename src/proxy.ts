@@ -35,7 +35,7 @@ export async function proxy(request: NextRequest) {
 
   // ── 1. Unauthenticated user hitting a private route ──────────────────────
   if (!token && isPrivatePath) {
-    console.log("hello");
+    // console.log("TEST");
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/auth/login";
     loginUrl.search = `redirect=${encodeURIComponent(pathname)}`;
@@ -59,7 +59,7 @@ export async function proxy(request: NextRequest) {
   if (token) {
     // No userRoles at all — roles cookie is missing/expired
     // Send to login to re-authenticate cleanly
-    if (userRoles.length === 0 && isPrivatePath) {
+    if (!currentRole && isPrivatePath) {
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = "/auth/login";
       loginUrl.search = `redirect=${encodeURIComponent(pathname)}`;

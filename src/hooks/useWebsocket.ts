@@ -56,8 +56,8 @@ interface SubscriptionEvents {
   connected: (data: { message: string; organizationId: string }) => void;
   error: (data: { message: string }) => void;
 }
-
-const BASE_URL = "https://reetrack-production-f1dc.up.railway.app";
+export const BASE_URL = "https://api.reetrack.com";
+// const BASE_URL = "https://reetrack-production-f1dc.up.railway.app";
 // const BASE_URL = "https://reetrack-production.up.railway.app";
 // const BASE_URL = "https://paypips.onrender.com";
 // const BASE_URL = "http://localhost:4000";
