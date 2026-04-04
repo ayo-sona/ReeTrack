@@ -137,8 +137,9 @@ export default function JoinPage() {
           localStorage.setItem(PENDING_JOIN_SLUG_KEY, slug);
         }
 
-        const token = getCookie("access_token");
-        if (token) {
+        // const token = getCookie("access_token");
+        const userData = localStorage.getItem("userData");
+        if (userData) {
           await joinOrganization(slug, name);
           return;
         }
@@ -161,9 +162,15 @@ export default function JoinPage() {
 
   const joinOrganization = async (orgSlug: string, name: string) => {
     setJoining(true);
+    let email: string | undefined;
     try {
       const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-      const email = userData?.user?.email;
+      email = userData?.user?.email;
+
+      if (!email) {
+        setError("Could not retrieve your account info. Please log in again.");
+        return;
+      }
 
       await apiClient.post("/auth/register-member", {
         organizationSlug: orgSlug,
@@ -178,18 +185,6 @@ export default function JoinPage() {
       router.replace("/member/communities");
     } catch (err: any) {
       console.log(err.response?.data?.data?.message);
-      // const message = String(
-      //   err.response?.data?.data?.message ?? "Failed to join organization.",
-      // );
-
-      // if (message.toLowerCase().includes("already")) {
-      //   if (typeof window !== "undefined") {
-      //     localStorage.removeItem(PENDING_JOIN_SLUG_KEY);
-      //   }
-      //   router.replace("/member");
-      //   return;
-      // }
-      // setError(message);
       setJoining(false);
       setFetchLoading(false);
       throw err;

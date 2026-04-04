@@ -63,9 +63,15 @@ export default function OrganizationSelectPage() {
       const response = await apiClient.get(`/organizations/select/${orgId}`);
 
       if (response.data.statusCode === 200) {
-        setCookie("access_token", response.data.data.accessToken);
-        setCookie("current_role", role);
-        localStorage.setItem("verifiedOrg", response.data.data.verified);
+        // setCookie("access_token", response.data.data.accessToken);
+        setCookie("current_role", role, {
+            maxAge: 60 * 60 * 24 * 7,
+            sameSite: "lax",
+            // secure: true,
+            secure: false,
+            path: "/",
+          },);
+        // localStorage.setItem("verifiedOrg", response.data.data.verified);
 
         await queryClient.invalidateQueries({ queryKey: ["organizations"] });
         await queryClient.invalidateQueries({ queryKey: ["analytics"] });
@@ -102,7 +108,7 @@ export default function OrganizationSelectPage() {
       toast.error("Logout failed");
     } finally {
       if (typeof window !== "undefined") localStorage.clear();
-      deleteCookie("access_token");
+      // deleteCookie("access_token");
       deleteCookie("current_role");
       deleteCookie("user_roles");
       setLoading(false);

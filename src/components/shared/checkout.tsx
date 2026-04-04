@@ -183,24 +183,20 @@ export function SharedCheckout({
           data: { data: paymentData },
         } = await apiClient.post("/payments/paystack/initialize", {
           invoiceId,
-          ...(failedInvoice
-            ? {
-                metadata: {
-                  channels: [
-                    "card",
-                    "bank",
-                    "apple_pay",
-                    "ussd",
-                    "qr",
-                    "mobile_money",
-                    "bank_transfer",
-                    "eft",
-                    "capitec_pay",
-                    "payattitude",
-                  ],
-                },
-              }
-            : {}),
+          metadata: {
+            channels: [
+              "card",
+              "bank",
+              "apple_pay",
+              "ussd",
+              "qr",
+              "mobile_money",
+              "bank_transfer",
+              "eft",
+              "capitec_pay",
+              "payattitude",
+            ],
+          },
         });
         if (!isReady) return;
         resumeTransaction(paymentData.access_code);
@@ -223,24 +219,20 @@ export function SharedCheckout({
           data: { data: paymentData },
         } = await apiClient.post("/payments/paystack/organization/initialize", {
           invoiceId,
-          ...(failedInvoice
-            ? {
-                metadata: {
-                  channels: [
-                    "card",
-                    "bank",
-                    "apple_pay",
-                    "ussd",
-                    "qr",
-                    "mobile_money",
-                    "bank_transfer",
-                    "eft",
-                    "capitec_pay",
-                    "payattitude",
-                  ],
-                },
-              }
-            : {}),
+          metadata: {
+            channels: [
+              "card",
+              "bank",
+              "apple_pay",
+              "ussd",
+              "qr",
+              "mobile_money",
+              "bank_transfer",
+              "eft",
+              "capitec_pay",
+              "payattitude",
+            ],
+          },
         });
         if (!isReady) return;
         resumeTransaction(paymentData.access_code);

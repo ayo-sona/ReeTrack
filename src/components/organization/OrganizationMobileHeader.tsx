@@ -64,7 +64,7 @@ export function OrganizationMobileHeader({
       if (typeof window !== "undefined") {
         localStorage.clear();
       }
-      deleteCookie("access_token");
+      // deleteCookie("access_token");
       deleteCookie("current_role");
       deleteCookie("user_roles");
       setLoading(false);

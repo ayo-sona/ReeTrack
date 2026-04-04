@@ -26,7 +26,7 @@ function LoginForm() {
   // ?redirect=/join/life-fitness
   const redirectParam = searchParams.get("redirect");
 
-  const token = getCookie("access_token");
+  // const token = getCookie("access_token");
   const userRoles = getCookie("user_roles")
     ? (getCookie("user_roles") as string).split(",")
     : [];
@@ -40,10 +40,10 @@ function LoginForm() {
 
   useEffect(() => {
     setIsMounting(false);
-  }, [token]);
+  }, []);
 
   useEffect(() => {
-    if (token && !isRedirecting) {
+    if (!isRedirecting) {
       if (redirectParam) {
         router.replace(redirectParam);
         return;
@@ -58,11 +58,9 @@ function LoginForm() {
         (userRoles.includes("STAFF") || userRoles.includes("ADMIN"))
       ) {
         router.replace("/select-org");
-      } else {
-        router.replace("/member/dashboard");
       }
     }
-  }, [router, token, userRoles, isRedirecting, redirectParam]);
+  }, [router, userRoles, isRedirecting, redirectParam]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -118,7 +116,7 @@ function LoginForm() {
         await queryClient.invalidateQueries({
           queryKey: ["member"],
         });
-        setCookie("access_token", response.data.data.access_token);
+        // setCookie("access_token", response.data.data.access_token);
         setCookie(
           "user_roles",
           response.data.data.organizations
@@ -126,6 +124,13 @@ function LoginForm() {
                 .map((org: { role: string }) => org.role)
                 .join(",")
             : "",
+          {
+            maxAge: 60 * 60 * 24 * 7,
+            sameSite: "lax",
+            // secure: true,
+            secure: false,
+            path: "/",
+          },
         );
         localStorage.setItem("userData", JSON.stringify(response.data.data));
 

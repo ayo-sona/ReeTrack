@@ -20,7 +20,7 @@ export default function OrganizationDashboardPage() {
     <div className="min-h-screen bg-[#F9FAFB] font-[Nunito,sans-serif]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 space-y-6 sm:space-y-8">
         {/* ── KYC Banner — disappears once verified ───────────────────── */}
-        <KycBanner />
+        {/* <KycBanner /> */}
 
         {/* ── Page Header ─────────────────────────────────────────────── */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

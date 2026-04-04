@@ -8,12 +8,12 @@ interface UseAuthReturn {
   login: (data: LoginRequest) => Promise<boolean>;
   loggingIn: boolean;
   loginError: string | null;
-  
+
   // Register
   register: (data: RegisterRequest) => Promise<boolean>;
   registering: boolean;
   registerError: string | null;
-  
+
   // Reset
   resetErrors: () => void;
 }
@@ -22,7 +22,7 @@ export function useAuth(): UseAuthReturn {
   // Login states
   const [loggingIn, setLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
-  
+
   // Register states
   const [registering, setRegistering] = useState(false);
   const [registerError, setRegisterError] = useState<string | null>(null);
@@ -33,21 +33,25 @@ export function useAuth(): UseAuthReturn {
 
     try {
       const response = await authApi.login(data);
-      
+
       // Store token
-      setCookie("access_token", response.access_token, {
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-      });
-      
+      // setCookie("access_token", response.access_token, {
+      //   maxAge: 60 * 60 * 24 * 7, // 7 days
+      // });
+
       // Store user data
       if (typeof window !== "undefined") {
-        localStorage.setItem("userData", JSON.stringify({ user: response.user }));
+        localStorage.setItem(
+          "userData",
+          JSON.stringify({ user: response.user }),
+        );
       }
-      
+
       return true;
     } catch (error) {
       const axiosError = error as AxiosError<{ message?: string }>;
-      const errorMessage = axiosError.response?.data?.message || "Login failed. Please try again.";
+      const errorMessage =
+        axiosError.response?.data?.message || "Login failed. Please try again.";
       setLoginError(errorMessage);
       return false;
     } finally {
@@ -61,23 +65,29 @@ export function useAuth(): UseAuthReturn {
 
     try {
       await authApi.register(data);
-      
+
       // ✅ Success! OTP page will handle sending verification code
       return true;
-      
     } catch (error) {
-      const axiosError = error as AxiosError<{ message?: string; statusCode?: number }>;
-      
+      const axiosError = error as AxiosError<{
+        message?: string;
+        statusCode?: number;
+      }>;
+
       // Check if it's a CORS error (network error with no response)
       if (!axiosError.response && axiosError.message === "Network Error") {
         // CORS error - user might have been created on backend
         // Let them proceed to OTP page where they can try to get the code
-        console.warn("CORS error detected - user may have been created. Proceeding to OTP page.");
+        console.warn(
+          "CORS error detected - user may have been created. Proceeding to OTP page.",
+        );
         return true; // ✅ Let them try OTP page
       }
-      
+
       // Real error from backend
-      const errorMessage = axiosError.response?.data?.message || "Registration failed. Please try again.";
+      const errorMessage =
+        axiosError.response?.data?.message ||
+        "Registration failed. Please try again.";
       setRegisterError(errorMessage);
       return false;
     } finally {

@@ -41,27 +41,23 @@ const processQueue = (error: Error | null = null) => {
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  withCredentials: true, // This sends httpOnly cookies automatically
-  // timeout: 30000,
+  withCredentials: true, // Sends httpOnly cookies automatically
 });
 
 /**
  * Request Interceptor
  */
-apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-    const token = getCookie("access_token");
-    // console.log(token);
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error),
-);
+// apiClient.interceptors.request.use(
+//   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+//     const token = getCookie("access_token");
+//     // console.log(token);
+//     if (token && config.headers) {
+//       config.headers.Authorization = `Bearer ${token}`;
+//     }
+//     return config;
+//   },
+//   (error) => Promise.reject(error),
+// );
 
 /**
  * Response Interceptor
@@ -116,10 +112,25 @@ apiClient.interceptors.response.use(
         );
 
         // console.log(response.data.data);
-        const { access_token } = response?.data?.data;
+        const { current_role, user_roles } = response?.data?.data;
 
         // Update tokens in cookies
-        setCookie("access_token", access_token);
+        // setCookie("access_token", access_token);
+        current_role &&
+          setCookie("current_role", current_role, {
+            maxAge: 60 * 60 * 24 * 7,
+            sameSite: "lax",
+            // secure: true,
+            secure: false,
+            path: "/",
+          });
+        setCookie("user_roles", user_roles, {
+          maxAge: 60 * 60 * 24 * 7,
+          sameSite: "lax",
+          // secure: true,
+          secure: false,
+          path: "/",
+        });
 
         // Server will set new access_token cookie
         processQueue(null); // Tell waiting requests to retry
@@ -136,7 +147,7 @@ apiClient.interceptors.response.use(
           localStorage.clear();
 
           // Delete any cookie
-          deleteCookie("access_token");
+          // deleteCookie("access_token");
           deleteCookie("current_role");
           deleteCookie("user_roles");
 

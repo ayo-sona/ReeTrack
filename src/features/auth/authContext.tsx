@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '../../types/user';
-import apiClient from '../../lib/apiClient';
-import { getCookie } from 'cookies-next';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { User } from "../../types/user";
+import apiClient from "../../lib/apiClient";
+import { getCookie } from "cookies-next";
 
 interface AuthContextType {
   user: User | null;
@@ -25,17 +25,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       setIsLoading(true);
-      
+
       try {
-        const token = getCookie('access_token');
-        
-        if (token) {
-          // Fetch user profile from API
-          const response = await apiClient.get('/auth/profile');
-          setUser(response.data.data);
-        }
+        // const token = getCookie('access_token');
+
+        // if (token) {
+        // Fetch user profile from API
+        const response = await apiClient.get("/auth/profile");
+        setUser(response.data.data);
+        // }
       } catch (error) {
-        console.error('Auth check failed:', error);
+        console.error("Auth check failed:", error);
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -47,17 +47,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
-    
+
     try {
       // Call your actual login API
-      const response = await apiClient.post('/auth/login', { email, password });
-      
+      const response = await apiClient.post("/auth/login", { email, password });
+
       // The apiClient already handles setting the access_token cookie
       // Now fetch the user profile
-      const profileResponse = await apiClient.get('/auth/profile');
+      const profileResponse = await apiClient.get("/auth/profile");
       setUser(profileResponse.data.data);
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error("Login failed:", error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -67,9 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       // Call logout endpoint (clears refresh token on server)
-      await apiClient.post('/auth/logout');
+      await apiClient.post("/auth/logout");
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
       setUser(null);
       // The apiClient logout function handles cookie clearing and redirect
@@ -84,10 +84,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = async () => {
     try {
-      const response = await apiClient.get('/auth/profile');
+      const response = await apiClient.get("/auth/profile");
       setUser(response.data.data);
     } catch (error) {
-      console.error('Failed to refresh user:', error);
+      console.error("Failed to refresh user:", error);
     }
   };
 
@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

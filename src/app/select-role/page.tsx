@@ -27,10 +27,22 @@ export default function SelectRolePage() {
 
   const handleRoleSelect = (role: "member" | "organization") => {
     if (role === "member") {
-      setCookie("current_role", "MEMBER");
+      setCookie("current_role", "MEMBER", {
+        maxAge: 60 * 60 * 24 * 7,
+        sameSite: "lax",
+        // secure: true,
+        secure: false,
+        path: "/",
+      });
       router.push("/member/dashboard");
     } else {
-      setCookie("current_role", "ORG");
+      setCookie("current_role", "ORG", {
+        maxAge: 60 * 60 * 24 * 7,
+        sameSite: "lax",
+        // secure: true,
+        secure: false,
+        path: "/",
+      });
       router.push("/select-org");
     }
   };
@@ -53,7 +65,7 @@ export default function SelectRolePage() {
       toast.error("Logout failed");
     } finally {
       if (typeof window !== "undefined") localStorage.clear();
-      deleteCookie("access_token");
+      // deleteCookie("access_token");
       deleteCookie("current_role");
       deleteCookie("user_roles");
       setLoggingOut(false);
