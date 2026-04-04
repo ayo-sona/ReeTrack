@@ -97,7 +97,10 @@ function LoginForm() {
       router.replace("/select-org");
       return;
     }
-    setCookie("current_role", "MEMBER");
+    setCookie("current_role", "MEMBER", {
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    });
     router.replace("/member/dashboard");
   };
 
@@ -117,19 +120,17 @@ function LoginForm() {
         await queryClient.invalidateQueries({
           queryKey: ["member"],
         });
+        console.log(response.data.data.organizations)
         // setCookie("access_token", response.data.data.access_token);
         setCookie(
           "user_roles",
-          response.data.data.organizations
+          response.data.data.organizations.length !== 0
             ? response.data.data.organizations
                 .map((org: { role: string }) => org.role)
                 .join(",")
-            : "",
+            : "MEMBER",
           {
             maxAge: 60 * 60 * 24 * 7,
-            sameSite: "lax",
-            // secure: true,
-            secure: true,
             path: "/",
           },
         );
