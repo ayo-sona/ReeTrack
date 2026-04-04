@@ -26,7 +26,7 @@ export async function proxy(request: NextRequest) {
   const userRoles: string[] = userRolesRaw
     ? userRolesRaw.split(",").map((r) => r.trim().toUpperCase())
     : [];
-  // console.log(token, currentRole, userRoles);
+  console.log(token, currentRole, userRoles);
 
   const isMember = userRoles.includes("MEMBER");
   const isOrg = userRoles.includes("ADMIN") || userRoles.includes("STAFF");
@@ -35,6 +35,7 @@ export async function proxy(request: NextRequest) {
 
   // ── 1. Unauthenticated user hitting a private route ──────────────────────
   if (!token && isPrivatePath) {
+    console.log("hello");
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/auth/login";
     loginUrl.search = `redirect=${encodeURIComponent(pathname)}`;
@@ -102,7 +103,3 @@ export async function proxy(request: NextRequest) {
 
   return NextResponse.next();
 }
-
-export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|$).*)"],
-};
