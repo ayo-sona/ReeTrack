@@ -97,6 +97,7 @@ function LoginForm() {
       router.replace("/select-org");
       return;
     }
+    setCookie("current_role", "MEMBER");
     router.replace("/member/dashboard");
   };
 

@@ -3,15 +3,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  async rewrites() {
-    return [
-      {
-        source: "/api/v1/:path*",
-        destination:
-          "https://reetrack-production-f1dc.up.railway.app/api/v1/:path*",
-      },
-    ];
-  },
 };
 
 export default withSentryConfig(nextConfig, {

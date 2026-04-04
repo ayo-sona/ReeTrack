@@ -17,7 +17,7 @@ interface QueueItem {
   reject: (reason?: unknown) => void;
 }
 
-export const BASE_URL = "/api/v1";
+export const BASE_URL = "https://api.reetrack.com/api/v1";
 // export const BASE_URL =
 //   "https://reetrack-production-f1dc.up.railway.app/api/v1";
 // export const BASE_URL = "https://reetrack-production.up.railway.app/api/v1";
@@ -117,15 +117,14 @@ apiClient.interceptors.response.use(
 
         // Update tokens in cookies
         // setCookie("access_token", access_token);
-        current_role &&
-          setCookie("current_role", current_role, {
-            maxAge: 60 * 60 * 24 * 7,
-            sameSite: "lax",
-            // secure: true,
-            secure: true,
-            path: "/",
-          });
-        setCookie("user_roles", user_roles, {
+        setCookie("current_role", current_role ? current_role : "MEMBER", {
+          maxAge: 60 * 60 * 24 * 7,
+          sameSite: "lax",
+          // secure: true,
+          secure: true,
+          path: "/",
+        });
+        setCookie("user_roles", user_roles ? user_roles : "", {
           maxAge: 60 * 60 * 24 * 7,
           sameSite: "lax",
           // secure: true,
