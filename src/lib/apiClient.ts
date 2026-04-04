@@ -119,16 +119,10 @@ apiClient.interceptors.response.use(
         // setCookie("access_token", access_token);
         setCookie("current_role", current_role ? current_role : "MEMBER", {
           maxAge: 60 * 60 * 24 * 7,
-          sameSite: "lax",
-          // secure: true,
-          secure: true,
           path: "/",
         });
         setCookie("user_roles", user_roles ? user_roles : "MEMBER", {
           maxAge: 60 * 60 * 24 * 7,
-          sameSite: "lax",
-          // secure: true,
-          secure: true,
           path: "/",
         });
 
