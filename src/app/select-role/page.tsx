@@ -31,7 +31,7 @@ export default function SelectRolePage() {
         maxAge: 60 * 60 * 24 * 7,
         sameSite: "lax",
         // secure: true,
-        secure: false,
+        secure: true,
         path: "/",
       });
       router.push("/member/dashboard");
@@ -40,7 +40,7 @@ export default function SelectRolePage() {
         maxAge: 60 * 60 * 24 * 7,
         sameSite: "lax",
         // secure: true,
-        secure: false,
+        secure: true,
         path: "/",
       });
       router.push("/select-org");

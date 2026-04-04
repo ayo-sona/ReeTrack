@@ -121,14 +121,14 @@ apiClient.interceptors.response.use(
             maxAge: 60 * 60 * 24 * 7,
             sameSite: "lax",
             // secure: true,
-            secure: false,
+            secure: true,
             path: "/",
           });
         setCookie("user_roles", user_roles, {
           maxAge: 60 * 60 * 24 * 7,
           sameSite: "lax",
           // secure: true,
-          secure: false,
+          secure: true,
           path: "/",
         });
 

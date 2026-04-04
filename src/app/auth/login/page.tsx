@@ -128,7 +128,7 @@ function LoginForm() {
             maxAge: 60 * 60 * 24 * 7,
             sameSite: "lax",
             // secure: true,
-            secure: false,
+            secure: true,
             path: "/",
           },
         );
