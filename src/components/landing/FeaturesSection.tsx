@@ -29,7 +29,7 @@ const FeaturesSection = () => {
     },
     {
       id: "payments",
-      title: "Payments without frction",
+      title: "Payments without friction",
       description:
         "Members pay directly through Reetrack — clean, fast, and tracked automatically. No more manual confirmations, no more missed dues. Every transaction is recorded, every member account stays up to date.",
       pic: "payment",
