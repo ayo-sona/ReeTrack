@@ -15,23 +15,19 @@ import { getCurrentOrganizationId } from "@/utils/organisationUtils";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
+import { isAdmin } from "@/utils/role-utils";
 
 export default function ReportsPage() {
-  const [exportConfig, setExportConfig] = useState({
-    type: "members" as ExportType,
-    format: "csv" as ExportFormat,
-    dateFrom: "",
-    dateTo: "",
-  });
-  const [isExporting, setIsExporting] = useState(false);
+  const showFinancials = isAdmin();
 
-  const exportTypes = [
+  const allExportTypes = [
     {
       id: "members" as ExportType,
       name: "Members List",
       description: "Export all member data with subscription details",
       icon: Table,
       requiresDateRange: false,
+      adminOnly: false,
     },
     {
       id: "payments" as ExportType,
@@ -39,6 +35,7 @@ export default function ReportsPage() {
       description: "Export payment transactions and history",
       icon: FileText,
       requiresDateRange: true,
+      adminOnly: true,
     },
     {
       id: "revenue" as ExportType,
@@ -46,6 +43,7 @@ export default function ReportsPage() {
       description: "Export revenue analytics and trends",
       icon: FileSpreadsheet,
       requiresDateRange: true,
+      adminOnly: true,
     },
     {
       id: "plans" as ExportType,
@@ -53,8 +51,19 @@ export default function ReportsPage() {
       description: "Export subscription plans and member distribution",
       icon: FileDown,
       requiresDateRange: false,
+      adminOnly: false,
     },
   ];
+
+  const exportTypes = allExportTypes;
+
+  const [exportConfig, setExportConfig] = useState({
+    type: "members" as ExportType,
+    format: "csv" as ExportFormat,
+    dateFrom: "",
+    dateTo: "",
+  });
+  const [isExporting, setIsExporting] = useState(false);
 
   const formats = [
     { id: "csv"   as ExportFormat, name: "CSV",   description: "Comma-separated values" },
@@ -123,7 +132,6 @@ export default function ReportsPage() {
           throw new Error("Unsupported format");
       }
 
-      // Trigger download
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -159,10 +167,10 @@ export default function ReportsPage() {
           </p>
         </div>
 
-        {/* ── Main layout: stacks on mobile, 3-col on lg ───────────────────── */}
+        {/* ── Main layout ───────────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
-          {/* ── Left: configuration ────────────────────────────────────────── */}
+          {/* ── Left: configuration ──────────────────────────────────────────── */}
           <div className="lg:col-span-2 space-y-5">
 
             {/* Report Type */}
@@ -174,11 +182,13 @@ export default function ReportsPage() {
                 {exportTypes.map((type) => {
                   const Icon = type.icon;
                   const isSelected = exportConfig.type === type.id;
+                  const isLocked = type.adminOnly && !showFinancials;
                   return (
                     <button
                       key={type.id}
+                      disabled={isLocked}
                       onClick={() =>
-                        setExportConfig({
+                        !isLocked && setExportConfig({
                           ...exportConfig,
                           type: type.id,
                           dateFrom: type.requiresDateRange ? exportConfig.dateFrom : "",
@@ -186,39 +196,49 @@ export default function ReportsPage() {
                         })
                       }
                       className={clsx(
-                        "flex items-start gap-3 rounded-xl border-2 p-4 text-left transition-all",
-                        isSelected
-                          ? "border-[#0D9488] bg-[#0D9488]/5"
-                          : "border-[#E5E7EB] hover:border-[#0D9488]/40"
+                        "relative flex items-start gap-3 rounded-xl border-2 p-4 text-left transition-all",
+                        isLocked
+                          ? "border-[#E5E7EB] bg-[#F9FAFB] opacity-50 cursor-not-allowed"
+                          : isSelected
+                            ? "border-[#0D9488] bg-[#0D9488]/5"
+                            : "border-[#E5E7EB] hover:border-[#0D9488]/40"
                       )}
                     >
                       <div className={clsx(
                         "rounded-lg p-2 flex-shrink-0",
-                        isSelected ? "bg-[#0D9488]/10" : "bg-[#F9FAFB]"
+                        isLocked ? "bg-gray-100" : isSelected ? "bg-[#0D9488]/10" : "bg-[#F9FAFB]"
                       )}>
                         <Icon className={clsx(
                           "h-4 w-4",
-                          isSelected ? "text-[#0D9488]" : "text-[#9CA3AF]"
+                          isLocked ? "text-[#D1D5DB]" : isSelected ? "text-[#0D9488]" : "text-[#9CA3AF]"
                         )} />
                       </div>
                       <div className="min-w-0">
                         <p className={clsx(
                           "text-sm font-bold",
-                          isSelected ? "text-[#0D9488]" : "text-[#1F2937]"
+                          isLocked ? "text-[#D1D5DB]" : isSelected ? "text-[#0D9488]" : "text-[#1F2937]"
                         )}>
                           {type.name}
                         </p>
-                        <p className="text-xs text-[#9CA3AF] mt-0.5 leading-relaxed">
-                          {type.description}
+                        <p className={clsx(
+                          "text-xs mt-0.5 leading-relaxed",
+                          isLocked ? "text-[#D1D5DB]" : "text-[#9CA3AF]"
+                        )}>
+                          {isLocked ? "Admin access required" : type.description}
                         </p>
                       </div>
+                      {isLocked && (
+                        <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wide text-[#D1D5DB] bg-gray-100 px-2 py-0.5 rounded-full">
+                          Admin
+                        </span>
+                      )}
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Date Range — only shown when required */}
+            {/* Date Range */}
             {showDateRange && (
               <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6">
                 <h3 className="text-sm font-bold text-[#0D9488] uppercase tracking-wide mb-4">
@@ -296,8 +316,7 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          {/* ── Right: summary + export CTA ──────────────────────────────────
-              On mobile this sits below the config. On lg it's sticky sidebar. */}
+          {/* ── Right: summary + export CTA ──────────────────────────────────── */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6 lg:sticky lg:top-8">
               <h3 className="text-sm font-bold text-[#0D9488] uppercase tracking-wide mb-5">

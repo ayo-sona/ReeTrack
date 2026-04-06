@@ -58,19 +58,25 @@ export default function OrganizationDashboardPage() {
         </section>
 
         {/* ── Charts Row ──────────────────────────────────────────────── */}
-        <section
-          aria-label="Charts"
-          className="grid grid-cols-1 gap-6 lg:grid-cols-2"
-        >
-          <div className="min-h-[280px] sm:min-h-[320px]">
-            <MembersGrowthChart />
-          </div>
-          {showFinancials && (
+        {showFinancials ? (
+          <section
+            aria-label="Charts"
+            className="grid grid-cols-1 gap-6 lg:grid-cols-2"
+          >
+            <div className="min-h-[280px] sm:min-h-[320px]">
+              <MembersGrowthChart />
+            </div>
             <div className="min-h-[280px] sm:min-h-[320px]">
               <RevenueChart />
             </div>
-          )}
-        </section>
+          </section>
+        ) : (
+          <section aria-label="Charts">
+            <div className="min-h-[280px] sm:min-h-[320px]">
+              <MembersGrowthChart />
+            </div>
+          </section>
+        )}
 
         {/* ── Bottom Row ──────────────────────────────────────────────── */}
         <section
