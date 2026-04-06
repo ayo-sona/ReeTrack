@@ -9,6 +9,7 @@ import { MemberListDropdown } from "../ui";
 import { MetricsDropdown } from "../ui";
 import { LoadingSkeleton } from "../ui/Skeleton";
 import { ErrorAlert } from "../ui/ErrorAlert";
+import { isAdmin } from "@/utils/role-utils";
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 
@@ -136,6 +137,8 @@ function StatCard({
 export function AnalyticsCards() {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
+  const showFinancials = isAdmin();
+
   const {
     data: analytics,
     isLoading: analyticsLoading,
@@ -154,7 +157,7 @@ export function AnalyticsCards() {
     return { active, inactive, total: members.length };
   }, [teamMembers]);
 
-  if (isLoading) return <LoadingSkeleton count={4} />;
+  if (isLoading) return <LoadingSkeleton count={showFinancials ? 4 : 2} />;
   if (analyticsError || !analytics) return <ErrorAlert />;
 
   const activeMembers =
@@ -169,7 +172,7 @@ export function AnalyticsCards() {
     0;
   const totalMembers = memberStats.total || 0;
 
-  const stats = [
+  const allStats = [
     {
       name: "Total Members",
       value: totalMembers.toString(),
@@ -207,6 +210,7 @@ export function AnalyticsCards() {
         ],
       },
       dropdownType: "members" as const,
+      adminOnly: false,
     },
     {
       name: "Month Revenue",
@@ -254,6 +258,7 @@ export function AnalyticsCards() {
         ],
       },
       dropdownType: "metrics" as const,
+      adminOnly: true,
     },
     {
       name: "MRR",
@@ -297,6 +302,7 @@ export function AnalyticsCards() {
         ],
       },
       dropdownType: "metrics" as const,
+      adminOnly: true,
     },
     {
       name: "Needs Attention",
@@ -327,8 +333,14 @@ export function AnalyticsCards() {
         ],
       },
       dropdownType: "members" as const,
+      adminOnly: false,
     },
   ];
+
+  // Filter out financial cards for STAFF users
+  const stats = showFinancials
+    ? allStats
+    : allStats.filter((s) => !s.adminOnly);
 
   return (
     <div
@@ -339,7 +351,10 @@ export function AnalyticsCards() {
         const isExpanded = expandedCard === stat.name;
 
         return (
-          <div key={stat.name} className="relative">
+          <div
+            key={stat.name}
+            className={`relative ${!showFinancials ? "lg:col-span-2" : ""}`}
+          >
             <StatCard
               name={stat.name}
               value={stat.value}
