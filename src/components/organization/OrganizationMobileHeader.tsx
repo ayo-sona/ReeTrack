@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { deleteCookie } from "cookies-next/client";
 import { toast } from "sonner";
-// import { useOrganizationNotifications } from "@/hooks/useOrganizationNotifications";
+import { isAdmin } from "@/utils/role-utils";
 
 interface OrganizationMobileHeaderProps {
   pathname: string;
@@ -38,7 +38,7 @@ export function OrganizationMobileHeader({
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // const { unreadCount } = useOrganizationNotifications();
+  const adminOnly = isAdmin();
 
   useEffect(() => {
     try {
@@ -64,7 +64,6 @@ export function OrganizationMobileHeader({
       if (typeof window !== "undefined") {
         localStorage.clear();
       }
-      // deleteCookie("access_token");
       deleteCookie("current_role");
       deleteCookie("user_roles");
       setLoading(false);
@@ -73,7 +72,7 @@ export function OrganizationMobileHeader({
     }
   };
 
-  const navigation = [
+  const allNavigation = [
     {
       name: "Dashboard",
       href: "/organization/dashboard",
@@ -85,16 +84,22 @@ export function OrganizationMobileHeader({
       name: "Transactions",
       href: "/organization/transactions",
       icon: CreditCard,
+      adminOnly: true,
     },
     {
       name: "Subscription & Billing",
       href: "/organization/access",
       icon: Receipt,
+      adminOnly: true,
     },
     { name: "Check-ins", href: "/organization/check-ins", icon: ScanLine },
     { name: "Ping", href: "/organization/ping", icon: Send },
     { name: "Reports", href: "/organization/reports", icon: FileDown },
   ];
+
+  const navigation = adminOnly
+    ? allNavigation
+    : allNavigation.filter((item) => !item.adminOnly);
 
   const actions = [
     {
@@ -126,8 +131,6 @@ export function OrganizationMobileHeader({
       currentPath={pathname}
       navigation={navigation}
       profile={profileData}
-      // notificationHref="/organization/notifications"
-      // notificationCount={unreadCount > 0 ? unreadCount : undefined}
       actions={actions}
       logoHref="/organization/dashboard"
     />
