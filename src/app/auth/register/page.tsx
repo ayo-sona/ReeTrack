@@ -268,7 +268,7 @@ function RegisterForm() {
                   name="phone"
                   type="tel"
                   required
-                  placeholder="+1 (555) 000-0000"
+                  placeholder="08012345678"
                   value={formData.phone}
                   onChange={handleChange}
                   disabled={registering}

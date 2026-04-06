@@ -6,6 +6,7 @@ import { RevenueChart } from "../../../components/organization/RevenueChart";
 import { PlanDistributionChart } from "../../../components/organization/PlanDistributionChart";
 import { RecentMembersTable } from "../../../components/organization/RecentMembersTable";
 import { KycBanner } from "../../../components/organization/AddKYCBanner";
+import { isAdmin } from "@/utils/role-utils";
 
 export default function OrganizationDashboardPage() {
   const currentHour = new Date().getHours();
@@ -15,6 +16,8 @@ export default function OrganizationDashboardPage() {
       : currentHour < 17
         ? "Good afternoon"
         : "Good evening";
+
+  const showFinancials = isAdmin();
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] font-[Nunito,sans-serif]">
@@ -62,9 +65,11 @@ export default function OrganizationDashboardPage() {
           <div className="min-h-[280px] sm:min-h-[320px]">
             <MembersGrowthChart />
           </div>
-          <div className="min-h-[280px] sm:min-h-[320px]">
-            <RevenueChart />
-          </div>
+          {showFinancials && (
+            <div className="min-h-[280px] sm:min-h-[320px]">
+              <RevenueChart />
+            </div>
+          )}
         </section>
 
         {/* ── Bottom Row ──────────────────────────────────────────────── */}

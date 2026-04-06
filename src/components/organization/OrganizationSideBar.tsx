@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { deleteCookie } from "cookies-next/client";
 import { toast } from "sonner";
-// import { useOrganizationNotifications } from "@/hooks/useOrganizationNotifications";
+import { isAdmin } from "@/utils/role-utils";
 
 interface OrganizationSidebarProps {
   pathname: string;
@@ -42,8 +42,7 @@ export function OrganizationSidebar({
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // unreadCount comes directly from the hook — no need for a separate helper
-  // const { unreadCount } = useOrganizationNotifications();
+  const adminOnly = isAdmin();
 
   useEffect(() => {
     try {
@@ -67,7 +66,6 @@ export function OrganizationSidebar({
       toast.error("Logout failed");
     } finally {
       if (typeof window !== "undefined") localStorage.clear();
-      // deleteCookie("access_token");
       deleteCookie("current_role");
       deleteCookie("user_roles");
       setLoading(false);
@@ -76,7 +74,7 @@ export function OrganizationSidebar({
     }
   };
 
-  const navigation = [
+  const allNavigation = [
     {
       name: "Dashboard",
       href: "/organization/dashboard",
@@ -96,24 +94,19 @@ export function OrganizationSidebar({
       name: "Transactions",
       href: "/organization/transactions",
       icon: CreditCard,
+      adminOnly: true,
     },
     {
       name: "Subscription & Billing",
       href: "/organization/access",
       icon: Receipt,
+      adminOnly: true,
     },
     {
       name: "Check-ins",
       href: "/organization/check-ins",
       icon: ScanLine,
     },
-
-    // {
-    //   name: "Notifications",
-    //   href: "/organization/notifications",
-    //   icon: Bell,
-    //   badge: unreadCount > 0 ? unreadCount : undefined,
-    // },
     {
       name: "Ping",
       href: "/organization/ping",
@@ -125,6 +118,11 @@ export function OrganizationSidebar({
       icon: FileDown,
     },
   ];
+
+  // Filter out admin-only items when user is STAFF
+  const navigation = adminOnly
+    ? allNavigation
+    : allNavigation.filter((item) => !item.adminOnly);
 
   const actions = [
     {
