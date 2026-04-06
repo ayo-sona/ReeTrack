@@ -44,10 +44,10 @@ function LoginForm() {
 
   useEffect(() => {
     if (!isRedirecting) {
-      if (redirectParam) {
-        router.replace(redirectParam);
-        return;
-      }
+      // if (redirectParam) {
+      //   router.replace(redirectParam);
+      //   return;
+      // }
       if (
         userRoles.includes("MEMBER") &&
         (userRoles.includes("STAFF") || userRoles.includes("ADMIN"))
@@ -60,7 +60,7 @@ function LoginForm() {
         router.replace("/select-org");
       }
     }
-  }, [router, userRoles, isRedirecting, redirectParam]);
+  }, [router, userRoles, isRedirecting]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -78,15 +78,15 @@ function LoginForm() {
     }
 
     // Check for a pending join slug saved before auth
-    const pendingSlug =
-      typeof window !== "undefined"
-        ? localStorage.getItem(PENDING_JOIN_SLUG_KEY)
-        : null;
+    // const pendingSlug =
+    //   typeof window !== "undefined"
+    //     ? localStorage.getItem(PENDING_JOIN_SLUG_KEY)
+    //     : null;
 
-    if (pendingSlug) {
-      router.replace(`/join/${pendingSlug}`);
-      return;
-    }
+    // if (pendingSlug) {
+    //   router.replace(`/join/${pendingSlug}`);
+    //   return;
+    // }
 
     // Normal role-based redirect
     if (roles.isMember && roles.isOrg) {
@@ -120,7 +120,7 @@ function LoginForm() {
         await queryClient.invalidateQueries({
           queryKey: ["member"],
         });
-        console.log(response.data.data.organizations)
+        console.log(response.data.data.organizations);
         // setCookie("access_token", response.data.data.access_token);
         setCookie(
           "user_roles",
