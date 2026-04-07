@@ -1,9 +1,7 @@
-import { QRCodeSVG } from "qrcode.react";
+"use client";
 
-const C = {
-  white: "#FFFFFF",
-  border: "#E5E7EB",
-};
+import { useEffect, useRef } from "react";
+import QRCodeStyling from "qr-code-styling";
 
 interface StyledQRCodeProps {
   value: string;
@@ -15,27 +13,51 @@ interface StyledQRCodeProps {
 export default function StyledQRCode({
   value,
   size = 256,
-  level = "H",
   className = "",
 }: StyledQRCodeProps) {
-  return (
-    <div
-      className={className}
-      style={{
-        background: C.white,
-        padding: "16px",
-        borderRadius: "12px",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-      }}
-    >
-      <QRCodeSVG
-        value={value}
-        size={size}
-        level={level}
-        style={{ width: "100%", height: "auto" }}
-        fgColor="#000000"
-        bgColor="#ffffff"
-      />
-    </div>
-  );
+  const ref = useRef<HTMLDivElement>(null);
+  const qrRef = useRef<QRCodeStyling | null>(null);
+
+  useEffect(() => {
+    qrRef.current = new QRCodeStyling({
+      width: size,
+      height: size,
+      type: "svg",
+      data: value,
+      dotsOptions: {
+        color: "#0D9488",
+        type: "rounded",
+      },
+      cornersSquareOptions: {
+        color: "#0D9488",
+        type: "extra-rounded",
+      },
+      cornersDotOptions: {
+        color: "#F06543",
+        type: "dot",
+      },
+      backgroundOptions: {
+        color: "#FFFFFF",
+      },
+      imageOptions: {
+        crossOrigin: "anonymous",
+        margin: 8,
+      },
+    });
+
+    if (ref.current) {
+      ref.current.innerHTML = "";
+      qrRef.current.append(ref.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    qrRef.current?.update({ data: value });
+  }, [value]);
+
+  useEffect(() => {
+    qrRef.current?.update({ width: size, height: size });
+  }, [size]);
+
+  return <div ref={ref} className={className} />;
 }

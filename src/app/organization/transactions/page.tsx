@@ -6,6 +6,7 @@ import { PaymentsTable } from "../../../components/organization/PaymentsTable";
 import { PaymentFilters } from "../../../components/organization/PaymentFilters";
 import { usePayments, usePaymentStats } from "../../../hooks/usePayments";
 import { mapApiPaymentsToUiPayments } from "../../../utils/paymentMapper";
+import AdminGuard from "@/components/organization/AdminGuard";
 
 const PAGE_SIZE = 6;
 
@@ -46,7 +47,7 @@ function TableSkeleton() {
   );
 }
 
-export default function PaymentsPage() {
+function PaymentsPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -128,7 +129,6 @@ export default function PaymentsPage() {
 
   return (
     <div className="space-y-6 p-4 sm:p-6">
-      {/* Header — always visible */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Payment History</h1>
         <p className="mt-1 text-sm text-gray-500">
@@ -136,7 +136,6 @@ export default function PaymentsPage() {
         </p>
       </div>
 
-      {/* Stats Grid — always visible */}
       {displayStats.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {displayStats.map((stat) => (
@@ -157,7 +156,6 @@ export default function PaymentsPage() {
         </div>
       )}
 
-      {/* Filters — always visible */}
       <PaymentFilters
         searchTerm={searchTerm}
         setSearchTerm={(v) => {
@@ -184,7 +182,6 @@ export default function PaymentsPage() {
         filteredCount={filteredPayments.length}
       />
 
-      {/* Table area — only this reacts to loading/error state */}
       {isLoading ? (
         <TableSkeleton />
       ) : error ? (
@@ -229,5 +226,13 @@ export default function PaymentsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function PaymentsPage() {
+  return (
+    <AdminGuard>
+      <PaymentsPageContent />
+    </AdminGuard>
   );
 }

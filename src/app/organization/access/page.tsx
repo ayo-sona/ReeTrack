@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
 import Link from "next/link";
+import AdminGuard from "@/components/organization/AdminGuard";
 
 const C = {
   teal: "#0D9488",
@@ -26,8 +27,6 @@ const C = {
   border: "#E5E7EB",
   amber: "#D97706",
 };
-
-// ── Types ─────────────────────────────────────────────────────────────────────
 
 type Tab = "overview" | "plans";
 type BillingCycle = "monthly" | "annually";
@@ -60,8 +59,6 @@ interface Invoice {
   amount: number;
   status: string;
 }
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function parseCurrency(amount: number): string {
   return new Intl.NumberFormat("en-NG", {
@@ -149,8 +146,6 @@ const includedFeatures = [
   },
 ];
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
-
 function Skeleton() {
   return (
     <div
@@ -171,43 +166,24 @@ function Skeleton() {
           />
         ))}
       </div>
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100">
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="px-6 py-4 flex items-center justify-between gap-4"
-          >
-            <div className="space-y-1.5 flex-1">
-              <div className="h-4 w-40 bg-gray-100 rounded animate-pulse" />
-              <div className="h-3 w-28 bg-gray-100 rounded animate-pulse" />
-            </div>
-            <div className="h-6 w-16 bg-gray-100 rounded-lg animate-pulse" />
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
-
-export default function SubscriptionPage() {
+function SubscriptionPageContent() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
 
-  // Overview data
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [isCancelling, setIsCancelling] = useState(false);
 
-  // Plans data
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [plansLoaded, setPlansLoaded] = useState(false);
 
-  // Load overview data on mount
   useEffect(() => {
     (async () => {
       setLoadingOverview(true);
@@ -216,8 +192,6 @@ export default function SubscriptionPage() {
           apiClient.get("/subscriptions/organizations"),
           apiClient.get("/invoices/organization"),
         ]);
-        console.log("invoices response:", invRes.data);
-        // console.log(subRes);
         setSubscription(subRes.data.data || null);
         setInvoices(invRes.data.data.data || []);
       } catch {
@@ -228,7 +202,6 @@ export default function SubscriptionPage() {
     })();
   }, []);
 
-  // Lazy load plans when tab switches
   useEffect(() => {
     if (tab !== "plans" || plansLoaded) return;
     (async () => {
@@ -289,7 +262,7 @@ export default function SubscriptionPage() {
       className="w-full max-w-5xl mx-auto py-8 lg:py-12 px-4 sm:px-6 lg:px-8 space-y-6 lg:space-y-8"
       style={{ fontFamily: "Nunito, sans-serif" }}
     >
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1F2937]">
@@ -299,7 +272,6 @@ export default function SubscriptionPage() {
             Manage your ReeTrack plan and billing history
           </p>
         </div>
-
         {subscription && (
           <div className="flex items-center gap-2 px-4 py-2 bg-[#0D9488]/5 border border-[#0D9488]/20 rounded-xl self-start sm:self-auto">
             <Crown className="w-4 h-4 text-[#0D9488]" />
@@ -320,7 +292,7 @@ export default function SubscriptionPage() {
         )}
       </div>
 
-      {/* ── Tabs ───────────────────────────────────────────────────────────── */}
+      {/* Tabs */}
       <div className="flex items-center gap-1 bg-white border border-gray-100 rounded-2xl p-1.5 w-fit shadow-sm">
         {(
           [
@@ -343,9 +315,8 @@ export default function SubscriptionPage() {
         ))}
       </div>
 
-      {/* ── Tab Content ────────────────────────────────────────────────────── */}
+      {/* Tab Content */}
       <AnimatePresence mode="wait">
-        {/* Overview Tab */}
         {tab === "overview" && (
           <motion.div
             key="overview"
@@ -370,11 +341,9 @@ export default function SubscriptionPage() {
                   </button>
                 )}
               </div>
-
               <div className="px-6 py-6">
                 {subscription ? (
                   <div className="space-y-6">
-                    {/* Plan headline */}
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-6 border-b border-gray-100">
                       <div>
                         <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1">
@@ -411,8 +380,6 @@ export default function SubscriptionPage() {
                         {subscription.status}
                       </span>
                     </div>
-
-                    {/* Info grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
                         <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1.5">
@@ -457,8 +424,6 @@ export default function SubscriptionPage() {
                         </div>
                       )}
                     </div>
-
-                    {/* Actions */}
                     <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100">
                       <Button
                         variant="outline"
@@ -509,7 +474,6 @@ export default function SubscriptionPage() {
                   Billing History
                 </h2>
               </div>
-
               <div className="divide-y divide-gray-50">
                 {invoices.length > 0 ? (
                   invoices.map((invoice) => {
@@ -520,7 +484,6 @@ export default function SubscriptionPage() {
                         className="px-6 py-4 hover:bg-[#F9FAFB] transition-colors"
                       >
                         <div className="flex items-start justify-between gap-3">
-                          {/* Left: invoice number + date */}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-[#1F2937] truncate">
                               {invoice.invoice_number}
@@ -572,7 +535,6 @@ export default function SubscriptionPage() {
                               </Button>
                             </Link>
                           )}
-                          {/* Right: amount + status (stacked on mobile, row on desktop) */}
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-shrink-0 items-end">
                             <p className="text-sm font-extrabold text-[#1F2937]">
                               ₦{invoice.amount.toLocaleString()}
@@ -607,7 +569,6 @@ export default function SubscriptionPage() {
           </motion.div>
         )}
 
-        {/* Plans Tab */}
         {tab === "plans" && (
           <motion.div
             key="plans"
@@ -617,7 +578,6 @@ export default function SubscriptionPage() {
             transition={{ duration: 0.25 }}
             className="space-y-8"
           >
-            {/* Billing cycle toggle */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h2 className="text-lg font-extrabold text-[#1F2937]">
@@ -682,7 +642,6 @@ export default function SubscriptionPage() {
               </div>
             ) : (
               <>
-                {/* Plan cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
                   {groupedPlans.map((plan) => {
                     const isCurrentPlan =
@@ -713,7 +672,6 @@ export default function SubscriptionPage() {
                             </span>
                           </div>
                         )}
-
                         <div className="px-6 pt-8 pb-5 border-b border-gray-100">
                           <h3 className="text-base font-extrabold text-[#1F2937] mb-1">
                             {plan.name}
@@ -732,7 +690,6 @@ export default function SubscriptionPage() {
                               </p>
                             )}
                         </div>
-
                         <div className="px-6 py-5 flex-1">
                           <ul className="space-y-2.5">
                             {plan.features.map((feature, i) => (
@@ -745,7 +702,6 @@ export default function SubscriptionPage() {
                             ))}
                           </ul>
                         </div>
-
                         <div className="px-6 pb-6">
                           <Button
                             variant={isPopular ? "default" : "outline"}
@@ -769,7 +725,6 @@ export default function SubscriptionPage() {
                   })}
                 </div>
 
-                {/* Feature comparison */}
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                   <div className="px-6 py-5 border-b border-gray-100">
                     <h2 className="text-base font-bold text-[#1F2937]">
@@ -806,10 +761,8 @@ export default function SubscriptionPage() {
                               {feature.feature}
                             </td>
                             {comparisonPlans.map((plan) => {
-                              const planName = plan.name;
                               const featureValue =
-                                feature[planName as keyof typeof feature];
-
+                                feature[plan.name as keyof typeof feature];
                               return (
                                 <td
                                   key={plan.id}
@@ -822,10 +775,6 @@ export default function SubscriptionPage() {
                                   ) : featureValue === Infinity ? (
                                     <span className="text-sm font-bold text-[#0D9488]">
                                       ∞
-                                    </span>
-                                  ) : typeof featureValue === "string" ? (
-                                    <span className="text-sm font-semibold text-[#1F2937]">
-                                      {featureValue}
                                     </span>
                                   ) : typeof featureValue === "number" ? (
                                     <span className="text-sm font-bold text-[#1F2937]">
@@ -849,5 +798,13 @@ export default function SubscriptionPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function SubscriptionPage() {
+  return (
+    <AdminGuard>
+      <SubscriptionPageContent />
+    </AdminGuard>
   );
 }
