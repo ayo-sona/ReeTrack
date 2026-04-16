@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Plus, Trash2, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useKycStatus } from "@/hooks/useKYC";
+// import { useKycStatus } from "@/hooks/useKYC";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 
@@ -18,7 +18,7 @@ interface EmailEntry {
 
 export default function OnboardingAddMemberPage() {
   const router = useRouter();
-  const { isVerified, isLoading: kycLoading } = useKycStatus();
+  // const { isVerified, isLoading: kycLoading } = useKycStatus();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emails, setEmails] = useState<EmailEntry[]>([
     { id: crypto.randomUUID(), value: "", status: "idle" },
@@ -39,8 +39,8 @@ export default function OnboardingAddMemberPage() {
   const updateEmail = (id: string, value: string) => {
     setEmails((prev) =>
       prev.map((e) =>
-        e.id === id ? { ...e, value, status: "idle", error: undefined } : e
-      )
+        e.id === id ? { ...e, value, status: "idle", error: undefined } : e,
+      ),
     );
   };
 
@@ -68,7 +68,7 @@ export default function OnboardingAddMemberPage() {
 
         response.data.data.results.forEach((result: any) => {
           const emailEntry = validEmails.find(
-            (entry) => entry.value.trim() === result.email
+            (entry) => entry.value.trim() === result.email,
           );
           if (emailEntry) {
             resultMap[emailEntry.id] = {
@@ -91,25 +91,25 @@ export default function OnboardingAddMemberPage() {
               status: result.success ? "success" : "error",
               error: result.error,
             };
-          })
+          }),
         );
 
         const successCount = Object.values(resultMap).filter(
-          (r) => r.success
+          (r) => r.success,
         ).length;
         const failCount = Object.values(resultMap).filter(
-          (r) => !r.success
+          (r) => !r.success,
         ).length;
 
         if (successCount > 0 && failCount === 0) {
           toast.success(
             successCount === 1
               ? "Invitation sent successfully"
-              : `${successCount} invitations sent successfully`
+              : `${successCount} invitations sent successfully`,
           );
         } else if (successCount > 0 && failCount > 0) {
           toast.warning(
-            `${successCount} sent, ${failCount} failed — check the highlighted emails`
+            `${successCount} sent, ${failCount} failed — check the highlighted emails`,
           );
         } else {
           toast.error("All invitations failed — check the highlighted emails");
@@ -117,7 +117,7 @@ export default function OnboardingAddMemberPage() {
       }
     } catch (error: any) {
       toast.error(
-        error?.response?.data?.message || "Failed to send invitations"
+        error?.response?.data?.message || "Failed to send invitations",
       );
     } finally {
       router.push("/organization/onboarding/invite-admin");
@@ -132,16 +132,16 @@ export default function OnboardingAddMemberPage() {
   const filledCount = emails.filter((e) => e.value.trim()).length;
 
   // Still reading localStorage
-  if (kycLoading) {
-    return (
-      <div
-        className="min-h-screen bg-[#F9FAFB] flex items-center justify-center"
-        style={{ fontFamily: "Nunito, sans-serif" }}
-      >
-        <div className="w-8 h-8 border-4 border-gray-100 border-t-[#0D9488] rounded-full animate-spin" />
-      </div>
-    );
-  }
+  // if (kycLoading) {
+  //   return (
+  //     <div
+  //       className="min-h-screen bg-[#F9FAFB] flex items-center justify-center"
+  //       style={{ fontFamily: "Nunito, sans-serif" }}
+  //     >
+  //       <div className="w-8 h-8 border-4 border-gray-100 border-t-[#0D9488] rounded-full animate-spin" />
+  //     </div>
+  //   );
+  // }
 
   return (
     <div
@@ -167,8 +167,8 @@ export default function OnboardingAddMemberPage() {
                   s < 4
                     ? "bg-[#0D9488] w-6"
                     : s === 4
-                    ? "bg-[#0D9488]/50 w-6"
-                    : "bg-gray-200 w-4"
+                      ? "bg-[#0D9488]/50 w-6"
+                      : "bg-gray-200 w-4"
                 }`}
               />
             ))}
@@ -197,27 +197,26 @@ export default function OnboardingAddMemberPage() {
               organization.
             </p>
 
-            {!isVerified && (
+            {/* {!isVerified && (
               <div className="mt-5 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3 flex items-start gap-3">
                 <ShieldAlert className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-amber-700 leading-relaxed">
                   You need to verify your identity before adding members.
                 </p>
               </div>
-            )}
+            )} */}
 
-            {isVerified && (
+            {/* {isVerified && (
               <div className="mt-5 rounded-xl bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
                 <p className="text-xs text-[#0D9488] leading-relaxed">
                   💡 You can add multiple members at once — just enter their
                   emails below.
                 </p>
               </div>
-            )}
+            )} */}
           </div>
-
           {/* KYC gate — replaces form body */}
-          {!isVerified ? (
+          {/* {!isVerified ? (
             <div className="px-8 py-8 flex flex-col items-center text-center gap-5">
               <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center">
                 <ShieldAlert className="w-8 h-8 text-amber-500" />
@@ -242,98 +241,95 @@ export default function OnboardingAddMemberPage() {
                 Verify My Identity
               </Button>
             </div>
-          ) : (
-            /* Normal form */
-            <form onSubmit={handleSubmit}>
-              <div className="px-8 py-6 space-y-3 max-h-[300px] overflow-y-auto">
-                {emails.map((entry, index) => (
-                  <div key={entry.id} className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 relative">
-                        <input
-                          type="email"
-                          value={entry.value}
-                          onChange={(e) =>
-                            updateEmail(entry.id, e.target.value)
-                          }
-                          disabled={isSubmitting || entry.status === "success"}
-                          placeholder={`member${index + 1}@example.com`}
-                          className={`${inputBase} ${
-                            entry.status === "error"
-                              ? "border-red-300 focus:ring-red-200 focus:border-red-400"
-                              : entry.status === "success"
+          ) : ( */}
+          {/* Normal form  */}
+          <form onSubmit={handleSubmit}>
+            <div className="px-8 py-6 space-y-3 max-h-[300px] overflow-y-auto">
+              {emails.map((entry, index) => (
+                <div key={entry.id} className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 relative">
+                      <input
+                        type="email"
+                        value={entry.value}
+                        onChange={(e) => updateEmail(entry.id, e.target.value)}
+                        disabled={isSubmitting || entry.status === "success"}
+                        placeholder={`member${index + 1}@example.com`}
+                        className={`${inputBase} ${
+                          entry.status === "error"
+                            ? "border-red-300 focus:ring-red-200 focus:border-red-400"
+                            : entry.status === "success"
                               ? "border-[#0D9488] bg-[#0D9488]/5 text-[#0D9488]"
                               : "border-gray-200 focus:ring-[#0D9488]/20 focus:border-[#0D9488]"
-                          }`}
-                        />
-                        {entry.status === "success" && (
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0D9488] text-xs font-bold">
-                            ✓ Sent
-                          </span>
-                        )}
-                      </div>
-                      {emails.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeEmail(entry.id)}
-                          disabled={isSubmitting}
-                          className="p-2 text-[#9CA3AF] hover:text-red-500 hover:bg-red-50 rounded-lg transition-all flex-shrink-0 disabled:opacity-40"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        }`}
+                      />
+                      {entry.status === "success" && (
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0D9488] text-xs font-bold">
+                          ✓ Sent
+                        </span>
                       )}
                     </div>
-                    {entry.status === "error" && entry.error && (
-                      <p className="text-xs text-red-500 font-semibold pl-1">
-                        {entry.error}
-                      </p>
+                    {emails.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeEmail(entry.id)}
+                        disabled={isSubmitting}
+                        className="p-2 text-[#9CA3AF] hover:text-red-500 hover:bg-red-50 rounded-lg transition-all flex-shrink-0 disabled:opacity-40"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     )}
                   </div>
-                ))}
+                  {entry.status === "error" && entry.error && (
+                    <p className="text-xs text-red-500 font-semibold pl-1">
+                      {entry.error}
+                    </p>
+                  )}
+                </div>
+              ))}
 
-                <button
-                  type="button"
-                  onClick={addEmail}
-                  disabled={isSubmitting}
-                  className="flex items-center gap-1.5 text-xs font-bold text-[#0D9488] hover:text-[#0B7A70] transition-colors disabled:opacity-40"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Add another email
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={addEmail}
+                disabled={isSubmitting}
+                className="flex items-center gap-1.5 text-xs font-bold text-[#0D9488] hover:text-[#0B7A70] transition-colors disabled:opacity-40"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add another email
+              </button>
+            </div>
 
-              {/* Footer */}
-              <div className="px-8 py-5 border-t border-gray-100 bg-[#F9FAFB] flex items-center justify-between">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    router.push("/organization/onboarding/invite-admin")
-                  }
-                  disabled={isSubmitting}
-                >
-                  Skip for now
-                </Button>
+            {/* Footer */}
+            <div className="px-8 py-5 border-t border-gray-100 bg-[#F9FAFB] flex items-center justify-between">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  router.push("/organization/onboarding/invite-admin")
+                }
+                disabled={isSubmitting}
+              >
+                Skip for now
+              </Button>
 
-                <Button
-                  type="submit"
-                  variant="secondary"
-                  size="sm"
-                  disabled={isSubmitting || filledCount === 0}
-                >
-                  {isSubmitting
-                    ? "Sending..."
-                    : filledCount > 1
+              <Button
+                type="submit"
+                variant="secondary"
+                size="sm"
+                disabled={isSubmitting || filledCount === 0}
+              >
+                {isSubmitting
+                  ? "Sending..."
+                  : filledCount > 1
                     ? `Send ${filledCount} Invitations`
                     : "Send Invitation"}
-                </Button>
-              </div>
-            </form>
-          )}
-
+              </Button>
+            </div>
+          </form>
+          {/* )} */}
           {/* Footer for gate state */}
-          {!isVerified && (
+          {/* {!isVerified && (
             <div className="px-8 py-5 border-t border-gray-100 bg-[#F9FAFB] flex items-center justify-between">
               <Button
                 type="button"
@@ -346,7 +342,7 @@ export default function OnboardingAddMemberPage() {
                 Skip for now
               </Button>
             </div>
-          )}
+          )} */}
         </motion.div>
       </div>
     </div>

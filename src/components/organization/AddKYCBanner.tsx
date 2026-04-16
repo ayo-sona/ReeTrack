@@ -3,14 +3,15 @@
 import { useRouter } from "next/navigation";
 import { ShieldAlert, X } from "lucide-react";
 import { useState } from "react";
-import { useKycStatus } from "@/hooks/useKYC";
+// import { useKycStatus } from "@/hooks/useKYC";
 
 export function KycBanner() {
-  const { isVerified, isLoading } = useKycStatus();
+  // const { isVerified, isLoading } = useKycStatus();
   const router = useRouter();
   const [dismissed, setDismissed] = useState(false);
 
-  if (isLoading || isVerified || dismissed) return null;
+  // if (isLoading || isVerified || dismissed) return null;
+  if (dismissed) return null;
 
   return (
     <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex items-center gap-3 font-[Nunito,sans-serif]">
@@ -23,7 +24,8 @@ export function KycBanner() {
           Verify your identity to unlock member management & payments
         </p>
         <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">
-          You won't be able to add members or collect payments until your BVN is verified.
+          You won't be able to add members or collect payments until your BVN is
+          verified.
         </p>
       </div>
 
