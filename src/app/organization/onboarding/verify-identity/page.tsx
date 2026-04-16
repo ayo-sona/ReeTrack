@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { Fingerprint, Eye, EyeOff, User, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { verifyBvn } from "@/lib/organizationAPI/verifybvn";
-import { useKycStatus } from "@/hooks/useKYC";
+// import { useKycStatus } from "@/hooks/useKYC";
 import { toast } from "sonner";
 import clsx from "clsx";
 
@@ -17,7 +17,7 @@ const labelClass =
 
 export default function OnboardingVerifyIdentityPage() {
   const router = useRouter();
-  const { markVerified } = useKycStatus();
+  // const { markVerified } = useKycStatus();
 
   const [bvn, setBvn] = useState("");
   const [showBvn, setShowBvn] = useState(false);
@@ -56,14 +56,17 @@ export default function OnboardingVerifyIdentityPage() {
           `${first} ${last}`
             .trim()
             .toLowerCase()
-            .replace(/\b\w/g, (c) => c.toUpperCase())
+            .replace(/\b\w/g, (c) => c.toUpperCase()),
         );
       }
 
-      markVerified();
+      // markVerified();
       setSuccess(true);
       toast.success("Identity verified!");
-      setTimeout(() => router.push("/organization/onboarding/bank-account"), 1500);
+      setTimeout(
+        () => router.push("/organization/onboarding/bank-account"),
+        1500,
+      );
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
@@ -81,7 +84,6 @@ export default function OnboardingVerifyIdentityPage() {
       style={{ fontFamily: "Nunito, sans-serif" }}
     >
       <div className="w-full max-w-lg">
-
         {/* Step indicator */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -120,12 +122,14 @@ export default function OnboardingVerifyIdentityPage() {
               Let's confirm it's you
             </h1>
             <p className="text-sm text-[#1F2937]/70 leading-relaxed">
-              We use your BVN to verify you're a real person — this keeps ReeTrack
-              safe for everyone and unlocks payments and member management.
+              We use your BVN to verify you're a real person — this keeps
+              ReeTrack safe for everyone and unlocks payments and member
+              management.
             </p>
             <div className="mt-5 rounded-xl bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
               <p className="text-xs text-[#0D9488] leading-relaxed">
-                🔒 Your BVN is encrypted and used only for identity verification. We never store or share it.
+                🔒 Your BVN is encrypted and used only for identity
+                verification. We never store or share it.
               </p>
             </div>
           </div>
@@ -133,7 +137,6 @@ export default function OnboardingVerifyIdentityPage() {
           {/* Form */}
           <form onSubmit={handleSubmit}>
             <div className="px-8 py-6 space-y-5">
-
               {error && (
                 <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm">
                   {error}
@@ -142,7 +145,8 @@ export default function OnboardingVerifyIdentityPage() {
 
               {success && (
                 <div className="bg-[#0D9488]/5 border border-[#0D9488]/20 text-[#0D9488] px-4 py-3 rounded-lg text-sm font-semibold flex items-center gap-2">
-                  <span>✓</span> Identity verified{verifiedName ? ` — ${verifiedName}` : ""} — moving on...
+                  <span>✓</span> Identity verified
+                  {verifiedName ? ` — ${verifiedName}` : ""} — moving on...
                 </div>
               )}
 
@@ -155,7 +159,10 @@ export default function OnboardingVerifyIdentityPage() {
                     <input
                       type="text"
                       value={firstName}
-                      onChange={(e) => { setFirstName(e.target.value); setError(""); }}
+                      onChange={(e) => {
+                        setFirstName(e.target.value);
+                        setError("");
+                      }}
                       placeholder="As on BVN"
                       disabled={isLoading || success}
                       className={clsx(inputClass, "pl-10")}
@@ -169,7 +176,10 @@ export default function OnboardingVerifyIdentityPage() {
                     <input
                       type="text"
                       value={lastName}
-                      onChange={(e) => { setLastName(e.target.value); setError(""); }}
+                      onChange={(e) => {
+                        setLastName(e.target.value);
+                        setError("");
+                      }}
                       placeholder="As on BVN"
                       disabled={isLoading || success}
                       className={clsx(inputClass, "pl-10")}
@@ -186,7 +196,10 @@ export default function OnboardingVerifyIdentityPage() {
                   <input
                     type="date"
                     value={dateOfBirth}
-                    onChange={(e) => { setDateOfBirth(e.target.value); setError(""); }}
+                    onChange={(e) => {
+                      setDateOfBirth(e.target.value);
+                      setError("");
+                    }}
                     disabled={isLoading || success}
                     className={clsx(inputClass, "pl-10")}
                   />
@@ -195,7 +208,9 @@ export default function OnboardingVerifyIdentityPage() {
 
               {/* BVN */}
               <div>
-                <label className={labelClass}>BVN (Bank Verification Number)</label>
+                <label className={labelClass}>
+                  BVN (Bank Verification Number)
+                </label>
                 <div className="relative">
                   <Fingerprint className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF]" />
                   <input
@@ -203,33 +218,45 @@ export default function OnboardingVerifyIdentityPage() {
                     inputMode="numeric"
                     value={bvn}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "").slice(0, 11);
+                      const val = e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 11);
                       setBvn(val);
                       setError("");
                     }}
                     placeholder="Enter your 11-digit BVN"
                     disabled={isLoading || success}
-                    className={clsx(inputClass, "pl-10 pr-12 tracking-widest font-mono")}
+                    className={clsx(
+                      inputClass,
+                      "pl-10 pr-12 tracking-widest font-mono",
+                    )}
                   />
                   <button
                     type="button"
                     onClick={() => setShowBvn(!showBvn)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#1F2937] transition-colors"
                   >
-                    {showBvn ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showBvn ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
                 <div className="flex justify-between mt-1.5">
-                  <p className="text-xs text-[#9CA3AF]">Dial *565*0# to find your BVN</p>
-                  <p className={clsx(
-                    "text-xs font-semibold",
-                    bvn.length === 11 ? "text-[#0D9488]" : "text-[#9CA3AF]"
-                  )}>
+                  <p className="text-xs text-[#9CA3AF]">
+                    Dial *565*0# to find your BVN
+                  </p>
+                  <p
+                    className={clsx(
+                      "text-xs font-semibold",
+                      bvn.length === 11 ? "text-[#0D9488]" : "text-[#9CA3AF]",
+                    )}
+                  >
                     {bvn.length}/11
                   </p>
                 </div>
               </div>
-
             </div>
 
             {/* Footer */}
@@ -238,7 +265,9 @@ export default function OnboardingVerifyIdentityPage() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push("/organization/onboarding/bank-account")}
+                onClick={() =>
+                  router.push("/organization/onboarding/bank-account")
+                }
                 disabled={isLoading || success}
               >
                 Skip for now

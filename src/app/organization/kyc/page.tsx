@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { verifyBvn } from "@/lib/organizationAPI/verifybvn";
-import { useKycStatus } from "@/hooks/useKYC";
+// import { useKycStatus } from "@/hooks/useKYC";
 import { toast } from "sonner";
 import clsx from "clsx";
 
@@ -24,7 +24,7 @@ const labelClass =
 
 export default function KycPage() {
   const router = useRouter();
-  const { markVerified } = useKycStatus();
+  // const { markVerified } = useKycStatus();
 
   const [bvn, setBvn] = useState("");
   const [showBvn, setShowBvn] = useState(false);
@@ -67,7 +67,7 @@ export default function KycPage() {
         );
       }
 
-      markVerified();
+      // markVerified();
       setSuccess(true);
       toast.success("Identity verified!");
       setTimeout(() => router.push("/organization/dashboard"), 1500);
