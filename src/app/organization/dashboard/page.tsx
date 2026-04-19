@@ -5,7 +5,7 @@ import { MembersGrowthChart } from "../../../components/organization/MembersGrow
 import { RevenueChart } from "../../../components/organization/RevenueChart";
 import { PlanDistributionChart } from "../../../components/organization/PlanDistributionChart";
 import { RecentMembersTable } from "../../../components/organization/RecentMembersTable";
-import { KycBanner } from "../../../components/organization/AddKYCBanner";
+// import { KycBanner } from "../../../components/organization/AddKYCBanner";
 import { isAdmin } from "@/utils/role-utils";
 
 export default function OrganizationDashboardPage() {

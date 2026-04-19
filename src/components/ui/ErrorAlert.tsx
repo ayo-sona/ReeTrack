@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle } from "lucide-react";
 
 export function ErrorAlert() {
   return (
@@ -10,7 +10,7 @@ export function ErrorAlert() {
           <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
         </div>
         <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-          Unable to load analytics. The analytics API endpoint may not be implemented yet.
+          Unable to load analytics. Please refresh the page.
         </p>
       </div>
     </div>

@@ -108,31 +108,31 @@ const invoiceStatusConfig = (status: string) => {
 };
 
 const includedFeatures = [
-  { feature: "Admin/staff accounts", Free: 1, Starter: 3, Growth: 5, Pro: 10 },
+  { feature: "Admin/staff accounts", Free: 3, Starter: 6, Growth: 12, Pro: 24 },
   {
     feature: "Custom emails/month",
-    Free: 10,
+    Free: 25,
     Starter: 60,
     Growth: 100,
     Pro: 200,
   },
   {
     feature: "Member Plans access",
-    Free: 1,
-    Starter: 3,
-    Growth: 5,
+    Free: 10,
+    Starter: 16,
+    Growth: 24,
     Pro: Infinity,
   },
   {
     feature: "Check-in service",
-    Free: false,
+    Free: true,
     Starter: true,
     Growth: true,
     Pro: true,
   },
   {
     feature: "Organization Reports Generation",
-    Free: false,
+    Free: true,
     Starter: true,
     Growth: true,
     Pro: true,
