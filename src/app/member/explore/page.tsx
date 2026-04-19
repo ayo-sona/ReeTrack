@@ -1,5 +1,5 @@
-import LeaderboardPage from "@/components/member/pages/memberExplore";
+import CommunitiesPage from "@/components/member/pages/memberExplore";
 
 export default function Page() {
-  return <LeaderboardPage />;
+  return <CommunitiesPage />;
 }
