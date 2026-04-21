@@ -19,6 +19,7 @@ interface SubscriptionEvents {
     subscriptionId: string;
     amount: number;
     currency: string;
+    memberName: string;
     timestamp: string;
   }) => void;
   "payment:failed": (data: {
@@ -30,11 +31,13 @@ interface SubscriptionEvents {
   }) => void;
   "payment:reminder": (data: {
     subscriptionId: string;
+    memberName: string;
     amount: number;
     currency: string;
     dueDate: string;
     timestamp: string;
   }) => void;
+  "member:joined": (data: any) => void;
   "member_subscription:created": (data: {
     subscription: any;
     invoice: any;
@@ -56,11 +59,11 @@ interface SubscriptionEvents {
   connected: (data: { message: string; organizationId: string }) => void;
   error: (data: { message: string }) => void;
 }
-export const BASE_URL = "https://api.reetrack.com";
+// export const BASE_URL = "https://api.reetrack.com";
+const BASE_URL = "http://localhost:4000";
 // const BASE_URL = "https://reetrack-production-f1dc.up.railway.app";
 // const BASE_URL = "https://reetrack-production.up.railway.app";
 // const BASE_URL = "https://paypips.onrender.com";
-// const BASE_URL = "http://localhost:4000";
 
 class ReeTrackWebSocket {
   private socket: Socket<SubscriptionEvents> | null = null;
@@ -75,7 +78,7 @@ class ReeTrackWebSocket {
         //   token: this.token,
         // },
         withCredentials: true,
-        transports: ["polliing", "websocket"],
+        transports: ["polling", "websocket"],
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 2000,
@@ -100,7 +103,7 @@ class ReeTrackWebSocket {
           await apiClient.post("/auth/refresh"); // sets new cookie
           this.socket?.connect(); // reconnect with new cookie
         }
-        // reject(error);
+        reject(error);
       });
 
       // Set up event listeners
@@ -144,7 +147,7 @@ class ReeTrackWebSocket {
       console.log("Payment successful:", data);
       this.showNotification(
         "success",
-        `Payment of ${data.currency} ${data.amount} successful`,
+        `Payment of ${data.currency}${data.amount} is successful from ${data.memberName}`,
       );
       this.refreshPaymentHistory();
     });
@@ -159,8 +162,14 @@ class ReeTrackWebSocket {
       console.log("Payment reminder:", data);
       this.showNotification(
         "warning",
-        `Payment of ${data.currency} ${data.amount} due on ${data.dueDate}`,
+        `Payment of ${data.currency}${data.amount} due on ${data.dueDate} by ${data.memberName}`,
       );
+    });
+
+    // Member joined
+    this.socket.on("member:joined", (data) => {
+      console.log("Member joined organization:", data);
+      this.showNotification("success", `New member joined, ${data.memberName}`);
     });
 
     // Member subscription events
@@ -309,7 +318,6 @@ export { ReeTrackWebSocket };
 // React hook for WebSocket
 export function useWebSocket() {
   const [isConnected, setIsConnected] = useState(false);
-  const [lastMessage, setLastMessage] = useState<any>(null);
   const wsRef = useRef<ReeTrackWebSocket | null>(null);
 
   useEffect(() => {
@@ -328,7 +336,6 @@ export function useWebSocket() {
           error,
         );
         setIsConnected(false);
-        // Don't throw error - app should work without WebSocket
       });
 
     return () => {
@@ -337,29 +344,28 @@ export function useWebSocket() {
     };
   }, []);
 
-  const subscribeToSubscription = (subscriptionId: string) => {
-    wsRef.current?.subscribeToSubscription(subscriptionId);
-  };
+  // const subscribeToSubscription = (subscriptionId: string) => {
+  //   wsRef.current?.subscribeToSubscription(subscriptionId);
+  // };
 
-  const unsubscribeFromSubscription = (subscriptionId: string) => {
-    wsRef.current?.unsubscribeFromSubscription(subscriptionId);
-  };
+  // const unsubscribeFromSubscription = (subscriptionId: string) => {
+  //   wsRef.current?.unsubscribeFromSubscription(subscriptionId);
+  // };
 
   // Method to manually trigger cache invalidation from WebSocket events
-  const invalidateCache = (queryKey: string[]) => {
-    // This will be used by components to invalidate their queries
-    window.dispatchEvent(
-      new CustomEvent("websocket:invalidate-cache", {
-        detail: { queryKey },
-      }),
-    );
-  };
+  // const invalidateCache = (queryKey: string[]) => {
+  //   // This will be used by components to invalidate their queries
+  //   window.dispatchEvent(
+  //     new CustomEvent("websocket:invalidate-cache", {
+  //       detail: { queryKey },
+  //     }),
+  //   );
+  // };
 
   return {
     isConnected,
-    lastMessage,
-    subscribeToSubscription,
-    unsubscribeFromSubscription,
-    invalidateCache,
+    // subscribeToSubscription,
+    // unsubscribeFromSubscription,
+    // invalidateCache,
   };
 }

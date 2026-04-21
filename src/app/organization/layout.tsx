@@ -7,7 +7,6 @@ import { OrganizationSidebar } from "@/components/organization/OrganizationSideB
 import { OrganizationMobileHeader } from "@/components/organization/OrganizationMobileHeader";
 import { useWebSocket } from "@/hooks/useWebsocket";
 import { useWebSocketCacheInvalidation } from "@/hooks/useWebSocketCacheInvalidation";
-import { getCookie } from "cookies-next/client";
 import { Spinner } from "@heroui/react";
 
 export default function OrganizationLayout({
