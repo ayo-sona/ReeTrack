@@ -17,12 +17,12 @@ interface QueueItem {
   reject: (reason?: unknown) => void;
 }
 
-export const BASE_URL = "https://api.reetrack.com/api/v1";
+// export const BASE_URL = "https://api.reetrack.com/api/v1";
+export const BASE_URL = "http://localhost:4000/api/v1";
 // export const BASE_URL =
 //   "https://reetrack-production-f1dc.up.railway.app/api/v1";
 // export const BASE_URL = "https://reetrack-production.up.railway.app/api/v1";
 // export const BASE_URL = "https://paypips.onrender.com/api/v1";
-// export const BASE_URL = "http://localhost:4000/api/v1";
 
 // Prevent multiple simultaneous refresh requests
 let isRefreshing = false;
@@ -44,21 +44,6 @@ const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   withCredentials: true, // Sends httpOnly cookies automatically
 });
-
-/**
- * Request Interceptor
- */
-// apiClient.interceptors.request.use(
-//   (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-//     const token = getCookie("access_token");
-//     // console.log(token);
-//     if (token && config.headers) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error),
-// );
 
 /**
  * Response Interceptor
