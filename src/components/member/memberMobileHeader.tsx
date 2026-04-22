@@ -37,7 +37,7 @@ interface MemberMobileHeaderProps {
     first_name?: string;
     last_name?: string;
     email?: string;
-    avatarUrl?: string | null;
+    avatar_url?: string | null;
   };
 }
 
@@ -168,9 +168,9 @@ export function MemberMobileHeader({
                       position: "relative",
                     }}
                   >
-                    {profile.avatarUrl ? (
+                    {profile.avatar_url ? (
                       <Image
-                        src={profile.avatarUrl}
+                        src={profile.avatar_url}
                         alt={`${profile.first_name} ${profile.last_name}`}
                         fill
                         className="object-cover"

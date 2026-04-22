@@ -23,6 +23,7 @@ interface LeaderboardUser {
 
 export interface LeaderboardMemberRaw {
   id: string;
+  created_at?: string; 
   checked_in_at: string[] | null;
   check_in_count?: number;
   user: LeaderboardUser;
@@ -79,9 +80,9 @@ export const useMemberStats = () => {
 
 // Get leaderboard stats for an organization
 export const useLeaderboardStats = (organizationId: string) => {
-  return useQuery<Member[]>({
+  return useQuery<LeaderboardMemberRaw[]>({
     queryKey: ["leaderboard", organizationId],
-    queryFn: () => membersApi.getLeaderboardStats(organizationId),
+    queryFn: () => membersApi.getLeaderboardStats(organizationId) as unknown as Promise<LeaderboardMemberRaw[]>,
     enabled: !!organizationId,
     staleTime: 3 * 60 * 1000, // 3 min
   });

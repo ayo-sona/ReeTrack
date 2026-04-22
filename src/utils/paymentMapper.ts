@@ -12,6 +12,7 @@ export const mapApiPaymentToUiPayment = (apiPayment: ApiPayment): UiPayment => {
       first_name: apiPayment.payer_user?.first_name || "Unknown",
       last_name: apiPayment.payer_user?.last_name || "Unknown",
       email: apiPayment.payer_user?.email || "",
+      avatar_url: apiPayment.payer_user?.avatar_url ?? null, 
     },
     amount: apiPayment.amount,
     currency: apiPayment.currency as "NGN" | "USD",

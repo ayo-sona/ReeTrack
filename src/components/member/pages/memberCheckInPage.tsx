@@ -829,6 +829,9 @@ export default function CheckInPage() {
                     display: "flex",
                     flexDirection: "column",
                     gap: "8px",
+                    maxHeight: "320px",
+                    overflowY: "auto",
+                    paddingRight: "4px",
                   }}
                 >
                   {filteredCheckIns.map((record) => (

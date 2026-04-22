@@ -15,8 +15,6 @@ import {
   Copy,
   Check,
   Camera,
-  ImagePlus,
-  Trash2,
 } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
@@ -99,26 +97,14 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<Tab>("organisation");
   const [copied, setCopied] = useState(false);
 
-  const {
-    uploadLogo,
-    uploadingLogo,
-    uploadAvatar,
-    uploadingAvatar,
-    uploadImages,
-    uploadingImages,
-    deleteImage,
-    deleting,
-  } = useUpload();
+  const { uploadLogo, uploadingLogo, uploadAvatar, uploadingAvatar } =
+    useUpload();
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const imagesInputRef = useRef<HTMLInputElement>(null);
 
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [facilityImages, setFacilityImages] = useState<
-    { url: string; publicId: string }[]
-  >([]);
 
   const [orgData, setOrgData] = useState({
     name: "",
@@ -155,7 +141,6 @@ export default function SettingsPage() {
       try {
         const { data } = await apiClient.get("/auth/profile");
         const d = data.data;
-
         setProfileData({
           firstName: d.first_name,
           lastName: d.last_name,
@@ -175,10 +160,8 @@ export default function SettingsPage() {
           bank: d.organizations[0].bank ?? "",
           account_number: d.organizations[0].account_number ?? "",
         });
-
         const storedOrg = localStorage.getItem("currentOrg");
         if (storedOrg) setLogoUrl(JSON.parse(storedOrg)?.logoUrl ?? null);
-
         const storedUser = localStorage.getItem("userData");
         if (storedUser)
           setAvatarUrl(JSON.parse(storedUser)?.user?.avatarUrl ?? null);
@@ -228,43 +211,10 @@ export default function SettingsPage() {
     e.target.value = "";
   };
 
-  // const handleImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const files = Array.from(e.target.files ?? []);
-  //   if (!files.length) return;
-  //   const remaining = 10 - facilityImages.length;
-  //   if (remaining <= 0) {
-  //     toast.error("Maximum 10 images allowed");
-  //     return;
-  //   }
-  //   const results = await uploadImages(files.slice(0, remaining));
-  //   if (results) {
-  //     setFacilityImages((prev) => [...prev, ...results]);
-  //     toast.success(
-  //       `${results.length} image${results.length > 1 ? "s" : ""} uploaded`,
-  //     );
-  //   } else {
-  //     toast.error("Failed to upload images");
-  //   }
-  //   e.target.value = "";
-  // };
-
-  const handleDeleteImage = async (publicId: string) => {
-    const ok = await deleteImage(publicId);
-    if (ok) {
-      setFacilityImages((prev) =>
-        prev.filter((img) => img.publicId !== publicId),
-      );
-      toast.success("Image removed");
-    } else {
-      toast.error("Failed to remove image");
-    }
-  };
-
   const handleDeleteAvatar = async () => {
     try {
       await apiClient.delete("/members/avatar");
       setAvatarUrl(null);
-      // Keep localStorage in sync
       const storedUser = localStorage.getItem("userData");
       if (storedUser) {
         const parsed = JSON.parse(storedUser);
@@ -335,7 +285,6 @@ export default function SettingsPage() {
   return (
     <div className="font-[Nunito,sans-serif] bg-[#F9FAFB] min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Page header */}
         <div className="mb-6">
           <p className="text-xs font-semibold tracking-widest uppercase text-[#0D9488] mb-1">
             Account
@@ -372,7 +321,6 @@ export default function SettingsPage() {
         {/* ── ORGANISATION tab ── */}
         {activeTab === "organisation" && (
           <div className="space-y-4">
-            {/* Actions at top */}
             <div className="flex justify-end gap-3">
               {editingOrg && (
                 <Button variant="outline" onClick={() => setEditingOrg(false)}>
@@ -402,7 +350,6 @@ export default function SettingsPage() {
               )}
             </div>
 
-            {/* Logo — locked until editing */}
             <Section
               title="Organisation Logo"
               subtitle="Shown on member-facing pages, invoices, and emails"
@@ -445,7 +392,6 @@ export default function SettingsPage() {
                     </div>
                   )}
                 </button>
-
                 <div>
                   <p className="text-sm font-bold text-[#1F2937] mb-1">
                     {orgData.name}
@@ -477,88 +423,6 @@ export default function SettingsPage() {
               </div>
             </Section>
 
-            {/* Facility images — locked until editing */}
-            {/* <Section
-              title="Organisation Images"
-              subtitle="Photos of your facility, equipment, or anything you'd like to share with members"
-            >
-              <input
-                ref={imagesInputRef}
-                type="file"
-                accept="image/jpg,image/jpeg,image/png,image/gif,image/webp"
-                multiple
-                className="hidden"
-                onChange={handleImagesChange}
-              />
-
-              <div
-                className={clsx(
-                  "grid grid-cols-3 sm:grid-cols-4 gap-3",
-                  !editingOrg && "opacity-50 pointer-events-none",
-                )}
-              >
-                {facilityImages.map((img) => (
-                  <div
-                    key={img.publicId}
-                    className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group"
-                  >
-                    <Image
-                      src={img.url}
-                      alt="Facility"
-                      fill
-                      className="object-cover"
-                    />
-                    {editingOrg && (
-                      <button
-                        onClick={() => handleDeleteImage(img.publicId)}
-                        disabled={deleting}
-                        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-md bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        {deleting ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-3 h-3" />
-                        )}
-                      </button>
-                    )}
-                  </div>
-                ))}
-
-                {/* Add button — grayed out placeholder when not editing */}
-            {/*{facilityImages.length < 10 && (
-                  <button
-                    onClick={() =>
-                      editingOrg && imagesInputRef.current?.click()
-                    }
-                    disabled={!editingOrg || uploadingImages}
-                    className={clsx(
-                      "aspect-square rounded-lg border border-dashed flex flex-col items-center justify-center gap-1.5 transition-colors",
-                      editingOrg
-                        ? "border-gray-300 text-gray-400 hover:border-[#0D9488] hover:text-[#0D9488] hover:bg-[#0D9488]/5 cursor-pointer"
-                        : "border-gray-200 text-gray-300 cursor-not-allowed",
-                    )}
-                  >
-                    {uploadingImages ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        <ImagePlus className="w-5 h-5" />
-                        <span className="text-xs font-semibold">Add</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-
-              {/* Hint — switches message based on state */}
-            {/* <p className="text-xs text-[#9CA3AF]">
-                {editingOrg
-                  ? "Up to 10 images · 5 MB each · JPG, PNG, GIF or WEBP"
-                  : "Click Edit Details to upload facility images."}
-              </p>
-            </Section>
-            
-            {/* Business info */}
             <Section
               title="Business Information"
               subtitle="Details visible to your members"
@@ -627,7 +491,6 @@ export default function SettingsPage() {
               </div>
             </Section>
 
-            {/* Invite link — always accessible, no edit gate needed */}
             <Section
               title="Member Invite Link"
               subtitle="Share this link so anyone can join your organization"
@@ -691,7 +554,7 @@ export default function SettingsPage() {
         {/* ── PROFILE tab ── */}
         {activeTab === "profile" && (
           <div className="space-y-4">
-            {/* Actions at top */}
+            {/* Actions */}
             <div className="flex justify-end gap-3">
               {editingProfile && (
                 <Button
@@ -727,7 +590,7 @@ export default function SettingsPage() {
               )}
             </div>
 
-            {/* Avatar card — always clickable, no edit gate needed */}
+            {/* Avatar card */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6 flex items-center gap-5">
               <input
                 ref={avatarInputRef}
@@ -738,34 +601,55 @@ export default function SettingsPage() {
               />
 
               <div className="relative flex-shrink-0 group">
-                <button
-                  onClick={() => avatarInputRef.current?.click()}
-                  disabled={uploadingAvatar}
-                  className="relative w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center overflow-hidden cursor-pointer"
-                >
-                  {avatarUrl ? (
-                    <Image
-                      src={avatarUrl}
-                      alt="Profile photo"
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <span className="text-lg font-extrabold text-[#0D9488]">
-                      {profileData.firstName.charAt(0)}
-                      {profileData.lastName.charAt(0)}
-                    </span>
-                  )}
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                    {uploadingAvatar ? (
-                      <Loader2 className="w-4 h-4 text-white animate-spin" />
+                {/* ✅ Interactive only when editing */}
+                {editingProfile ? (
+                  <button
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                    className="relative w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center overflow-hidden cursor-pointer"
+                  >
+                    {avatarUrl ? (
+                      <Image
+                        src={avatarUrl}
+                        alt="Profile photo"
+                        fill
+                        className="object-cover"
+                      />
                     ) : (
-                      <Camera className="w-4 h-4 text-white" />
+                      <span className="text-lg font-extrabold text-[#0D9488]">
+                        {profileData.firstName.charAt(0)}
+                        {profileData.lastName.charAt(0)}
+                      </span>
+                    )}
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                      {uploadingAvatar ? (
+                        <Loader2 className="w-4 h-4 text-white animate-spin" />
+                      ) : (
+                        <Camera className="w-4 h-4 text-white" />
+                      )}
+                    </div>
+                  </button>
+                ) : (
+                  // ✅ Grayed out, not clickable
+                  <div className="relative w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center overflow-hidden opacity-50 cursor-not-allowed">
+                    {avatarUrl ? (
+                      <Image
+                        src={avatarUrl}
+                        alt="Profile photo"
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <span className="text-lg font-extrabold text-[#0D9488]">
+                        {profileData.firstName.charAt(0)}
+                        {profileData.lastName.charAt(0)}
+                      </span>
                     )}
                   </div>
-                </button>
+                )}
 
-                {avatarUrl && (
+                {/* Delete — only when editing and avatar exists */}
+                {avatarUrl && editingProfile && (
                   <button
                     onClick={handleDeleteAvatar}
                     className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
@@ -787,8 +671,9 @@ export default function SettingsPage() {
                   {orgData.role}
                 </p>
                 <p className="text-xs text-[#9CA3AF] mt-1">
-                  Click photo to update · hover to remove · JPG, PNG, GIF or
-                  WEBP · max 5 MB
+                  {editingProfile
+                    ? "Click photo to update · hover to remove · JPG, PNG, GIF or WEBP · max 5 MB"
+                    : "Click Edit Profile to update your photo"}
                 </p>
               </div>
             </div>

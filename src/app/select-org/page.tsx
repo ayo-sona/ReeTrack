@@ -288,10 +288,19 @@ export default function OrganizationSelectPage() {
                         disabled={!!selectedOrg}
                         className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-[#F9FAFB] transition-colors disabled:opacity-60 disabled:cursor-not-allowed group text-left"
                       >
-                        <div className="w-9 h-9 rounded-lg bg-[#0D9488]/10 flex items-center justify-center shrink-0">
-                          <span className="text-xs font-extrabold text-[#0D9488]">
-                            {getInitials(org.name)}
-                          </span>
+                        <div className="w-9 h-9 rounded-lg bg-[#0D9488]/10 flex items-center justify-center shrink-0 overflow-hidden relative">
+                          {org.logoUrl ? (
+                            <Image
+                              src={org.logoUrl}
+                              alt={org.name}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <span className="text-xs font-extrabold text-[#0D9488]">
+                              {getInitials(org.name)}
+                            </span>
+                          )}
                         </div>
 
                         <div className="flex-1 min-w-0">
