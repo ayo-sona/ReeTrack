@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { uploadApi } from "@/lib/uploadApi";
 import { AxiosError } from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface UseUploadReturn {
   // Avatar
@@ -31,6 +32,8 @@ interface UseUploadReturn {
 }
 
 export function useUpload(): UseUploadReturn {
+  const queryClient = useQueryClient();
+
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
 
@@ -64,6 +67,12 @@ export function useUpload(): UseUploadReturn {
           localStorage.setItem("userData", JSON.stringify(userData));
         }
       }
+
+      // ✅ Invalidate all queries that may display the avatar
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ["member"] });
+      queryClient.invalidateQueries({ queryKey: ["memberOrgs"] });
+      queryClient.invalidateQueries({ queryKey: ["leaderboard"] });
 
       return newUrl;
     } catch (error) {
@@ -100,7 +109,6 @@ export function useUpload(): UseUploadReturn {
         }
 
         // Also patch the matching org inside userData.organizations
-        // so if the user goes back to select-org it shows the updated logo
         const userData = localStorage.getItem("userData");
         if (userData) {
           const parsed = JSON.parse(userData);
@@ -108,13 +116,19 @@ export function useUpload(): UseUploadReturn {
             localStorage.getItem("currentOrg") ?? "{}",
           )?.id;
           if (orgId && parsed.organizations) {
-            parsed.organizations = parsed.organizations.map((o: any) =>
-              o.id === orgId ? { ...o, logoUrl: newUrl } : o,
+            parsed.organizations = parsed.organizations.map(
+              (o: { id: string }) =>
+                o.id === orgId ? { ...o, logoUrl: newUrl } : o,
             );
             localStorage.setItem("userData", JSON.stringify(parsed));
           }
         }
       }
+
+      // ✅ Invalidate all queries that may display the org logo
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      queryClient.invalidateQueries({ queryKey: ["memberOrgs"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
 
       return newUrl;
     } catch (error) {
@@ -130,7 +144,6 @@ export function useUpload(): UseUploadReturn {
 
   /**
    * Upload multiple facility images
-   * Returns array of { url, publicId } on success so the UI can store publicIds for deletion later
    */
   const uploadImages = async (
     files: File[],

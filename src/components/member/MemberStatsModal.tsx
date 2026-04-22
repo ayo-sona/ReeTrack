@@ -2,10 +2,10 @@
 
 import { motion } from "framer-motion";
 import { X, Sparkles, Trophy } from "lucide-react";
-import { Member } from "@/types/organization";
+// import { Member } from "@/types/organization";
 import { useState, useMemo } from "react";
 import Image from "next/image";
-
+import { LeaderboardMemberRaw } from "@/hooks/useMembers";
 
 const C = {
   teal: "#0D9488",
@@ -35,8 +35,7 @@ export interface StreakInfo {
   }>;
 }
 
-export interface LeaderboardMember extends Member {
-  streakInfo?: StreakInfo;
+export interface LeaderboardMember extends LeaderboardMemberRaw {
   score: number;
   monthCount: number;
   qualifies: boolean;
@@ -85,16 +84,16 @@ export function MemberStatsModal({
   const totalCheckIns = Array.isArray(checkedInAt) ? checkedInAt.length : 0;
   const thisMonth = getCheckInCount(checkedInAt);
 
-  const daysInCommunity = useMemo(() => {
-    if (!member.created_at) return 0;
-    const memberSince = new Date(member.created_at);
-    const now = new Date();
-    return Math.floor((now.getTime() - memberSince.getTime()) / (1000 * 60 * 60 * 24));
-  }, [member.created_at]);
-  const lastCheckIn =
-    Array.isArray(checkedInAt) && checkedInAt.length > 0
-      ? new Date(checkedInAt[0])
-      : null;
+  // const daysInCommunity = useMemo(() => {
+  //   if (!member.created_at) return 0;
+  //   const memberSince = new Date(member.created_at);
+  //   const now = new Date();
+  //   return Math.floor((now.getTime() - memberSince.getTime()) / (1000 * 60 * 60 * 24));
+  // }, [member.created_at]);
+  // const lastCheckIn =
+  //   Array.isArray(checkedInAt) && checkedInAt.length > 0
+  //     ? new Date(checkedInAt[0])
+  //     : null;
 
   const rankGradient =
     rank === 1
@@ -283,9 +282,9 @@ export function MemberStatsModal({
               }}
             >
               {/* ✅ show avatar if available, otherwise initials */}
-              {(member.user as any).avatarUrl ? (
+              {member.user.avatarUrl ? (
                 <Image
-                  src={(member.user as any).avatarUrl}
+                  src={member.user.avatarUrl}
                   alt={name}
                   fill
                   className="object-cover"

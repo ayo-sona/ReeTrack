@@ -273,6 +273,7 @@ function PodiumCard({
     >
       <div style={{ position: "relative", marginBottom: 4 }}>
         <div
+          className="relative overflow-hidden"
           style={{
             width: rank === 1 ? 72 : 60,
             height: rank === 1 ? 72 : 60,
@@ -285,14 +286,12 @@ function PodiumCard({
             fontSize: rank === 1 ? 24 : 20,
             color: C.white,
             boxShadow: cfg.shadow,
-            overflow: "hidden",
-            position: "relative",
             flexShrink: 0,
           }}
         >
-          {member.user.avatar_url ? (
+          {member.user.avatarUrl ? (
             <Image
-              src={member.user.avatar_url}
+              src={member.user.avatarUrl}
               alt={name}
               fill
               className="object-cover"
@@ -860,7 +859,7 @@ export default function CommunityLeaderboardPage() {
           </div>
 
           {filtered.length > 0 ? (
-            <div>
+            <div style={{ maxHeight: "520px", overflowY: "auto" }}>
               {filtered.map((member, i) => {
                 const rank = ranked.indexOf(member) + 1;
                 const name = `${member.user.first_name} ${member.user.last_name}`;
@@ -1005,9 +1004,9 @@ export default function CommunityLeaderboardPage() {
                           position: "relative",
                         }}
                       >
-                        {member.user.avatar_url ? (
+                        {member.user.avatarUrl ? (
                           <Image
-                            src={member.user.avatar_url}
+                            src={member.user.avatarUrl}
                             alt={name}
                             fill
                             className="object-cover"
