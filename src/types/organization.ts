@@ -1,7 +1,6 @@
-// types/organization.ts (add this interface at the top or where appropriate)
+// types/organization.ts
 import { Currency, PaymentGateway } from "./common";
 
-// Pagination Meta
 export interface PaginationMeta {
   page: number;
   limit: number;
@@ -9,13 +8,11 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
-// Paginated Response Wrapper
 export interface PaginatedResponse<T> {
   data: T[];
   meta: PaginationMeta;
 }
 
-// organization/Business Types
 export interface Organization {
   id: string;
   name: string;
@@ -24,11 +21,13 @@ export interface Organization {
   address: string;
   description?: string;
   logo?: string;
+  logo_url?: string | null;
+  logo_public_id?: string | null;
+  images?: string[] | null; // ✅ facility images
   website?: string;
   created_at: string;
 }
 
-// Plan Types
 export interface PlanFeature {
   id: string;
   name: string;
@@ -63,13 +62,10 @@ export interface SubscriptionPlan {
   updatedAt: string;
 }
 
-// Member Types
 export type MemberStatus = "active" | "inactive";
 export type MembershipType = "self_signup" | "manual_add" | "invite";
 
-/// Member type based on ACTUAL API response from /api/v1/members
 export interface Member {
-  // Core member fields
   id: string;
   organization_user_id: string;
   user_id: string;
@@ -86,24 +82,23 @@ export interface Member {
   updated_at: string;
   organization_user?: OrganizationUser;
 
-  // Direct user object from API
-  // Direct user object from API
-user: {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  phone: string;
-  date_of_birth?: string | null; // ✅ ADD THIS
-  address?: string | null; // ✅ ADD THIS
-  status: "active" | "inactive";
-  email_verified: boolean;
-  last_login_at: string | null; // ✅ Make this nullable
-  created_at: string;
-  updated_at: string;
-};
+  user: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone: string;
+    date_of_birth?: string | null;
+    address?: string | null;
+    status: "active" | "inactive";
+    email_verified: boolean;
+    last_login_at: string | null;
+    created_at: string;
+    updated_at: string;
+    avatar_url: string | null;        // ✅ snake_case — members API
+    avatar_public_id: string | null;
+  };
 
-  // Subscriptions array
   subscriptions: Array<{
     id: string;
     member_id: string;
@@ -136,13 +131,11 @@ user: {
   }>;
 }
 
-// Members Response Type
 export type MembersResponse = PaginatedResponse<Member>;
 
-// Payment Types
 export type PaymentMethod = "card" | "bank_transfer" | "ussd";
 export type PaymentStatus = "success" | "pending" | "failed" | "refunded";
-export type PaymentProvider = PaymentGateway; // Reuse PaymentGateway type
+export type PaymentProvider = PaymentGateway;
 
 export interface Payment {
   id: string;
@@ -153,6 +146,7 @@ export interface Payment {
     last_name: string;
     email: string;
     phone?: string;
+    avatar_url?: string | null;
   };
   amount: number;
   currency: Currency;
@@ -164,7 +158,6 @@ export interface Payment {
   created_at: string;
 }
 
-// Reminder Types
 export type ReminderType =
   | "payment_due"
   | "subscription_expiring"
@@ -206,7 +199,6 @@ export interface AutomatedReminderSettings {
   template_id?: string;
 }
 
-// Export Types
 export type ExportFormat = "csv" | "pdf" | "excel";
 export type ExportType = "members" | "payments" | "revenue" | "plans";
 
@@ -224,7 +216,6 @@ export interface ExportRequest {
   columns?: string[];
 }
 
-// Analytics Types
 export interface OrganizationAnalytics {
   totalMembers: number;
   activeMembers: number;
@@ -260,7 +251,6 @@ export interface PlanDistribution {
   percentage: number;
 }
 
-// Notification Types
 export type NotificationType =
   | "new_member"
   | "payment_received"
@@ -280,10 +270,6 @@ export interface OrganizationNotification {
   created_at: string;
   link?: string;
 }
-
-// ============================================
-// MEMBER-SPECIFIC TYPES (from memberTypes)
-// ============================================
 
 export interface MemberSubscription {
   id: string;

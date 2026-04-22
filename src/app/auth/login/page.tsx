@@ -11,7 +11,7 @@ import { getUserRoles } from "@/utils/role-utils";
 import { Button } from "@/components/ui/button";
 import { Input, Spinner } from "@heroui/react";
 import Logo from "@/components/layout/Logo";
-import { PENDING_JOIN_SLUG_KEY } from "@/lib/joinConstants";
+// import { PENDING_JOIN_SLUG_KEY } from "@/lib/joinConstants";
 import { useQueryClient } from "@tanstack/react-query";
 
 // ----------------------------------------

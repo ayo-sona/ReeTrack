@@ -11,11 +11,15 @@ import {
   ChevronRight,
   Zap,
 } from "lucide-react";
-import { useAllSubscriptions } from "@/hooks/memberHook/useMember";
+import {
+  useAllSubscriptions,
+  useMemberOrgs,
+} from "@/hooks/memberHook/useMember";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 const C = {
   teal: "#0D9488",
@@ -165,7 +169,7 @@ function StatCard({
   );
 }
 
-function SubscriptionCard({ sub, index }: { sub: any; index: number }) {
+function SubscriptionCard({ sub, index, orgLogo }: { sub: any; index: number; orgLogo: string | null }) {
   // console.log("sub", sub);
   const [hovered, setHovered] = useState(false);
   const expiringSoon =
@@ -244,25 +248,13 @@ function SubscriptionCard({ sub, index }: { sub: any; index: number }) {
                 minWidth: 0,
               }}
             >
-              <div
-                style={{
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "11px",
-                  background: dimmed ? C.snow : C.teal,
-                  border: dimmed ? `1px solid ${C.border}` : "none",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: dimmed ? C.coolGrey : C.white,
-                  fontFamily: "Nunito, sans-serif",
-                  fontWeight: 800,
-                  fontSize: "18px",
-                  flexShrink: 0,
-                }}
-              >
-                {sub.plan.name.charAt(0)}
-              </div>
+              <div style={{ width: "44px", height: "44px", borderRadius: "11px", background: dimmed ? C.snow : C.teal, border: dimmed ? `1px solid ${C.border}` : "none", display: "flex", alignItems: "center", justifyContent: "center", color: dimmed ? C.coolGrey : C.white, fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "18px", flexShrink: 0, overflow: "hidden", position: "relative" }}>
+  {orgLogo && !dimmed ? (
+    <Image src={orgLogo} alt={sub.plan.name} fill className="object-cover" />
+  ) : (
+    sub.plan.name.charAt(0)
+  )}
+</div>
               <div style={{ minWidth: 0 }}>
                 <p
                   style={{
@@ -565,6 +557,8 @@ export default function SubscriptionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchFocused, setSearchFocused] = useState(false);
+  const { data: memberOrgs } = useMemberOrgs();
+const orgLogo = memberOrgs?.[0]?.organization_user?.organization?.logo_url ?? null;
 
   const all = subscriptions ?? [];
 
@@ -852,7 +846,7 @@ export default function SubscriptionsPage() {
             }}
           >
             {filtered.map((sub, i) => (
-              <SubscriptionCard key={sub.id} sub={sub} index={i} />
+              <SubscriptionCard key={sub.id} sub={sub} index={i} orgLogo={orgLogo} />
             ))}
           </div>
         ) : (

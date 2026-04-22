@@ -10,7 +10,7 @@ import {
   FileText,
   RefreshCw,
 } from "lucide-react";
-import { usePayments, useInvoices } from "@/hooks/memberHook/useMember";
+import { usePayments, useInvoices, useMemberOrgs } from "@/hooks/memberHook/useMember";
 import { Pagination } from "@/components/organization/Pagination";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import type { MemberInvoice, MemberPayment } from "@/types/organization";
 import { toast } from "sonner";
 import { useCancelInvoice } from "@/hooks/memberHook/useMember";
+import Image from "next/image";
 
 const C = {
   teal: "#0D9488",
@@ -195,13 +196,7 @@ function SkeletonRow() {
   );
 }
 
-function PaymentRow({
-  payment,
-  index,
-}: {
-  payment: MemberPayment;
-  index: number;
-}) {
+function PaymentRow({ payment, index, orgLogo }: { payment: MemberPayment; index: number; orgLogo: string | null }) {
   const [hovered, setHovered] = useState(false);
   const planName =
     payment.invoice?.member_subscription?.plan?.name || "Unknown Plan";
@@ -248,24 +243,13 @@ function PaymentRow({
           flex: 1,
         }}
       >
-        <div
-          style={{
-            width: "44px",
-            height: "44px",
-            borderRadius: "10px",
-            background: C.teal,
-            flexShrink: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontFamily: "Nunito, sans-serif",
-            fontWeight: 800,
-            fontSize: "18px",
-            color: C.white,
-          }}
-        >
-          {planName.charAt(0)}
-        </div>
+        <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: C.teal, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Nunito, sans-serif", fontWeight: 800, fontSize: "18px", color: C.white, overflow: "hidden", position: "relative" }}>
+  {orgLogo ? (
+    <Image src={orgLogo} alt={planName} fill className="object-cover" />
+  ) : (
+    planName.charAt(0)
+  )}
+</div>
         <div style={{ minWidth: 0 }}>
           <p
             style={{
@@ -455,6 +439,8 @@ export default function PaymentHistoryPage() {
     ITEMS_PER_PAGE,
     invoiceFilter === "all" ? undefined : invoiceFilter,
   );
+  const { data: memberOrgs } = useMemberOrgs();
+const orgLogo = memberOrgs?.[0]?.organization_user?.organization?.logo_url ?? null;
 
   const invoiceTotalPages = invoicesData?.meta?.totalPages ?? 1;
 
@@ -673,7 +659,7 @@ export default function PaymentHistoryPage() {
               }}
             >
               {filteredPayments.map((payment, i) => (
-                <PaymentRow key={payment.id} payment={payment} index={i} />
+                <PaymentRow key={payment.id} payment={payment} index={i} orgLogo={orgLogo} />
               ))}
             </div>
             {paymentsMeta && paymentsMeta.totalPages > 1 && (

@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { Member } from "@/types/organization";
 import { useMemberOrgs } from "@/hooks/memberHook/useMember";
+import Image from "next/image";
 
 const C = {
   teal: "#0D9488",
@@ -46,6 +47,7 @@ interface OrgCardProps {
     description: string | null;
     address: string | null;
     email: string | null;
+    logo_url: string | null;
   };
   index: number;
 }
@@ -106,9 +108,20 @@ function OrganizationCard({ org, index }: OrgCardProps) {
               color: C.white,
               transition: "transform 300ms",
               transform: hovered ? "scale(1.05)" : "scale(1)",
+              overflow: "hidden", // ✅ add
+              position: "relative", // ✅ add
             }}
           >
-            {org?.name?.charAt(0).toUpperCase() ?? "O"}
+            {org.logo_url ? (
+              <Image
+                src={org.logo_url}
+                alt={org.name ?? ""}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              (org?.name?.charAt(0).toUpperCase() ?? "O")
+            )}
           </div>
         </div>
 
@@ -241,6 +254,7 @@ export default function MyCommunityPage() {
         email: org?.email ?? null,
         phone: org?.phone ?? null,
         website: org?.website ?? null,
+        logo_url: org?.logo_url ?? null,
       };
     });
   }, [memberDetails]);

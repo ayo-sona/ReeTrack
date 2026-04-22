@@ -13,6 +13,34 @@ interface MembersResponse {
   };
 }
 
+interface LeaderboardUser {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  avatarUrl: string | null; 
+}
+
+export interface LeaderboardMemberRaw {
+  id: string;
+  checked_in_at: string[] | null;
+  check_in_count?: number;
+  user: LeaderboardUser;
+  streakInfo?: {
+    currentStreak: number;
+    longestStreak: number;
+    currentWeekCheckIns: number;
+    isStreakActive: boolean;
+    streakStartDate: string | null;
+    weeksWithCheckIns: Array<{
+      weekStart: string;
+      weekEnd: string;
+      checkInCount: number;
+      meetsRequirement: boolean;
+    }>;
+  };
+}
+
 // Get all members with pagination
 export const useMembers = (
   page: number = 1,

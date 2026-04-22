@@ -41,10 +41,7 @@ export function useAuth(): UseAuthReturn {
 
       // Store user data
       if (typeof window !== "undefined") {
-        localStorage.setItem(
-          "userData",
-          JSON.stringify({ user: response.user }),
-        );
+        localStorage.setItem("userData", JSON.stringify(response.data));
       }
 
       return true;

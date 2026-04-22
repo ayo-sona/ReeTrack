@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { OrganizationSidebar } from "@/components/organization/OrganizationSideBar";
@@ -9,33 +9,31 @@ import { useWebSocket } from "@/hooks/useWebsocket";
 import { useWebSocketCacheInvalidation } from "@/hooks/useWebSocketCacheInvalidation";
 import { Spinner } from "@heroui/react";
 
+// ✅ Outside the component
+const useIsClient = () =>
+  useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+
 export default function OrganizationLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  // const accessToken = getCookie("access_token") ?? null;
+  const isClient = useIsClient(); // ✅ replaces useState + useEffect
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isClient, setIsClient] = useState(false);
 
-  // Initialize WebSocket connection
   const { isConnected } = useWebSocket();
-
-  // Set up cache invalidation listener
   useWebSocketCacheInvalidation();
 
   useEffect(() => {
     if (isConnected) {
       console.log("WebSocket connected for organization layout");
-      // You can subscribe to organization-specific events here
-      // For example, subscribe to all subscriptions for the current organization
     }
   }, [isConnected]);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   if (!isClient) {
     return (

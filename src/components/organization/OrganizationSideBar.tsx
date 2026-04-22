@@ -31,6 +31,13 @@ interface User {
   first_name: string;
   last_name: string;
   email: string;
+  avatarUrl: string | null;
+}
+
+interface CurrentOrg {
+  id: string;
+  name: string;
+  logoUrl: string | null;
 }
 
 export function OrganizationSidebar({
@@ -40,6 +47,7 @@ export function OrganizationSidebar({
 }: OrganizationSidebarProps) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [currentOrg, setCurrentOrg] = useState<CurrentOrg | null>(null);
   const [loading, setLoading] = useState(false);
 
   const adminOnly = isAdmin();
@@ -51,8 +59,13 @@ export function OrganizationSidebar({
         const parsed = JSON.parse(userData);
         setUser(parsed.user);
       }
+
+      const orgData = localStorage.getItem("currentOrg");
+      if (orgData) {
+        setCurrentOrg(JSON.parse(orgData));
+      }
     } catch (error) {
-      console.error("Error loading user data:", error);
+      console.error("Error loading user/org data:", error);
     }
   }, []);
 
@@ -80,16 +93,8 @@ export function OrganizationSidebar({
       href: "/organization/dashboard",
       icon: LayoutDashboard,
     },
-    {
-      name: "Members",
-      href: "/organization/members",
-      icon: Users,
-    },
-    {
-      name: "Plans",
-      href: "/organization/plans",
-      icon: Package,
-    },
+    { name: "Members", href: "/organization/members", icon: Users },
+    { name: "Plans", href: "/organization/plans", icon: Package },
     {
       name: "Transactions",
       href: "/organization/transactions",
@@ -102,24 +107,11 @@ export function OrganizationSidebar({
       icon: Receipt,
       adminOnly: true,
     },
-    {
-      name: "Check-ins",
-      href: "/organization/check-ins",
-      icon: ScanLine,
-    },
-    {
-      name: "Ping",
-      href: "/organization/ping",
-      icon: Send,
-    },
-    {
-      name: "Reports",
-      href: "/organization/reports",
-      icon: FileDown,
-    },
+    { name: "Check-ins", href: "/organization/check-ins", icon: ScanLine },
+    { name: "Ping", href: "/organization/ping", icon: Send },
+    { name: "Reports", href: "/organization/reports", icon: FileDown },
   ];
 
-  // Filter out admin-only items when user is STAFF
   const navigation = adminOnly
     ? allNavigation
     : allNavigation.filter((item) => !item.adminOnly);
@@ -146,6 +138,9 @@ export function OrganizationSidebar({
         firstName: user.first_name || "",
         lastName: user.last_name || "",
         email: user.email || "",
+        avatarUrl: user.avatarUrl ?? null,
+        orgLogoUrl: currentOrg?.logoUrl ?? null,
+        orgName: currentOrg?.name ?? "",
       }
     : undefined;
 

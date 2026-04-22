@@ -3,6 +3,7 @@
 import { useTeamMembers } from "../../hooks/useOrganisations";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export function RecentMembersTable() {
   const { data: teamMembers, isLoading } = useTeamMembers();
@@ -23,6 +24,7 @@ export function RecentMembersTable() {
         role: member.role,
         status: member.status,
         lastLogin: member.user.last_login_at,
+        avatarUrl: member.user.avatar_url ?? null, // ✅ add this
       }));
   }, [teamMembers]);
 
@@ -36,7 +38,10 @@ export function RecentMembersTable() {
         </div>
         <div className="p-6 space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-12 bg-[#F9FAFB] rounded-lg animate-pulse" />
+            <div
+              key={i}
+              className="h-12 bg-[#F9FAFB] rounded-lg animate-pulse"
+            />
           ))}
         </div>
       </div>
@@ -49,10 +54,14 @@ export function RecentMembersTable() {
       <div className="rounded-xl bg-white border border-[#E5E7EB] shadow-sm overflow-hidden">
         <div className="p-6 border-b border-[#E5E7EB]">
           <h3 className="text-base font-bold text-[#1F2937]">Team Members</h3>
-          <p className="text-sm text-[#9CA3AF] mt-0.5">Staff and administrators only</p>
+          <p className="text-sm text-[#9CA3AF] mt-0.5">
+            Staff and administrators only
+          </p>
         </div>
         <div className="flex flex-col items-center justify-center h-40">
-          <p className="text-sm font-semibold text-[#9CA3AF]">No team members found</p>
+          <p className="text-sm font-semibold text-[#9CA3AF]">
+            No team members found
+          </p>
         </div>
       </div>
     );
@@ -69,7 +78,9 @@ export function RecentMembersTable() {
       {/* Header */}
       <div className="px-6 py-5 border-b border-[#E5E7EB]">
         <h3 className="text-base font-bold text-[#1F2937]">Team Members</h3>
-        <p className="text-xs text-[#9CA3AF] mt-0.5">Staff and administrators only</p>
+        <p className="text-xs text-[#9CA3AF] mt-0.5">
+          Staff and administrators only
+        </p>
       </div>
 
       {/* Table */}
@@ -98,8 +109,17 @@ export function RecentMembersTable() {
                 {/* Name + Initial avatar */}
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#0D9488]/10 flex items-center justify-center text-[#0D9488] font-bold text-xs flex-shrink-0">
-                      {(member.name || "U").charAt(0).toUpperCase()}
+                    <div className="w-8 h-8 rounded-full bg-[#0D9488]/10 flex items-center justify-center text-[#0D9488] font-bold text-xs flex-shrink-0 overflow-hidden relative">
+                      {member.avatarUrl ? (
+                        <Image
+                          src={member.avatarUrl}
+                          alt={member.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        (member.name || "U").charAt(0).toUpperCase()
+                      )}
                     </div>
                     <span className="text-sm font-semibold text-[#1F2937]">
                       {member.name}
@@ -130,7 +150,9 @@ export function RecentMembersTable() {
                   <div className="flex items-center gap-1.5">
                     <span
                       className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                        member.status === "active" ? "bg-emerald-500" : "bg-[#9CA3AF]"
+                        member.status === "active"
+                          ? "bg-emerald-500"
+                          : "bg-[#9CA3AF]"
                       }`}
                     />
                     <span

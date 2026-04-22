@@ -26,6 +26,7 @@ import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { useMembers } from "@/hooks/useMembers";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import clsx from "clsx";
 
 const C = {
@@ -54,31 +55,45 @@ const fadeUp = {
   }),
 };
 
-function getLatestCheckIn(checked_in_at: string[] | string | null | undefined): string | null {
+function getLatestCheckIn(
+  checked_in_at: string[] | string | null | undefined,
+): string | null {
   if (!checked_in_at) return null;
   if (typeof checked_in_at === "string") return checked_in_at;
   if (checked_in_at.length === 0) return null;
-  return [...checked_in_at].sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
+  return [...checked_in_at].sort(
+    (a, b) => new Date(b).getTime() - new Date(a).getTime(),
+  )[0];
 }
 
 function formatTimeAgo(dateString: string | null): string {
   if (!dateString) return "Never";
-  const diffInMinutes = Math.floor((Date.now() - new Date(dateString).getTime()) / 60000);
+  const diffInMinutes = Math.floor(
+    (Date.now() - new Date(dateString).getTime()) / 60000,
+  );
   if (diffInMinutes < 1) return "Just now";
   if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
   if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
   return `${Math.floor(diffInMinutes / 1440)}d ago`;
 }
 
-function getCheckInCount(checked_in_at: string[] | string | null | undefined, period: Period | "today" | "week"): number {
+function getCheckInCount(
+  checked_in_at: string[] | string | null | undefined,
+  period: Period | "today" | "week",
+): number {
   if (!checked_in_at) return 0;
-  const timestamps = Array.isArray(checked_in_at) ? checked_in_at : [checked_in_at];
+  const timestamps = Array.isArray(checked_in_at)
+    ? checked_in_at
+    : [checked_in_at];
   if (period === "all") return timestamps.length;
   const now = new Date();
   return timestamps.filter((t) => {
     const d = new Date(t);
     if (period === "today") return d.toDateString() === now.toDateString();
-    if (period === "month") return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    if (period === "month")
+      return (
+        d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+      );
     if (period === "week") {
       const weekAgo = new Date(now);
       weekAgo.setDate(now.getDate() - 7);
@@ -150,37 +165,111 @@ function InfoTooltip() {
 }
 
 function RankBadge({ rank, qualifies }: { rank: number; qualifies: boolean }) {
-  if (!qualifies || rank > 3) return (
-    <div style={{ width: 36, height: 36, borderRadius: "50%", background: C.snow, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-      <span style={{ fontWeight: 700, fontSize: 13, color: C.coolGrey }}>#{rank}</span>
-    </div>
-  );
-  if (rank === 1) return (
-    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #F59E0B, #D97706)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(245,158,11,0.4)", flexShrink: 0 }}>
-      <Crown size={16} style={{ color: C.white }} />
-    </div>
-  );
-  if (rank === 2) return (
-    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #94A3B8, #64748B)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(148,163,184,0.35)", flexShrink: 0 }}>
-      <Medal size={16} style={{ color: C.white }} />
-    </div>
-  );
+  if (!qualifies || rank > 3)
+    return (
+      <div
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: "50%",
+          background: C.snow,
+          border: `1px solid ${C.border}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <span style={{ fontWeight: 700, fontSize: 13, color: C.coolGrey }}>
+          #{rank}
+        </span>
+      </div>
+    );
+  if (rank === 1)
+    return (
+      <div
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: "50%",
+          background: "linear-gradient(135deg, #F59E0B, #D97706)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 4px 12px rgba(245,158,11,0.4)",
+          flexShrink: 0,
+        }}
+      >
+        <Crown size={16} style={{ color: C.white }} />
+      </div>
+    );
+  if (rank === 2)
+    return (
+      <div
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: "50%",
+          background: "linear-gradient(135deg, #94A3B8, #64748B)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 4px 12px rgba(148,163,184,0.35)",
+          flexShrink: 0,
+        }}
+      >
+        <Medal size={16} style={{ color: C.white }} />
+      </div>
+    );
   return (
-    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #CD7F32, #A0522D)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(205,127,50,0.35)", flexShrink: 0 }}>
+    <div
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: "50%",
+        background: "linear-gradient(135deg, #CD7F32, #A0522D)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        boxShadow: "0 4px 12px rgba(205,127,50,0.35)",
+        flexShrink: 0,
+      }}
+    >
       <Award size={16} style={{ color: C.white }} />
     </div>
   );
 }
 
-function PodiumCard({ member, rank, period }: { member: any; rank: 1 | 2 | 3; period: Period }) {
+function PodiumCard({
+  member,
+  rank,
+  period,
+}: {
+  member: any;
+  rank: 1 | 2 | 3;
+  period: Period;
+}) {
   const count = getCheckInCount(member.checked_in_at, period);
   const name = `${member.user.first_name} ${member.user.last_name}`;
-  const initials = name.split(" ").map((n: string) => n[0]).join("").toUpperCase();
+  const initials = name
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase();
   const heights = { 1: 140, 2: 110, 3: 90 };
   const rankColors = {
-    1: { bg: "linear-gradient(135deg, #F59E0B, #D97706)", shadow: "0 8px 32px rgba(245,158,11,0.35)" },
-    2: { bg: "linear-gradient(135deg, #94A3B8, #64748B)", shadow: "0 8px 24px rgba(148,163,184,0.3)" },
-    3: { bg: "linear-gradient(135deg, #CD7F32, #A0522D)", shadow: "0 8px 20px rgba(205,127,50,0.3)" },
+    1: {
+      bg: "linear-gradient(135deg, #F59E0B, #D97706)",
+      shadow: "0 8px 32px rgba(245,158,11,0.35)",
+    },
+    2: {
+      bg: "linear-gradient(135deg, #94A3B8, #64748B)",
+      shadow: "0 8px 24px rgba(148,163,184,0.3)",
+    },
+    3: {
+      bg: "linear-gradient(135deg, #CD7F32, #A0522D)",
+      shadow: "0 8px 20px rgba(205,127,50,0.3)",
+    },
   };
   const cfg = rankColors[rank];
   const medals = { 1: "🥇", 2: "🥈", 3: "🥉" };
@@ -190,20 +279,100 @@ function PodiumCard({ member, rank, period }: { member: any; rank: 1 | 2 | 3; pe
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: rank * 0.1, ease: [0.16, 1, 0.3, 1] }}
-      style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 8,
+        flex: 1,
+        minWidth: 0,
+      }}
     >
       <div style={{ position: "relative", marginBottom: 4 }}>
-        <div style={{ width: rank === 1 ? 72 : 60, height: rank === 1 ? 72 : 60, borderRadius: "50%", background: cfg.bg, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: rank === 1 ? 24 : 20, color: "white", boxShadow: cfg.shadow }}>
-          {initials}
+        <div
+          style={{
+            width: rank === 1 ? 72 : 60,
+            height: rank === 1 ? 72 : 60,
+            borderRadius: "50%",
+            background: cfg.bg,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: 800,
+            fontSize: rank === 1 ? 24 : 20,
+            color: "white",
+            boxShadow: cfg.shadow,
+            overflow: "hidden",
+            position: "relative",
+            flexShrink: 0,
+          }}
+        >
+          {member.user?.avatar_url ? (
+            <Image
+              src={member.user.avatar_url}
+              alt={name}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            initials
+          )}
         </div>
-        <div style={{ position: "absolute", bottom: -4, right: -4, fontSize: 18 }}>{medals[rank]}</div>
+        <div
+          style={{ position: "absolute", bottom: -4, right: -4, fontSize: 18 }}
+        >
+          {medals[rank]}
+        </div>
       </div>
-      <p style={{ fontWeight: 700, fontSize: 13, color: C.ink, textAlign: "center", maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      <p
+        style={{
+          fontWeight: 700,
+          fontSize: 13,
+          color: C.ink,
+          textAlign: "center",
+          maxWidth: 90,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
         {name.split(" ")[0]}
       </p>
-      <div style={{ width: "100%", height: heights[rank], borderRadius: "12px 12px 0 0", background: cfg.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, boxShadow: cfg.shadow }}>
-        <p style={{ fontWeight: 900, fontSize: rank === 1 ? 28 : 22, color: "white", lineHeight: 1 }}>{count}</p>
-        <p style={{ fontWeight: 600, fontSize: 10, color: "rgba(255,255,255,0.8)", textTransform: "uppercase", letterSpacing: "0.5px" }}>check-ins</p>
+      <div
+        style={{
+          width: "100%",
+          height: heights[rank],
+          borderRadius: "12px 12px 0 0",
+          background: cfg.bg,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 4,
+          boxShadow: cfg.shadow,
+        }}
+      >
+        <p
+          style={{
+            fontWeight: 900,
+            fontSize: rank === 1 ? 28 : 22,
+            color: "white",
+            lineHeight: 1,
+          }}
+        >
+          {count}
+        </p>
+        <p
+          style={{
+            fontWeight: 600,
+            fontSize: 10,
+            color: "rgba(255,255,255,0.8)",
+            textTransform: "uppercase",
+            letterSpacing: "0.5px",
+          }}
+        >
+          check-ins
+        </p>
       </div>
     </motion.div>
   );
@@ -211,10 +380,16 @@ function PodiumCard({ member, rank, period }: { member: any; rank: 1 | 2 | 3; pe
 
 function CheckInSkeleton() {
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto" style={{ fontFamily: "Nunito, sans-serif" }}>
+    <div
+      className="p-6 space-y-6 max-w-7xl mx-auto"
+      style={{ fontFamily: "Nunito, sans-serif" }}
+    >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[1, 2].map((i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3">
+          <div
+            key={i}
+            className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-3"
+          >
             <div className="h-3 w-28 bg-gray-100 rounded animate-pulse" />
             <div className="h-9 w-16 bg-gray-100 rounded-lg animate-pulse" />
           </div>
@@ -222,7 +397,10 @@ function CheckInSkeleton() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {[1, 2].map((i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
+          <div
+            key={i}
+            className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4"
+          >
             <div className="h-5 w-36 bg-gray-100 rounded-lg animate-pulse" />
             <div className="h-10 w-full bg-gray-100 rounded-lg animate-pulse" />
             <div className="h-10 w-full bg-gray-100 rounded-lg animate-pulse" />
@@ -233,7 +411,9 @@ function CheckInSkeleton() {
   );
 }
 
-const currentMonthName = new Date().toLocaleString("default", { month: "long" });
+const currentMonthName = new Date().toLocaleString("default", {
+  month: "long",
+});
 
 export default function OrganizationCheckInPage() {
   const [page] = useState(1);
@@ -255,26 +435,39 @@ export default function OrganizationCheckInPage() {
 
   const todayCheckIns = useMemo(() => {
     const today = new Date().toDateString();
-    return members?.data?.filter((m) => {
-      const timestamps = Array.isArray(m?.checked_in_at) ? m.checked_in_at : m?.checked_in_at ? [m.checked_in_at] : [];
-      return timestamps.some((t) => new Date(t).toDateString() === today);
-    }).length ?? 0;
+    return (
+      members?.data?.filter((m) => {
+        const timestamps = Array.isArray(m?.checked_in_at)
+          ? m.checked_in_at
+          : m?.checked_in_at
+            ? [m.checked_in_at]
+            : [];
+        return timestamps.some((t) => new Date(t).toDateString() === today);
+      }).length ?? 0
+    );
   }, [members]);
 
-  const recentCheckIns = useMemo(() =>
-    members?.data?.slice()
-      .filter((m) => getLatestCheckIn(m?.checked_in_at) !== null)
-      .sort((a, b) => new Date(getLatestCheckIn(b?.checked_in_at) ?? 0).getTime() - new Date(getLatestCheckIn(a?.checked_in_at) ?? 0).getTime()),
-    [members]
+  const recentCheckIns = useMemo(
+    () =>
+      members?.data
+        ?.slice()
+        .filter((m) => getLatestCheckIn(m?.checked_in_at) !== null)
+        .sort(
+          (a, b) =>
+            new Date(getLatestCheckIn(b?.checked_in_at) ?? 0).getTime() -
+            new Date(getLatestCheckIn(a?.checked_in_at) ?? 0).getTime(),
+        ),
+    [members],
   );
 
   const filteredRecentCheckIns = useMemo(() => {
     if (!recentSearchQuery.trim()) return recentCheckIns;
     const q = recentSearchQuery.toLowerCase();
-    return recentCheckIns?.filter((m) =>
-      m.user?.first_name?.toLowerCase().includes(q) ||
-      m.user?.last_name?.toLowerCase().includes(q) ||
-      `${m.user?.first_name} ${m.user?.last_name}`.toLowerCase().includes(q)
+    return recentCheckIns?.filter(
+      (m) =>
+        m.user?.first_name?.toLowerCase().includes(q) ||
+        m.user?.last_name?.toLowerCase().includes(q) ||
+        `${m.user?.first_name} ${m.user?.last_name}`.toLowerCase().includes(q),
     );
   }, [recentCheckIns, recentSearchQuery]);
 
@@ -286,7 +479,8 @@ export default function OrganizationCheckInPage() {
         ...m,
         score: getCheckInCount(m.checked_in_at, period),
         monthCount: getCheckInCount(m.checked_in_at, "month"),
-        qualifies: getCheckInCount(m.checked_in_at, "month") >= MONTHLY_THRESHOLD,
+        qualifies:
+          getCheckInCount(m.checked_in_at, "month") >= MONTHLY_THRESHOLD,
       }))
       .sort((a, b) => b.score - a.score);
   }, [members, period]);
@@ -294,9 +488,10 @@ export default function OrganizationCheckInPage() {
   const filtered = useMemo(() => {
     if (!searchQuery.trim()) return ranked;
     const q = searchQuery.toLowerCase();
-    return ranked.filter((m) =>
-      m.user?.first_name?.toLowerCase().includes(q) ||
-      m.user?.last_name?.toLowerCase().includes(q)
+    return ranked.filter(
+      (m) =>
+        m.user?.first_name?.toLowerCase().includes(q) ||
+        m.user?.last_name?.toLowerCase().includes(q),
     );
   }, [ranked, searchQuery]);
 
@@ -304,14 +499,20 @@ export default function OrganizationCheckInPage() {
   const top3 = qualifyingRanked.slice(0, 3);
   const podiumOrder = top3.length >= 3 ? [top3[1], top3[0], top3[2]] : [];
   const qualifyingCount = qualifyingRanked.length;
-  const totalCheckIns = ranked.reduce((s, m) => s + getCheckInCount(m.checked_in_at, "all"), 0);
+  const totalCheckIns = ranked.reduce(
+    (s, m) => s + getCheckInCount(m.checked_in_at, "all"),
+    0,
+  );
   const monthTotal = ranked.reduce((s, m) => s + m.monthCount, 0);
 
   const handleManualCheckIn = async () => {
     if (!manualCode.trim()) return;
     try {
       setIsChecking(true);
-      await apiClient.post(`members/organization/check-in/`, { memberId: currentMember, checkInCode: manualCode });
+      await apiClient.post(`members/organization/check-in/`, {
+        memberId: currentMember,
+        checkInCode: manualCode,
+      });
       toast.success("Member checked in successfully");
     } catch (error) {
       toast.error("Failed to check in member");
@@ -341,23 +542,36 @@ export default function OrganizationCheckInPage() {
 
   if (!members?.data || members.data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 px-6" style={{ fontFamily: "Nunito, sans-serif" }}>
+      <div
+        className="flex flex-col items-center justify-center py-24 px-6"
+        style={{ fontFamily: "Nunito, sans-serif" }}
+      >
         <div className="w-16 h-16 bg-[#0D9488]/10 rounded-full flex items-center justify-center mb-4">
           <Users className="w-8 h-8 text-[#0D9488]" />
         </div>
-        <p className="text-base font-bold text-[#1F2937] mb-1">No members found</p>
-        <p className="text-sm text-[#9CA3AF]">Add members to start tracking check-ins</p>
+        <p className="text-base font-bold text-[#1F2937] mb-1">
+          No members found
+        </p>
+        <p className="text-sm text-[#9CA3AF]">
+          Add members to start tracking check-ins
+        </p>
       </div>
     );
   }
 
-  const tabBtnClass = (active: boolean) => clsx(
-    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all",
-    active ? "bg-white text-[#1F2937] shadow-sm" : "text-[#9CA3AF] hover:text-[#1F2937]"
-  );
+  const tabBtnClass = (active: boolean) =>
+    clsx(
+      "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all",
+      active
+        ? "bg-white text-[#1F2937] shadow-sm"
+        : "text-[#9CA3AF] hover:text-[#1F2937]",
+    );
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto" style={{ fontFamily: "Nunito, sans-serif" }}>
+    <div
+      className="p-6 space-y-6 max-w-7xl mx-auto"
+      style={{ fontFamily: "Nunito, sans-serif" }}
+    >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
         * { box-sizing: border-box; }
@@ -365,19 +579,31 @@ export default function OrganizationCheckInPage() {
         input::placeholder { color: #9CA3AF; }
       `}</style>
 
-      <MemberSelectModal isOpen={isMemberModalOpen} onClose={() => setIsMemberModalOpen(false)} onSelect={handleMemberSelect} />
+      <MemberSelectModal
+        isOpen={isMemberModalOpen}
+        onClose={() => setIsMemberModalOpen(false)}
+        onSelect={handleMemberSelect}
+      />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-[#1F2937]">Member Check-In</h1>
-          <p className="text-sm text-[#9CA3AF] mt-0.5">Scan QR codes or enter code to check in members</p>
+          <p className="text-sm text-[#9CA3AF] mt-0.5">
+            Scan QR codes or enter code to check in members
+          </p>
         </div>
         <div className="inline-flex items-center bg-[#F9FAFB] border border-gray-100 rounded-lg p-1 self-start sm:self-auto">
-          <button onClick={() => setActiveTab("scan")} className={tabBtnClass(activeTab === "scan")}>
+          <button
+            onClick={() => setActiveTab("scan")}
+            className={tabBtnClass(activeTab === "scan")}
+          >
             <Scan className="w-4 h-4" /> Check-In
           </button>
-          <button onClick={() => setActiveTab("stats")} className={tabBtnClass(activeTab === "stats")}>
+          <button
+            onClick={() => setActiveTab("stats")}
+            className={tabBtnClass(activeTab === "stats")}
+          >
             <Trophy className="w-4 h-4" /> Leaderboard
           </button>
         </div>
@@ -387,21 +613,29 @@ export default function OrganizationCheckInPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide">Today&apos;s Check-Ins</p>
+            <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide">
+              Today&apos;s Check-Ins
+            </p>
             <div className="w-8 h-8 bg-[#0D9488]/10 rounded-lg flex items-center justify-center">
               <Calendar className="w-4 h-4 text-[#0D9488]" />
             </div>
           </div>
-          <p className="text-3xl font-extrabold text-[#1F2937]">{todayCheckIns}</p>
+          <p className="text-3xl font-extrabold text-[#1F2937]">
+            {todayCheckIns}
+          </p>
         </div>
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide">Total Members</p>
+            <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide">
+              Total Members
+            </p>
             <div className="w-8 h-8 bg-[#0D9488]/10 rounded-lg flex items-center justify-center">
               <Users className="w-4 h-4 text-[#0D9488]" />
             </div>
           </div>
-          <p className="text-3xl font-extrabold text-[#1F2937]">{totalMembers}</p>
+          <p className="text-3xl font-extrabold text-[#1F2937]">
+            {totalMembers}
+          </p>
         </div>
       </div>
 
@@ -409,17 +643,42 @@ export default function OrganizationCheckInPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Check-In Panel */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-5">
-            <h2 className="text-base font-bold text-[#1F2937]">Check-In a Member</h2>
-            <Button type="button" variant="secondary" className="w-full" onClick={() => { setScanMode("qr"); setIsScannerOpen(true); }}>
+            <h2 className="text-base font-bold text-[#1F2937]">
+              Check-In a Member
+            </h2>
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full"
+              onClick={() => {
+                setScanMode("qr");
+                setIsScannerOpen(true);
+              }}
+            >
               <QrCode className="w-4 h-4 mr-2" /> Scan QR Code
             </Button>
-            <QRCodeScanner isOpen={isScannerOpen} onOpenChange={setIsScannerOpen} onCheckInSuccess={() => toast.success("Member checked in successfully")} />
+            <QRCodeScanner
+              isOpen={isScannerOpen}
+              onOpenChange={setIsScannerOpen}
+              onCheckInSuccess={() =>
+                toast.success("Member checked in successfully")
+              }
+            />
             <div className="relative">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100" /></div>
-              <div className="relative flex justify-center"><span className="px-3 bg-white text-xs font-semibold text-[#9CA3AF]">or enter code</span></div>
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-100" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="px-3 bg-white text-xs font-semibold text-[#9CA3AF]">
+                  or enter code
+                </span>
+              </div>
             </div>
             {scanMode !== "manual" && (
-              <button onClick={() => setIsMemberModalOpen(true)} className="w-full flex items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-gray-200 py-5 text-sm font-bold text-[#9CA3AF] hover:border-[#0D9488] hover:text-[#0D9488] hover:bg-[#0D9488]/5 transition-all group">
+              <button
+                onClick={() => setIsMemberModalOpen(true)}
+                className="w-full flex items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-gray-200 py-5 text-sm font-bold text-[#9CA3AF] hover:border-[#0D9488] hover:text-[#0D9488] hover:bg-[#0D9488]/5 transition-all group"
+              >
                 <div className="w-8 h-8 rounded-full bg-gray-100 group-hover:bg-[#0D9488]/10 flex items-center justify-center transition-colors">
                   <UserSearch className="w-4 h-4" />
                 </div>
@@ -432,26 +691,53 @@ export default function OrganizationCheckInPage() {
                   <div className="flex items-center justify-between bg-[#0D9488]/5 border border-[#0D9488]/15 rounded-lg px-3 py-2.5">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full bg-[#0D9488]/20 flex items-center justify-center text-[#0D9488] text-xs font-bold">
-                        {currentMemberName.split(" ").map((n) => n[0]).join("").toUpperCase()}
+                        {currentMemberName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()}
                       </div>
-                      <p className="text-sm font-semibold text-[#0D9488]">{currentMemberName}</p>
+                      <p className="text-sm font-semibold text-[#0D9488]">
+                        {currentMemberName}
+                      </p>
                     </div>
-                    <button onClick={cancelManual} className="text-[#9CA3AF] hover:text-[#1F2937] transition-colors"><X size={14} /></button>
+                    <button
+                      onClick={cancelManual}
+                      className="text-[#9CA3AF] hover:text-[#1F2937] transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
                   </div>
                 )}
                 <div>
-                  <label className="block text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1.5">Check-In Code</label>
+                  <label className="block text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-1.5">
+                    Check-In Code
+                  </label>
                   <input
-                    type="text" value={manualCode} onChange={(e) => setManualCode(e.target.value)}
+                    type="text"
+                    value={manualCode}
+                    onChange={(e) => setManualCode(e.target.value)}
                     onKeyUp={(e) => e.key === "Enter" && handleManualCheckIn()}
-                    placeholder="Enter 6-digit code" maxLength={9}
+                    placeholder="Enter 6-digit code"
+                    maxLength={9}
                     className="w-full text-center rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2.5 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488] focus:border-transparent transition-all tracking-widest font-bold"
                   />
                 </div>
-                <Button type="button" variant="secondary" className="w-full" disabled={!manualCode.trim() || isChecking} onClick={handleManualCheckIn}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="w-full"
+                  disabled={!manualCode.trim() || isChecking}
+                  onClick={handleManualCheckIn}
+                >
                   {isChecking ? "Checking in..." : "Check In Member"}
                 </Button>
-                <button onClick={cancelManual} className="w-full text-xs font-semibold text-[#9CA3AF] hover:text-[#1F2937] transition-colors">Cancel</button>
+                <button
+                  onClick={cancelManual}
+                  className="w-full text-xs font-semibold text-[#9CA3AF] hover:text-[#1F2937] transition-colors"
+                >
+                  Cancel
+                </button>
               </div>
             )}
           </div>
@@ -462,29 +748,72 @@ export default function OrganizationCheckInPage() {
               <Clock className="w-4 h-4 text-[#0D9488]" /> Recent Check-Ins
             </h2>
             <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] pointer-events-none" size={14} />
-              <input type="text" value={recentSearchQuery} onChange={(e) => setRecentSearchQuery(e.target.value)} placeholder="Search members…"
-                className="w-full rounded-lg border border-gray-200 bg-[#F9FAFB] pl-8 pr-8 py-2 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/20 focus:border-[#0D9488] transition-all" />
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] pointer-events-none"
+                size={14}
+              />
+              <input
+                type="text"
+                value={recentSearchQuery}
+                onChange={(e) => setRecentSearchQuery(e.target.value)}
+                placeholder="Search members…"
+                className="w-full rounded-lg border border-gray-200 bg-[#F9FAFB] pl-8 pr-8 py-2 text-sm text-[#1F2937] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/20 focus:border-[#0D9488] transition-all"
+              />
               {recentSearchQuery && (
-                <button onClick={() => setRecentSearchQuery("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#1F2937] transition-colors"><X size={13} /></button>
+                <button
+                  onClick={() => setRecentSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#1F2937] transition-colors"
+                >
+                  <X size={13} />
+                </button>
               )}
             </div>
             {filteredRecentCheckIns && filteredRecentCheckIns.length > 0 ? (
               <div className="space-y-3 max-h-[520px] overflow-y-auto">
                 {filteredRecentCheckIns.map((checkIn) => {
                   const fullName = `${checkIn.user.first_name} ${checkIn.user.last_name}`;
-                  const initials = fullName.split(" ").map((n) => n[0]).join("").toUpperCase();
+                  const initials = fullName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase();
                   const latest = getLatestCheckIn(checkIn.checked_in_at);
                   return (
-                    <div key={checkIn.id} className="bg-[#F9FAFB] border border-gray-100 rounded-lg p-3 space-y-2.5">
+                    <div
+                      key={checkIn.id}
+                      className="bg-[#F9FAFB] border border-gray-100 rounded-lg p-3 space-y-2.5"
+                    >
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-[#0D9488]/10 flex items-center justify-center text-[#0D9488] text-xs font-bold flex-shrink-0">{initials}</div>
+                        <div className="w-9 h-9 rounded-full bg-[#0D9488]/10 flex items-center justify-center text-[#0D9488] text-xs font-bold flex-shrink-0 overflow-hidden relative">
+                          {" "}
+                          {checkIn.user?.avatar_url ? (
+                            <Image
+                              src={checkIn.user.avatar_url}
+                              alt={fullName}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            initials
+                          )}
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-[#1F2937] truncate">{fullName}</p>
-                          <p className="text-xs text-[#9CA3AF] flex items-center gap-1 mt-0.5"><Clock className="w-3 h-3" />{formatTimeAgo(latest)}</p>
+                          <p className="text-sm font-semibold text-[#1F2937] truncate">
+                            {fullName}
+                          </p>
+                          <p className="text-xs text-[#9CA3AF] flex items-center gap-1 mt-0.5">
+                            <Clock className="w-3 h-3" />
+                            {formatTimeAgo(latest)}
+                          </p>
                         </div>
                       </div>
-                      <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => handleMemberSelect(checkIn.id, fullName)}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => handleMemberSelect(checkIn.id, fullName)}
+                      >
                         <Hash className="w-3.5 h-3.5 mr-1.5" /> Enter Code
                       </Button>
                     </div>
@@ -494,10 +823,20 @@ export default function OrganizationCheckInPage() {
             ) : (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <div className="w-12 h-12 bg-[#0D9488]/10 rounded-full flex items-center justify-center mb-3">
-                  {recentSearchQuery ? <Search className="w-5 h-5 text-[#0D9488]" /> : <Users className="w-6 h-6 text-[#0D9488]" />}
+                  {recentSearchQuery ? (
+                    <Search className="w-5 h-5 text-[#0D9488]" />
+                  ) : (
+                    <Users className="w-6 h-6 text-[#0D9488]" />
+                  )}
                 </div>
-                <p className="text-sm font-bold text-[#1F2937] mb-0.5">{recentSearchQuery ? "No results found" : "No check-ins yet"}</p>
-                <p className="text-xs text-[#9CA3AF]">{recentSearchQuery ? `No members match "${recentSearchQuery}"` : "Check-ins will appear here"}</p>
+                <p className="text-sm font-bold text-[#1F2937] mb-0.5">
+                  {recentSearchQuery ? "No results found" : "No check-ins yet"}
+                </p>
+                <p className="text-xs text-[#9CA3AF]">
+                  {recentSearchQuery
+                    ? `No members match "${recentSearchQuery}"`
+                    : "Check-ins will appear here"}
+                </p>
               </div>
             )}
           </div>
@@ -505,7 +844,6 @@ export default function OrganizationCheckInPage() {
       ) : (
         // ── LEADERBOARD TAB (restyled to match member leaderboard) ───────
         <div className="space-y-5">
-
           {/* Stats row — matches member leaderboard card style with icons */}
           <motion.div
             variants={fadeUp}
@@ -519,9 +857,24 @@ export default function OrganizationCheckInPage() {
             }}
           >
             {[
-              { label: "Total Check-Ins", value: totalCheckIns, icon: <TrendingUp size={16} />, accent: true },
-              { label: "This Month", value: monthTotal, icon: <Calendar size={16} />, accent: false },
-              { label: "Locked In", value: qualifyingCount, icon: <Trophy size={16} />, accent: false },
+              {
+                label: "Total Check-Ins",
+                value: totalCheckIns,
+                icon: <TrendingUp size={16} />,
+                accent: true,
+              },
+              {
+                label: "This Month",
+                value: monthTotal,
+                icon: <Calendar size={16} />,
+                accent: false,
+              },
+              {
+                label: "Locked In",
+                value: qualifyingCount,
+                icon: <Trophy size={16} />,
+                accent: false,
+              },
             ].map(({ label, value, icon, accent }) => (
               <div
                 key={label}
@@ -533,7 +886,9 @@ export default function OrganizationCheckInPage() {
                   display: "flex",
                   alignItems: "center",
                   gap: 12,
-                  boxShadow: accent ? "0 6px 24px rgba(13,148,136,0.2)" : "none",
+                  boxShadow: accent
+                    ? "0 6px 24px rgba(13,148,136,0.2)"
+                    : "none",
                 }}
               >
                 <div
@@ -541,7 +896,9 @@ export default function OrganizationCheckInPage() {
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                    background: accent ? "rgba(255,255,255,0.2)" : "rgba(13,148,136,0.08)",
+                    background: accent
+                      ? "rgba(255,255,255,0.2)"
+                      : "rgba(13,148,136,0.08)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -552,8 +909,28 @@ export default function OrganizationCheckInPage() {
                   {icon}
                 </div>
                 <div>
-                  <p style={{ fontWeight: 400, fontSize: 11, color: accent ? "rgba(255,255,255,0.7)" : C.coolGrey, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 2 }}>{label}</p>
-                  <p style={{ fontWeight: 800, fontSize: 22, color: accent ? "white" : C.ink, letterSpacing: "-0.3px" }}>{value}</p>
+                  <p
+                    style={{
+                      fontWeight: 400,
+                      fontSize: 11,
+                      color: accent ? "rgba(255,255,255,0.7)" : C.coolGrey,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px",
+                      marginBottom: 2,
+                    }}
+                  >
+                    {label}
+                  </p>
+                  <p
+                    style={{
+                      fontWeight: 800,
+                      fontSize: 22,
+                      color: accent ? "white" : C.ink,
+                      letterSpacing: "-0.3px",
+                    }}
+                  >
+                    {value}
+                  </p>
                 </div>
               </div>
             ))}
@@ -575,14 +952,51 @@ export default function OrganizationCheckInPage() {
                 position: "relative",
               }}
             >
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #F59E0B, #0D9488, #F06543)", backgroundSize: "200% auto", animation: "shimmer 3s linear infinite" }} />
-              <p style={{ fontWeight: 700, fontSize: 12, color: C.coolGrey, textTransform: "uppercase", letterSpacing: "1px", textAlign: "center", marginBottom: 24 }}>
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 3,
+                  background:
+                    "linear-gradient(90deg, #F59E0B, #0D9488, #F06543)",
+                  backgroundSize: "200% auto",
+                  animation: "shimmer 3s linear infinite",
+                }}
+              />
+              <p
+                style={{
+                  fontWeight: 700,
+                  fontSize: 12,
+                  color: C.coolGrey,
+                  textTransform: "uppercase",
+                  letterSpacing: "1px",
+                  textAlign: "center",
+                  marginBottom: 24,
+                }}
+              >
                 🏆 Top Performers
               </p>
-              <div style={{ display: "flex", alignItems: "flex-end", gap: 8, maxWidth: 400, margin: "0 auto" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  gap: 8,
+                  maxWidth: 400,
+                  margin: "0 auto",
+                }}
+              >
                 {podiumOrder.map((m) => {
                   const rank = qualifyingRanked.indexOf(m) + 1;
-                  return <PodiumCard key={m.id} member={m} rank={rank as 1 | 2 | 3} period={period} />;
+                  return (
+                    <PodiumCard
+                      key={m.id}
+                      member={m}
+                      rank={rank as 1 | 2 | 3}
+                      period={period}
+                    />
+                  );
                 })}
               </div>
             </motion.div>
@@ -632,7 +1046,9 @@ export default function OrganizationCheckInPage() {
                   paddingBottom: 9,
                   borderRadius: 8,
                   border: `1px solid ${searchFocused ? C.teal : C.border}`,
-                  boxShadow: searchFocused ? "0 0 0 3px rgba(13,148,136,0.1)" : "none",
+                  boxShadow: searchFocused
+                    ? "0 0 0 3px rgba(13,148,136,0.1)"
+                    : "none",
                   fontFamily: "Nunito, sans-serif",
                   fontWeight: 400,
                   fontSize: 14,
@@ -690,7 +1106,8 @@ export default function OrganizationCheckInPage() {
                     cursor: "pointer",
                     background: period === val ? C.white : "transparent",
                     color: period === val ? C.ink : C.coolGrey,
-                    boxShadow: period === val ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+                    boxShadow:
+                      period === val ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
                     transition: "all 200ms",
                   }}
                 >
@@ -722,11 +1139,24 @@ export default function OrganizationCheckInPage() {
                 justifyContent: "space-between",
               }}
             >
-              <h2 style={{ fontWeight: 700, fontSize: 15, color: C.ink, display: "flex", alignItems: "center", gap: 6 }}>
+              <h2
+                style={{
+                  fontWeight: 700,
+                  fontSize: 15,
+                  color: C.ink,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
                 Full Rankings
                 <InfoTooltip />
               </h2>
-              <span style={{ fontWeight: 600, fontSize: 12, color: C.coolGrey }}>{filtered.length} members</span>
+              <span
+                style={{ fontWeight: 600, fontSize: 12, color: C.coolGrey }}
+              >
+                {filtered.length} members
+              </span>
             </div>
 
             {filtered.length > 0 ? (
@@ -734,12 +1164,27 @@ export default function OrganizationCheckInPage() {
                 {filtered.map((member, i) => {
                   const rank = ranked.indexOf(member) + 1;
                   const name = `${member.user.first_name} ${member.user.last_name}`;
-                  const initials = name.split(" ").map((n: string) => n[0]).join("").toUpperCase();
+                  const initials = name
+                    .split(" ")
+                    .map((n: string) => n[0])
+                    .join("")
+                    .toUpperCase();
                   const isTop3 = rank <= 3 && member.qualifies;
-                  const rankColor = rank === 1 ? C.gold : rank === 2 ? C.silver : rank === 3 ? C.bronze : C.teal;
-                  const barWidth = ranked[0]?.score > 0 ? (member.score / ranked[0].score) * 100 : 0;
+                  const rankColor =
+                    rank === 1
+                      ? C.gold
+                      : rank === 2
+                        ? C.silver
+                        : rank === 3
+                          ? C.bronze
+                          : C.teal;
+                  const barWidth =
+                    ranked[0]?.score > 0
+                      ? (member.score / ranked[0].score) * 100
+                      : 0;
                   const prevMember = filtered[i - 1];
-                  const showDivider = i > 0 && prevMember?.qualifies && !member.qualifies;
+                  const showDivider =
+                    i > 0 && prevMember?.qualifies && !member.qualifies;
 
                   return (
                     <div key={member.id}>
@@ -755,24 +1200,56 @@ export default function OrganizationCheckInPage() {
                             gap: 10,
                           }}
                         >
-                          <div style={{ flex: 1, height: 1, background: "rgba(240,101,67,0.2)" }} />
-                          <span style={{ fontWeight: 700, fontSize: 11, color: C.coral, textTransform: "uppercase", letterSpacing: "0.8px", whiteSpace: "nowrap" }}>
+                          <div
+                            style={{
+                              flex: 1,
+                              height: 1,
+                              background: "rgba(240,101,67,0.2)",
+                            }}
+                          />
+                          <span
+                            style={{
+                              fontWeight: 700,
+                              fontSize: 11,
+                              color: C.coral,
+                              textTransform: "uppercase",
+                              letterSpacing: "0.8px",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
                             Below {MONTHLY_THRESHOLD} check-ins — not qualifying
                           </span>
-                          <div style={{ flex: 1, height: 1, background: "rgba(240,101,67,0.2)" }} />
+                          <div
+                            style={{
+                              flex: 1,
+                              height: 1,
+                              background: "rgba(240,101,67,0.2)",
+                            }}
+                          />
                         </div>
                       )}
                       <motion.div
                         initial={{ opacity: 0, x: -8 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.03, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                        transition={{
+                          delay: i * 0.03,
+                          duration: 0.35,
+                          ease: [0.16, 1, 0.3, 1],
+                        }}
                         style={{
                           display: "flex",
                           alignItems: "center",
                           gap: 14,
                           padding: "14px 24px",
-                          background: !member.qualifies ? "transparent" : isTop3 ? `${rankColor}08` : "transparent",
-                          borderBottom: i < filtered.length - 1 ? `1px solid ${C.border}` : "none",
+                          background: !member.qualifies
+                            ? "transparent"
+                            : isTop3
+                              ? `${rankColor}08`
+                              : "transparent",
+                          borderBottom:
+                            i < filtered.length - 1
+                              ? `1px solid ${C.border}`
+                              : "none",
                           transition: "background 200ms, opacity 200ms",
                           opacity: member.qualifies ? 1 : 0.45,
                         }}
@@ -781,8 +1258,14 @@ export default function OrganizationCheckInPage() {
                           e.currentTarget.style.opacity = "1";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = !member.qualifies ? "transparent" : isTop3 ? `${rankColor}08` : "transparent";
-                          e.currentTarget.style.opacity = member.qualifies ? "1" : "0.45";
+                          e.currentTarget.style.background = !member.qualifies
+                            ? "transparent"
+                            : isTop3
+                              ? `${rankColor}08`
+                              : "transparent";
+                          e.currentTarget.style.opacity = member.qualifies
+                            ? "1"
+                            : "0.45";
                         }}
                       >
                         <RankBadge rank={rank} qualifies={member.qualifies} />
@@ -792,30 +1275,84 @@ export default function OrganizationCheckInPage() {
                             width: 40,
                             height: 40,
                             borderRadius: "50%",
-                            background: !member.qualifies ? C.snow : isTop3 ? `linear-gradient(135deg, ${rankColor}, ${rankColor}BB)` : "rgba(13,148,136,0.1)",
-                            border: !member.qualifies ? `1px solid ${C.border}` : "none",
+                            background: !member.qualifies
+                              ? C.snow
+                              : isTop3
+                                ? `linear-gradient(135deg, ${rankColor}, ${rankColor}BB)`
+                                : "rgba(13,148,136,0.1)",
+                            border: !member.qualifies
+                              ? `1px solid ${C.border}`
+                              : "none",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             fontWeight: 700,
                             fontSize: 14,
-                            color: !member.qualifies ? C.coolGrey : isTop3 ? C.white : C.teal,
+                            color: !member.qualifies
+                              ? C.coolGrey
+                              : isTop3
+                                ? C.white
+                                : C.teal,
                             flexShrink: 0,
-                            boxShadow: isTop3 && member.qualifies ? `0 4px 12px ${rankColor}40` : "none",
+                            boxShadow:
+                              isTop3 && member.qualifies
+                                ? `0 4px 12px ${rankColor}40`
+                                : "none",
+                            overflow: "hidden",
+                            position: "relative",
                           }}
                         >
-                          {initials}
+                          {member.user?.avatar_url ? (
+                            <Image
+                              src={member.user.avatar_url}
+                              alt={initials}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            initials
+                          )}
                         </div>
 
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
-                            <p style={{ fontWeight: 700, fontSize: 14, color: member.qualifies ? C.ink : C.coolGrey, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, marginLeft: 8 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              marginBottom: 5,
+                            }}
+                          >
+                            <p
+                              style={{
+                                fontWeight: 700,
+                                fontSize: 14,
+                                color: member.qualifies ? C.ink : C.coolGrey,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {name}
+                            </p>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                                flexShrink: 0,
+                                marginLeft: 8,
+                              }}
+                            >
                               <span
                                 style={{
                                   fontWeight: 800,
                                   fontSize: 18,
-                                  color: !member.qualifies ? C.coolGrey : isTop3 ? rankColor : C.ink,
+                                  color: !member.qualifies
+                                    ? C.coolGrey
+                                    : isTop3
+                                      ? rankColor
+                                      : C.ink,
                                   letterSpacing: "-0.3px",
                                 }}
                               >
@@ -823,15 +1360,30 @@ export default function OrganizationCheckInPage() {
                               </span>
                             </div>
                           </div>
-                          <div style={{ height: 4, borderRadius: 999, background: C.snow, overflow: "hidden" }}>
+                          <div
+                            style={{
+                              height: 4,
+                              borderRadius: 999,
+                              background: C.snow,
+                              overflow: "hidden",
+                            }}
+                          >
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${barWidth}%` }}
-                              transition={{ duration: 0.8, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
+                              transition={{
+                                duration: 0.8,
+                                delay: i * 0.04,
+                                ease: [0.16, 1, 0.3, 1],
+                              }}
                               style={{
                                 height: "100%",
                                 borderRadius: 999,
-                                background: !member.qualifies ? C.border : isTop3 ? `linear-gradient(90deg, ${rankColor}, ${rankColor}99)` : `linear-gradient(90deg, ${C.teal}, ${C.teal}88)`,
+                                background: !member.qualifies
+                                  ? C.border
+                                  : isTop3
+                                    ? `linear-gradient(90deg, ${rankColor}, ${rankColor}99)`
+                                    : `linear-gradient(90deg, ${C.teal}, ${C.teal}88)`,
                               }}
                             />
                           </div>
@@ -843,11 +1395,35 @@ export default function OrganizationCheckInPage() {
               </div>
             ) : (
               <div style={{ padding: "56px 24px", textAlign: "center" }}>
-                <div style={{ width: 56, height: 56, borderRadius: 14, background: C.snow, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", color: C.coolGrey }}>
+                <div
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 14,
+                    background: C.snow,
+                    border: `1px solid ${C.border}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 14px",
+                    color: C.coolGrey,
+                  }}
+                >
                   <Trophy size={24} />
                 </div>
-                <p style={{ fontWeight: 700, fontSize: 15, color: C.ink, marginBottom: 4 }}>No members found</p>
-                <p style={{ fontWeight: 400, fontSize: 13, color: C.coolGrey }}>Try adjusting your search</p>
+                <p
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 15,
+                    color: C.ink,
+                    marginBottom: 4,
+                  }}
+                >
+                  No members found
+                </p>
+                <p style={{ fontWeight: 400, fontSize: 13, color: C.coolGrey }}>
+                  Try adjusting your search
+                </p>
               </div>
             )}
           </motion.div>

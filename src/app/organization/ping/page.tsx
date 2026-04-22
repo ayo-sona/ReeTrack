@@ -9,35 +9,23 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import Image from "next/image";
 import { membersApi } from "@/lib/organizationAPI/membersApi";
 import { useQuery } from "@tanstack/react-query";
 import { Member } from "@/types/organization";
-// import {
-//   useNotificationHistory,
-//   useSendNotification,
-// } from "@/hooks/useNotifications";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
 import apiClient from "@/lib/apiClient";
-
-interface SendNotificationDto {
-  to: string[];
-  subject: string;
-  context: {
-    content: string;
-    additionalNotes?: string;
-  };
-}
 
 interface TransformedMember {
   id: string;
   name: string;
   email: string;
   phone: string;
+  avatarUrl: string | null; // ✅ added
 }
 
-const now = Date.now();
 const PAGE_SIZE = 6;
 
 export default function PingsPage() {
@@ -58,16 +46,14 @@ export default function PingsPage() {
 
   const members = useMemo(() => {
     if (!rawMembers?.data) return [];
-
     return rawMembers.data.map((member: Member): TransformedMember => {
       const user = member.user;
-      const fullName = `${user.first_name} ${user.last_name}`.trim();
-
       return {
         id: member.id,
-        name: fullName,
+        name: `${user.first_name} ${user.last_name}`.trim(),
         email: user.email,
         phone: user.phone,
+        avatarUrl: user.avatar_url ?? null, // ✅ added
       };
     });
   }, [rawMembers]);
@@ -79,10 +65,6 @@ export default function PingsPage() {
         m.email.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [members, searchQuery]);
-  // const expiringCount = members.filter(
-  //   (m) => m.status === "expiring_soon",
-  // ).length;
-  // const expiredCount = members.filter((m) => m.status === "expired").length;
 
   const handleSelectMember = (id: string) =>
     setSelectedMembers((prev) =>
@@ -104,10 +86,7 @@ export default function PingsPage() {
   }) => {
     try {
       const selectedMemberEmails = selectedMembers
-        .map((id) => {
-          const member = members.find((m) => m.id === id);
-          return member?.email || "";
-        })
+        .map((id) => members.find((m) => m.id === id)?.email || "")
         .filter((email) => email !== "");
 
       if (selectedMemberEmails.length === 0) {
@@ -119,16 +98,10 @@ export default function PingsPage() {
       const response = await apiClient.post("notifications/email/custom", {
         to: selectedMemberEmails,
         subject: data.subject || "Notification from ReeTrack",
-        context: {
-          content: data.message,
-        },
+        context: { content: data.message },
       });
-      console.log("response", response);
 
       if (response.data.statusCode === 201) {
-        // toast.success(
-        //   `Notification sent to ${selectedMemberEmails.length} member${selectedMemberEmails.length !== 1 ? "s" : ""}`,
-        // );
         toast.success(
           `Notification sent to ${response.data.data.results.success} member${selectedMemberEmails.length !== 1 ? "s" : ""}`,
         );
@@ -137,7 +110,6 @@ export default function PingsPage() {
       setShowSendModal(false);
       setSelectedMembers([]);
     } catch (error: any) {
-      console.error("Failed to send notification:", error);
       const { data } = error.response;
       toast.error(
         data.message || "Failed to send notification. Please try again.",
@@ -147,22 +119,6 @@ export default function PingsPage() {
     }
   };
 
-  // const formatDate = (d: string) =>
-  //   new Date(d).toLocaleDateString("en-NG", {
-  //     year: "numeric",
-  //     month: "short",
-  //     day: "numeric",
-  //   });
-
-  // const formatTimestamp = (d: string) =>
-  //   new Date(d).toLocaleString("en-NG", {
-  //     month: "short",
-  //     day: "numeric",
-  //     hour: "2-digit",
-  //     minute: "2-digit",
-  //   });
-
-  // ── Loading ──────────────────────────────────────────────────────────────
   if (isLoadingMembers) {
     return (
       <div className="flex items-center justify-center min-h-[50vh] font-[Nunito,sans-serif]">
@@ -174,7 +130,6 @@ export default function PingsPage() {
     );
   }
 
-  // ── Error ────────────────────────────────────────────────────────────────
   if (membersError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 text-center font-[Nunito,sans-serif]">
@@ -201,7 +156,7 @@ export default function PingsPage() {
   return (
     <div className="font-[Nunito,sans-serif] bg-[#F9FAFB] min-h-screen">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-        {/* ── Page Header ──────────────────────────────────────────────────── */}
+        {/* Page Header */}
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-semibold tracking-widest uppercase text-[#0D9488] mb-1">
@@ -224,76 +179,10 @@ export default function PingsPage() {
           </div>
         </div>
 
-        {/* ── Recent Notifications ─────────────────────────────────────────── */}
-        {/* <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-5 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-[#0D9488] uppercase tracking-wide">
-              Recent Notifications
-            </h2>
-            {isLoadingPings && (
-              <Loader2 className="w-4 h-4 animate-spin text-[#9CA3AF]" />
-            )}
-          </div> */}
-
-        {/* {sentPings.length > 0 ? ( */}
-        {/* <div className="divide-y divide-gray-50"> */}
-        {/* {sentPings.map((ping) => ( */}
-        {/* <div
-                  key={ping.id}
-                  className="px-5 sm:px-6 py-4 hover:bg-[#F9FAFB] transition-colors"
-                >
-                  <p className="text-sm text-[#1F2937] mb-2 line-clamp-2 leading-relaxed">
-                    {ping.message}
-                  </p> */}
-        {/* Meta row — wraps on mobile */}
-        {/* <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#9CA3AF]">
-                    <span className="flex items-center gap-1">
-                      <Send className="w-3 h-3" />
-                      {ping.sent_to} member{ping.sent_to !== 1 ? "s" : ""}
-                    </span>
-                    <span>·</span>
-                    <span className="capitalize">{ping.channel}</span>
-                    <span>·</span>
-                    <span>{formatTimestamp(ping.sent_at)}</span>
-                    {ping.status && (
-                      <>
-                        <span>·</span>
-                        <span
-                          className={clsx(
-                            "font-semibold capitalize",
-                            ping.status === "sent"
-                              ? "text-emerald-600"
-                              : ping.status === "failed"
-                                ? "text-red-500"
-                                : "text-amber-500",
-                          )}
-                        >
-                          {ping.status}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              ))} */}
-        {/* </div> */}
-        {/* ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-              <Send className="w-8 h-8 text-gray-200 mb-3" />
-              <p className="text-sm font-bold text-[#1F2937] mb-0.5">
-                No notifications sent yet
-              </p>
-              <p className="text-xs text-[#9CA3AF]">
-                Select members below and send your first notification
-              </p>
-            </div>
-          )}
-        </div> */}
-
-        {/* ── Member Selection ─────────────────────────────────────────────── */}
+        {/* Member Selection */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           {/* Toolbar */}
           <div className="px-5 sm:px-6 py-4 border-b border-gray-100 space-y-4">
-            {/* Title + Send button */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-sm font-bold text-[#0D9488] uppercase tracking-wide">
                 Select Members
@@ -311,7 +200,6 @@ export default function PingsPage() {
               </Button>
             </div>
 
-            {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF]" />
               <input
@@ -323,39 +211,21 @@ export default function PingsPage() {
               />
             </div>
 
-            {/* Select all + status badges */}
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <button
-                onClick={handleSelectAll}
-                className="flex items-center gap-1.5 text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors self-start"
-              >
-                {allFilteredSelected ? (
-                  <>
-                    <CheckSquare className="w-4 h-4" /> Deselect all
-                  </>
-                ) : (
-                  <>
-                    <Square className="w-4 h-4" /> Select all (
-                    {filteredMembers.length})
-                  </>
-                )}
-              </button>
-
-              {/* {(expiringCount > 0 || expiredCount > 0) && (
-                <div className="flex flex-wrap items-center gap-2">
-                  {expiringCount > 0 && (
-                    <span className="text-xs font-semibold px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-100 rounded-full">
-                      {expiringCount} expiring soon
-                    </span>
-                  )}
-                  {expiredCount > 0 && (
-                    <span className="text-xs font-semibold px-2.5 py-1 bg-red-50 text-red-600 border border-red-100 rounded-full">
-                      {expiredCount} expired
-                    </span>
-                  )}
-                </div>
-              )} */}
-            </div>
+            <button
+              onClick={handleSelectAll}
+              className="flex items-center gap-1.5 text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors self-start"
+            >
+              {allFilteredSelected ? (
+                <>
+                  <CheckSquare className="w-4 h-4" /> Deselect all
+                </>
+              ) : (
+                <>
+                  <Square className="w-4 h-4" /> Select all (
+                  {filteredMembers.length})
+                </>
+              )}
+            </button>
           </div>
 
           {/* Member list */}
@@ -363,11 +233,18 @@ export default function PingsPage() {
             {filteredMembers.length > 0 ? (
               filteredMembers.map((member) => {
                 const isSelected = selectedMembers.includes(member.id);
+                const initials = member.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase()
+                  .slice(0, 2);
+
                 return (
                   <label
                     key={member.id}
                     className={clsx(
-                      "flex items-start gap-3 sm:gap-4 px-5 sm:px-6 py-4 cursor-pointer transition-colors",
+                      "flex items-center gap-3 sm:gap-4 px-5 sm:px-6 py-3.5 cursor-pointer transition-colors",
                       isSelected ? "bg-[#0D9488]/5" : "hover:bg-[#F9FAFB]",
                     )}
                   >
@@ -375,47 +252,32 @@ export default function PingsPage() {
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => handleSelectMember(member.id)}
-                      className="mt-0.5 w-4 h-4 rounded border-[#E5E7EB]/30 accent-[#0D9488] dark:accent-white focus:ring-[#0D9488]/30 flex-shrink-0"
+                      className="w-4 h-4 rounded border-[#E5E7EB]/30 accent-[#0D9488] dark:accent-white focus:ring-[#0D9488]/30 flex-shrink-0"
                     />
-                    {/* Member info */}
-                    <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-[#1F2937] truncate">
-                          {member.name}
-                        </p>
-                        <p className="text-xs text-[#9CA3AF] truncate">
-                          {member.email}
-                        </p>
-                        {/* <p className="text-xs text-[#9CA3AF] mt-0.5">
-                          {member.planName}
-                        </p> */}
-                      </div>
-                      {/* <div className="flex sm:flex-col sm:items-end gap-2 sm:gap-1 flex-wrap">
-                        <span
-                          className={clsx(
-                            "text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap",
-                            member.status === "active"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                              : member.status === "expiring_soon"
-                                ? "bg-amber-50 text-amber-700 border border-amber-100"
-                                : "bg-red-50 text-red-600 border border-red-100",
-                          )}
-                        >
-                          {member.status === "expiring_soon"
-                            ? `${member.daysUntilExpiry}d left`
-                            : member.status === "expired"
-                              ? `${Math.abs(member.daysUntilExpiry)}d overdue`
-                              : "Active"}
+
+                    {/* ✅ Avatar */}
+                    <div className="w-8 h-8 rounded-full bg-[#0D9488]/10 flex items-center justify-center flex-shrink-0 overflow-hidden relative">
+                      {member.avatarUrl ? (
+                        <Image
+                          src={member.avatarUrl}
+                          alt={member.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <span className="text-xs font-bold text-[#0D9488]">
+                          {initials}
                         </span>
-                        {member.subscriptionStatus !== "none" && (
-                          <p className="text-xs text-[#9CA3AF] whitespace-nowrap">
-                            {member.status === "expired"
-                              ? "Expired"
-                              : "Expires"}{" "}
-                            {formatDate(member.expiryDate)}
-                          </p>
-                        )}
-                      </div> */}
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-[#1F2937] truncate">
+                        {member.name}
+                      </p>
+                      <p className="text-xs text-[#9CA3AF] truncate">
+                        {member.email}
+                      </p>
                     </div>
                   </label>
                 );
@@ -435,7 +297,6 @@ export default function PingsPage() {
         </div>
       </div>
 
-      {/* ── Send Modal ──────────────────────────────────────────────────────── */}
       {showSendModal && (
         <SendModal
           selectedCount={selectedMembers.length}
@@ -448,7 +309,6 @@ export default function PingsPage() {
   );
 }
 
-// ── Send Modal ────────────────────────────────────────────────────────────────
 function SendModal({
   selectedCount,
   onClose,
@@ -470,10 +330,7 @@ function SendModal({
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (message.trim() && !isSending) {
-      await onSend({
-        message,
-        subject: subject.trim() || undefined,
-      });
+      await onSend({ message, subject: subject.trim() || undefined });
     }
   };
 
@@ -488,17 +345,14 @@ function SendModal({
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/20 backdrop-blur-sm px-0 sm:px-4"
       onClick={onClose}
     >
-      {/* Bottom sheet on mobile, centered modal on sm+ */}
       <div
         className="bg-white w-full sm:max-w-xl rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Drag handle — visible on mobile only */}
         <div className="flex justify-center pt-3 pb-1 sm:hidden">
           <div className="w-10 h-1 rounded-full bg-gray-200" />
         </div>
 
-        {/* Header */}
         <div className="px-5 sm:px-6 py-4 border-b border-gray-100 sticky top-0 bg-white">
           <h2 className="text-base sm:text-lg font-extrabold text-[#1F2937]">
             Send to {selectedCount} {selectedCount === 1 ? "member" : "members"}
@@ -509,7 +363,6 @@ function SendModal({
         </div>
 
         <form onSubmit={handleSubmit} className="px-5 sm:px-6 py-5 space-y-5">
-          {/* Subject */}
           <div>
             <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2">
               Subject (Optional)
@@ -520,11 +373,10 @@ function SendModal({
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Enter subject..."
               disabled={isSending}
-              className="w-full px-4 py-3 text-sm border border-[#E5E7EB] rounded-lg bg-[#F9FAFB] text-[#1F2937] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] resize-none transition disabled:opacity-50"
+              className="w-full px-4 py-3 text-sm border border-[#E5E7EB] rounded-lg bg-[#F9FAFB] text-[#1F2937] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] transition disabled:opacity-50"
             />
           </div>
 
-          {/* Message textarea */}
           <div>
             <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2">
               Your Message
@@ -538,14 +390,11 @@ function SendModal({
               required
               className="w-full px-4 py-3 text-sm border border-[#E5E7EB] rounded-lg bg-[#F9FAFB] text-[#1F2937] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30 focus:border-[#0D9488] resize-none transition disabled:opacity-50"
             />
-            <div className="flex items-center justify-between mt-1.5">
-              <p className="text-xs text-[#9CA3AF]">
-                {message.length} characters
-              </p>
-            </div>
+            <p className="text-xs text-[#9CA3AF] mt-1.5">
+              {message.length} characters
+            </p>
           </div>
 
-          {/* Templates */}
           <div>
             <p className="text-xs font-bold text-[#9CA3AF] uppercase tracking-wide mb-2">
               Quick Templates
@@ -559,7 +408,6 @@ function SendModal({
                   onClick={() => {
                     setMessage(t);
                     setSubject("Notification from ReeTrack");
-                    // setAdditionalNotes("");
                   }}
                   className={clsx(
                     "w-full text-left px-4 py-3 text-sm rounded-lg border transition-colors leading-relaxed",
@@ -574,7 +422,6 @@ function SendModal({
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex gap-3 pt-2 border-t border-gray-100">
             <Button
               type="button"

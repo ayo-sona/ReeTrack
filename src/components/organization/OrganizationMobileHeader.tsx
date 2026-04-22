@@ -29,6 +29,13 @@ interface User {
   first_name: string;
   last_name: string;
   email: string;
+  avatarUrl: string | null;
+}
+
+interface CurrentOrg {
+  id: string;
+  name: string;
+  logoUrl: string | null;
 }
 
 export function OrganizationMobileHeader({
@@ -36,6 +43,7 @@ export function OrganizationMobileHeader({
 }: OrganizationMobileHeaderProps) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [currentOrg, setCurrentOrg] = useState<CurrentOrg | null>(null);
   const [loading, setLoading] = useState(false);
 
   const adminOnly = isAdmin();
@@ -47,8 +55,13 @@ export function OrganizationMobileHeader({
         const parsed = JSON.parse(userData);
         setUser(parsed.user);
       }
+
+      const orgData = localStorage.getItem("currentOrg");
+      if (orgData) {
+        setCurrentOrg(JSON.parse(orgData));
+      }
     } catch (error) {
-      console.error("Error loading user data:", error);
+      console.error("Error loading user/org data:", error);
     }
   }, []);
 
@@ -61,9 +74,7 @@ export function OrganizationMobileHeader({
       console.error("Logout failed:", error);
       toast.error("Logout failed");
     } finally {
-      if (typeof window !== "undefined") {
-        localStorage.clear();
-      }
+      if (typeof window !== "undefined") localStorage.clear();
       deleteCookie("current_role");
       deleteCookie("user_roles");
       setLoading(false);
@@ -123,6 +134,9 @@ export function OrganizationMobileHeader({
         firstName: user.first_name || "",
         lastName: user.last_name || "",
         email: user.email || "",
+        avatarUrl: user.avatarUrl ?? null,
+        orgLogoUrl: currentOrg?.logoUrl ?? null,
+        orgName: currentOrg?.name ?? "",
       }
     : undefined;
 

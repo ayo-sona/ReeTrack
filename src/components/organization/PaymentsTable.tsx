@@ -1,7 +1,15 @@
 "use client";
 
 import { Payment } from "../../types/organization";
-import { CreditCard, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import {
+  CreditCard,
+  CheckCircle,
+  XCircle,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import clsx from "clsx";
 
 interface PaymentsTableProps {
@@ -11,6 +19,24 @@ interface PaymentsTableProps {
   totalCount: number;
   pageSize: number;
   onPageChange: (page: number) => void;
+}
+
+function PayerAvatar({
+  avatarUrl,
+  initials,
+}: {
+  avatarUrl?: string | null;
+  initials: string;
+}) {
+  return (
+    <div className="w-8 h-8 rounded-full bg-[#0D9488]/10 flex items-center justify-center text-[#0D9488] text-xs font-bold flex-shrink-0 overflow-hidden relative">
+      {avatarUrl ? (
+        <Image src={avatarUrl} alt={initials} fill className="object-cover" />
+      ) : (
+        initials
+      )}
+    </div>
+  );
 }
 
 export function PaymentsTable({
@@ -46,25 +72,21 @@ export function PaymentsTable({
         return {
           icon: <CheckCircle className="w-3 h-3" />,
           className: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-          dot: "bg-emerald-500",
         };
       case "pending":
         return {
           icon: <Clock className="w-3 h-3" />,
           className: "bg-amber-50 text-amber-700 border border-amber-200",
-          dot: "bg-amber-400",
         };
       case "failed":
         return {
           icon: <XCircle className="w-3 h-3" />,
           className: "bg-red-50 text-red-600 border border-red-200",
-          dot: "bg-red-500",
         };
       default:
         return {
           icon: null,
           className: "bg-gray-100 text-[#9CA3AF] border border-gray-200",
-          dot: "bg-gray-400",
         };
     }
   };
@@ -81,7 +103,6 @@ export function PaymentsTable({
     }),
   });
 
-  // Smart page range: always show first, last, current ±1, with ellipsis
   const pageItems = Array.from({ length: totalPages }, (_, i) => i + 1)
     .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
     .reduce<(number | "…")[]>((acc, p, idx, arr) => {
@@ -95,7 +116,7 @@ export function PaymentsTable({
       className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
       style={{ fontFamily: "Nunito, sans-serif" }}
     >
-      {/* ── Desktop table ─────────────────────────────────────────────────── */}
+      {/* Desktop table */}
       <div className="hidden lg:block overflow-x-auto">
         <table className="w-full">
           <thead>
@@ -112,7 +133,6 @@ export function PaymentsTable({
               )}
             </tr>
           </thead>
-
           <tbody>
             {payments.map((payment, idx) => {
               const status = getStatusConfig(payment.status);
@@ -134,16 +154,14 @@ export function PaymentsTable({
                     idx !== payments.length - 1 && "border-b border-gray-50",
                   )}
                 >
-                  {/* Member */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#0D9488]/10 flex items-center justify-center text-[#0D9488] text-xs font-bold flex-shrink-0">
-                        {initials}
-                      </div>
+                      <PayerAvatar
+                        avatarUrl={payment.payer_user?.avatar_url}
+                        initials={initials}
+                      />
                       <div className="min-w-0">
-                        <div
-                          className="text-sm font-semibold text-[#1F2937] transition-colors truncate block"
-                        >
+                        <div className="text-sm font-semibold text-[#1F2937] truncate">
                           {memberName}
                         </div>
                         <p className="text-xs text-[#9CA3AF] truncate">
@@ -152,22 +170,16 @@ export function PaymentsTable({
                       </div>
                     </div>
                   </td>
-
-                  {/* Amount */}
                   <td className="px-6 py-4">
                     <span className="text-sm font-bold text-[#1F2937]">
                       ₦{payment.amount.toLocaleString()}
                     </span>
                   </td>
-
-                  {/* Plan */}
                   <td className="px-6 py-4">
                     <span className="text-sm text-[#4B5563]">
                       {payment.plan_name || "—"}
                     </span>
                   </td>
-
-                  {/* Status */}
                   <td className="px-6 py-4">
                     <span
                       className={clsx(
@@ -179,14 +191,10 @@ export function PaymentsTable({
                       {payment.status}
                     </span>
                   </td>
-
-                  {/* Date */}
                   <td className="px-6 py-4">
                     <p className="text-sm text-[#1F2937] font-medium">{date}</p>
                     <p className="text-xs text-[#9CA3AF]">{time}</p>
                   </td>
-
-                  {/* Reference */}
                   <td className="px-6 py-4">
                     <code className="inline-block px-2.5 py-1 rounded-lg bg-[#F3F4F6] text-[#4B5563] text-xs font-mono tracking-tight max-w-[140px] truncate">
                       {payment.provider_reference}
@@ -199,7 +207,7 @@ export function PaymentsTable({
         </table>
       </div>
 
-      {/* ── Mobile cards ──────────────────────────────────────────────────── */}
+      {/* Mobile cards */}
       <div className="lg:hidden divide-y divide-gray-50">
         {payments.map((payment) => {
           const status = getStatusConfig(payment.status);
@@ -217,13 +225,12 @@ export function PaymentsTable({
             <div key={payment.id} className="p-4 space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-[#0D9488]/10 flex items-center justify-center text-[#0D9488] text-xs font-bold flex-shrink-0">
-                    {initials}
-                  </div>
+                  <PayerAvatar
+                    avatarUrl={payment.payer_user?.avatar_url}
+                    initials={initials}
+                  />
                   <div className="min-w-0">
-                    <div
-                      className="text-sm font-semibold text-[#1F2937] transition-colors truncate block"
-                    >
+                    <div className="text-sm font-semibold text-[#1F2937] truncate">
                       {memberName}
                     </div>
                     <p className="text-xs text-[#9CA3AF] truncate">
@@ -241,7 +248,6 @@ export function PaymentsTable({
                   {payment.status}
                 </span>
               </div>
-
               <div className="flex items-center justify-between">
                 <span className="text-base font-bold text-[#1F2937]">
                   ₦{payment.amount.toLocaleString()}
@@ -250,7 +256,6 @@ export function PaymentsTable({
                   {payment.plan_name || "—"}
                 </span>
               </div>
-
               <div className="flex items-center justify-between text-xs text-[#9CA3AF]">
                 <span>
                   {date} · {time}
@@ -264,30 +269,26 @@ export function PaymentsTable({
         })}
       </div>
 
-      {/* ── Pagination footer ─────────────────────────────────────────────── */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-gray-100 px-4 sm:px-6 py-3 bg-[#F9FAFB]">
-          {/* Record range */}
           <p className="text-xs text-[#9CA3AF]">
             Showing{" "}
             <span className="font-semibold text-[#1F2937]">
-              {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalCount)}
+              {(page - 1) * pageSize + 1}–
+              {Math.min(page * pageSize, totalCount)}
             </span>{" "}
             of{" "}
             <span className="font-semibold text-[#1F2937]">{totalCount}</span>
           </p>
-
-          {/* Page controls */}
           <div className="flex items-center gap-1">
             <button
               onClick={() => onPageChange(Math.max(1, page - 1))}
               disabled={page === 1}
               className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-gray-200 bg-white text-[#9CA3AF] hover:text-[#1F2937] hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Previous page"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
-
             {pageItems.map((item, idx) =>
               item === "…" ? (
                 <span
@@ -311,12 +312,10 @@ export function PaymentsTable({
                 </button>
               ),
             )}
-
             <button
               onClick={() => onPageChange(Math.min(totalPages, page + 1))}
               disabled={page === totalPages}
               className="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-gray-200 bg-white text-[#9CA3AF] hover:text-[#1F2937] hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              aria-label="Next page"
             >
               <ChevronRight className="w-3.5 h-3.5" />
             </button>

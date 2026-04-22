@@ -4,22 +4,21 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   Home,
-  Wallet,
+  Building2,
   CreditCard,
+  Compass,
   QrCode,
-  Bell,
+  Trophy,
+  Receipt,
+  Settings,
   Menu,
   X,
   LogOut,
-  Trophy, 
-  Receipt,
-  Compass,
-  Settings,
-  Building2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/layout/Logo";
+import Image from "next/image";
 
 const C = {
   teal: "#0D9488",
@@ -34,13 +33,17 @@ interface MemberMobileHeaderProps {
   unreadCount: number;
   handleLogout: () => void;
   loading: boolean;
-  profile?: any;
+  profile?: {
+    first_name?: string;
+    last_name?: string;
+    email?: string;
+    avatarUrl?: string | null;
+  };
 }
 
 const navigation = [
   { name: "Dashboard", href: "/member/dashboard", icon: Home },
   { name: "Community", href: "/member/communities", icon: Building2 },
-  // { name: "Wallet", href: "/member/wallet", icon: Wallet },
   { name: "Subscriptions", href: "/member/subscriptions", icon: CreditCard },
   { name: "Explore", href: "/member/explore", icon: Compass },
   { name: "Check In", href: "/member/check-ins", icon: QrCode },
@@ -88,53 +91,7 @@ export function MemberMobileHeader({
             <Logo size={28} />
           </Link>
 
-          {/* Right side */}
           <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            {/* Notifications badge */}
-            {/* <Link href="/member/notifications" style={{ position: "relative", display: "block" }}>
-              <button style={{
-                padding: "8px",
-                borderRadius: "8px",
-                border: "none",
-                background: "transparent",
-                color: C.ink,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "background 200ms",
-                position: "relative",
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "rgba(13,148,136,0.06)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-              >
-                <Bell size={19} />
-                {unreadCount > 0 && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: "5px",
-                      right: "5px",
-                      minWidth: "16px",
-                      height: "16px",
-                      padding: "0 4px",
-                      background: "#EF4444",
-                      color: C.white,
-                      fontSize: "10px",
-                      fontWeight: 700,
-                      borderRadius: "999px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-            </Link> */}
-
-            {/* Menu button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               style={{
@@ -191,12 +148,9 @@ export function MemberMobileHeader({
                 }}
               >
                 <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "14px",
-                  }}
+                  style={{ display: "flex", alignItems: "center", gap: "14px" }}
                 >
+                  {/* Avatar — image if available, initials fallback */}
                   <div
                     style={{
                       width: "52px",
@@ -209,11 +163,26 @@ export function MemberMobileHeader({
                       color: C.white,
                       fontWeight: 800,
                       fontSize: "18px",
+                      overflow: "hidden",
+                      flexShrink: 0,
+                      position: "relative",
                     }}
                   >
-                    {profile.first_name?.charAt(0)}
-                    {profile.last_name?.charAt(0)}
+                    {profile.avatarUrl ? (
+                      <Image
+                        src={profile.avatarUrl}
+                        alt={`${profile.first_name} ${profile.last_name}`}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <>
+                        {profile.first_name?.charAt(0)}
+                        {profile.last_name?.charAt(0)}
+                      </>
+                    )}
                   </div>
+
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p
                       style={{
@@ -256,7 +225,6 @@ export function MemberMobileHeader({
               {navigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
-                // const hasNotif = item.name === "Notifications" && unreadCount > 0;
 
                 return (
                   <Link
@@ -284,32 +252,8 @@ export function MemberMobileHeader({
                         cursor: "pointer",
                         transition: "all 200ms",
                       }}
-                      onTouchStart={(e) => {
-                        if (!isActive) {
-                          e.currentTarget.style.background =
-                            "rgba(13,148,136,0.04)";
-                        }
-                      }}
-                      onTouchEnd={(e) => {
-                        if (!isActive) {
-                          e.currentTarget.style.background = C.white;
-                        }
-                      }}
                     >
-                      <div style={{ position: "relative" }}>
-                        <Icon size={24} />
-                        {/* {hasNotif && (
-                          <span style={{
-                            position: "absolute",
-                            top: "-4px",
-                            right: "-4px",
-                            width: "14px",
-                            height: "14px",
-                            background: "#EF4444",
-                            borderRadius: "50%",
-                          }} />
-                        )} */}
-                      </div>
+                      <Icon size={24} />
                       <span
                         style={{
                           fontWeight: isActive ? 600 : 500,

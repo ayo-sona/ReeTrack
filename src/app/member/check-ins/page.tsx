@@ -7,6 +7,7 @@ import { useMemberStore } from "@/store/memberStore";
 import { Member } from "@/types/organization";
 import React, { useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const C = {
   teal: "#0D9488",
@@ -48,6 +49,7 @@ interface OrgCardProps {
     address?: string;
     email?: string;
     phone?: string;
+    logo?: string | null;
   };
   onClick: () => void;
   index: number;
@@ -99,9 +101,20 @@ const OrganizationCard = React.memo<OrgCardProps>(({ org, onClick, index }) => {
             color: C.white,
             transition: "transform 300ms",
             transform: hovered ? "scale(1.05)" : "scale(1)",
+            overflow: "hidden", 
+            position: "relative", 
           }}
         >
-          {org.name?.charAt(0).toUpperCase()}
+          {org.logo ? (
+            <Image
+              src={org.logo}
+              alt={org.name ?? ""}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            org.name?.charAt(0).toUpperCase()
+          )}
         </div>
       </div>
 
@@ -221,6 +234,7 @@ export default function MyCommunityPage() {
         email: org?.email,
         phone: org?.phone,
         website: org?.website,
+        logo: org?.logo_url ?? null,
         member,
       };
     });

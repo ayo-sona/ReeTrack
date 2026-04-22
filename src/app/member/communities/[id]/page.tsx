@@ -20,6 +20,7 @@ import { addDays, addWeeks, addMonths, addYears, format } from "date-fns";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import Image from "next/image";
 
 const C = {
   teal: "#0D9488",
@@ -65,10 +66,7 @@ function PlanCard({ plan, isSubscribed, index }: PlanCardProps) {
 
   const formatCurrency = (amount: number | null) => {
     if (amount === null) return "Free";
-    return `₦${amount.toLocaleString("en-NG", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
+    return `₦${amount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const getNextBillingDate = (interval: string | null) => {
@@ -119,7 +117,6 @@ function PlanCard({ plan, isSubscribed, index }: PlanCardProps) {
         flexDirection: "column",
       }}
     >
-      {/* Subscribed badge */}
       {isSubscribed && (
         <div style={{ marginBottom: "16px" }}>
           <span
@@ -142,7 +139,6 @@ function PlanCard({ plan, isSubscribed, index }: PlanCardProps) {
         </div>
       )}
 
-      {/* Plan name */}
       <h3
         style={{
           fontWeight: 700,
@@ -153,8 +149,6 @@ function PlanCard({ plan, isSubscribed, index }: PlanCardProps) {
       >
         {plan.name}
       </h3>
-
-      {/* Description */}
       <p
         style={{
           fontWeight: 400,
@@ -167,7 +161,6 @@ function PlanCard({ plan, isSubscribed, index }: PlanCardProps) {
         {plan.description}
       </p>
 
-      {/* Price */}
       <div style={{ marginBottom: "20px" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
           <span
@@ -190,7 +183,6 @@ function PlanCard({ plan, isSubscribed, index }: PlanCardProps) {
         </div>
       </div>
 
-      {/* Billing info */}
       {nextBillingDate && (
         <div
           style={{
@@ -256,7 +248,6 @@ function PlanCard({ plan, isSubscribed, index }: PlanCardProps) {
         </div>
       )}
 
-      {/* Features */}
       {plan.features && plan.features.length > 0 && (
         <div style={{ marginBottom: "24px", flex: 1 }}>
           <p
@@ -301,7 +292,6 @@ function PlanCard({ plan, isSubscribed, index }: PlanCardProps) {
         </div>
       )}
 
-      {/* CTA button */}
       {isSubscribed ? (
         <Button variant="secondary" size="lg" className="w-full" asChild>
           <Link href="/member/subscriptions">Manage Subscription</Link>
@@ -350,7 +340,6 @@ export default function OrganizationPlansPage() {
     },
   });
 
-  // Loading state
   if (plansLoading) {
     return (
       <div
@@ -361,10 +350,7 @@ export default function OrganizationPlansPage() {
           padding: "32px 24px",
         }}
       >
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
-          @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
-        `}</style>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap'); @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.45} }`}</style>
         <div
           style={{
             maxWidth: "1200px",
@@ -414,7 +400,6 @@ export default function OrganizationPlansPage() {
       (plan) => plan.organization_id === organizationId && plan.is_active,
     ) || [];
 
-  // Empty state
   if (organizationPlans.length === 0) {
     return (
       <div
@@ -494,13 +479,10 @@ export default function OrganizationPlansPage() {
         padding: "32px 24px 96px",
       }}
     >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
-        * { box-sizing: border-box; }
-      `}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap'); * { box-sizing: border-box; }`}</style>
 
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        {/* Back button */}
+        {/* Back button — custom 0 */}
         <motion.div
           variants={fadeUp}
           initial="hidden"
@@ -516,7 +498,7 @@ export default function OrganizationPlansPage() {
           </Button>
         </motion.div>
 
-        {/* Organization header */}
+        {/* Organization header — custom 1 */}
         <motion.div
           variants={fadeUp}
           initial="hidden"
@@ -551,9 +533,20 @@ export default function OrganizationPlansPage() {
                 fontWeight: 800,
                 fontSize: "28px",
                 flexShrink: 0,
+                overflow: "hidden",
+                position: "relative",
               }}
             >
-              {organization.name.charAt(0).toUpperCase()}
+              {organization.logo_url ? (
+                <Image
+                  src={organization.logo_url}
+                  alt={organization.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                organization.name.charAt(0).toUpperCase()
+              )}
             </div>
             <div style={{ flex: 1, minWidth: "0" }}>
               <h1
@@ -646,12 +639,67 @@ export default function OrganizationPlansPage() {
           </div>
         </motion.div>
 
-        {/* Section header */}
+        {/* Facility images — custom 2, only shown if images exist */}
+        {/* {organization.images && organization.images.length > 0 && (
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            custom={2}
+            style={{
+              background: C.white,
+              borderRadius: "16px",
+              border: `1px solid ${C.border}`,
+              padding: "24px 32px",
+              marginBottom: "32px",
+            }}
+          >
+            <p
+              style={{
+                fontWeight: 700,
+                fontSize: "14px",
+                color: C.ink,
+                marginBottom: "16px",
+              }}
+            >
+              Facility Photos
+            </p>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+                gap: "12px",
+              }}
+            >
+              {organization.images.map((url: string, i: number) => (
+                <div
+                  key={i}
+                  style={{
+                    position: "relative",
+                    aspectRatio: "1",
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                    border: `1px solid ${C.border}`,
+                  }}
+                >
+                  <Image
+                    src={url}
+                    alt={`Facility photo ${i + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )} */}
+
+        {/* Available Plans heading — custom 3 */}
         <motion.div
           variants={fadeUp}
           initial="hidden"
           animate="visible"
-          custom={2}
+          custom={3}
           style={{ marginBottom: "24px" }}
         >
           <h2 style={{ fontWeight: 700, fontSize: "20px", color: C.ink }}>
@@ -659,7 +707,7 @@ export default function OrganizationPlansPage() {
           </h2>
         </motion.div>
 
-        {/* Plans grid */}
+        {/* Plans grid — index starts at 4 */}
         <div
           style={{
             display: "grid",
@@ -676,7 +724,7 @@ export default function OrganizationPlansPage() {
                 key={plan.id}
                 plan={plan}
                 isSubscribed={isSubscribed}
-                index={i + 3}
+                index={i + 4}
               />
             );
           })}

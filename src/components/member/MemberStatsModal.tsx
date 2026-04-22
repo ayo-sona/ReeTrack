@@ -3,7 +3,9 @@
 import { motion } from "framer-motion";
 import { X, Sparkles, Trophy } from "lucide-react";
 import { Member } from "@/types/organization";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import Image from "next/image";
+
 
 const C = {
   teal: "#0D9488",
@@ -83,11 +85,12 @@ export function MemberStatsModal({
   const totalCheckIns = Array.isArray(checkedInAt) ? checkedInAt.length : 0;
   const thisMonth = getCheckInCount(checkedInAt);
 
-  const memberSince = member.created_at ? new Date(member.created_at) : null;
-  const daysInCommunity = memberSince
-    ? Math.floor((Date.now() - memberSince.getTime()) / (1000 * 60 * 60 * 24))
-    : 0;
-
+  const daysInCommunity = useMemo(() => {
+    if (!member.created_at) return 0;
+    const memberSince = new Date(member.created_at);
+    const now = new Date();
+    return Math.floor((now.getTime() - memberSince.getTime()) / (1000 * 60 * 60 * 24));
+  }, [member.created_at]);
   const lastCheckIn =
     Array.isArray(checkedInAt) && checkedInAt.length > 0
       ? new Date(checkedInAt[0])
@@ -276,9 +279,20 @@ export function MemberStatsModal({
                 color: "white",
                 boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
                 position: "relative",
+                overflow: "hidden", // ✅ add this
               }}
             >
-              {initials}
+              {/* ✅ show avatar if available, otherwise initials */}
+              {(member.user as any).avatarUrl ? (
+                <Image
+                  src={(member.user as any).avatarUrl}
+                  alt={name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                initials
+              )}
               <div
                 style={{
                   position: "absolute",
@@ -295,6 +309,7 @@ export function MemberStatsModal({
                   fontSize: 12,
                   color: C.ink,
                   boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                  zIndex: 1, // ✅ keeps rank badge above the image
                 }}
               >
                 #{rank}
