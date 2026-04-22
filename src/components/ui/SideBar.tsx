@@ -4,14 +4,15 @@ import Link from "next/link";
 import { LucideIcon } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import Logo from "@/components/layout/Logo";
+import Image from "next/image";
 
 const C = {
-  teal:     "#0D9488",
-  white:    "#FFFFFF",
-  ink:      "#1F2937",
+  teal: "#0D9488",
+  white: "#FFFFFF",
+  ink: "#1F2937",
   coolGrey: "#9CA3AF",
-  border:   "#E5E7EB",
-  snow:     "#F9FAFB",
+  border: "#E5E7EB",
+  snow: "#F9FAFB",
 };
 
 export interface NavItem {
@@ -25,6 +26,7 @@ export interface ProfileData {
   firstName: string;
   lastName: string;
   email: string;
+  avatarUrl?: string | null;
 }
 
 export interface SidebarAction {
@@ -117,38 +119,43 @@ export function Sidebar({
           fontFamily: "Nunito, sans-serif",
         }}
       >
-        <div style={{
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          padding: isCollapsed ? "20px 12px" : "20px 16px",
-          transition: "padding 300ms",
-        }}>
-
-          {/* Logo */}
-          <div style={{
-            marginBottom: "24px",
-            height: "36px",
+        <div
+          style={{
             display: "flex",
-            alignItems: "center",
-            justifyContent: isCollapsed ? "center" : "flex-start",
-            flexShrink: 0,
-          }}>
+            flexDirection: "column",
+            height: "100%",
+            padding: isCollapsed ? "20px 12px" : "20px 16px",
+            transition: "padding 300ms",
+          }}
+        >
+          {/* Logo */}
+          <div
+            style={{
+              marginBottom: "24px",
+              height: "36px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: isCollapsed ? "center" : "flex-start",
+              flexShrink: 0,
+            }}
+          >
             {isCollapsed ? (
               // Collapsed: show just the icon image as a small square
               <Link href={logoHref}>
-                <div style={{
-                  width: "28px",
-                  height: "28px",
-                  borderRadius: "8px",
-                  background: C.teal,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: C.white,
-                  fontWeight: 800,
-                  fontSize: "13px",
-                }}>
+                <div
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    borderRadius: "8px",
+                    background: C.teal,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: C.white,
+                    fontWeight: 800,
+                    fontSize: "13px",
+                  }}
+                >
                   {logoText.charAt(0)}
                 </div>
               </Link>
@@ -161,20 +168,26 @@ export function Sidebar({
           </div>
 
           {/* Navigation */}
-          <nav style={{
-            flex: 1,
-            overflowY: "auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: "2px",
-            marginRight: "-4px",
-            paddingRight: "4px",
-          }}>
+          <nav
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: "2px",
+              marginRight: "-4px",
+              paddingRight: "4px",
+            }}
+          >
             {navigation.map((item) => {
               const Icon = item.icon;
               const isActive = currentPath === item.href;
               return (
-                <Link key={item.name} href={item.href} style={{ textDecoration: "none" }}>
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  style={{ textDecoration: "none" }}
+                >
                   <div
                     className="nav-item"
                     style={{
@@ -185,7 +198,9 @@ export function Sidebar({
                       padding: isCollapsed ? "10px" : "10px 14px",
                       justifyContent: isCollapsed ? "center" : "flex-start",
                       borderRadius: "10px",
-                      background: isActive ? "rgba(13,148,136,0.08)" : "transparent",
+                      background: isActive
+                        ? "rgba(13,148,136,0.08)"
+                        : "transparent",
                       color: isActive ? C.teal : C.ink,
                       fontWeight: isActive ? 700 : 400,
                       fontSize: "14px",
@@ -196,41 +211,54 @@ export function Sidebar({
                         : "1px solid transparent",
                     }}
                     onMouseEnter={(e) => {
-                      if (!isActive) e.currentTarget.style.background = "rgba(13,148,136,0.04)";
+                      if (!isActive)
+                        e.currentTarget.style.background =
+                          "rgba(13,148,136,0.04)";
                     }}
                     onMouseLeave={(e) => {
-                      if (!isActive) e.currentTarget.style.background = "transparent";
+                      if (!isActive)
+                        e.currentTarget.style.background = "transparent";
                     }}
                   >
                     <div style={{ position: "relative", flexShrink: 0 }}>
                       <Icon size={17} />
                       {item.badge && item.badge > 0 && (
-                        <span style={{
-                          position: "absolute",
-                          top: "-5px",
-                          right: "-5px",
-                          minWidth: "15px",
-                          height: "15px",
-                          padding: "0 3px",
-                          background: "#EF4444",
-                          color: C.white,
-                          fontSize: "9px",
-                          fontWeight: 700,
-                          borderRadius: "999px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}>
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: "-5px",
+                            right: "-5px",
+                            minWidth: "15px",
+                            height: "15px",
+                            padding: "0 3px",
+                            background: "#EF4444",
+                            color: C.white,
+                            fontSize: "9px",
+                            fontWeight: 700,
+                            borderRadius: "999px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
                           {item.badge}
                         </span>
                       )}
                     </div>
                     {!isCollapsed && (
-                      <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <span
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
                         {item.name}
                       </span>
                     )}
-                    {isCollapsed && <div className="nav-tooltip">{item.name}</div>}
+                    {isCollapsed && (
+                      <div className="nav-tooltip">{item.name}</div>
+                    )}
                   </div>
                 </Link>
               );
@@ -251,31 +279,49 @@ export function Sidebar({
             >
               {/* Dropdown */}
               {menuOpen && (
-                <div style={{
-                  position: "absolute",
-                  ...(isCollapsed
-                    ? { left: "calc(100% + 12px)", bottom: 0, width: "220px" }
-                    : { bottom: "calc(100% + 8px)", left: 0, right: 0 }),
-                  background: C.white,
-                  border: `1px solid ${C.border}`,
-                  borderRadius: "12px",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06)",
-                  zIndex: 50,
-                  padding: "6px",
-                }}>
-                  <div style={{
-                    padding: "10px 12px",
-                    borderBottom: `1px solid ${C.border}`,
-                    marginBottom: "6px",
-                  }}>
-                    <p style={{ fontWeight: 700, fontSize: "13px", color: C.ink, margin: 0 }}>
+                <div
+                  style={{
+                    position: "absolute",
+                    ...(isCollapsed
+                      ? { left: "calc(100% + 12px)", bottom: 0, width: "220px" }
+                      : { bottom: "calc(100% + 8px)", left: 0, right: 0 }),
+                    background: C.white,
+                    border: `1px solid ${C.border}`,
+                    borderRadius: "12px",
+                    boxShadow:
+                      "0 8px 24px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06)",
+                    zIndex: 50,
+                    padding: "6px",
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: "10px 12px",
+                      borderBottom: `1px solid ${C.border}`,
+                      marginBottom: "6px",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontWeight: 700,
+                        fontSize: "13px",
+                        color: C.ink,
+                        margin: 0,
+                      }}
+                    >
                       {profile.firstName} {profile.lastName}
                     </p>
-                    <p style={{
-                      fontWeight: 400, fontSize: "11px", color: C.coolGrey,
-                      margin: "2px 0 0", overflow: "hidden",
-                      textOverflow: "ellipsis", whiteSpace: "nowrap",
-                    }}>
+                    <p
+                      style={{
+                        fontWeight: 400,
+                        fontSize: "11px",
+                        color: C.coolGrey,
+                        margin: "2px 0 0",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {profile.email}
                     </p>
                   </div>
@@ -288,8 +334,13 @@ export function Sidebar({
                       <button
                         key={idx}
                         disabled={action.disabled}
-                        onClick={() => { setMenuOpen(false); action.onClick(); }}
-                        className={isDestructive ? "menu-item-danger" : "menu-item"}
+                        onClick={() => {
+                          setMenuOpen(false);
+                          action.onClick();
+                        }}
+                        className={
+                          isDestructive ? "menu-item-danger" : "menu-item"
+                        }
                         style={{
                           width: "100%",
                           display: "flex",
@@ -336,28 +387,60 @@ export function Sidebar({
                   fontFamily: "Nunito, sans-serif",
                 }}
               >
-                <div style={{
-                  width: "30px", height: "30px", borderRadius: "50%",
-                  background: C.teal, display: "flex", alignItems: "center",
-                  justifyContent: "center", color: C.white,
-                  fontWeight: 800, fontSize: "11px", flexShrink: 0,
-                }}>
-                  {initials}
+                <div
+                  style={{
+                    width: "30px",
+                    height: "30px",
+                    borderRadius: "50%",
+                    background: C.teal,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: C.white,
+                    fontWeight: 800,
+                    fontSize: "11px",
+                    flexShrink: 0,
+                    overflow: "hidden",
+                    position: "relative",
+                  }}
+                >
+                  {profile.avatarUrl ? (
+                    <Image
+                      src={profile.avatarUrl}
+                      alt={initials}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    initials
+                  )}
                 </div>
                 {!isCollapsed && (
                   <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-                    <p style={{
-                      fontWeight: 700, fontSize: "12px", color: C.ink,
-                      overflow: "hidden", textOverflow: "ellipsis",
-                      whiteSpace: "nowrap", margin: 0,
-                    }}>
+                    <p
+                      style={{
+                        fontWeight: 700,
+                        fontSize: "12px",
+                        color: C.ink,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        margin: 0,
+                      }}
+                    >
                       {profile.firstName} {profile.lastName}
                     </p>
-                    <p style={{
-                      fontWeight: 400, fontSize: "11px", color: C.coolGrey,
-                      overflow: "hidden", textOverflow: "ellipsis",
-                      whiteSpace: "nowrap", margin: 0,
-                    }}>
+                    <p
+                      style={{
+                        fontWeight: 400,
+                        fontSize: "11px",
+                        color: C.coolGrey,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        margin: 0,
+                      }}
+                    >
                       {profile.email}
                     </p>
                   </div>
@@ -365,7 +448,6 @@ export function Sidebar({
               </button>
             </div>
           )}
-
         </div>
       </aside>
     </>

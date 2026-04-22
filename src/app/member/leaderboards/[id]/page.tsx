@@ -21,6 +21,7 @@ import {
   MemberStatsModal,
   LeaderboardMember,
 } from "@/components/member/MemberStatsModal";
+import Image from "next/image";
 
 const C = {
   teal: "#0D9488",
@@ -284,9 +285,21 @@ function PodiumCard({
             fontSize: rank === 1 ? 24 : 20,
             color: C.white,
             boxShadow: cfg.shadow,
+            overflow: "hidden",
+            position: "relative",
+            flexShrink: 0,
           }}
         >
-          {initials}
+          {member.user.avatar_url ? (
+            <Image
+              src={member.user.avatar_url}
+              alt={name}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            initials
+          )}
         </div>
         <div
           style={{ position: "absolute", bottom: -4, right: -4, fontSize: 18 }}
@@ -394,8 +407,8 @@ export default function CommunityLeaderboardPage() {
   const top3 = qualifyingRanked.slice(0, 3);
   const podiumOrder = top3.length >= 3 ? [top3[1], top3[0], top3[2]] : [];
 
-  const totalCheckIns = ranked.reduce((s, m) => s + m.score, 0);
-  const monthTotal = ranked.reduce((s, m) => s + m.monthCount, 0);
+  // const totalCheckIns = ranked.reduce((s, m) => s + m.score, 0);
+  // const monthTotal = ranked.reduce((s, m) => s + m.monthCount, 0);
   const qualifyingCount = ranked.filter((m) => m.qualifies).length;
 
   if (isLoading) {
@@ -499,9 +512,20 @@ export default function CommunityLeaderboardPage() {
                 fontSize: 18,
                 color: C.white,
                 flexShrink: 0,
+                overflow: "hidden",
+                position: "relative",
               }}
             >
-              {orgName.charAt(0).toUpperCase()}
+              {memberData?.organization_user?.organization?.logo_url ? (
+                <Image
+                  src={memberData.organization_user.organization.logo_url}
+                  alt={orgName}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                orgName.charAt(0).toUpperCase()
+              )}
             </div>
             <div>
               <h1
@@ -977,9 +1001,20 @@ export default function CommunityLeaderboardPage() {
                             isTop3 && member.qualifies
                               ? `0 4px 12px ${rankColor}40`
                               : "none",
+                          overflow: "hidden",
+                          position: "relative",
                         }}
                       >
-                        {initials}
+                        {member.user.avatar_url ? (
+                          <Image
+                            src={member.user.avatar_url}
+                            alt={name}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          initials
+                        )}
                       </div>
 
                       <div style={{ flex: 1, minWidth: 0 }}>

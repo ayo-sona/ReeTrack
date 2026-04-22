@@ -6,6 +6,8 @@ import type { Activity } from "@/hooks/memberHook/useRecentActivity";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useMemberOrgs } from "@/hooks/memberHook/useMember";
+import Image from "next/image";
 
 const C = {
   teal: "#0D9488",
@@ -67,9 +69,9 @@ const getActivityBgColor = (type: Activity["type"]) => {
 interface ActivityItemProps {
   activity: Activity;
   index: number;
+  orgLogo: string | null;
 }
-
-const ActivityItem = ({ activity, index }: ActivityItemProps) => {
+const ActivityItem = ({ activity, index, orgLogo }: ActivityItemProps) => {
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -113,9 +115,21 @@ const ActivityItem = ({ activity, index }: ActivityItemProps) => {
           justifyContent: "center",
           flexShrink: 0,
           background: getActivityBgColor(activity.type),
+          overflow: "hidden",
+          position: "relative",
         }}
       >
-        {getActivityIcon(activity.type)}
+        {orgLogo &&
+        (activity.type === "payment" || activity.type === "subscription") ? (
+          <Image
+            src={orgLogo}
+            alt="Organization"
+            fill
+            className="object-cover"
+          />
+        ) : (
+          getActivityIcon(activity.type)
+        )}
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -166,6 +180,9 @@ const ActivityItem = ({ activity, index }: ActivityItemProps) => {
 export default function RecentActivity() {
   const { data: activities, isLoading } = useRecentActivity(5);
   const router = useRouter();
+  const { data: memberOrgs } = useMemberOrgs();
+  const orgLogo =
+    memberOrgs?.[0]?.organization_user?.organization?.logo_url ?? null;
 
   if (isLoading) {
     return (
@@ -347,7 +364,12 @@ export default function RecentActivity() {
 
       <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
         {activities.map((activity, i) => (
-          <ActivityItem key={activity.id} activity={activity} index={i} />
+          <ActivityItem
+            key={activity.id}
+            activity={activity}
+            index={i}
+            orgLogo={orgLogo}
+          />
         ))}
       </div>
 

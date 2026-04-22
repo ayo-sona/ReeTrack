@@ -14,6 +14,8 @@ export interface TeamMember {
     email_verified: boolean;
     last_login_at: string;
     created_at: string;
+    avatar_url: string | null;
+    avatar_public_id: string | null; 
     updated_at: string;
   };
 }

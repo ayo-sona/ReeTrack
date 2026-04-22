@@ -11,15 +11,28 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    roles?: string[];
-    organizations?: any[];
+  statusCode: number;
+  message: string;
+  data: {
+    user: {
+      id: string;
+      email: string;
+      first_name: string;
+      last_name: string;
+      phone: string;
+      status: string;
+      avatarUrl: string | null;
+    };
+    organizations: {
+      id: string;
+      name: string;
+      email: string;
+      role: string;
+      status: string;
+      slug: string;
+      logoUrl: string | null;
+    }[];
   };
-  message?: string;
 }
 
 // Register
@@ -81,6 +94,35 @@ export interface ResetPasswordResponse {
 // Logout
 export interface LogoutResponse {
   message: string;
+}
+
+export interface OrgUser {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  status: string;
+  avatarUrl: string | null;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  slug: string;
+  logoUrl: string | null;
+}
+
+export interface LoginResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    user: OrgUser;
+    organizations: Organization[];
+  };
 }
 
 // ============================================

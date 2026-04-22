@@ -353,7 +353,7 @@ export default function AdminRegisterPage() {
                       : "text-[#9CA3AF] hover:text-[#1F2937]"
                   }`}
                 >
-                  I'm new here
+                  I&apos;m new here
                 </button>
                 <button
                   type="button"
@@ -385,7 +385,7 @@ export default function AdminRegisterPage() {
                   <div className="bg-[#0D9488]/5 border border-[#0D9488]/15 rounded-xl px-4 py-3">
                     <p className="text-xs text-[#0D9488] leading-relaxed">
                       Enter your existing ReeTrack email and password along with
-                      your organization details — we'll verify your account and
+                      your organization details — we&apos;ll verify your account and
                       link everything together.
                     </p>
                   </div>

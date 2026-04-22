@@ -1,15 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Save, AlertCircle, User, LogOut, ShieldCheck } from "lucide-react";
+import {
+  Save,
+  AlertCircle,
+  User,
+  LogOut,
+  ShieldCheck,
+  Camera,
+} from "lucide-react";
 import { useProfile, useUpdateProfile } from "@/hooks/memberHook/useMember";
+import { useUpload } from "@/hooks/useUpload";
 import { deleteCookie } from "cookies-next";
 import { Spinner } from "@heroui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import apiClient from "@/lib/apiClient";
+import Image from "next/image";
 
 const C = {
   teal: "#0D9488",
@@ -117,6 +126,9 @@ export default function ProfileSettingsPage() {
   const router = useRouter();
   const { data: profile, isLoading, error } = useProfile();
   const updateProfile = useUpdateProfile();
+  const { uploadAvatar, uploadingAvatar, avatarError } = useUpload();
+
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const wrappedProfile = profile as unknown as
     | ApiResponse<UserProfile>
@@ -134,9 +146,36 @@ export default function ProfileSettingsPage() {
   const [editedPhone, setEditedPhone] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  // Read avatarUrl from localStorage so it reflects after upload without a page reload
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const stored = localStorage.getItem("userData");
+      return stored ? (JSON.parse(stored)?.user?.avatarUrl ?? null) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const dateOfBirth = editedDateOfBirth ?? (actualProfile?.date_of_birth || "");
   const address = editedAddress ?? (actualProfile?.address || "");
   const phone = editedPhone ?? (actualProfile?.phone || "");
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const newUrl = await uploadAvatar(file);
+    if (newUrl) {
+      setAvatarUrl(newUrl);
+      toast.success("Avatar updated");
+    } else {
+      toast.error(avatarError ?? "Failed to upload avatar");
+    }
+
+    // Reset input so the same file can be re-selected if needed
+    e.target.value = "";
+  };
 
   const handleSaveProfile = async () => {
     try {
@@ -165,7 +204,6 @@ export default function ProfileSettingsPage() {
       toast.error("Logout failed");
     } finally {
       if (typeof window !== "undefined") localStorage.clear();
-      // deleteCookie("access_token");
       deleteCookie("current_role");
       deleteCookie("user_roles");
       setLoggingOut(false);
@@ -288,111 +326,34 @@ export default function ProfileSettingsPage() {
         input[type=date]::-webkit-calendar-picker-indicator { opacity: 0.4; cursor: pointer; }
         input::placeholder { color: #9CA3AF; }
 
-        .settings-layout {
-          display: grid;
-          grid-template-columns: 200px 1fr;
-          gap: 20px;
-          align-items: start;
-        }
-        .settings-sidebar {
-          position: sticky;
-          top: 24px;
-        }
-        .fields-grid-2 {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-          margin-bottom: 12px;
-        }
-        .fields-grid-editable {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-          margin-bottom: 20px;
-        }
-        .account-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-        }
-        .card-padding {
-          padding: 36px;
-        }
-        .avatar-section {
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          margin-bottom: 28px;
-          padding-bottom: 28px;
-          border-bottom: 1px solid ${C.border};
-          flex-wrap: nowrap;
-        }
-        .edit-actions {
-          display: flex;
-          gap: 8px;
-          align-items: center;
-          flex-wrap: wrap;
-          justify-content: flex-end;
-        }
-        .tab-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 28px;
-          flex-wrap: wrap;
-          gap: 12px;
-        }
-        .page-header {
-          margin-bottom: 28px;
-        }
+        .settings-layout { display: grid; grid-template-columns: 200px 1fr; gap: 20px; align-items: start; }
+        .settings-sidebar { position: sticky; top: 24px; }
+        .fields-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px; }
+        .fields-grid-editable { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+        .account-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card-padding { padding: 36px; }
+        .avatar-section { display: flex; align-items: center; gap: 20px; margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid ${C.border}; flex-wrap: nowrap; }
+        .edit-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+        .tab-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
+        .page-header { margin-bottom: 28px; }
+        .avatar-trigger:hover .avatar-overlay { opacity: 1 !important; }
 
         @media (max-width: 768px) {
-          .settings-layout {
-            grid-template-columns: 1fr;
-          }
-          .settings-sidebar {
-            position: static;
-          }
-          .settings-sidebar > div {
-            flex-direction: row !important;
-            padding: 8px !important;
-          }
-          .settings-sidebar button {
-            flex: 1;
-            justify-content: center !important;
-          }
-          .fields-grid-2 {
-            grid-template-columns: 1fr;
-          }
-          .fields-grid-editable {
-            grid-template-columns: 1fr;
-          }
-          .account-grid {
-            grid-template-columns: 1fr;
-          }
-          .card-padding {
-            padding: 24px 20px;
-          }
-          .avatar-section {
-            flex-wrap: wrap;
-            gap: 16px;
-          }
+          .settings-layout { grid-template-columns: 1fr; }
+          .settings-sidebar { position: static; }
+          .settings-sidebar > div { flex-direction: row !important; padding: 8px !important; }
+          .settings-sidebar button { flex: 1; justify-content: center !important; }
+          .fields-grid-2 { grid-template-columns: 1fr; }
+          .fields-grid-editable { grid-template-columns: 1fr; }
+          .account-grid { grid-template-columns: 1fr; }
+          .card-padding { padding: 24px 20px; }
+          .avatar-section { flex-wrap: wrap; gap: 16px; }
         }
-
         @media (max-width: 480px) {
-          .card-padding {
-            padding: 20px 16px;
-          }
-          .edit-actions {
-            width: 100%;
-          }
-          .tab-header {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-          .edit-actions {
-            justify-content: flex-start;
-          }
+          .card-padding { padding: 20px 16px; }
+          .edit-actions { width: 100%; }
+          .tab-header { flex-direction: column; align-items: flex-start; }
+          .edit-actions { justify-content: flex-start; }
         }
       `}</style>
 
@@ -426,7 +387,6 @@ export default function ProfileSettingsPage() {
           </p>
         </motion.div>
 
-        {/* Success toast */}
         <AnimatePresence>
           {showSuccess && (
             <motion.div
@@ -599,24 +559,82 @@ export default function ProfileSettingsPage() {
 
                   {/* Avatar */}
                   <div className="avatar-section">
-                    <div
+                    {/* Hidden file input */}
+                    <input
+                      ref={avatarInputRef}
+                      type="file"
+                      accept="image/jpg,image/jpeg,image/png,image/gif,image/webp"
+                      style={{ display: "none" }}
+                      onChange={handleAvatarChange}
+                    />
+
+                    {/* Clickable avatar */}
+                    <button
+                      className="avatar-trigger"
+                      onClick={() => avatarInputRef.current?.click()}
+                      disabled={uploadingAvatar}
+                      title="Change profile photo"
                       style={{
+                        position: "relative",
                         width: "72px",
                         height: "72px",
                         borderRadius: "18px",
                         background: C.teal,
+                        border: "none",
+                        padding: 0,
+                        cursor: uploadingAvatar ? "not-allowed" : "pointer",
+                        flexShrink: 0,
+                        overflow: "hidden",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontWeight: 800,
-                        fontSize: "24px",
-                        color: C.white,
-                        flexShrink: 0,
-                        letterSpacing: "-0.5px",
                       }}
                     >
-                      {initials}
-                    </div>
+                      {/* Image or initials */}
+                      {avatarUrl ? (
+                        <Image
+                          src={avatarUrl}
+                          alt="Profile photo"
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <span
+                          style={{
+                            fontWeight: 800,
+                            fontSize: "24px",
+                            color: C.white,
+                            letterSpacing: "-0.5px",
+                            zIndex: 1,
+                          }}
+                        >
+                          {initials}
+                        </span>
+                      )}
+
+                      {/* Hover overlay */}
+                      <div
+                        className="avatar-overlay"
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: "rgba(0,0,0,0.45)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          opacity: uploadingAvatar ? 1 : 0,
+                          transition: "opacity 200ms",
+                          zIndex: 2,
+                        }}
+                      >
+                        {uploadingAvatar ? (
+                          <Spinner color="white" size="sm" />
+                        ) : (
+                          <Camera size={18} color={C.white} />
+                        )}
+                      </div>
+                    </button>
+
                     <div style={{ minWidth: 0 }}>
                       <p
                         style={{
@@ -656,6 +674,17 @@ export default function ProfileSettingsPage() {
                           "en-US",
                           { year: "numeric", month: "long", day: "numeric" },
                         )}
+                      </p>
+                      {/* Upload hint */}
+                      <p
+                        style={{
+                          fontWeight: 400,
+                          fontSize: "11px",
+                          color: C.coolGrey,
+                          marginTop: "6px",
+                        }}
+                      >
+                        Click photo to update · JPG, PNG, GIF or WEBP · max 5 MB
                       </p>
                     </div>
                   </div>
@@ -791,7 +820,7 @@ export default function ProfileSettingsPage() {
                 </motion.div>
               )}
 
-              {/* Account tab */}
+              {/* Account tab — unchanged */}
               {activeTab === "account" && (
                 <motion.div
                   key="account"
@@ -805,7 +834,6 @@ export default function ProfileSettingsPage() {
                     gap: "16px",
                   }}
                 >
-                  {/* Overview */}
                   <div
                     style={{
                       background: C.white,
@@ -879,7 +907,6 @@ export default function ProfileSettingsPage() {
                     </div>
                   </div>
 
-                  {/* Sign out */}
                   <div
                     style={{
                       background: C.white,

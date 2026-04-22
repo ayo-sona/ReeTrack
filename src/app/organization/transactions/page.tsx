@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { PaymentsTable } from "../../../components/organization/PaymentsTable";
 import { PaymentFilters } from "../../../components/organization/PaymentFilters";
 import { usePayments, usePaymentStats } from "../../../hooks/usePayments";

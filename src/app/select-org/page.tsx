@@ -18,6 +18,7 @@ interface OrganizationWithRole {
   role: string;
   slug?: string;
   subscription_plan?: string;
+  logoUrl: string | null;
   created_at: string;
   memberCount: number;
 }
@@ -60,6 +61,14 @@ export default function OrganizationSelectPage() {
     setSelectedOrg(orgId);
     try {
       localStorage.setItem("selectedOrganizationId", orgId);
+
+      const orgData = userData?.organizations?.find(
+        (o: OrganizationWithRole) => o.id === orgId,
+      );
+      if (orgData) {
+        localStorage.setItem("currentOrg", JSON.stringify(orgData));
+      }
+
       const response = await apiClient.get(`/organizations/select/${orgId}`);
 
       if (response.data.statusCode === 200) {

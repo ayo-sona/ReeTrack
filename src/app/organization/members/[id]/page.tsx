@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -229,10 +230,19 @@ export default function MemberDetailPage() {
               <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
                 {/* Avatar + name */}
                 <div className="text-center">
-                  <div className="mx-auto h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-[#0D9488]/10 flex items-center justify-center mb-3">
-                    <span className="text-lg sm:text-xl font-extrabold text-[#0D9488]">
-                      {initials}
-                    </span>
+                  <div className="mx-auto h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-[#0D9488]/10 flex items-center justify-center mb-3 overflow-hidden relative">
+                    {user?.avatar_url ? (
+                      <Image
+                        src={user.avatar_url}
+                        alt={fullName}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <span className="text-lg sm:text-xl font-extrabold text-[#0D9488]">
+                        {initials}
+                      </span>
+                    )}
                   </div>
                   <h2 className="text-base sm:text-lg font-bold text-[#1F2937] break-words">
                     {fullName}

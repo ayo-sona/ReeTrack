@@ -20,6 +20,8 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useMemberOrgs } from "@/hooks/memberHook/useMember";
+import Image from "next/image";
 
 const C = {
   teal: "#0D9488",
@@ -57,7 +59,10 @@ const STATUS_CONFIG: Record<string, { label: string }> = {
 export default function SubscriptionDetailsPage() {
   const params = useParams();
   const subscriptionId = params.id as string;
+  const { data: memberOrgs } = useMemberOrgs();
   const { data: subscription, isLoading } = useSubscription(subscriptionId);
+  const orgLogo =
+    memberOrgs?.[0]?.organization_user?.organization?.logo_url ?? null;
   const cancelSub = useCancelSubscription();
   const reactivateSub = useReactivateSubscription();
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -151,17 +156,19 @@ export default function SubscriptionDetailsPage() {
 
   const status = subscription.status;
   const statusCfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.cancelled;
-  const expiring = status === "active" && isExpiringSoon(subscription.expires_at);
+  const expiring =
+    status === "active" && isExpiringSoon(subscription.expires_at);
 
   // API returns features as a plain string array e.g. ["Cold water"]
   const rawFeatures = subscription.plan.features;
   const features: string[] = Array.isArray(rawFeatures)
     ? rawFeatures
-    : (rawFeatures as any)?.features ?? [];
+    : ((rawFeatures as any)?.features ?? []);
 
   const canRenew = status === "cancelled";
   const canCancel = status === "active" || status === "pending";
-  const hasExpired = status !== "pending" && subscription.expires_at < new Date().toISOString();
+  const hasExpired =
+    status !== "pending" && subscription.expires_at < new Date().toISOString();
 
   return (
     <div
@@ -289,9 +296,20 @@ export default function SubscriptionDetailsPage() {
                       fontSize: "26px",
                       color: C.white,
                       border: "1px solid rgba(255,255,255,0.25)",
+                      overflow: "hidden",
+                      position: "relative",
                     }}
                   >
-                    {subscription.plan.name.charAt(0)}
+                    {orgLogo ? (
+                      <Image
+                        src={orgLogo}
+                        alt={subscription.plan.name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      subscription.plan.name.charAt(0)
+                    )}
                   </div>
                   <div>
                     <h1
@@ -378,12 +396,16 @@ export default function SubscriptionDetailsPage() {
                 {[
                   {
                     label: "Started",
-                    value: new Date(subscription.started_at).toLocaleDateString(),
+                    value: new Date(
+                      subscription.started_at,
+                    ).toLocaleDateString(),
                     warn: false,
                   },
                   {
                     label: subscription.auto_renew ? "Renews" : "Expires",
-                    value: new Date(subscription.expires_at).toLocaleDateString(),
+                    value: new Date(
+                      subscription.expires_at,
+                    ).toLocaleDateString(),
                     warn: expiring,
                   },
                   {

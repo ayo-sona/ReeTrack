@@ -1,6 +1,17 @@
 "use client";
 
-import { Home, Building2, Wallet, CreditCard, Compass, QrCode, Trophy, Receipt, Settings, LogOut } from "lucide-react";
+import { useSyncExternalStore } from "react";
+import {
+  Home,
+  Building2,
+  CreditCard,
+  Compass,
+  QrCode,
+  Trophy,
+  Receipt,
+  Settings,
+  LogOut,
+} from "lucide-react";
 import { Sidebar } from "@/components/ui/SideBar";
 import { User } from "@/types/user";
 
@@ -23,30 +34,35 @@ export function MemberSidebar({
   isCollapsed,
   onToggleCollapse,
 }: MemberSidebarProps) {
+  // Read avatarUrl from localStorage so it reflects immediately after upload
+  // without waiting for the parent hook to refetch
+  const avatarUrl = useSyncExternalStore(
+    () => () => {},
+    () => {
+      try {
+        const stored = localStorage.getItem("userData");
+        return stored ? (JSON.parse(stored)?.user?.avatarUrl ?? null) : null;
+      } catch {
+        return null;
+      }
+    },
+    () => null,
+  );
   const navigation = [
     { name: "Dashboard", href: "/member/dashboard", icon: Home },
     { name: "Community", href: "/member/communities", icon: Building2 },
-    // { name: "Wallet", href: "/member/wallet", icon: Wallet },
     { name: "Subscriptions", href: "/member/subscriptions", icon: CreditCard },
     { name: "Explore", href: "/member/explore", icon: Compass },
     { name: "Check In", href: "/member/check-ins", icon: QrCode },
     { name: "Leaderboard", href: "/member/leaderboards", icon: Trophy },
     { name: "Payments & Billing", href: "/member/payments", icon: Receipt },
-    // {
-    //   name: "Notifications",
-    //   href: "/member/notifications",
-    //   icon: Bell,
-    //   badge: unreadCount,
-    // },
   ];
 
   const actions = [
     {
       label: "Settings",
       icon: Settings,
-      onClick: () => {
-        window.location.href = "/member/profile";
-      },
+      onClick: () => { window.location.href = "/member/profile"; },
       variant: "ghost" as const,
     },
     {
@@ -64,6 +80,7 @@ export function MemberSidebar({
         firstName: profile.first_name || "",
         lastName: profile.last_name || "",
         email: profile.email || "",
+        avatarUrl, // ✅ from localStorage, not the prop
       }
     : undefined;
 

@@ -11,6 +11,9 @@ interface Organization {
   website: string;
   phone: string;
   description: string;
+  logo_url: string | null;        
+  logo_public_id: string | null;  
+  images: string[] | null;        
   created_at: string;
   updated_at: string;
 }

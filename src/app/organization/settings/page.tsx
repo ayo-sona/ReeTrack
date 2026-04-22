@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Building2,
   User,
@@ -14,12 +14,17 @@ import {
   Link2,
   Copy,
   Check,
+  Camera,
+  ImagePlus,
+  Trash2,
 } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { InviteStaffModal } from "@/components/organization/InviteStaffModal";
 import AddSubaccountModal from "@/components/organization/AddSubaccountModal";
+import { useUpload } from "@/hooks/useUpload";
+import Image from "next/image";
 import clsx from "clsx";
 
 type Tab = "organisation" | "profile" | "team" | "banking";
@@ -94,6 +99,27 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<Tab>("organisation");
   const [copied, setCopied] = useState(false);
 
+  const {
+    uploadLogo,
+    uploadingLogo,
+    uploadAvatar,
+    uploadingAvatar,
+    uploadImages,
+    uploadingImages,
+    deleteImage,
+    deleting,
+  } = useUpload();
+
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const imagesInputRef = useRef<HTMLInputElement>(null);
+
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [facilityImages, setFacilityImages] = useState<
+    { url: string; publicId: string }[]
+  >([]);
+
   const [orgData, setOrgData] = useState({
     name: "",
     email: "",
@@ -149,6 +175,13 @@ export default function SettingsPage() {
           bank: d.organizations[0].bank ?? "",
           account_number: d.organizations[0].account_number ?? "",
         });
+
+        const storedOrg = localStorage.getItem("currentOrg");
+        if (storedOrg) setLogoUrl(JSON.parse(storedOrg)?.logoUrl ?? null);
+
+        const storedUser = localStorage.getItem("userData");
+        if (storedUser)
+          setAvatarUrl(JSON.parse(storedUser)?.user?.avatarUrl ?? null);
       } catch {
         toast.error("Failed to load settings. Please refresh.");
       } finally {
@@ -157,10 +190,9 @@ export default function SettingsPage() {
     })();
   }, []);
 
-  const inviteLink =
-    orgData.slug
-      ? `${typeof window !== "undefined" ? window.location.origin : ""}/join/${orgData.slug}`
-      : "";
+  const inviteLink = orgData.slug
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/join/${orgData.slug}`
+    : "";
 
   const handleCopyLink = async () => {
     if (!inviteLink) return;
@@ -171,6 +203,79 @@ export default function SettingsPage() {
       setTimeout(() => setCopied(false), 2500);
     } catch {
       toast.error("Could not copy — please copy manually.");
+    }
+  };
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const newUrl = await uploadLogo(file);
+    if (newUrl) {
+      setLogoUrl(newUrl);
+      toast.success("Logo updated");
+    } else toast.error("Failed to upload logo");
+    e.target.value = "";
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const newUrl = await uploadAvatar(file);
+    if (newUrl) {
+      setAvatarUrl(newUrl);
+      toast.success("Avatar updated");
+    } else toast.error("Failed to upload avatar");
+    e.target.value = "";
+  };
+
+  // const handleImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const files = Array.from(e.target.files ?? []);
+  //   if (!files.length) return;
+  //   const remaining = 10 - facilityImages.length;
+  //   if (remaining <= 0) {
+  //     toast.error("Maximum 10 images allowed");
+  //     return;
+  //   }
+  //   const results = await uploadImages(files.slice(0, remaining));
+  //   if (results) {
+  //     setFacilityImages((prev) => [...prev, ...results]);
+  //     toast.success(
+  //       `${results.length} image${results.length > 1 ? "s" : ""} uploaded`,
+  //     );
+  //   } else {
+  //     toast.error("Failed to upload images");
+  //   }
+  //   e.target.value = "";
+  // };
+
+  const handleDeleteImage = async (publicId: string) => {
+    const ok = await deleteImage(publicId);
+    if (ok) {
+      setFacilityImages((prev) =>
+        prev.filter((img) => img.publicId !== publicId),
+      );
+      toast.success("Image removed");
+    } else {
+      toast.error("Failed to remove image");
+    }
+  };
+
+  const handleDeleteAvatar = async () => {
+    try {
+      await apiClient.delete("/members/avatar");
+      setAvatarUrl(null);
+      // Keep localStorage in sync
+      const storedUser = localStorage.getItem("userData");
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        if (parsed?.user) {
+          parsed.user.avatarUrl = null;
+          localStorage.setItem("userData", JSON.stringify(parsed));
+        }
+      }
+      toast.success("Profile picture removed");
+    } catch {
+      toast.error("Failed to remove profile picture");
     }
   };
 
@@ -251,8 +356,7 @@ export default function SettingsPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={clsx(
-                  "flex items-center gap-2 px-4 py-3 text-sm font-semibold whitespace-nowrap",
-                  "border-b-2 -mb-px transition-all",
+                  "flex items-center gap-2 px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 -mb-px transition-all",
                   activeTab === tab.id
                     ? "border-[#0D9488] text-[#0D9488]"
                     : "border-transparent text-[#9CA3AF] hover:text-[#1F2937] hover:border-gray-300",
@@ -265,9 +369,196 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* ORGANISATION tab */}
+        {/* ── ORGANISATION tab ── */}
         {activeTab === "organisation" && (
           <div className="space-y-4">
+            {/* Actions at top */}
+            <div className="flex justify-end gap-3">
+              {editingOrg && (
+                <Button variant="outline" onClick={() => setEditingOrg(false)}>
+                  <X className="h-4 w-4" /> Cancel
+                </Button>
+              )}
+              {!editingOrg ? (
+                <Button variant="secondary" onClick={() => setEditingOrg(true)}>
+                  <Pen className="h-4 w-4" /> Edit Details
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  disabled={savingOrg}
+                  onClick={handleOrgSubmit}
+                >
+                  {savingOrg ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" /> Save Changes
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+
+            {/* Logo — locked until editing */}
+            <Section
+              title="Organisation Logo"
+              subtitle="Shown on member-facing pages, invoices, and emails"
+            >
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/jpg,image/jpeg,image/png,image/gif,image/webp"
+                className="hidden"
+                onChange={handleLogoChange}
+              />
+              <div className="flex items-center gap-5">
+                <button
+                  onClick={() => editingOrg && logoInputRef.current?.click()}
+                  disabled={!editingOrg || uploadingLogo}
+                  className={clsx(
+                    "relative w-20 h-16 rounded-xl border border-gray-200 bg-[#F9FAFB] flex items-center justify-center overflow-hidden flex-shrink-0 group",
+                    editingOrg
+                      ? "cursor-pointer"
+                      : "cursor-not-allowed opacity-60",
+                  )}
+                >
+                  {logoUrl ? (
+                    <Image
+                      src={logoUrl}
+                      alt="Organisation logo"
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <Building2 className="w-7 h-7 text-gray-300" />
+                  )}
+                  {editingOrg && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      {uploadingLogo ? (
+                        <Loader2 className="w-5 h-5 text-white animate-spin" />
+                      ) : (
+                        <Camera className="w-5 h-5 text-white" />
+                      )}
+                    </div>
+                  )}
+                </button>
+
+                <div>
+                  <p className="text-sm font-bold text-[#1F2937] mb-1">
+                    {orgData.name}
+                  </p>
+                  <p className="text-xs text-[#9CA3AF] mb-3">
+                    {editingOrg
+                      ? "JPG, PNG, GIF or WEBP · max 5 MB · recommended 400×200 px"
+                      : "Click Edit Details to update your logo"}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={!editingOrg || uploadingLogo}
+                  >
+                    {uploadingLogo ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />{" "}
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="w-3.5 h-3.5" />{" "}
+                        {logoUrl ? "Change Logo" : "Upload Logo"}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </Section>
+
+            {/* Facility images — locked until editing */}
+            {/* <Section
+              title="Organisation Images"
+              subtitle="Photos of your facility, equipment, or anything you'd like to share with members"
+            >
+              <input
+                ref={imagesInputRef}
+                type="file"
+                accept="image/jpg,image/jpeg,image/png,image/gif,image/webp"
+                multiple
+                className="hidden"
+                onChange={handleImagesChange}
+              />
+
+              <div
+                className={clsx(
+                  "grid grid-cols-3 sm:grid-cols-4 gap-3",
+                  !editingOrg && "opacity-50 pointer-events-none",
+                )}
+              >
+                {facilityImages.map((img) => (
+                  <div
+                    key={img.publicId}
+                    className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group"
+                  >
+                    <Image
+                      src={img.url}
+                      alt="Facility"
+                      fill
+                      className="object-cover"
+                    />
+                    {editingOrg && (
+                      <button
+                        onClick={() => handleDeleteImage(img.publicId)}
+                        disabled={deleting}
+                        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-md bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        {deleting ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3 h-3" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                {/* Add button — grayed out placeholder when not editing */}
+            {/*{facilityImages.length < 10 && (
+                  <button
+                    onClick={() =>
+                      editingOrg && imagesInputRef.current?.click()
+                    }
+                    disabled={!editingOrg || uploadingImages}
+                    className={clsx(
+                      "aspect-square rounded-lg border border-dashed flex flex-col items-center justify-center gap-1.5 transition-colors",
+                      editingOrg
+                        ? "border-gray-300 text-gray-400 hover:border-[#0D9488] hover:text-[#0D9488] hover:bg-[#0D9488]/5 cursor-pointer"
+                        : "border-gray-200 text-gray-300 cursor-not-allowed",
+                    )}
+                  >
+                    {uploadingImages ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        <ImagePlus className="w-5 h-5" />
+                        <span className="text-xs font-semibold">Add</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Hint — switches message based on state */}
+            {/* <p className="text-xs text-[#9CA3AF]">
+                {editingOrg
+                  ? "Up to 10 images · 5 MB each · JPG, PNG, GIF or WEBP"
+                  : "Click Edit Details to upload facility images."}
+              </p>
+            </Section>
+            
+            {/* Business info */}
             <Section
               title="Business Information"
               subtitle="Details visible to your members"
@@ -321,11 +612,11 @@ export default function SettingsPage() {
                 <textarea
                   id="org-description"
                   value={orgData.description}
+                  rows={3}
                   onChange={(e) =>
                     setOrgData({ ...orgData, description: e.target.value })
                   }
                   disabled={!editingOrg}
-                  rows={3}
                   placeholder="A short description of your organisation..."
                   className={clsx(
                     inputBase,
@@ -336,7 +627,7 @@ export default function SettingsPage() {
               </div>
             </Section>
 
-            {/* Invite Link card */}
+            {/* Invite link — always accessible, no edit gate needed */}
             <Section
               title="Member Invite Link"
               subtitle="Share this link so anyone can join your organization"
@@ -346,8 +637,7 @@ export default function SettingsPage() {
                   <div className="rounded-lg bg-[#0D9488]/5 border border-[#0D9488]/10 px-4 py-3">
                     <p className="text-xs text-[#0D9488] leading-relaxed">
                       Anyone with this link can join your organization. Share it
-                      on WhatsApp, in emails, or on social media — they'll be
-                      walked through signup automatically.
+                      on WhatsApp, in emails, or on social media.
                     </p>
                   </div>
                   <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-[#F9FAFB] px-3 py-2.5">
@@ -395,24 +685,36 @@ export default function SettingsPage() {
                 </p>
               )}
             </Section>
+          </div>
+        )}
 
+        {/* ── PROFILE tab ── */}
+        {activeTab === "profile" && (
+          <div className="space-y-4">
+            {/* Actions at top */}
             <div className="flex justify-end gap-3">
-              {editingOrg && (
-                <Button variant="outline" onClick={() => setEditingOrg(false)}>
+              {editingProfile && (
+                <Button
+                  variant="outline"
+                  onClick={() => setEditingProfile(false)}
+                >
                   <X className="h-4 w-4" /> Cancel
                 </Button>
               )}
-              {!editingOrg ? (
-                <Button variant="secondary" onClick={() => setEditingOrg(true)}>
-                  <Pen className="h-4 w-4" /> Edit Details
+              {!editingProfile ? (
+                <Button
+                  variant="secondary"
+                  onClick={() => setEditingProfile(true)}
+                >
+                  <Pen className="h-4 w-4" /> Edit Profile
                 </Button>
               ) : (
                 <Button
                   variant="secondary"
-                  disabled={savingOrg}
-                  onClick={handleOrgSubmit}
+                  disabled={savingProfile}
+                  onClick={handleProfileSubmit}
                 >
-                  {savingOrg ? (
+                  {savingProfile ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" /> Saving...
                     </>
@@ -424,20 +726,57 @@ export default function SettingsPage() {
                 </Button>
               )}
             </div>
-          </div>
-        )}
 
-        {/* PROFILE tab */}
-        {activeTab === "profile" && (
-          <div className="space-y-4">
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6 flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center flex-shrink-0">
-                <span className="text-lg font-extrabold text-[#0D9488]">
-                  {profileData.firstName.charAt(0)}
-                  {profileData.lastName.charAt(0)}
-                </span>
+            {/* Avatar card — always clickable, no edit gate needed */}
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6 flex items-center gap-5">
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/jpg,image/jpeg,image/png,image/gif,image/webp"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+
+              <div className="relative flex-shrink-0 group">
+                <button
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="relative w-14 h-14 rounded-full bg-[#0D9488]/10 flex items-center justify-center overflow-hidden cursor-pointer"
+                >
+                  {avatarUrl ? (
+                    <Image
+                      src={avatarUrl}
+                      alt="Profile photo"
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="text-lg font-extrabold text-[#0D9488]">
+                      {profileData.firstName.charAt(0)}
+                      {profileData.lastName.charAt(0)}
+                    </span>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                    {uploadingAvatar ? (
+                      <Loader2 className="w-4 h-4 text-white animate-spin" />
+                    ) : (
+                      <Camera className="w-4 h-4 text-white" />
+                    )}
+                  </div>
+                </button>
+
+                {avatarUrl && (
+                  <button
+                    onClick={handleDeleteAvatar}
+                    className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                    title="Remove photo"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
               </div>
-              <div className="min-w-0">
+
+              <div className="min-w-0 flex-1">
                 <p className="text-base font-bold text-[#1F2937] truncate">
                   {profileData.firstName} {profileData.lastName}
                 </p>
@@ -446,6 +785,10 @@ export default function SettingsPage() {
                 </p>
                 <p className="text-xs font-semibold text-[#0D9488] mt-0.5 capitalize">
                   {orgData.role}
+                </p>
+                <p className="text-xs text-[#9CA3AF] mt-1">
+                  Click photo to update · hover to remove · JPG, PNG, GIF or
+                  WEBP · max 5 MB
                 </p>
               </div>
             </div>
@@ -485,45 +828,10 @@ export default function SettingsPage() {
                 placeholder="+234 000 0000 000"
               />
             </Section>
-
-            <div className="flex justify-end gap-3">
-              {editingProfile && (
-                <Button
-                  variant="outline"
-                  onClick={() => setEditingProfile(false)}
-                >
-                  <X className="h-4 w-4" /> Cancel
-                </Button>
-              )}
-              {!editingProfile ? (
-                <Button
-                  variant="secondary"
-                  onClick={() => setEditingProfile(true)}
-                >
-                  <Pen className="h-4 w-4" /> Edit Profile
-                </Button>
-              ) : (
-                <Button
-                  variant="secondary"
-                  disabled={savingProfile}
-                  onClick={handleProfileSubmit}
-                >
-                  {savingProfile ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" /> Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" /> Save Changes
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
           </div>
         )}
 
-        {/* TEAM tab */}
+        {/* ── TEAM tab ── */}
         {activeTab === "team" && (
           <Section
             title="Team Members"
@@ -552,7 +860,7 @@ export default function SettingsPage() {
           </Section>
         )}
 
-        {/* BANKING tab */}
+        {/* ── BANKING tab ── */}
         {activeTab === "banking" && (
           <Section
             title="Bank Account"
@@ -617,7 +925,6 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* Modals */}
       <InviteStaffModal
         isOpen={isInviteModalOpen}
         onOpenChange={setIsInviteModalOpen}

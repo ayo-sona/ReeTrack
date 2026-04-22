@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useMemberById } from "@/hooks/useMembers";
 import { Member } from "@/types/organization";
+import Image from "next/image";
 
 const C = {
   teal: "#0D9488",
@@ -64,9 +65,14 @@ export default function CheckInPage() {
   const { getMember } = useMemberStore();
   const orgId = params.id as string | null;
   const memberData = getMember(orgId as string);
-  const [memberDetails, setMemberDetails] = useState<Member | undefined>(undefined);
+  const [memberDetails, setMemberDetails] = useState<Member | undefined>(
+    undefined,
+  );
 
-  const { data: member, isLoading } = useMemberById(memberData?.id || null, orgId || null);
+  const { data: member, isLoading } = useMemberById(
+    memberData?.id || null,
+    orgId || null,
+  );
 
   const recentCheckIns: CheckInRecord[] = useMemo(() => {
     return (memberDetails?.checked_in_at ?? []).map((timestamp, i) => ({
@@ -89,8 +95,7 @@ export default function CheckInPage() {
     const q = searchQuery.toLowerCase();
     return recentCheckIns.filter(
       (r) =>
-        r.date.toLowerCase().includes(q) ||
-        r.time.toLowerCase().includes(q),
+        r.date.toLowerCase().includes(q) || r.time.toLowerCase().includes(q),
     );
   }, [searchQuery, recentCheckIns]);
 
@@ -247,10 +252,91 @@ export default function CheckInPage() {
         @media (max-width: 400px) { .code-number { font-size: 40px; letter-spacing: 4px; } }
       `}</style>
 
-      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "32px 24px 96px" }}>
+      <div
+        style={{
+          maxWidth: "1400px",
+          margin: "0 auto",
+          padding: "32px 24px 96px",
+        }}
+      >
         {/* Page header */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0} style={{ marginBottom: "40px" }}>
-          <h1 style={{ fontWeight: 800, fontSize: "clamp(24px, 4vw, 32px)", color: C.ink, letterSpacing: "-0.4px", marginBottom: "4px" }}>
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          custom={0}
+          style={{ marginBottom: "40px" }}
+        >
+          {/* ✅ Member identity row */}
+          {memberDetails?.user && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+                marginBottom: "20px",
+              }}
+            >
+              <div
+                style={{
+                  width: "52px",
+                  height: "52px",
+                  borderRadius: "14px",
+                  background: C.teal,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 800,
+                  fontSize: "18px",
+                  color: C.white,
+                  overflow: "hidden",
+                  position: "relative",
+                  flexShrink: 0,
+                }}
+              >
+                {memberDetails.user.avatar_url ? (
+                  <Image
+                    src={memberDetails.user.avatar_url}
+                    alt={`${memberDetails.user.first_name} ${memberDetails.user.last_name}`}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  `${memberDetails.user.first_name?.charAt(0)}${memberDetails.user.last_name?.charAt(0)}`
+                )}
+              </div>
+              <div>
+                <p
+                  style={{
+                    fontWeight: 700,
+                    fontSize: "16px",
+                    color: C.ink,
+                    marginBottom: "2px",
+                  }}
+                >
+                  {memberDetails.user.first_name} {memberDetails.user.last_name}
+                </p>
+                <p
+                  style={{
+                    fontWeight: 400,
+                    fontSize: "13px",
+                    color: C.coolGrey,
+                  }}
+                >
+                  {memberDetails.user.email}
+                </p>
+              </div>
+            </div>
+          )}
+          <h1
+            style={{
+              fontWeight: 800,
+              fontSize: "clamp(24px, 4vw, 32px)",
+              color: C.ink,
+              letterSpacing: "-0.4px",
+              marginBottom: "4px",
+            }}
+          >
             Check In
           </h1>
           <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey }}>
@@ -260,41 +346,167 @@ export default function CheckInPage() {
 
         <div className="checkin-grid">
           {/* LEFT COLUMN */}
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1}>
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            custom={1}
+          >
             {checkInCode ? (
-              <div style={{ position: "relative", overflow: "hidden", background: C.teal, borderRadius: "24px" }} className="code-display">
-                <div style={{ position: "absolute", top: "-80px", right: "-80px", width: "280px", height: "280px", borderRadius: "50%", background: "rgba(255,255,255,0.06)" }} />
-                <div style={{ position: "absolute", bottom: "-60px", left: "20%", width: "200px", height: "200px", borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)", backgroundSize: "200% auto", animation: "pulse-slow 3s ease-in-out infinite" }} />
+              <div
+                style={{
+                  position: "relative",
+                  overflow: "hidden",
+                  background: C.teal,
+                  borderRadius: "24px",
+                }}
+                className="code-display"
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "-80px",
+                    right: "-80px",
+                    width: "280px",
+                    height: "280px",
+                    borderRadius: "50%",
+                    background: "rgba(255,255,255,0.06)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "-60px",
+                    left: "20%",
+                    width: "200px",
+                    height: "200px",
+                    borderRadius: "50%",
+                    background: "rgba(255,255,255,0.04)",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: "2px",
+                    background:
+                      "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+                    backgroundSize: "200% auto",
+                    animation: "pulse-slow 3s ease-in-out infinite",
+                  }}
+                />
 
-                <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 20px", borderRadius: "999px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", marginBottom: "32px" }}>
+                <div
+                  style={{
+                    position: "relative",
+                    zIndex: 1,
+                    textAlign: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "10px 20px",
+                      borderRadius: "999px",
+                      background: "rgba(255,255,255,0.15)",
+                      border: "1px solid rgba(255,255,255,0.25)",
+                      marginBottom: "32px",
+                    }}
+                  >
                     <Clock size={16} style={{ color: C.white }} />
-                    <span style={{ fontFamily: "Nunito, sans-serif", fontWeight: 700, fontSize: "14px", color: C.white }}>
+                    <span
+                      style={{
+                        fontFamily: "Nunito, sans-serif",
+                        fontWeight: 700,
+                        fontSize: "14px",
+                        color: C.white,
+                      }}
+                    >
                       Expires in {timeLeft}
                     </span>
                   </div>
 
-                  <p style={{ fontWeight: 600, fontSize: "14px", color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "16px" }}>
+                  <p
+                    style={{
+                      fontWeight: 600,
+                      fontSize: "14px",
+                      color: "rgba(255,255,255,0.7)",
+                      textTransform: "uppercase",
+                      letterSpacing: "1px",
+                      marginBottom: "16px",
+                    }}
+                  >
                     Your Check-In Code
                   </p>
 
-                  <div style={{ display: "inline-block", padding: "clamp(20px,4vw,32px) clamp(24px,6vw,64px)", background: "rgba(255,255,255,0.15)", backdropFilter: "blur(12px)", borderRadius: "16px", border: "2px solid rgba(255,255,255,0.3)", marginBottom: "24px" }}>
-                    <div className="code-number" style={{ fontFamily: "monospace", fontWeight: 700, color: C.white, lineHeight: 1 }}>
+                  <div
+                    style={{
+                      display: "inline-block",
+                      padding: "clamp(20px,4vw,32px) clamp(24px,6vw,64px)",
+                      background: "rgba(255,255,255,0.15)",
+                      backdropFilter: "blur(12px)",
+                      borderRadius: "16px",
+                      border: "2px solid rgba(255,255,255,0.3)",
+                      marginBottom: "24px",
+                    }}
+                  >
+                    <div
+                      className="code-number"
+                      style={{
+                        fontFamily: "monospace",
+                        fontWeight: 700,
+                        color: C.white,
+                        lineHeight: 1,
+                      }}
+                    >
                       {checkInCode.checkInCode}
                     </div>
                   </div>
 
-                  <p style={{ fontWeight: 400, fontSize: "15px", color: "rgba(255,255,255,0.8)", maxWidth: "400px", margin: "0 auto" }}>
+                  <p
+                    style={{
+                      fontWeight: 400,
+                      fontSize: "15px",
+                      color: "rgba(255,255,255,0.8)",
+                      maxWidth: "400px",
+                      margin: "0 auto",
+                    }}
+                  >
                     Show this code to staff at the entrance
                   </p>
 
-                  <div className="action-buttons" style={{ display: "flex", gap: "12px", justifyContent: "center", marginTop: "40px" }}>
-                    <Button variant="outline" size="lg" onClick={() => { setCheckInCode(null); handleGenerateCode(); }} disabled={generatingCode} className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white">
+                  <div
+                    className="action-buttons"
+                    style={{
+                      display: "flex",
+                      gap: "12px",
+                      justifyContent: "center",
+                      marginTop: "40px",
+                    }}
+                  >
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => {
+                        setCheckInCode(null);
+                        handleGenerateCode();
+                      }}
+                      disabled={generatingCode}
+                      className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white"
+                    >
                       <RefreshCw size={16} />
                       {generatingCode ? "Generating..." : "New Code"}
                     </Button>
-                    <Button variant="outline" size="lg" onClick={() => setIsOpen(true)} className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white">
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => setIsOpen(true)}
+                      className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white"
+                    >
                       <QrCode size={16} />
                       Show QR
                     </Button>
@@ -302,24 +514,90 @@ export default function CheckInPage() {
                 </div>
               </div>
             ) : (
-              <div className="empty-state" style={{ background: C.white, borderRadius: "24px", border: `2px dashed ${C.border}`, textAlign: "center" }}>
-                <div style={{ width: "96px", height: "96px", borderRadius: "24px", background: C.snow, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", color: C.coolGrey }}>
+              <div
+                className="empty-state"
+                style={{
+                  background: C.white,
+                  borderRadius: "24px",
+                  border: `2px dashed ${C.border}`,
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    width: "96px",
+                    height: "96px",
+                    borderRadius: "24px",
+                    background: C.snow,
+                    border: `1px solid ${C.border}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 24px",
+                    color: C.coolGrey,
+                  }}
+                >
                   <QrCode size={44} />
                 </div>
-                <h2 style={{ fontWeight: 700, fontSize: "22px", color: C.ink, marginBottom: "12px" }}>Ready to Check In?</h2>
-                <p style={{ fontWeight: 400, fontSize: "15px", color: C.coolGrey, lineHeight: 1.6, marginBottom: "32px", maxWidth: "380px", margin: "0 auto 32px" }}>
+                <h2
+                  style={{
+                    fontWeight: 700,
+                    fontSize: "22px",
+                    color: C.ink,
+                    marginBottom: "12px",
+                  }}
+                >
+                  Ready to Check In?
+                </h2>
+                <p
+                  style={{
+                    fontWeight: 400,
+                    fontSize: "15px",
+                    color: C.coolGrey,
+                    lineHeight: 1.6,
+                    marginBottom: "32px",
+                    maxWidth: "380px",
+                    margin: "0 auto 32px",
+                  }}
+                >
                   Generate a secure check-in code or show your QR to get started
                 </p>
-                <div className="action-buttons" style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+                <div
+                  className="action-buttons"
+                  style={{
+                    display: "flex",
+                    gap: "12px",
+                    justifyContent: "center",
+                  }}
+                >
                   <div style={{ position: "relative" }}>
-                    <div style={{ position: "absolute", inset: "-4px", borderRadius: "12px", background: `linear-gradient(to right, rgba(240,101,67,0.4), rgba(240,101,67,0.2), rgba(240,101,67,0.4))`, filter: "blur(14px)", opacity: 0.7, zIndex: 0 }} />
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: "-4px",
+                        borderRadius: "12px",
+                        background: `linear-gradient(to right, rgba(240,101,67,0.4), rgba(240,101,67,0.2), rgba(240,101,67,0.4))`,
+                        filter: "blur(14px)",
+                        opacity: 0.7,
+                        zIndex: 0,
+                      }}
+                    />
                     <div style={{ position: "relative", zIndex: 1 }}>
-                      <Button variant="default" size="lg" onClick={handleGenerateCode} disabled={generatingCode}>
+                      <Button
+                        variant="default"
+                        size="lg"
+                        onClick={handleGenerateCode}
+                        disabled={generatingCode}
+                      >
                         {generatingCode ? "Generating..." : "Generate Code"}
                       </Button>
                     </div>
                   </div>
-                  <Button variant="secondary" size="lg" onClick={() => setIsOpen(true)}>
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    onClick={() => setIsOpen(true)}
+                  >
                     <QrCode size={16} />
                     Show QR
                   </Button>
@@ -329,16 +607,61 @@ export default function CheckInPage() {
           </motion.div>
 
           {/* RIGHT COLUMN */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "20px" }}
+          >
             {/* How It Works */}
-            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2} style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "28px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              custom={2}
+              style={{
+                background: C.white,
+                borderRadius: "16px",
+                border: `1px solid ${C.border}`,
+                padding: "28px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  marginBottom: "16px",
+                }}
+              >
                 <CheckCircle size={18} style={{ color: C.teal }} />
-                <h3 style={{ fontWeight: 700, fontSize: "16px", color: C.teal }}>How It Works</h3>
+                <h3
+                  style={{ fontWeight: 700, fontSize: "16px", color: C.teal }}
+                >
+                  How It Works
+                </h3>
               </div>
-              <ol style={{ display: "flex", flexDirection: "column", gap: "12px", paddingLeft: "20px", margin: 0 }}>
-                {["Generate or show your code", "Present to staff at entrance", "Staff verifies and logs entry"].map((step, idx) => (
-                  <li key={idx} style={{ fontWeight: 400, fontSize: "14px", color: C.ink, lineHeight: 1.6, paddingLeft: "8px" }}>
+              <ol
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                  paddingLeft: "20px",
+                  margin: 0,
+                }}
+              >
+                {[
+                  "Generate or show your code",
+                  "Present to staff at entrance",
+                  "Staff verifies and logs entry",
+                ].map((step, idx) => (
+                  <li
+                    key={idx}
+                    style={{
+                      fontWeight: 400,
+                      fontSize: "14px",
+                      color: C.ink,
+                      lineHeight: 1.6,
+                      paddingLeft: "8px",
+                    }}
+                  >
                     {step}
                   </li>
                 ))}
@@ -347,18 +670,83 @@ export default function CheckInPage() {
 
             {/* Code details (if active) */}
             {checkInCode && (
-              <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3} style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "24px" }}>
-                <p style={{ fontWeight: 700, fontSize: "13px", color: C.coolGrey, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "16px" }}>
+              <motion.div
+                variants={fadeUp}
+                initial="hidden"
+                animate="visible"
+                custom={3}
+                style={{
+                  background: C.white,
+                  borderRadius: "16px",
+                  border: `1px solid ${C.border}`,
+                  padding: "24px",
+                }}
+              >
+                <p
+                  style={{
+                    fontWeight: 700,
+                    fontSize: "13px",
+                    color: C.coolGrey,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.8px",
+                    marginBottom: "16px",
+                  }}
+                >
                   Code Details
                 </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "16px",
+                  }}
+                >
                   {[
-                    { label: "Generated", value: new Date(checkInCode.createdAt).toLocaleString("en-US", { hour: "2-digit", minute: "2-digit", month: "short", day: "numeric" }) },
-                    { label: "Valid Until", value: new Date(checkInCode.expiresAt).toLocaleString("en-US", { hour: "2-digit", minute: "2-digit", month: "short", day: "numeric" }) },
+                    {
+                      label: "Generated",
+                      value: new Date(checkInCode.createdAt).toLocaleString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          month: "short",
+                          day: "numeric",
+                        },
+                      ),
+                    },
+                    {
+                      label: "Valid Until",
+                      value: new Date(checkInCode.expiresAt).toLocaleString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          month: "short",
+                          day: "numeric",
+                        },
+                      ),
+                    },
                   ].map((item) => (
                     <div key={item.label}>
-                      <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey, marginBottom: "4px" }}>{item.label}</p>
-                      <p style={{ fontWeight: 600, fontSize: "14px", color: C.ink }}>{item.value}</p>
+                      <p
+                        style={{
+                          fontWeight: 400,
+                          fontSize: "12px",
+                          color: C.coolGrey,
+                          marginBottom: "4px",
+                        }}
+                      >
+                        {item.label}
+                      </p>
+                      <p
+                        style={{
+                          fontWeight: 600,
+                          fontSize: "14px",
+                          color: C.ink,
+                        }}
+                      >
+                        {item.value}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -366,14 +754,46 @@ export default function CheckInPage() {
             )}
 
             {/* Recent Check-ins */}
-            <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4} style={{ background: C.white, borderRadius: "16px", border: `1px solid ${C.border}`, padding: "28px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              custom={4}
+              style={{
+                background: C.white,
+                borderRadius: "16px",
+                border: `1px solid ${C.border}`,
+                padding: "28px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  marginBottom: "16px",
+                }}
+              >
                 <Calendar size={18} style={{ color: C.teal }} />
-                <h3 style={{ fontWeight: 700, fontSize: "16px", color: C.teal }}>Recent Check-ins</h3>
+                <h3
+                  style={{ fontWeight: 700, fontSize: "16px", color: C.teal }}
+                >
+                  Recent Check-ins
+                </h3>
               </div>
 
               <div style={{ position: "relative", marginBottom: "16px" }}>
-                <Search size={15} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: C.coolGrey, pointerEvents: "none" }} />
+                <Search
+                  size={15}
+                  style={{
+                    position: "absolute",
+                    left: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: C.coolGrey,
+                    pointerEvents: "none",
+                  }}
+                />
                 <input
                   type="text"
                   className="search-input"
@@ -382,21 +802,78 @@ export default function CheckInPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 {searchQuery && (
-                  <button onClick={() => setSearchQuery("")} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: C.coolGrey, display: "flex", alignItems: "center", padding: "2px" }}>
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    style={{
+                      position: "absolute",
+                      right: "10px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: C.coolGrey,
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "2px",
+                    }}
+                  >
                     <X size={14} />
                   </button>
                 )}
               </div>
 
               {filteredCheckIns.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
+                >
                   {filteredCheckIns.map((record) => (
-                    <div key={record.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: "10px", background: C.snow, border: `1px solid ${C.border}` }}>
+                    <div
+                      key={record.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "12px 14px",
+                        borderRadius: "10px",
+                        background: C.snow,
+                        border: `1px solid ${C.border}`,
+                      }}
+                    >
                       <div>
-                        <p style={{ fontWeight: 600, fontSize: "13px", color: C.ink }}>{record.date}</p>
-                        <p style={{ fontWeight: 400, fontSize: "12px", color: C.coolGrey }}>{record.time}</p>
+                        <p
+                          style={{
+                            fontWeight: 600,
+                            fontSize: "13px",
+                            color: C.ink,
+                          }}
+                        >
+                          {record.date}
+                        </p>
+                        <p
+                          style={{
+                            fontWeight: 400,
+                            fontSize: "12px",
+                            color: C.coolGrey,
+                          }}
+                        >
+                          {record.time}
+                        </p>
                       </div>
-                      <span style={{ fontSize: "11px", fontWeight: 700, padding: "4px 10px", borderRadius: "999px", background: "rgba(13,148,136,0.1)", color: C.teal }}>
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: 700,
+                          padding: "4px 10px",
+                          borderRadius: "999px",
+                          background: "rgba(13,148,136,0.1)",
+                          color: C.teal,
+                        }}
+                      >
                         Checked In
                       </span>
                     </div>
@@ -404,14 +881,47 @@ export default function CheckInPage() {
                 </div>
               ) : (
                 <div style={{ textAlign: "center", padding: "24px 0" }}>
-                  <div style={{ width: "56px", height: "56px", borderRadius: "12px", background: C.snow, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", color: C.coolGrey }}>
-                    {searchQuery ? <Search size={22} /> : <Calendar size={24} />}
+                  <div
+                    style={{
+                      width: "56px",
+                      height: "56px",
+                      borderRadius: "12px",
+                      background: C.snow,
+                      border: `1px solid ${C.border}`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      margin: "0 auto 12px",
+                      color: C.coolGrey,
+                    }}
+                  >
+                    {searchQuery ? (
+                      <Search size={22} />
+                    ) : (
+                      <Calendar size={24} />
+                    )}
                   </div>
-                  <p style={{ fontWeight: 600, fontSize: "14px", color: C.ink, marginBottom: "4px" }}>
+                  <p
+                    style={{
+                      fontWeight: 600,
+                      fontSize: "14px",
+                      color: C.ink,
+                      marginBottom: "4px",
+                    }}
+                  >
                     {searchQuery ? "No results found" : "No check-ins yet"}
                   </p>
-                  <p style={{ fontWeight: 400, fontSize: "13px", color: C.coolGrey, lineHeight: 1.5 }}>
-                    {searchQuery ? `No check-ins match "${searchQuery}"` : "Your history will appear here"}
+                  <p
+                    style={{
+                      fontWeight: 400,
+                      fontSize: "13px",
+                      color: C.coolGrey,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {searchQuery
+                      ? `No check-ins match "${searchQuery}"`
+                      : "Your history will appear here"}
                   </p>
                 </div>
               )}
@@ -421,7 +931,11 @@ export default function CheckInPage() {
       </div>
 
       {isOpen && (
-        <MemberQRCodeModal isOpen={isOpen} onOpenChange={setIsOpen} memberId={memberData?.id} />
+        <MemberQRCodeModal
+          isOpen={isOpen}
+          onOpenChange={setIsOpen}
+          memberId={memberData?.id}
+        />
       )}
     </div>
   );

@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useInvoices } from "@/hooks/memberHook/useMember";
 import { toast } from "sonner"; // or your toast lib; swap if needed
+import { useMemberOrgs } from "@/hooks/memberHook/useMember";
+import Image from "next/image";
 
 // ─── Cancel Confirmation Modal ──────────────────────────────────────────────
 
@@ -34,6 +36,7 @@ interface CancelModalProps {
   onConfirm: () => void;
   onClose: () => void;
   isLoading: boolean;
+  orgLogo: string | null;
 }
 
 function CancelModal({
@@ -41,6 +44,7 @@ function CancelModal({
   onConfirm,
   onClose,
   isLoading,
+  orgLogo,
 }: CancelModalProps) {
   if (!subscription) return null;
 
@@ -73,10 +77,19 @@ function CancelModal({
           Cancel Subscription?
         </h2>
         <p className="text-[#6B7280] text-sm mb-4 leading-relaxed">
-          You're about to cancel{" "}
-          <span className="font-semibold text-[#1F2937]">
-            {subscription.plan.name}
-          </span>
+          You&apos;re about to cancel{" "}
+          <div className="w-10 h-10 bg-gradient-to-br from-[#0D9488] to-[#0B7A70] rounded-lg flex items-center justify-center text-white font-bold text-sm overflow-hidden relative">
+            {orgLogo ? (
+              <Image
+                src={orgLogo}
+                alt={subscription.plan.name}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              subscription.plan.name.charAt(0)
+            )}
+          </div>
           . Your subscription will remain active until{" "}
           <span className="font-semibold text-[#1F2937]">
             {new Date(subscription.expires_at).toLocaleDateString("en-NG", {
@@ -173,6 +186,9 @@ export default function MemberDashboard() {
       : [];
 
   const failedInvoiceCount = invoicesList.length;
+  const { data: memberOrgs } = useMemberOrgs();
+  const orgLogo =
+    memberOrgs?.[0]?.organization_user?.organization?.logo_url ?? null;
 
   const sortedSubscriptions = subscriptions
     ? [...subscriptions].sort(
@@ -213,6 +229,7 @@ export default function MemberDashboard() {
         onConfirm={handleCancelConfirm}
         onClose={() => setCancelTarget(null)}
         isLoading={isCancelling}
+        orgLogo={orgLogo} 
       />
 
       <div className="min-h-screen bg-[#F9FAFB] p-4 md:p-8">
@@ -310,8 +327,17 @@ export default function MemberDashboard() {
                         href={`/member/subscriptions/${sub.id}`}
                         className="flex items-center gap-4 flex-1 min-w-0 hover:opacity-80 transition-opacity"
                       >
-                        <div className="w-14 h-14 bg-gradient-to-br from-[#0D9488] to-[#0B7A70] rounded-xl flex items-center justify-center text-white font-extrabold text-xl shadow-sm shrink-0">
-                          {sub.plan.name.charAt(0)}
+                        <div className="w-14 h-14 bg-gradient-to-br from-[#0D9488] to-[#0B7A70] rounded-xl flex items-center justify-center text-white font-extrabold text-xl shadow-sm shrink-0 overflow-hidden relative">
+                          {orgLogo ? (
+                            <Image
+                              src={orgLogo}
+                              alt={sub.plan.name}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            sub.plan.name.charAt(0)
+                          )}
                         </div>
                         <div className="min-w-0">
                           <h3 className="font-bold text-[#1F2937] text-base truncate">
