@@ -9,6 +9,7 @@ import Image from "next/image";
 import Logo from "@/components/layout/Logo";
 import { useForgotPassword } from "@/hooks/useForgotPassword";
 import { useResetPassword } from "@/hooks/useResetPassword";
+import posthog from "posthog-js";
 
 type FormState = "email" | "code" | "success";
 
@@ -37,6 +38,7 @@ export default function ForgotPasswordPage() {
     const success = await sendResetEmail(email);
     
     if (success) {
+      posthog.capture("password_reset_requested");
       setFormState("code");
       toast.success("Verification code sent to your email");
     } else if (forgotError) {
@@ -61,6 +63,7 @@ export default function ForgotPasswordPage() {
     });
 
     if (success) {
+      posthog.capture("password_reset_completed");
       setFormState("success");
       toast.success("Password reset successfully");
       setTimeout(() => router.push("/auth/login"), 2000);

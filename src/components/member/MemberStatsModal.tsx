@@ -99,7 +99,7 @@ export function MemberStatsModal({
     rank === 1
       ? "linear-gradient(135deg, #F59E0B, #D97706)"
       : rank === 2
-        ? "linear-gradient(135deg, #94A3B8, #64748B)"
+        ? "linear-gradient(135deg, #6366F1, #4F46E5)"
         : rank === 3
           ? "linear-gradient(135deg, #CD7F32, #A0522D)"
           : `linear-gradient(135deg, ${C.teal}, #0F766E)`;
@@ -256,64 +256,39 @@ export function MemberStatsModal({
               gap: 8,
             }}
           >
-            <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{
-                delay: 0.15,
-                duration: 0.4,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-              style={{
-                width: 72,
-                height: 72,
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.25)",
-                border: "3px solid rgba(255,255,255,0.5)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: 800,
-                fontSize: 26,
-                color: "white",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
-                position: "relative",
-                overflow: "hidden", // ✅ add this
-              }}
-            >
-              {/* ✅ show avatar if available, otherwise initials */}
-              {member.user.avatarUrl ? (
-                <Image
-                  src={member.user.avatarUrl}
-                  alt={name}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                initials
-              )}
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: -4,
-                  right: -4,
-                  width: 28,
-                  height: 28,
-                  borderRadius: "50%",
-                  background: C.white,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontWeight: 800,
-                  fontSize: 12,
-                  color: C.ink,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                  zIndex: 1, // ✅ keeps rank badge above the image
+            <div className="flex flex-col items-center gap-2">
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{
+                  delay: 0.15,
+                  duration: 0.4,
+                  ease: [0.16, 1, 0.3, 1],
                 }}
+                className={`relative overflow-hidden rounded-full flex items-center justify-center font-extrabold text-white bg-white/25 shadow-2xl
+      ${
+        rank === 1
+          ? "w-24 h-24 text-3xl border-4 border-white/50"
+          : "w-[72px] h-[72px] text-2xl border-[3px] border-white/50"
+      }`}
               >
+                {member.user.avatarUrl ? (
+                  <Image
+                    src={member.user.avatarUrl}
+                    alt={name}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  initials
+                )}
+              </motion.div>
+
+              {/* ✅ rank badge below — not overlapping */}
+              <div className="inline-flex items-center justify-center px-3 py-0.5 rounded-full bg-white/20 backdrop-blur border border-white/30 font-extrabold text-xs text-white">
                 #{rank}
               </div>
-            </motion.div>
+            </div>
             <p
               style={{
                 fontWeight: 800,

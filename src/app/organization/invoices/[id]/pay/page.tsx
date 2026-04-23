@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import clsx from "clsx";
+import posthog from "posthog-js";
 
 interface Invoice {
   id: string;
@@ -66,6 +67,11 @@ export default function PayInvoicePage() {
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`invoice-${invoice?.invoice_number ?? params?.id}.pdf`);
+      posthog.capture("invoice_downloaded", {
+        invoice_number: invoice?.invoice_number,
+        invoice_amount: invoice?.amount,
+        invoice_status: invoice?.status,
+      });
     } catch {
       // Fallback to print dialog
       window.print();

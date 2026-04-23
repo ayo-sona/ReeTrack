@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Users, Gift, Share2, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import posthog from "posthog-js";
 
 const C = {
   teal:     "#0D9488",
@@ -60,6 +61,7 @@ export default function ReferralsPage() {
 
   const handleSubmit = () => {
     if (!email.includes("@")) return;
+    posthog.capture("referral_waitlist_joined");
     setSubmitted(true);
   };
 

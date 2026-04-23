@@ -1,39 +1,33 @@
 <wizard-report>
 # PostHog post-wizard report
 
-The wizard has completed a deep integration of PostHog analytics into ReeTrack. Here is a summary of everything that was done:
+The wizard has completed a deep integration of your project. PostHog was already partially set up (provider, pageview tracking, login/register identify calls, and `checkout_initiated`). This integration extended event coverage to 7 additional business-critical actions across authentication, onboarding, and engagement flows. Environment variables were confirmed and updated in `.env.local`. A PostHog dashboard with 5 insights was created to monitor key metrics.
 
-- **Environment**: Created `.env.local` with `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST` (values securely stored, never hardcoded).
-- **Provider**: Updated `PostHogProvider` to add `capture_exceptions: true` (error tracking) and `defaults: "2026-01-30"` with the correct US host.
-- **Page views**: Already handled by `PostHogPageView` component wrapped in `Suspense` in the root layout.
-- **User identification**: Fixed a broken `identify` call in the login page (was referencing `Response` instead of `response` and was placed outside the try/catch). Added `identify` on registration with email as distinct ID.
-- **Bug fixes**: Merged a duplicate `if (success)` block in `register/page.tsx` that was causing double `toast.success` and double `router.push` calls.
-- **9 events** instrumented across 7 files covering the full user journey from acquisition through payment.
-
-## Events
+## Events instrumented
 
 | Event | Description | File |
 |---|---|---|
-| `user_logged_in` | User successfully logs into their account | `src/app/auth/login/page.tsx` |
-| `user_registered` | User successfully creates a new member account | `src/app/auth/register/page.tsx` |
-| `org_registration_started` | User initiates organization registration (new user path) | `src/app/auth/org/register/page.tsx` |
-| `organization_created` | Organization successfully created by an existing user | `src/app/auth/org/register/page.tsx` |
-| `checkout_initiated` | User clicks to proceed to payment for a subscription plan | `src/components/shared/checkout.tsx` |
-| `member_invited` | Admin sends email invitation(s) to new member(s) | `src/components/organization/CreateMemberModal.tsx` |
-| `invite_link_copied` | Admin copies the organization invite link | `src/components/organization/CreateMemberModal.tsx` |
-| `plan_created` | Admin creates or updates a subscription plan | `src/components/organization/CreatePlanModal.tsx` |
-| `organization_joined` | Member successfully joins an organization via invite link or slug | `src/app/join/[slug]/page.tsx` |
+| `user_registered` | User completes signup form (pre-existing) | `src/app/auth/register/page.tsx` |
+| `user_logged_in` | User logs in successfully (pre-existing) | `src/app/auth/login/page.tsx` |
+| `checkout_initiated` | User clicks to proceed to payment (pre-existing) | `src/components/shared/checkout.tsx` |
+| `role_selected` | User selects member or organization workspace | `src/app/select-role/page.tsx` |
+| `plan_created` | Organization admin creates a subscription plan during onboarding | `src/app/organization/onboarding/create-plan/page.tsx` |
+| `staff_invited` | Organization admin sends staff invitation emails | `src/components/organization/InviteStaffModal.tsx` |
+| `invoice_downloaded` | User downloads an invoice as PDF | `src/app/organization/invoices/[id]/pay/page.tsx` |
+| `referral_waitlist_joined` | Member signs up for the referral program waitlist | `src/components/member/pages/memberReferralsPage.tsx` |
+| `password_reset_requested` | User requests a password reset code | `src/app/auth/forgot-password/page.tsx` |
+| `password_reset_completed` | User successfully resets their password | `src/app/auth/forgot-password/page.tsx` |
 
 ## Next steps
 
-We've built a dashboard and insights to keep an eye on user behavior, based on the events we just instrumented:
+We've built some insights and a dashboard for you to keep an eye on user behavior, based on the events we just instrumented:
 
-- **Dashboard — Analytics basics**: https://us.posthog.com/project/394601/dashboard/1503349
-- **Member Signup Funnel** (registration → login): https://us.posthog.com/project/394601/insights/VrAE69Ap
-- **Organization Setup Funnel** (started → created org → created plan): https://us.posthog.com/project/394601/insights/Z8GEEztC
-- **Checkout Initiations Over Time**: https://us.posthog.com/project/394601/insights/vfCyxcdp
-- **New Members Joining Organizations**: https://us.posthog.com/project/394601/insights/ZgYVWsX3
-- **Member Invitation Activity** (email invites vs link copies): https://us.posthog.com/project/394601/insights/UMtQlMyB
+- **Dashboard — Analytics basics**: https://us.posthog.com/project/394601/dashboard/1504117
+- **User Registration Funnel** (registered → role selected → checkout initiated): https://us.posthog.com/project/394601/insights/joGDUoFT
+- **Checkout Initiations by Mode** (member vs organization breakdown): https://us.posthog.com/project/394601/insights/UHSLIdx7
+- **New Signups & Logins Over Time** (daily acquisition trend): https://us.posthog.com/project/394601/insights/PptIisqh
+- **Organization Onboarding Activity** (plans created, staff invited, invoices downloaded): https://us.posthog.com/project/394601/insights/3W3gChrh
+- **Password Reset Completion Rate** (reset requested → completed funnel): https://us.posthog.com/project/394601/insights/1QHZR8HK
 
 ### Agent skill
 

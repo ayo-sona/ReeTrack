@@ -5,6 +5,7 @@ import { X, Plus, Trash2 } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import posthog from "posthog-js";
 
 interface EmailEntry {
   id: string;
@@ -118,6 +119,9 @@ export function InviteStaffModal({
         ).length;
 
         if (successCount > 0 && failCount === 0) {
+          posthog.capture("staff_invited", {
+            invitations_sent: successCount,
+          });
           toast.success(
             successCount === 1
               ? "Staff invitation sent successfully"
