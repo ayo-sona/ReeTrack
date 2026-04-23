@@ -15,11 +15,10 @@ import {
   Crown,
   Medal,
   Award,
-  Flame,
   TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SearchBar } from "@/components/ui/SearchBar";
+// import { SearchBar } from "@/components/ui/SearchBar";
 import QRCodeScanner from "@/components/organization/QRCodeScanner";
 import MemberSelectModal from "@/components/organization/MemberSelectModal";
 import apiClient from "@/lib/apiClient";
@@ -411,9 +410,9 @@ function CheckInSkeleton() {
   );
 }
 
-const currentMonthName = new Date().toLocaleString("default", {
-  month: "long",
-});
+// const currentMonthName = new Date().toLocaleString("default", {
+//   month: "long",
+// });
 
 export default function OrganizationCheckInPage() {
   const [page] = useState(1);
