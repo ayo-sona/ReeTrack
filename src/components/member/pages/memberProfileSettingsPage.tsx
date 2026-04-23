@@ -569,71 +569,107 @@ export default function ProfileSettingsPage() {
                     />
 
                     {/* Clickable avatar */}
-                    <button
-                      className="avatar-trigger"
-                      onClick={() => avatarInputRef.current?.click()}
-                      disabled={uploadingAvatar}
-                      title="Change profile photo"
-                      style={{
-                        position: "relative",
-                        width: "72px",
-                        height: "72px",
-                        borderRadius: "18px",
-                        background: C.teal,
-                        border: "none",
-                        padding: 0,
-                        cursor: uploadingAvatar ? "not-allowed" : "pointer",
-                        flexShrink: 0,
-                        overflow: "hidden",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {/* Image or initials */}
-                      {avatarUrl ? (
-                        <Image
-                          src={avatarUrl}
-                          alt="Profile photo"
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <span
-                          style={{
-                            fontWeight: 800,
-                            fontSize: "24px",
-                            color: C.white,
-                            letterSpacing: "-0.5px",
-                            zIndex: 1,
-                          }}
-                        >
-                          {initials}
-                        </span>
-                      )}
-
-                      {/* Hover overlay */}
-                      <div
-                        className="avatar-overlay"
+                    {isEditing ? (
+                      <button
+                        className="avatar-trigger"
+                        onClick={() => avatarInputRef.current?.click()}
+                        disabled={uploadingAvatar}
+                        title="Change profile photo"
                         style={{
-                          position: "absolute",
-                          inset: 0,
-                          background: "rgba(0,0,0,0.45)",
+                          position: "relative",
+                          width: "72px",
+                          height: "72px",
+                          borderRadius: "18px",
+                          background: C.teal,
+                          border: "none",
+                          padding: 0,
+                          cursor: uploadingAvatar ? "not-allowed" : "pointer",
+                          flexShrink: 0,
+                          overflow: "hidden",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          opacity: uploadingAvatar ? 1 : 0,
-                          transition: "opacity 200ms",
-                          zIndex: 2,
                         }}
                       >
-                        {uploadingAvatar ? (
-                          <Spinner color="white" size="sm" />
+                        {avatarUrl ? (
+                          <Image
+                            src={avatarUrl}
+                            alt="Profile photo"
+                            fill
+                            className="object-cover"
+                          />
                         ) : (
-                          <Camera size={18} color={C.white} />
+                          <span
+                            style={{
+                              fontWeight: 800,
+                              fontSize: "24px",
+                              color: C.white,
+                              letterSpacing: "-0.5px",
+                              zIndex: 1,
+                            }}
+                          >
+                            {initials}
+                          </span>
+                        )}
+                        <div
+                          className="avatar-overlay"
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            background: "rgba(0,0,0,0.45)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            opacity: uploadingAvatar ? 1 : 0,
+                            transition: "opacity 200ms",
+                            zIndex: 2,
+                          }}
+                        >
+                          {uploadingAvatar ? (
+                            <Spinner color="white" size="sm" />
+                          ) : (
+                            <Camera size={18} color={C.white} />
+                          )}
+                        </div>
+                      </button>
+                    ) : (
+                      <div
+                        style={{
+                          position: "relative",
+                          width: "72px",
+                          height: "72px",
+                          borderRadius: "18px",
+                          background: C.teal,
+                          flexShrink: 0,
+                          overflow: "hidden",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          opacity: 0.5,
+                          cursor: "not-allowed",
+                        }}
+                      >
+                        {avatarUrl ? (
+                          <Image
+                            src={avatarUrl}
+                            alt="Profile photo"
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <span
+                            style={{
+                              fontWeight: 800,
+                              fontSize: "24px",
+                              color: C.white,
+                              letterSpacing: "-0.5px",
+                            }}
+                          >
+                            {initials}
+                          </span>
                         )}
                       </div>
-                    </button>
+                    )}
 
                     <div style={{ minWidth: 0 }}>
                       <p

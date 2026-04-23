@@ -182,7 +182,7 @@ export default function MemberDetailPage() {
   const createdAt = member.created_at ? new Date(member.created_at) : null;
   const status = user?.status || "inactive";
   const emailVerified = user?.email_verified || false;
-  const lastLoginAt = user?.last_login_at ? new Date(user.last_login_at) : null;
+  // const lastLoginAt = user?.last_login_at ? new Date(user.last_login_at) : null;
   const statusCfg = getStatusConfig(status);
 
   const handleGrantAccess = async (data: GrantAccessData) => {
