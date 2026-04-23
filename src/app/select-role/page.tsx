@@ -11,6 +11,7 @@ import Logo from "@/components/layout/Logo";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { Spinner } from "@heroui/react";
+import posthog from "posthog-js";
 
 export default function SelectRolePage() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export default function SelectRolePage() {
   }, []);
 
   const handleRoleSelect = (role: "member" | "organization") => {
+    posthog.capture("role_selected", { role });
     if (role === "member") {
       setCookie("current_role", "MEMBER", {
         maxAge: 60 * 60 * 24 * 7,

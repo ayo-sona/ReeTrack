@@ -7,6 +7,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCreatePlan } from "@/hooks/usePlans";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 
 export default function OnboardingCreatePlanPage() {
   const router = useRouter();
@@ -61,6 +62,12 @@ export default function OnboardingCreatePlanPage() {
         features: features.filter((f) => f.trim() !== ""),
       });
       setSuccess(true);
+      posthog.capture("plan_created", {
+        plan_name: formData.name,
+        plan_price: parseFloat(formData.price),
+        plan_interval: formData.duration,
+        features_count: features.filter((f) => f.trim() !== "").length,
+      });
       toast.success("Plan created!");
       setTimeout(
         () => router.push("/organization/onboarding/add-member"),

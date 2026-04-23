@@ -95,9 +95,28 @@ export default function CommunitiesPage() {
     return orgs;
   }, [allOrgs, search, filter, joinedOrgIds]);
 
-  const totalJoined = joinedOrgIds.size;
-  const totalAll = (allOrgs as Organization[] | undefined)?.length ?? 0;
-  const totalDiscover = totalAll - totalJoined;
+  const searchFiltered = useMemo(() => {
+    if (!allOrgs) return [];
+    let orgs = allOrgs as Organization[];
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      orgs = orgs.filter(
+        (o) =>
+          o.name.toLowerCase().includes(q) ||
+          (o.address ?? "").toLowerCase().includes(q) ||
+          (o.description ?? "").toLowerCase().includes(q),
+      );
+    }
+    return orgs;
+  }, [allOrgs, search]);
+
+  const totalAll = searchFiltered.length;
+  const totalJoined = searchFiltered.filter((o) =>
+    joinedOrgIds.has(o.id),
+  ).length;
+  const totalDiscover = searchFiltered.filter(
+    (o) => !joinedOrgIds.has(o.id),
+  ).length;
 
   if (isLoading) {
     return (
