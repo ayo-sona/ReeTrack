@@ -2,6 +2,8 @@ import { useState } from "react";
 import { authApi, LoginRequest, RegisterRequest } from "@/lib/authAPI";
 import { AxiosError } from "axios";
 import { setCookie } from "cookies-next";
+import posthog from "posthog-js";
+
 
 interface UseAuthReturn {
   // Login

@@ -5,6 +5,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
+import posthog from "posthog-js";
 
 // Extend AxiosRequestConfig to include _retry flag
 interface RetryConfig extends InternalAxiosRequestConfig {
@@ -97,11 +98,8 @@ apiClient.interceptors.response.use(
           },
         );
 
-        // console.log(response.data.data);
         const { current_role, user_roles } = response?.data?.data;
 
-        // Update tokens in cookies
-        // setCookie("access_token", access_token);
         setCookie("current_role", current_role ? current_role : "MEMBER", {
           maxAge: 60 * 60 * 24 * 7,
           path: "/",
@@ -111,26 +109,19 @@ apiClient.interceptors.response.use(
           path: "/",
         });
 
-        // Server will set new access_token cookie
-        processQueue(null); // Tell waiting requests to retry
-
-        // Retry the original request
+        processQueue(null);
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // Refresh failed - redirect to login
-        processQueue(new Error("Token refresh failed")); // Reject all waiting requests
-        // console.error("refreshError", refreshError);
+        processQueue(new Error("Token refresh failed"));
 
         if (typeof window !== "undefined") {
-          // Clear local storage items
           localStorage.clear();
-
-          // Delete any cookie
-          // deleteCookie("access_token");
           deleteCookie("current_role");
           deleteCookie("user_roles");
 
-          // Redirect to login
+          // ✅ Clear PostHog session on forced logout
+          posthog.reset();
+
           window.location.href = "/auth/login";
         }
 

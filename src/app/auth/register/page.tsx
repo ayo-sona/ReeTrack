@@ -10,6 +10,7 @@ import { Mail, Lock, User, Phone, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import Logo from "@/components/layout/Logo";
 import { useAuth } from "@/hooks/useAuth";
+import posthog from "posthog-js";
 
 interface FormData {
   firstName: string;
@@ -67,9 +68,15 @@ function RegisterForm() {
     }
 
     if (success) {
+      posthog.identify(formData.email, {
+        email: formData.email,
+        name: `${formData.firstName} ${formData.lastName}`,
+      });
+      posthog.capture("user_registered", {
+        email: formData.email,
+        name: `${formData.firstName} ${formData.lastName}`,
+      });
       toast.success("Account created! Please verify your email.");
-
-      // ✅ FIXED: Use your actual OTP page route
       router.push(
         `/auth/OTPVerification?email=${encodeURIComponent(formData.email)}`,
       );

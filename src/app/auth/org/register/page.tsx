@@ -12,6 +12,7 @@ import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import Logo from "@/components/layout/Logo";
 import { deleteCookie } from "cookies-next";
+import posthog from "posthog-js";
 
 // const inputClassNames = {
 //   input:
@@ -146,6 +147,7 @@ export default function AdminRegisterPage() {
         );
 
         toast.success("Account created! Please verify your email.");
+        posthog.capture("org_registration_started", { email: formData.email });
         router.push(
           `/auth/OTPVerification?email=${encodeURIComponent(formData.email)}&redirect=org-setup`,
         );
@@ -228,6 +230,11 @@ export default function AdminRegisterPage() {
 
       localStorage.setItem("onboarding_pending", "true");
       toast.success("Success! Redirecting to login...");
+
+      posthog.capture("organization_created", {
+        organization_name: formData.organizationName,
+        email: formData.email,
+      });
 
       setTimeout(() => {
         router.push("/auth/login");

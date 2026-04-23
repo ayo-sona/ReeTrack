@@ -13,6 +13,7 @@ import { Input, Spinner } from "@heroui/react";
 import Logo from "@/components/layout/Logo";
 // import { PENDING_JOIN_SLUG_KEY } from "@/lib/joinConstants";
 import { useQueryClient } from "@tanstack/react-query";
+import posthog from "posthog-js";
 
 // ----------------------------------------
 // Inner component — uses useSearchParams
@@ -136,6 +137,15 @@ function LoginForm() {
         );
         localStorage.setItem("userData", JSON.stringify(response.data.data));
 
+        const user = response.data.data?.user;
+        if (user?.id) {
+          posthog.identify(user.id, {
+            email: user.email,
+            name: `${user.first_name} ${user.last_name}`,
+          });
+        }
+        posthog.capture("user_logged_in", { email: formData.email });
+
         const roles = getUserRoles(response.data.data);
         await redirectAfterLogin(response.data.data, roles);
       }
@@ -151,6 +161,7 @@ function LoginForm() {
     } finally {
       setIsLoading(false);
     }
+
   };
 
   return (

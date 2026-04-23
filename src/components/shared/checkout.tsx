@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import apiClient from "@/lib/apiClient";
 import { usePaystack } from "@/hooks/usePaystack";
+import posthog from "posthog-js";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -158,6 +159,14 @@ export function SharedCheckout({
 
     setIsProcessing(true);
     setError(null);
+
+    posthog.capture("checkout_initiated", {
+      plan_id: plan.id,
+      plan_name: plan.name,
+      plan_price: plan.price,
+      plan_interval: plan.interval,
+      mode,
+    });
 
     try {
       let invoiceId;
