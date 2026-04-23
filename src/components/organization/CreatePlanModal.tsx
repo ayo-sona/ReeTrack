@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { SubscriptionPlan } from "../../types/organization";
 import { Button } from "@/components/ui/button";
+import posthog from "posthog-js";
 
 interface PlanFormData {
   name: string;
@@ -52,6 +53,12 @@ export function CreatePlanModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    posthog.capture("plan_created", {
+      plan_name: formData.name,
+      plan_price: parseFloat(formData.price),
+      plan_duration: formData.duration,
+      is_edit: !!editingPlan,
+    });
     onSave({ ...formData, features: features.filter((f) => f.trim() !== "") });
     handleClose();
   };

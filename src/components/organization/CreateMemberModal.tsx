@@ -6,6 +6,7 @@ import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import posthog from "posthog-js";
 
 interface EmailEntry {
   id: string;
@@ -74,6 +75,7 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
     try {
       await navigator.clipboard.writeText(inviteLink);
       setCopied(true);
+      posthog.capture("invite_link_copied");
       toast.success("Invite link copied!");
       setTimeout(() => setCopied(false), 2500);
     } catch {
@@ -166,6 +168,10 @@ export function CreateMemberModal({ isOpen, onClose }: CreateMemberModalProps) {
         ).length;
 
         if (successCount > 0 && failCount === 0) {
+          posthog.capture("member_invited", {
+            invited_count: successCount,
+            method: "email",
+          });
           toast.success(
             successCount === 1
               ? "Invitation sent successfully"

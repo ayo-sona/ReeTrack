@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import Logo from "@/components/layout/Logo";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import posthog from "posthog-js";
 
 export const PENDING_JOIN_SLUG_KEY = "pendingJoinSlug";
 
@@ -181,6 +182,10 @@ export default function JoinPage() {
         localStorage.removeItem(PENDING_JOIN_SLUG_KEY);
       }
 
+      posthog.capture("organization_joined", {
+        organization_name: name,
+        organization_slug: orgSlug,
+      });
       toast.success(`Welcome to ${name}! 🎉`);
       router.replace("/member/communities");
     } catch (err: any) {
