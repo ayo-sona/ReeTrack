@@ -65,7 +65,7 @@ export function Sidebar({
 
   const initials = profile
     ? `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`.toUpperCase()
-    : "?";
+    : "";
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
