@@ -202,7 +202,7 @@ export const usePayments = (page: number = 1, limit: number = 10) => {
   return useQuery<PaginatedResponse<MemberPayment>, Error>({
     queryKey: ["member", "payments", page, limit],
     queryFn: () => memberApi.getPayments(page, limit),
-    placeholderData: keepPreviousData,
+    // placeholderData: keepPreviousData,
     retry: 1,
   });
 };
@@ -330,7 +330,7 @@ export const useActiveSubscriptions = () => {
 };
 
 export const useAllPayments = () => {
-  const { data, ...rest } = usePayments(1, 100);
+  const { data, ...rest } = usePayments(1, 10);
   return { data: data?.data ?? [], meta: data?.meta, ...rest };
 };
 

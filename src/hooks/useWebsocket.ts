@@ -3,7 +3,7 @@
 import { io, Socket } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import apiClient from "@/lib/apiClient";
+import apiClient, { BASE_URL } from "@/lib/apiClient";
 
 interface SubscriptionEvents {
   "plan:upgraded": (data: { newPlan: string; timestamp: string }) => void;
@@ -59,11 +59,6 @@ interface SubscriptionEvents {
   connected: (data: { message: string; organizationId: string }) => void;
   error: (data: { message: string }) => void;
 }
-export const BASE_URL = "https://api.reetrack.com";
-// const BASE_URL = "http://localhost:4000";
-// const BASE_URL = "https://reetrack-production-f1dc.up.railway.app";
-// const BASE_URL = "https://reetrack-production.up.railway.app";
-// const BASE_URL = "https://paypips.onrender.com";
 
 class ReeTrackWebSocket {
   private socket: Socket<SubscriptionEvents> | null = null;
