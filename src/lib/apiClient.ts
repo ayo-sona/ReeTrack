@@ -18,7 +18,7 @@ interface QueueItem {
   reject: (reason?: unknown) => void;
 }
 
-export const BASE_URL = "https://api.reetrack.com/api/v1";
+export const BASE_URL = "https://reetrack-production-852b.up.railway.app/api/v1";
 // export const BASE_URL = "http://localhost:4000/api/v1";
 // export const BASE_URL =
 //   "https://reetrack-production-f1dc.up.railway.app/api/v1";
