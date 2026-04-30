@@ -6,6 +6,7 @@ import { Menu, X, Bell, LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/layout/Logo";
+import Image from "next/image";
 
 const C = {
   teal: "#0D9488",
@@ -25,6 +26,7 @@ export interface MobileHeaderProfile {
   firstName: string;
   lastName: string;
   email: string;
+  avatarUrl: string | null;
 }
 
 export interface MobileHeaderAction {
@@ -56,6 +58,10 @@ export function MobileHeader({
   logoHref = "/",
 }: MobileHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const initials = profile
+    ? `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`.toUpperCase()
+    : "";
 
   // Add notifications to navigation if provided
   const allNavItems =
@@ -218,10 +224,21 @@ export function MobileHeader({
                       color: C.white,
                       fontWeight: 800,
                       fontSize: "18px",
+                      overflow: "hidden",
+                      flexShrink: 0,
+                      position: "relative",
                     }}
                   >
-                    {profile.firstName.charAt(0)}
-                    {profile.lastName.charAt(0)}
+                    {profile.avatarUrl ? (
+                      <Image
+                        src={profile.avatarUrl}
+                        alt={initials}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      initials
+                    )}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p
@@ -351,7 +368,10 @@ export function MobileHeader({
                     variant={action.variant || "ghost"}
                     size="lg"
                     className={`w-full justify-start ${action.className || ""}`}
-                    onClick={() => { action.onClick(); setIsMobileMenuOpen(false); }}
+                    onClick={() => {
+                      action.onClick();
+                      setIsMobileMenuOpen(false);
+                    }}
                     disabled={action.disabled}
                   >
                     <action.icon size={20} />
