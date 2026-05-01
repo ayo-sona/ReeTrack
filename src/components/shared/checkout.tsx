@@ -31,10 +31,11 @@ export interface CheckoutPlan {
 
 export interface CheckoutConfig {
   /**
-   * "member"  → subscribes a member to a community plan
+   * "member"       → subscribes a member to a community plan
    * "organization" → subscribes an org to a ReeTrack platform plan
+   * "marketplace"  → one-time purchase of a marketplace listing
    */
-  mode: "member" | "organization";
+  mode: "member" | "organization" | "marketplace";
 
   plan: CheckoutPlan;
 
@@ -173,7 +174,6 @@ export function SharedCheckout({
 
       if (mode === "member") {
         if (!failedInvoice) {
-          // Member subscribing to a community plan
           const {
             data: {
               data: { invoice },
@@ -184,7 +184,6 @@ export function SharedCheckout({
           );
           invoiceId = invoice.id;
         } else {
-          // Use existing invoice
           invoiceId = failedInvoiceId;
         }
 
@@ -193,24 +192,13 @@ export function SharedCheckout({
         } = await apiClient.post("/payments/paystack/initialize", {
           invoiceId,
           metadata: {
-            channels: [
-              "card",
-              "bank",
-              "apple_pay",
-              "ussd",
-              "qr",
-              "mobile_money",
-              "bank_transfer",
-              "eft",
-              "capitec_pay",
-              "payattitude",
-            ],
+            channels: ["card", "bank", "apple_pay", "ussd", "qr", "mobile_money", "bank_transfer", "eft", "capitec_pay", "payattitude"],
           },
         });
         if (!isReady) return;
         resumeTransaction(paymentData.access_code);
-      } else {
-        // Organization subscribing to a plan
+
+      } else if (mode === "organization") {
         if (!failedInvoice) {
           const {
             data: {
@@ -229,23 +217,27 @@ export function SharedCheckout({
         } = await apiClient.post("/payments/paystack/organization/initialize", {
           invoiceId,
           metadata: {
-            channels: [
-              "card",
-              "bank",
-              "apple_pay",
-              "ussd",
-              "qr",
-              "mobile_money",
-              "bank_transfer",
-              "eft",
-              "capitec_pay",
-              "payattitude",
-            ],
+            channels: ["card", "bank", "apple_pay", "ussd", "qr", "mobile_money", "bank_transfer", "eft", "capitec_pay", "payattitude"],
+          },
+        });
+        if (!isReady) return;
+        resumeTransaction(paymentData.access_code);
+
+      } else if (mode === "marketplace") {
+        const {
+          data: { data: paymentData },
+        } = await apiClient.post("/payments/paystack/initialize", {
+          amount: plan.price,
+          metadata: {
+            listing_id: plan.id,
+            listing_title: plan.name,
+            channels: ["card", "bank", "apple_pay", "ussd", "qr", "mobile_money", "bank_transfer"],
           },
         });
         if (!isReady) return;
         resumeTransaction(paymentData.access_code);
       }
+
     } catch (err) {
       setError(parseApiError(err));
     } finally {

@@ -13,6 +13,9 @@ import {
   ArrowRight,
   LayoutGrid,
   List,
+  ShoppingBag,
+  CreditCard,
+  ChevronRight,
 } from "lucide-react";
 import { useAllCommunities } from "@/hooks/useGetCommunities";
 import { useMemberOrgs } from "@/hooks/memberHook/useMember";
@@ -28,6 +31,72 @@ interface Organization {
   logo_url?: string | null;
   created_at: string;
 }
+
+// ── Demo plans per org — swap with usePublicPlans({ orgId }) when ready ──
+const EXPLORE_DEMO_PLANS = [
+  {
+    id: "dp-1",
+    name: "Starter",
+    price: 15000,
+    interval: "monthly",
+    description: "Perfect for individuals getting started.",
+    features: [
+      "Access to all resources",
+      "Monthly newsletter",
+      "Community forum",
+    ],
+  },
+  {
+    id: "dp-2",
+    name: "Growth",
+    price: 35000,
+    interval: "monthly",
+    description: "For serious members who want more.",
+    features: [
+      "Everything in Starter",
+      "1-on-1 mentorship (monthly)",
+      "Priority support",
+      "Event discounts",
+    ],
+    popular: true,
+  },
+  {
+    id: "dp-3",
+    name: "Pro",
+    price: 75000,
+    interval: "monthly",
+    description: "Full access, no limits.",
+    features: [
+      "Everything in Growth",
+      "Unlimited 1-on-1 sessions",
+      "Private mastermind group",
+      "Annual retreat access",
+    ],
+  },
+];
+
+// ── Demo marketplace listings per org — swap with usePublicListings({ orgId }) when ready ──
+const EXPLORE_DEMO_LISTINGS = [
+  {
+    id: "el-1",
+    title: "Annual Conference Ticket",
+    price: 75000,
+    description: "Full access to our 2-day annual summit.",
+  },
+  {
+    id: "el-2",
+    title: "Business Growth Bootcamp",
+    price: 120000,
+    description: "Intensive 4-week cohort for founders.",
+    installment: { count: 3, interval: "monthly" },
+  },
+  {
+    id: "el-3",
+    title: "Member Kit – Branded Pack",
+    price: 18500,
+    description: "Official community merch bundle.",
+  },
+];
 
 const PALETTE = [
   { accent: "#0D9488", light: "#E6F7F5" },
@@ -57,6 +126,7 @@ const fadeUp = {
 
 type ViewMode = "grid" | "list";
 type FilterMode = "all" | "joined" | "discover";
+type ModalTab = "plans" | "marketplace";
 
 export default function CommunitiesPage() {
   const { data: allOrgs, isLoading } = useAllCommunities();
@@ -189,6 +259,9 @@ export default function CommunitiesPage() {
         .list-arrow { transition: color 200ms, transform 200ms; }
         .filter-chip { transition: all 160ms; cursor: pointer; }
         .view-btn { transition: all 160ms; cursor: pointer; }
+        .modal-tab { transition: all 180ms; cursor: pointer; border: none; background: none; font-family: 'DM Sans', sans-serif; }
+        .plan-card { transition: box-shadow 200ms, border-color 200ms; }
+        .plan-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
       `}</style>
 
       <div style={{ maxWidth: 820, margin: "0 auto" }}>
@@ -442,7 +515,7 @@ export default function CommunitiesPage() {
 
       <AnimatePresence>
         {selected && (
-          <DetailSheet
+          <CommunityModal
             org={selected}
             isJoined={joinedOrgIds.has(selected.id)}
             onClose={() => setSelected(null)}
@@ -496,7 +569,7 @@ function OrgAvatar({
   );
 }
 
-/* ── Grid card — editorial-geometric ── */
+/* ── Grid card ── */
 function GridCard({
   org,
   isJoined,
@@ -507,10 +580,8 @@ function GridCard({
   onClick: () => void;
 }) {
   const { accent, light } = getPalette(org.name);
-
   return (
     <div className="grid-card" onClick={onClick}>
-      {/* ── Colored header block ── */}
       <div
         style={{
           background: light,
@@ -519,7 +590,6 @@ function GridCard({
           overflow: "hidden",
         }}
       >
-        {/* Decorative circles in header */}
         <div
           style={{
             position: "absolute",
@@ -546,8 +616,6 @@ function GridCard({
             pointerEvents: "none",
           }}
         />
-
-        {/* Top row: logo + joined pill */}
         <div
           style={{
             display: "flex",
@@ -557,7 +625,6 @@ function GridCard({
             position: "relative",
           }}
         >
-          {/* Logo */}
           <div
             style={{
               width: 56,
@@ -586,7 +653,6 @@ function GridCard({
               org.name.charAt(0).toUpperCase()
             )}
           </div>
-
           {isJoined && (
             <span
               style={{
@@ -606,8 +672,6 @@ function GridCard({
             </span>
           )}
         </div>
-
-        {/* Org name — sits in the colored zone */}
         <p
           style={{
             fontWeight: 700,
@@ -623,8 +687,6 @@ function GridCard({
           {org.name}
         </p>
       </div>
-
-      {/* ── White body ── */}
       <div
         style={{
           padding: "16px 22px 20px",
@@ -634,7 +696,6 @@ function GridCard({
           gap: 14,
         }}
       >
-        {/* Description */}
         <p
           style={{
             fontSize: 12.5,
@@ -650,8 +711,6 @@ function GridCard({
         >
           {org.description || "No description available."}
         </p>
-
-        {/* Meta */}
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {org.address && (
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -684,8 +743,6 @@ function GridCard({
             </span>
           </div>
         </div>
-
-        {/* Footer CTA */}
         <div
           style={{
             marginTop: "auto",
@@ -840,8 +897,8 @@ function ListRow({
   );
 }
 
-/* ── Detail sheet ── */
-function DetailSheet({
+/* ── Big centered community modal with tabs ── */
+function CommunityModal({
   org,
   isJoined,
   onClose,
@@ -850,34 +907,25 @@ function DetailSheet({
   isJoined: boolean;
   onClose: () => void;
 }) {
+  const [activeTab, setActiveTab] = useState<ModalTab>("plans");
+  const { accent, light } = getPalette(org.name);
+
   const details = [
-    {
-      icon: <Mail size={14} />,
-      label: "Email",
-      value: org.email,
-      href: `mailto:${org.email}`,
-    },
+    org.address && { icon: <MapPin size={13} />, label: org.address },
     org.phone && {
-      icon: <Phone size={14} />,
-      label: "Phone",
-      value: org.phone,
+      icon: <Phone size={13} />,
+      label: org.phone,
       href: `tel:${org.phone}`,
     },
-    org.address && {
-      icon: <MapPin size={14} />,
-      label: "Address",
-      value: org.address,
-    },
     org.website && {
-      icon: <Globe size={14} />,
-      label: "Website",
-      value: org.website,
+      icon: <Globe size={13} />,
+      label: org.website,
       href: org.website,
     },
+    { icon: <Mail size={13} />, label: org.email, href: `mailto:${org.email}` },
   ].filter(Boolean) as {
     icon: React.ReactNode;
     label: string;
-    value: string;
     href?: string;
   }[];
 
@@ -891,161 +939,622 @@ function DetailSheet({
         position: "fixed",
         inset: 0,
         zIndex: 100,
-        background: "rgba(0,0,0,0.4)",
-        backdropFilter: "blur(4px)",
+        background: "rgba(0,0,0,0.45)",
+        backdropFilter: "blur(6px)",
         display: "flex",
-        alignItems: "flex-end",
+        alignItems: "center",
         justifyContent: "center",
+        padding: "16px",
       }}
     >
       <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+        initial={{ opacity: 0, scale: 0.95, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 12 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",
-          maxWidth: 560,
+          maxWidth: 680,
           background: "#fff",
-          borderRadius: "22px 22px 0 0",
-          padding: "20px 22px 44px",
-          maxHeight: "88vh",
-          overflowY: "auto",
+          borderRadius: 24,
+          maxHeight: "90vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
           fontFamily: "'DM Sans', sans-serif",
+          boxShadow: "0 32px 80px rgba(0,0,0,0.2)",
         }}
       >
+        {/* ── Modal header ── */}
         <div
           style={{
-            width: 36,
-            height: 4,
-            borderRadius: 2,
-            background: "#E5E7EB",
-            margin: "0 auto 22px",
-          }}
-        />
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 14,
-            marginBottom: 22,
+            background: light,
+            padding: "24px 24px 0",
+            position: "relative",
+            flexShrink: 0,
           }}
         >
-          <OrgAvatar org={org} size={54} radius={15} />
-          <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Decorative circles */}
+          <div
+            style={{
+              position: "absolute",
+              top: -32,
+              right: -32,
+              width: 120,
+              height: 120,
+              borderRadius: "50%",
+              background: accent,
+              opacity: 0.12,
+              pointerEvents: "none",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: 16,
+              right: 64,
+              width: 48,
+              height: 48,
+              borderRadius: "50%",
+              background: accent,
+              opacity: 0.08,
+              pointerEvents: "none",
+            }}
+          />
+
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            style={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              width: 32,
+              height: 32,
+              borderRadius: 10,
+              background: "rgba(0,0,0,0.08)",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 1,
+            }}
+          >
+            <X size={15} color="#374151" />
+          </button>
+
+          {/* Org identity */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 14,
+              marginBottom: 16,
+              position: "relative",
+            }}
+          >
             <div
               style={{
+                width: 60,
+                height: 60,
+                borderRadius: 18,
+                background: accent,
                 display: "flex",
                 alignItems: "center",
-                gap: 8,
-                flexWrap: "wrap",
+                justifyContent: "center",
+                fontWeight: 800,
+                fontSize: 26,
+                color: "#fff",
+                overflow: "hidden",
+                position: "relative",
+                flexShrink: 0,
+                boxShadow: `0 8px 20px ${accent}40`,
               }}
             >
-              <h2
-                style={{
-                  fontWeight: 700,
-                  fontSize: 19,
-                  color: "#111827",
-                  letterSpacing: "-0.3px",
-                }}
-              >
-                {org.name}
-              </h2>
-              {isJoined && (
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: "#0D9488",
-                    background: "rgba(13,148,136,0.08)",
-                    padding: "3px 9px",
-                    borderRadius: 999,
-                  }}
-                >
-                  Joined
-                </span>
+              {org.logo_url ? (
+                <Image
+                  src={org.logo_url}
+                  alt={org.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                org.name.charAt(0).toUpperCase()
               )}
             </div>
-            {org.description && (
-              <p
+            <div style={{ flex: 1, minWidth: 0, paddingTop: 4 }}>
+              <div
                 style={{
-                  fontSize: 13,
-                  color: "#6B7280",
-                  marginTop: 4,
-                  lineHeight: 1.55,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  flexWrap: "wrap",
                 }}
               >
-                {org.description}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            marginBottom: 24,
-          }}
-        >
-          {details.map(({ icon, label, value, href }) => (
-            <div
-              key={label}
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 12,
-                padding: "12px 14px",
-                borderRadius: 12,
-                background: "#F9FAFB",
-                border: "1px solid #F3F4F6",
-              }}
-            >
-              <div style={{ color: "#0D9488", marginTop: 1, flexShrink: 0 }}>
-                {icon}
-              </div>
-              <div>
-                <p
+                <h2
                   style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: "#9CA3AF",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.6px",
-                    marginBottom: 3,
+                    fontWeight: 700,
+                    fontSize: 20,
+                    color: "#111827",
+                    letterSpacing: "-0.4px",
+                    margin: 0,
                   }}
                 >
-                  {label}
-                </p>
-                {href ? (
-                  <a
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  {org.name}
+                </h2>
+                {isJoined && (
+                  <span
                     style={{
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: "#0D9488",
-                      textDecoration: "none",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: accent,
+                      background: "#fff",
+                      padding: "3px 10px",
+                      borderRadius: 999,
+                      border: `1px solid ${accent}30`,
                     }}
                   >
-                    {value}
-                  </a>
-                ) : (
-                  <p
-                    style={{ fontSize: 14, fontWeight: 500, color: "#111827" }}
-                  >
-                    {value}
-                  </p>
+                    Joined
+                  </span>
+                )}
+              </div>
+              {org.description && (
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "#6B7280",
+                    marginTop: 5,
+                    lineHeight: 1.55,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {org.description}
+                </p>
+              )}
+              {/* Contact pills */}
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 6,
+                  marginTop: 10,
+                }}
+              >
+                {details.map(({ icon, label, href }, idx) =>
+                  href ? (
+                    <a
+                      key={idx}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 5,
+                        padding: "4px 10px",
+                        borderRadius: 999,
+                        background: "rgba(255,255,255,0.7)",
+                        border: "1px solid rgba(0,0,0,0.07)",
+                        fontSize: 12,
+                        color: "#374151",
+                        textDecoration: "none",
+                        fontWeight: 500,
+                      }}
+                    >
+                      <span style={{ color: accent }}>{icon}</span>
+                      {label}
+                    </a>
+                  ) : (
+                    <span
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 5,
+                        padding: "4px 10px",
+                        borderRadius: 999,
+                        background: "rgba(255,255,255,0.7)",
+                        border: "1px solid rgba(0,0,0,0.07)",
+                        fontSize: 12,
+                        color: "#374151",
+                        fontWeight: 500,
+                      }}
+                    >
+                      <span style={{ color: accent }}>{icon}</span>
+                      {label}
+                    </span>
+                  ),
                 )}
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Tab bar */}
+          <div
+            style={{
+              display: "flex",
+              gap: 0,
+              borderTop: "1px solid rgba(0,0,0,0.06)",
+              marginTop: 4,
+            }}
+          >
+            {(
+              [
+                {
+                  key: "plans",
+                  label: "Plans",
+                  icon: <CreditCard size={14} />,
+                },
+                {
+                  key: "marketplace",
+                  label: "Marketplace",
+                  icon: <ShoppingBag size={14} />,
+                },
+              ] as { key: ModalTab; label: string; icon: React.ReactNode }[]
+            ).map(({ key, label, icon }) => (
+              <button
+                key={key}
+                className="modal-tab"
+                onClick={() => setActiveTab(key)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "12px 18px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: activeTab === key ? accent : "#9CA3AF",
+                  borderBottom: `2px solid ${activeTab === key ? accent : "transparent"}`,
+                  transition: "all 180ms",
+                }}
+              >
+                {icon}
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {isJoined ? (
+        {/* ── Scrollable tab content ── */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px 28px" }}>
+          <AnimatePresence mode="wait">
+            {activeTab === "plans" ? (
+              <motion.div
+                key="plans"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fill, minmax(180px, 1fr))",
+                    gap: 12,
+                  }}
+                >
+                  {EXPLORE_DEMO_PLANS.map((plan) => (
+                    <div
+                      key={plan.id}
+                      className="plan-card"
+                      style={{
+                        borderRadius: 16,
+                        border: `1.5px solid ${plan.popular ? accent : "#E5E7EB"}`,
+                        background: plan.popular ? light : "#fff",
+                        padding: "18px 16px",
+                        display: "flex",
+                        flexDirection: "column",
+                        position: "relative",
+                      }}
+                    >
+                      {plan.popular && (
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: -1,
+                            right: 12,
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: "#fff",
+                            background: accent,
+                            padding: "3px 10px",
+                            borderRadius: "0 0 8px 8px",
+                            letterSpacing: "0.3px",
+                          }}
+                        >
+                          POPULAR
+                        </span>
+                      )}
+                      <p
+                        style={{
+                          fontWeight: 700,
+                          fontSize: 15,
+                          color: "#111827",
+                          margin: "0 0 4px",
+                        }}
+                      >
+                        {plan.name}
+                      </p>
+                      <p
+                        style={{
+                          fontSize: 12,
+                          color: "#6B7280",
+                          margin: "0 0 12px",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {plan.description}
+                      </p>
+                      <div style={{ marginBottom: 14 }}>
+                        <span
+                          style={{
+                            fontWeight: 800,
+                            fontSize: 22,
+                            color: "#111827",
+                          }}
+                        >
+                          ₦{plan.price.toLocaleString()}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 12,
+                            color: "#9CA3AF",
+                            marginLeft: 4,
+                          }}
+                        >
+                          /{plan.interval === "monthly" ? "mo" : "yr"}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 6,
+                          marginBottom: 16,
+                        }}
+                      >
+                        {plan.features.map((f, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: 7,
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: 14,
+                                height: 14,
+                                borderRadius: "50%",
+                                background: accent,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                                marginTop: 1,
+                              }}
+                            >
+                              <svg width="8" height="8" viewBox="0 0 8 8">
+                                <path
+                                  d="M1.5 4L3.5 6L6.5 2"
+                                  stroke="#fff"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  fill="none"
+                                />
+                              </svg>
+                            </div>
+                            <span
+                              style={{
+                                fontSize: 12,
+                                color: "#374151",
+                                lineHeight: 1.4,
+                              }}
+                            >
+                              {f}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <a
+                        href={`/member/communities/${org.id}`}
+                        style={{
+                          marginTop: "auto",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 6,
+                          padding: "10px",
+                          borderRadius: 10,
+                          background: plan.popular ? accent : "#F3F4F6",
+                          color: plan.popular ? "#fff" : "#374151",
+                          fontSize: 13,
+                          fontWeight: 700,
+                          textDecoration: "none",
+                        }}
+                      >
+                        Get started <ChevronRight size={13} />
+                      </a>
+                    </div>
+                  ))}
+                </div>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#9CA3AF",
+                    textAlign: "center",
+                    marginTop: 16,
+                  }}
+                >
+                  Placeholder plans — live data loads when you visit the
+                  community
+                </p>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="marketplace"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 10 }}
+                >
+                  {EXPLORE_DEMO_LISTINGS.map((item) => {
+                    const { accent: itemAccent, light: itemLight } = getPalette(
+                      item.title,
+                    );
+                    const backHref = encodeURIComponent("/member/explore");
+                    const href = `/member/marketplace/checkout/${item.id}?title=${encodeURIComponent(item.title)}&price=${item.price}&desc=${encodeURIComponent(item.description)}&backHref=${backHref}&backLabel=${encodeURIComponent("Back to Explore")}`;
+                    return (
+                      <div
+                        key={item.id}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 14,
+                          padding: "14px 16px",
+                          borderRadius: 14,
+                          background: "#F9FAFB",
+                          border: "1px solid #F0F0F0",
+                        }}
+                      >
+                        {/* Placeholder cover */}
+                        <div
+                          style={{
+                            width: 52,
+                            height: 52,
+                            borderRadius: 12,
+                            background: itemLight,
+                            flexShrink: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontWeight: 800,
+                            fontSize: 20,
+                            color: itemAccent,
+                            position: "relative",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: -8,
+                              right: -8,
+                              width: 28,
+                              height: 28,
+                              borderRadius: "50%",
+                              background: itemAccent,
+                              opacity: 0.2,
+                            }}
+                          />
+                          {item.title.charAt(0)}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p
+                            style={{
+                              fontSize: 14,
+                              fontWeight: 700,
+                              color: "#111827",
+                              margin: 0,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {item.title}
+                          </p>
+                          <p
+                            style={{
+                              fontSize: 12,
+                              color: "#6B7280",
+                              margin: "3px 0 0",
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            {item.description}
+                          </p>
+                          <p
+                            style={{
+                              fontSize: 12,
+                              fontWeight: 700,
+                              color: "#111827",
+                              margin: "5px 0 0",
+                            }}
+                          >
+                            ₦{item.price.toLocaleString()}
+                            {"installment" in item && item.installment ? (
+                              <span
+                                style={{ fontWeight: 500, color: "#9CA3AF" }}
+                              >
+                                {" "}
+                                · or {item.installment.count}× ₦
+                                {Math.round(
+                                  item.price / item.installment.count,
+                                ).toLocaleString()}
+                                /
+                                {item.installment.interval === "monthly"
+                                  ? "mo"
+                                  : "wk"}
+                              </span>
+                            ) : null}
+                          </p>
+                        </div>
+                        <a
+                          href={href}
+                          style={{
+                            padding: "8px 16px",
+                            borderRadius: 10,
+                            background: "#0D9488",
+                            color: "#fff",
+                            fontSize: 13,
+                            fontWeight: 700,
+                            textDecoration: "none",
+                            flexShrink: 0,
+                            fontFamily: "'DM Sans', sans-serif",
+                            boxShadow: "0 4px 12px rgba(13,148,136,0.25)",
+                          }}
+                        >
+                          Buy Now
+                        </a>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#9CA3AF",
+                    textAlign: "center",
+                    marginTop: 16,
+                  }}
+                >
+                  Placeholder listings — live data loads when the org publishes
+                  products
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* ── Sticky footer CTA ── */}
+        <div
+          style={{
+            padding: "14px 24px 20px",
+            borderTop: "1px solid #F0F0F0",
+            flexShrink: 0,
+          }}
+        >
           <a
             href={`/member/communities/${org.id}`}
             style={{
@@ -1056,35 +1565,19 @@ function DetailSheet({
               width: "100%",
               padding: "14px",
               borderRadius: 14,
-              background: "#0D9488",
+              background: accent,
               color: "#fff",
               fontFamily: "'DM Sans', sans-serif",
               fontWeight: 700,
               fontSize: 15,
               textDecoration: "none",
+              boxShadow: `0 6px 20px ${accent}40`,
             }}
           >
-            Go to community <ArrowRight size={16} />
+            {isJoined ? "Go to community" : "View community"}{" "}
+            <ArrowRight size={16} />
           </a>
-        ) : (
-          <button
-            onClick={onClose}
-            style={{
-              width: "100%",
-              padding: "14px",
-              borderRadius: 14,
-              background: "none",
-              border: "1px solid #E5E7EB",
-              color: "#6B7280",
-              fontFamily: "'DM Sans', sans-serif",
-              fontWeight: 600,
-              fontSize: 14,
-              cursor: "pointer",
-            }}
-          >
-            Close
-          </button>
-        )}
+        </div>
       </motion.div>
     </motion.div>
   );

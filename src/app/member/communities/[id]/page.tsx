@@ -11,13 +11,17 @@ import {
   Phone,
   Calendar,
   Clock,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ShoppingBag,
 } from "lucide-react";
 import Link from "next/link";
 import { useAvailablePlans } from "@/hooks/memberHook/useCommunity";
 import { memberApi } from "@/lib/memberAPI/memberAPI";
 import { useQuery } from "@tanstack/react-query";
 import { addDays, addWeeks, addMonths, addYears, format } from "date-fns";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Image from "next/image";
@@ -41,6 +45,710 @@ const fadeUp = {
   }),
 };
 
+// ── Demo listings — replace with usePublicListings({ organizationId }) when backend is ready ──
+const DEMO_ORG_LISTINGS = [
+  {
+    id: "ol-1",
+    title: "Annual Conference Ticket",
+    description:
+      "Full access to our 2-day summit — workshops, networking dinner, and keynote sessions.",
+    price: 75000,
+    installment: null as null | { count: number; interval: string },
+    images: [] as { url: string }[],
+  },
+  {
+    id: "ol-2",
+    title: "Business Growth Bootcamp",
+    description:
+      "Intensive 4-week cohort for founders and operators. Live sessions and lifetime access.",
+    price: 120000,
+    installment: { count: 3, interval: "monthly" },
+    images: [] as { url: string }[],
+  },
+  {
+    id: "ol-3",
+    title: "Member Kit – Branded Pack",
+    description:
+      "Official community merch bundle: notebook, tote bag, and welcome card. Shipped to you.",
+    price: 18500,
+    installment: null,
+    images: [] as { url: string }[],
+  },
+];
+
+type DemoListing = (typeof DEMO_ORG_LISTINGS)[number];
+
+const LISTING_PALETTE = [
+  { bg: "#0D9488", light: "#E6F7F5" },
+  { bg: "#0284C7", light: "#E0F2FE" },
+  { bg: "#7C3AED", light: "#EDE9FE" },
+  { bg: "#DB2777", light: "#FCE7F3" },
+];
+
+function getListingColor(title: string) {
+  let h = 0;
+  for (const c of title) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
+  return LISTING_PALETTE[h % LISTING_PALETTE.length];
+}
+
+/* ── Listing detail modal ── */
+function ListingDetailModal({
+  listing,
+  organizationId,
+  onClose,
+}: {
+  listing: DemoListing;
+  organizationId: string;
+  onClose: () => void;
+}) {
+  const [imgIndex, setImgIndex] = useState(0);
+  const { bg, light } = getListingColor(listing.title);
+  const images = listing.images ?? [];
+  const hasImages = images.length > 0;
+
+  const prev = () => setImgIndex((i) => (i === 0 ? images.length - 1 : i - 1));
+  const next = () => setImgIndex((i) => (i === images.length - 1 ? 0 : i + 1));
+
+  const backHref = encodeURIComponent(`/member/communities/${organizationId}`);
+  const checkoutHref = `/member/marketplace/checkout/${listing.id}?title=${encodeURIComponent(listing.title)}&price=${listing.price}&desc=${encodeURIComponent(listing.description)}&backHref=${backHref}&backLabel=${encodeURIComponent("Back to Community")}`;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 300,
+        background: "rgba(0,0,0,0.55)",
+        backdropFilter: "blur(6px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 16,
+        fontFamily: "Nunito, sans-serif",
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          maxWidth: 640,
+          background: "#fff",
+          borderRadius: 20,
+          overflow: "hidden",
+          maxHeight: "88vh",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: "0 32px 80px rgba(0,0,0,0.25)",
+        }}
+      >
+        {/* Image / placeholder cover */}
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            aspectRatio: "16/9",
+            flexShrink: 0,
+            background: light,
+          }}
+        >
+          {hasImages ? (
+            <>
+              <Image
+                src={images[imgIndex].url}
+                alt={listing.title}
+                fill
+                className="object-cover"
+              />
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={prev}
+                    style={{
+                      position: "absolute",
+                      left: 12,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 34,
+                      height: 34,
+                      borderRadius: "50%",
+                      background: "rgba(0,0,0,0.45)",
+                      border: "none",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                    }}
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <button
+                    onClick={next}
+                    style={{
+                      position: "absolute",
+                      right: 12,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 34,
+                      height: 34,
+                      borderRadius: "50%",
+                      background: "rgba(0,0,0,0.45)",
+                      border: "none",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                    }}
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: 12,
+                      left: 0,
+                      right: 0,
+                      display: "flex",
+                      justifyContent: "center",
+                      gap: 6,
+                    }}
+                  >
+                    {images.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setImgIndex(i)}
+                        style={{
+                          width: i === imgIndex ? 20 : 8,
+                          height: 8,
+                          borderRadius: 4,
+                          background:
+                            i === imgIndex ? "#fff" : "rgba(255,255,255,0.5)",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: 0,
+                          transition: "all 200ms",
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: 12,
+                      right: 48,
+                      background: "rgba(0,0,0,0.5)",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      padding: "4px 10px",
+                      borderRadius: 999,
+                    }}
+                  >
+                    {imgIndex + 1} / {images.length}
+                  </span>
+                </>
+              )}
+            </>
+          ) : (
+            /* Styled placeholder */
+            <>
+              <div
+                style={{
+                  position: "absolute",
+                  top: -24,
+                  right: -24,
+                  width: 120,
+                  height: 120,
+                  borderRadius: "50%",
+                  background: bg,
+                  opacity: 0.15,
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: -16,
+                  left: -16,
+                  width: 80,
+                  height: 80,
+                  borderRadius: "50%",
+                  background: bg,
+                  opacity: 0.1,
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <div
+                  style={{
+                    width: 72,
+                    height: 72,
+                    borderRadius: 20,
+                    background: bg,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: 900,
+                    fontSize: 32,
+                    color: "#fff",
+                    boxShadow: `0 10px 28px ${bg}50`,
+                  }}
+                >
+                  {listing.title.charAt(0).toUpperCase()}
+                </div>
+              </div>
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 12,
+                  left: 0,
+                  right: 0,
+                  textAlign: "center",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: bg,
+                    fontWeight: 700,
+                    background: "rgba(255,255,255,0.8)",
+                    padding: "3px 10px",
+                    borderRadius: 999,
+                  }}
+                >
+                  No photos uploaded yet
+                </span>
+              </div>
+            </>
+          )}
+
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            style={{
+              position: "absolute",
+              top: 12,
+              left: 12,
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.4)",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#fff",
+            }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Thumbnail strip */}
+        {images.length > 1 && (
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              padding: "10px 16px",
+              overflowX: "auto",
+              borderBottom: "1px solid #F3F4F6",
+              flexShrink: 0,
+            }}
+          >
+            {images.map((img, i) => (
+              <button
+                key={i}
+                onClick={() => setImgIndex(i)}
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 8,
+                  overflow: "hidden",
+                  position: "relative",
+                  flexShrink: 0,
+                  border: `2px solid ${i === imgIndex ? bg : "transparent"}`,
+                  cursor: "pointer",
+                  padding: 0,
+                  background: "none",
+                  transition: "border-color 150ms",
+                }}
+              >
+                <Image
+                  src={img.url}
+                  alt={`img-${i}`}
+                  fill
+                  className="object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Details */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "22px 24px" }}>
+          <h2
+            style={{
+              fontWeight: 800,
+              fontSize: 22,
+              color: C.ink,
+              margin: "0 0 10px",
+              letterSpacing: "-0.3px",
+              lineHeight: 1.25,
+            }}
+          >
+            {listing.title}
+          </h2>
+          <p
+            style={{
+              fontSize: 14,
+              color: C.coolGrey,
+              lineHeight: 1.7,
+              marginBottom: 20,
+            }}
+          >
+            {listing.description}
+          </p>
+
+          <div
+            style={{
+              padding: "16px 18px",
+              borderRadius: 12,
+              background: C.snow,
+              border: `1px solid ${C.border}`,
+              marginBottom: 8,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+              <span style={{ fontWeight: 900, fontSize: 30, color: C.ink }}>
+                ₦{listing.price.toLocaleString()}
+              </span>
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: C.coolGrey,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                one-time
+              </span>
+            </div>
+            {listing.installment && (
+              <p
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: bg,
+                  marginTop: 4,
+                }}
+              >
+                or {listing.installment.count}× ₦
+                {(listing.price / listing.installment.count).toLocaleString(
+                  "en-NG",
+                  { maximumFractionDigits: 0 },
+                )}
+                /{listing.installment.interval === "monthly" ? "mo" : "wk"}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Footer CTA */}
+        <div
+          style={{
+            padding: "14px 24px 20px",
+            borderTop: "1px solid #F0F0F0",
+            display: "flex",
+            gap: 10,
+            flexShrink: 0,
+          }}
+        >
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1"
+            onClick={onClose}
+          >
+            Close
+          </Button>
+          <div style={{ flex: 1, position: "relative" }}>
+            <div
+              style={{
+                position: "absolute",
+                inset: "-4px",
+                borderRadius: "12px",
+                background: `linear-gradient(to right, rgba(240,101,67,0.4), rgba(240,101,67,0.2), rgba(240,101,67,0.4))`,
+                filter: "blur(14px)",
+                opacity: 0.7,
+                zIndex: 0,
+              }}
+            />
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <Button
+                variant="default"
+                size="default"
+                className="w-full"
+                asChild
+              >
+                <Link href={checkoutHref}>Buy Now</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function OrgMarketplaceTab({ organizationId }: { organizationId: string }) {
+  const [selectedListing, setSelectedListing] = useState<DemoListing | null>(
+    null,
+  );
+
+  return (
+    <>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+          gap: "20px",
+        }}
+      >
+        {DEMO_ORG_LISTINGS.map((item, i) => {
+          const { bg, light } = getListingColor(item.title);
+          return (
+            <motion.div
+              key={item.id}
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              custom={i}
+              onClick={() => setSelectedListing(item)}
+              style={{
+                background: C.white,
+                borderRadius: "16px",
+                border: `1px solid ${C.border}`,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+                cursor: "pointer",
+                transition: "box-shadow 240ms, transform 240ms",
+              }}
+              whileHover={{ y: -3, boxShadow: "0 10px 28px rgba(0,0,0,0.10)" }}
+            >
+              {/* Placeholder cover */}
+              <div
+                style={{
+                  background: light,
+                  height: 110,
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: -16,
+                    right: -16,
+                    width: 72,
+                    height: 72,
+                    borderRadius: "50%",
+                    background: bg,
+                    opacity: 0.15,
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      background: bg,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: 800,
+                      fontSize: 20,
+                      color: "#fff",
+                      boxShadow: `0 6px 16px ${bg}40`,
+                    }}
+                  >
+                    {item.title.charAt(0).toUpperCase()}
+                  </div>
+                </div>
+                {/* View hint */}
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 8,
+                    right: 10,
+                    background: "rgba(0,0,0,0.35)",
+                    borderRadius: 999,
+                    padding: "3px 9px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <ShoppingBag size={10} color="#fff" />
+                  <span
+                    style={{ fontSize: 10, fontWeight: 700, color: "#fff" }}
+                  >
+                    View
+                  </span>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div
+                style={{
+                  padding: "18px 20px 20px",
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                }}
+              >
+                <h3
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 16,
+                    color: C.ink,
+                    margin: 0,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {item.title}
+                </h3>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: C.coolGrey,
+                    lineHeight: 1.6,
+                    margin: 0,
+                    flex: 1,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {item.description}
+                </p>
+                <div
+                  style={{ paddingTop: 12, borderTop: `1px solid ${C.border}` }}
+                >
+                  <p
+                    style={{
+                      fontWeight: 800,
+                      fontSize: 20,
+                      color: C.ink,
+                      margin: 0,
+                    }}
+                  >
+                    ₦{item.price.toLocaleString()}
+                  </p>
+                  {item.installment ? (
+                    <p
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: bg,
+                        marginTop: 2,
+                      }}
+                    >
+                      or {item.installment.count}× ₦
+                      {(item.price / item.installment.count).toLocaleString(
+                        "en-NG",
+                        { maximumFractionDigits: 0 },
+                      )}
+                      /{item.installment.interval === "monthly" ? "mo" : "wk"}
+                    </p>
+                  ) : (
+                    <p
+                      style={{ fontSize: 12, color: C.coolGrey, marginTop: 2 }}
+                    >
+                      one-time
+                    </p>
+                  )}
+                </div>
+                {/* Buy Now glow button */}
+                <div
+                  style={{ position: "relative", marginTop: 4 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "-4px",
+                      borderRadius: "12px",
+                      background: `linear-gradient(to right, rgba(240,101,67,0.4), rgba(240,101,67,0.2), rgba(240,101,67,0.4))`,
+                      filter: "blur(14px)",
+                      opacity: 0.7,
+                      zIndex: 0,
+                    }}
+                  />
+                  <div style={{ position: "relative", zIndex: 1 }}>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="w-full"
+                      asChild
+                    >
+                      <Link
+                        href={`/member/marketplace/checkout/${item.id}?title=${encodeURIComponent(item.title)}&price=${item.price}&desc=${encodeURIComponent(item.description)}&backHref=${encodeURIComponent(`/member/communities/${organizationId}`)}&backLabel=${encodeURIComponent("Back to Community")}`}
+                      >
+                        Buy Now
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      <AnimatePresence>
+        {selectedListing && (
+          <ListingDetailModal
+            listing={selectedListing}
+            organizationId={organizationId}
+            onClose={() => setSelectedListing(null)}
+          />
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
 function SkeletonCard() {
   return (
     <div
@@ -55,8 +763,28 @@ function SkeletonCard() {
   );
 }
 
+interface Plan {
+  id: string;
+  name: string;
+  description?: string;
+  price: number | null;
+  interval: string | null;
+  features?: string[];
+  organization_id: string;
+  is_active: boolean;
+  organization: {
+    name: string;
+    description?: string;
+    address?: string;
+    email?: string;
+    phone?: string;
+    website?: string;
+    logo_url?: string | null;
+  };
+}
+
 interface PlanCardProps {
-  plan: any;
+  plan: Plan;
   isSubscribed: boolean;
   index: number;
 }
@@ -323,6 +1051,7 @@ function PlanCard({ plan, isSubscribed, index }: PlanCardProps) {
 export default function OrganizationPlansPage() {
   const params = useParams();
   const organizationId = params.id as string;
+  const [activeTab, setActiveTab] = useState<"plans" | "marketplace">("plans");
 
   const { data: allPlans, isLoading: plansLoading } = useAvailablePlans();
 
@@ -482,7 +1211,7 @@ export default function OrganizationPlansPage() {
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap'); * { box-sizing: border-box; }`}</style>
 
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        {/* Back button — custom 0 */}
+        {/* Back button */}
         <motion.div
           variants={fadeUp}
           initial="hidden"
@@ -498,7 +1227,7 @@ export default function OrganizationPlansPage() {
           </Button>
         </motion.div>
 
-        {/* Organization header — custom 1 */}
+        {/* Organization header */}
         <motion.div
           variants={fadeUp}
           initial="hidden"
@@ -639,96 +1368,74 @@ export default function OrganizationPlansPage() {
           </div>
         </motion.div>
 
-        {/* Facility images — custom 2, only shown if images exist */}
-        {/* {organization.images && organization.images.length > 0 && (
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            custom={2}
-            style={{
-              background: C.white,
-              borderRadius: "16px",
-              border: `1px solid ${C.border}`,
-              padding: "24px 32px",
-              marginBottom: "32px",
-            }}
-          >
-            <p
-              style={{
-                fontWeight: 700,
-                fontSize: "14px",
-                color: C.ink,
-                marginBottom: "16px",
-              }}
-            >
-              Facility Photos
-            </p>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-                gap: "12px",
-              }}
-            >
-              {organization.images.map((url: string, i: number) => (
-                <div
-                  key={i}
-                  style={{
-                    position: "relative",
-                    aspectRatio: "1",
-                    borderRadius: "10px",
-                    overflow: "hidden",
-                    border: `1px solid ${C.border}`,
-                  }}
-                >
-                  <Image
-                    src={url}
-                    alt={`Facility photo ${i + 1}`}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )} */}
-
-        {/* Available Plans heading — custom 3 */}
+        {/* Tabs */}
         <motion.div
           variants={fadeUp}
           initial="hidden"
           animate="visible"
           custom={3}
-          style={{ marginBottom: "24px" }}
+          style={{ marginBottom: "28px" }}
         >
-          <h2 style={{ fontWeight: 700, fontSize: "20px", color: C.ink }}>
-            Available Plans ({organizationPlans.length})
-          </h2>
+          <div
+            style={{ display: "flex", borderBottom: `1px solid ${C.border}` }}
+          >
+            {(["plans", "marketplace"] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  padding: "12px 4px",
+                  marginRight: 28,
+                  background: "none",
+                  border: "none",
+                  borderBottom:
+                    activeTab === tab
+                      ? `2px solid ${C.teal}`
+                      : "2px solid transparent",
+                  color: activeTab === tab ? C.teal : C.coolGrey,
+                  fontFamily: "Nunito, sans-serif",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  cursor: "pointer",
+                  transition: "all 160ms",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {tab === "plans"
+                  ? `Plans (${organizationPlans.length})`
+                  : "Marketplace"}
+              </button>
+            ))}
+          </div>
         </motion.div>
 
-        {/* Plans grid — index starts at 4 */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-            gap: "20px",
-          }}
-        >
-          {organizationPlans.map((plan, i) => {
-            const isSubscribed = subscriptions.find(
-              (sub: any) => sub.plan_id === plan.id && sub.status === "active",
-            );
-            return (
-              <PlanCard
-                key={plan.id}
-                plan={plan}
-                isSubscribed={isSubscribed}
-                index={i + 4}
-              />
-            );
-          })}
-        </div>
+        {/* Tab content */}
+        {activeTab === "plans" ? (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+              gap: "20px",
+            }}
+          >
+            {organizationPlans.map((plan, i) => {
+              const isSubscribed = subscriptions.find(
+                (sub: { plan_id: string; status: string }) =>
+                  sub.plan_id === plan.id && sub.status === "active",
+              );
+              return (
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  isSubscribed={isSubscribed}
+                  index={i + 4}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <OrgMarketplaceTab organizationId={organizationId} />
+        )}
       </div>
     </div>
   );
