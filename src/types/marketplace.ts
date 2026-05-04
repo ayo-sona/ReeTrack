@@ -1,4 +1,4 @@
-export type ListingStatus = "available" | "sold" | "inactive";
+export type ListingStatus = "active" | "inactive" | "draft" | "sold";
 
 export interface ListingImage {
   url: string;
@@ -10,7 +10,7 @@ export interface MarketplaceListing {
   organization_id: string;
   title: string;
   description: string;
-  images: ListingImage[];
+  images: ListingImage[] | undefined;
   price: number;
   currency: string;
   status: ListingStatus;

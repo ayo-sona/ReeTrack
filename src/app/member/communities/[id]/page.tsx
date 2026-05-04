@@ -20,6 +20,8 @@ import Link from "next/link";
 import { useAvailablePlans } from "@/hooks/memberHook/useCommunity";
 import { memberApi } from "@/lib/memberAPI/memberAPI";
 import { useQuery } from "@tanstack/react-query";
+import { usePublicListingsByOrg } from "@/hooks/useMarketplace";
+import { MarketplaceListing } from "@/types/marketplace";
 import { addDays, addWeeks, addMonths, addYears, format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -45,38 +47,6 @@ const fadeUp = {
   }),
 };
 
-// ── Demo listings — replace with usePublicListings({ organizationId }) when backend is ready ──
-const DEMO_ORG_LISTINGS = [
-  {
-    id: "ol-1",
-    title: "Annual Conference Ticket",
-    description:
-      "Full access to our 2-day summit — workshops, networking dinner, and keynote sessions.",
-    price: 75000,
-    installment: null as null | { count: number; interval: string },
-    images: [] as { url: string }[],
-  },
-  {
-    id: "ol-2",
-    title: "Business Growth Bootcamp",
-    description:
-      "Intensive 4-week cohort for founders and operators. Live sessions and lifetime access.",
-    price: 120000,
-    installment: { count: 3, interval: "monthly" },
-    images: [] as { url: string }[],
-  },
-  {
-    id: "ol-3",
-    title: "Member Kit – Branded Pack",
-    description:
-      "Official community merch bundle: notebook, tote bag, and welcome card. Shipped to you.",
-    price: 18500,
-    installment: null,
-    images: [] as { url: string }[],
-  },
-];
-
-type DemoListing = (typeof DEMO_ORG_LISTINGS)[number];
 
 const LISTING_PALETTE = [
   { bg: "#0D9488", light: "#E6F7F5" },
@@ -97,7 +67,7 @@ function ListingDetailModal({
   organizationId,
   onClose,
 }: {
-  listing: DemoListing;
+  listing: MarketplaceListing;
   organizationId: string;
   onClose: () => void;
 }) {
@@ -451,7 +421,7 @@ function ListingDetailModal({
                 one-time
               </span>
             </div>
-            {listing.installment && (
+            {listing.installment?.enabled && (
               <p
                 style={{
                   fontSize: 13,
@@ -519,9 +489,29 @@ function ListingDetailModal({
 }
 
 function OrgMarketplaceTab({ organizationId }: { organizationId: string }) {
-  const [selectedListing, setSelectedListing] = useState<DemoListing | null>(
-    null,
-  );
+  const { data: listings = [], isLoading } = usePublicListingsByOrg(organizationId);
+  const [selectedListing, setSelectedListing] =
+    useState<MarketplaceListing | null>(null);
+
+  if (isLoading) {
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px" }}>
+        {[1, 2, 3].map((i) => (
+          <div key={i} style={{ height: 260, borderRadius: 16, background: C.white, border: `1px solid ${C.border}`, animation: "pulse 1.5s ease-in-out infinite" }} />
+        ))}
+      </div>
+    );
+  }
+
+  if (listings.length === 0) {
+    return (
+      <div style={{ textAlign: "center", padding: "64px 32px", background: C.white, borderRadius: 16, border: `1px solid ${C.border}` }}>
+        <ShoppingBag size={36} color={C.coolGrey} style={{ margin: "0 auto 16px" }} />
+        <p style={{ fontWeight: 700, fontSize: 16, color: C.ink, marginBottom: 6 }}>No listings yet</p>
+        <p style={{ fontSize: 14, color: C.coolGrey }}>This community hasn&apos;t added any marketplace items.</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -532,8 +522,9 @@ function OrgMarketplaceTab({ organizationId }: { organizationId: string }) {
           gap: "20px",
         }}
       >
-        {DEMO_ORG_LISTINGS.map((item, i) => {
+        {listings.map((item, i) => {
           const { bg, light } = getListingColor(item.title);
+          const coverUrl = item.images?.[0]?.url ?? null;
           return (
             <motion.div
               key={item.id}
@@ -555,7 +546,7 @@ function OrgMarketplaceTab({ organizationId }: { organizationId: string }) {
               }}
               whileHover={{ y: -3, boxShadow: "0 10px 28px rgba(0,0,0,0.10)" }}
             >
-              {/* Placeholder cover */}
+              {/* Cover */}
               <div
                 style={{
                   background: light,
@@ -564,45 +555,56 @@ function OrgMarketplaceTab({ organizationId }: { organizationId: string }) {
                   overflow: "hidden",
                 }}
               >
-                <div
-                  style={{
-                    position: "absolute",
-                    top: -16,
-                    right: -16,
-                    width: 72,
-                    height: 72,
-                    borderRadius: "50%",
-                    background: bg,
-                    opacity: 0.15,
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 12,
-                      background: bg,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 800,
-                      fontSize: 20,
-                      color: "#fff",
-                      boxShadow: `0 6px 16px ${bg}40`,
-                    }}
-                  >
-                    {item.title.charAt(0).toUpperCase()}
-                  </div>
-                </div>
+                {coverUrl ? (
+                  <Image
+                    src={coverUrl}
+                    alt={item.title}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <>
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: -16,
+                        right: -16,
+                        width: 72,
+                        height: 72,
+                        borderRadius: "50%",
+                        background: bg,
+                        opacity: 0.15,
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 12,
+                          background: bg,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontWeight: 800,
+                          fontSize: 20,
+                          color: "#fff",
+                          boxShadow: `0 6px 16px ${bg}40`,
+                        }}
+                      >
+                        {item.title.charAt(0).toUpperCase()}
+                      </div>
+                    </div>
+                  </>
+                )}
                 {/* View hint */}
                 <div
                   style={{
@@ -675,7 +677,7 @@ function OrgMarketplaceTab({ organizationId }: { organizationId: string }) {
                   >
                     ₦{item.price.toLocaleString()}
                   </p>
-                  {item.installment ? (
+                  {item.installment?.enabled ? (
                     <p
                       style={{
                         fontSize: 12,

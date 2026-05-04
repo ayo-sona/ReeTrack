@@ -3,92 +3,47 @@
 import { useState, useMemo } from "react";
 import { Plus, ShoppingBag, TrendingUp } from "lucide-react";
 import { MarketplaceListing } from "@/types/marketplace";
-import { CreateListingModal, ListingFormData } from "@/components/organization/CreateListingModal";
+import {
+  CreateListingModal,
+  ListingFormData,
+} from "@/components/organization/CreateListingModal";
 import { ListingsGrid } from "@/components/organization/ListingsGrid";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-
-// ── Demo seed — swap for real API data when backend is ready ──────────────────
-
-const DEMO_LISTINGS: MarketplaceListing[] = [
-  {
-    id: "demo-1",
-    organization_id: "demo-org",
-    title: "Annual Conference Ticket",
-    description: "Full access to our 2-day annual summit. Includes workshops, networking dinner, and speaker sessions.",
-    images: [],
-    price: 75000,
-    currency: "NGN",
-    status: "available",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "demo-2",
-    organization_id: "demo-org",
-    title: "Business Growth Bootcamp",
-    description: "Intensive 4-week cohort for founders and operators. Live sessions, templates, and lifetime community access.",
-    images: [],
-    price: 120000,
-    currency: "NGN",
-    status: "available",
-    installment: { enabled: true, count: 3, interval: "monthly" },
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "demo-3",
-    organization_id: "demo-org",
-    title: "Member Kit – Branded Pack",
-    description: "Official community merch bundle: notebook, tote bag, pen, and welcome card. Shipped to your door.",
-    images: [],
-    price: 18500,
-    currency: "NGN",
-    status: "available",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "demo-4",
-    organization_id: "demo-org",
-    title: "1-on-1 Strategy Session",
-    description: "60-minute private session with a senior member of our team. Bring your biggest challenge — walk away with a plan.",
-    images: [],
-    price: 50000,
-    currency: "NGN",
-    status: "sold",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-let demoIdCounter = 100;
+import {
+  useMyListings,
+  useCreateListing,
+  useUpdateListing,
+  useDeleteListing,
+} from "@/hooks/useMarketplace";
 
 export default function MarketplacePage() {
-  const [listings, setListings] = useState<MarketplaceListing[]>(DEMO_LISTINGS);
+  const { data: listingsData, isLoading } = useMyListings();
+  const { mutate: createListing, isPending: isCreating } = useCreateListing();
+  const { mutate: updateListing, isPending: isUpdating } = useUpdateListing();
+  const { mutate: deleteListing } = useDeleteListing();
+
   const [showModal, setShowModal] = useState(false);
-  const [editingListing, setEditingListing] = useState<MarketplaceListing | null>(null);
-  const [deletingListingId, setDeletingListingId] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [editingListing, setEditingListing] =
+    useState<MarketplaceListing | null>(null);
+  const [deletingListingId, setDeletingListingId] = useState<string | null>(
+    null,
+  );
+
+  const listings = useMemo(() => listingsData?.data ?? [], [listingsData]);
+  const isSaving = isCreating || isUpdating;
 
   const stats = useMemo(
     () => ({
       total: listings.length,
-      available: listings.filter((l) => l.status === "available").length,
+      active: listings.filter((l) => l.status === "active").length,
       sold: listings.filter((l) => l.status === "sold").length,
       totalValue: listings
-        .filter((l) => l.status === "available")
-        .reduce((sum, l) => sum + l.price, 0),
+        .filter((l) => l.status === "active")
+        .reduce((sum, l) => sum + Number(l.price), 0),
     }),
     [listings],
   );
-
-  const handleOpenCreate = () => {
-    setEditingListing(null);
-    setShowModal(true);
-  };
 
   const handleEdit = (listing: MarketplaceListing) => {
     setEditingListing(listing);
@@ -96,80 +51,96 @@ export default function MarketplacePage() {
   };
 
   const handleToggle = (listingId: string) => {
-    setListings((prev) =>
-      prev.map((l) =>
-        l.id === listingId
-          ? { ...l, status: l.status === "available" ? "inactive" : "available" }
-          : l,
-      ),
+    const listing = listings.find((l) => l.id === listingId);
+    if (!listing) return;
+    updateListing(
+      {
+        id: listingId,
+        data: { status: listing.status === "active" ? "inactive" : "active" },
+      },
+      {
+        onSuccess: () => toast.success("Listing updated"),
+        onError: () => toast.error("Failed to update listing"),
+      },
     );
-    toast.success("Listing updated");
-  };
-
-  const handleDelete = (listingId: string) => {
-    setDeletingListingId(listingId);
   };
 
   const confirmDelete = () => {
     if (!deletingListingId) return;
-    setListings((prev) => prev.filter((l) => l.id !== deletingListingId));
-    toast.success("Listing deleted");
-    setDeletingListingId(null);
+    deleteListing(deletingListingId, {
+      onSuccess: () => {
+        toast.success("Listing deleted");
+        setDeletingListingId(null);
+      },
+      onError: () => toast.error("Failed to delete listing"),
+    });
   };
 
-  const handleSave = async (formData: ListingFormData) => {
-    setIsSaving(true);
-
-    // Simulate a brief save delay for realism
-    await new Promise((r) => setTimeout(r, 600));
-
-    const images = formData.files.map((file) => ({
-      url: URL.createObjectURL(file),
-      publicId: `demo-${Date.now()}`,
-    }));
+  const handleSave = (formData: ListingFormData) => {
+    const basePayload = {
+      title: formData.title,
+      description: formData.description,
+      price: parseFloat(formData.price),
+      currency: "NGN" as const,
+      status: formData.status,
+      installment: formData.installment.enabled
+        ? formData.installment
+        : undefined,
+    };
 
     if (editingListing) {
-      setListings((prev) =>
-        prev.map((l) =>
-          l.id === editingListing.id
-            ? {
-                ...l,
-                title: formData.title,
-                description: formData.description,
-                price: parseFloat(formData.price),
-                status: formData.status,
-                installment: formData.installment,
-                images: images.length > 0 ? images : l.images,
-                updated_at: new Date().toISOString(),
-              }
-            : l,
-        ),
+      updateListing(
+        { id: editingListing.id, data: { ...basePayload, files: formData.files } },
+        {
+          onSuccess: () => {
+            toast.success("Listing updated");
+            setShowModal(false);
+            setEditingListing(null);
+          },
+          onError: () => toast.error("Failed to update listing"),
+        },
       );
-      toast.success("Listing updated");
     } else {
-      const newListing: MarketplaceListing = {
-        id: `demo-${++demoIdCounter}`,
-        organization_id: "demo-org",
-        title: formData.title,
-        description: formData.description,
-        price: parseFloat(formData.price),
-        currency: "NGN",
-        status: formData.status,
-        installment: formData.installment,
-        images,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      setListings((prev) => [newListing, ...prev]);
-      toast.success("Listing created");
+      createListing(
+        { data: basePayload, files: formData.files },
+        {
+          onSuccess: () => {
+            toast.success("Listing created");
+            setShowModal(false);
+          },
+          onError: () => toast.error("Failed to create listing"),
+        },
+      );
     }
-
-    setIsSaving(false);
-    setShowModal(false);
-    setEditingListing(null);
   };
 
   const deletingListing = listings.find((l) => l.id === deletingListingId);
+
+  if (isLoading) {
+    return (
+      <div className="font-[Nunito,sans-serif] bg-[#F9FAFB] min-h-screen">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+          <div className="h-10 w-48 bg-white rounded-xl border border-gray-100 animate-pulse" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="h-24 bg-white rounded-xl border border-gray-100 animate-pulse"
+              />
+            ))}
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-64 bg-white rounded-xl border border-gray-100 animate-pulse"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="font-[Nunito,sans-serif] bg-[#F9FAFB] min-h-screen">
@@ -190,7 +161,10 @@ export default function MarketplacePage() {
           <Button
             variant="default"
             size="default"
-            onClick={handleOpenCreate}
+            onClick={() => {
+              setEditingListing(null);
+              setShowModal(true);
+            }}
             className="w-full sm:w-auto self-start sm:self-auto"
           >
             <Plus className="h-4 w-4" />
@@ -207,14 +181,18 @@ export default function MarketplacePage() {
               icon: <ShoppingBag className="w-4 h-4 text-[#0D9488]" />,
             },
             {
-              label: "Available",
-              value: stats.available,
-              icon: <span className="w-2 h-2 bg-emerald-500 rounded-full" />,
+              label: "Active",
+              value: stats.active,
+              icon: (
+                <span className="w-2 h-2 bg-emerald-500 rounded-full inline-block" />
+              ),
             },
             {
               label: "Sold",
               value: stats.sold,
-              icon: <span className="w-2 h-2 bg-gray-400 rounded-full" />,
+              icon: (
+                <span className="w-2 h-2 bg-gray-400 rounded-full inline-block" />
+              ),
             },
             {
               label: "Total Value",
@@ -247,7 +225,7 @@ export default function MarketplacePage() {
           listings={listings}
           onEdit={handleEdit}
           onToggleStatus={handleToggle}
-          onDelete={handleDelete}
+          onDelete={(id) => setDeletingListingId(id)}
         />
       </div>
 
@@ -291,7 +269,6 @@ export default function MarketplacePage() {
         </div>
       )}
 
-      {/* Create / Edit modal */}
       <CreateListingModal
         key={editingListing?.id ?? "create"}
         isOpen={showModal}

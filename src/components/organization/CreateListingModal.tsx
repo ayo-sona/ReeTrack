@@ -9,7 +9,7 @@ export interface ListingFormData {
   title: string;
   description: string;
   price: string;
-  status: "available" | "inactive";
+  status: "active" | "inactive";
   files: File[];
   installment: {
     enabled: boolean;
@@ -41,9 +41,9 @@ export function CreateListingModal({
           title: editingListing.title,
           description: editingListing.description || "",
           price: editingListing.price.toString(),
-          status: editingListing.status === "sold" ? "available" as const : editingListing.status as "available" | "inactive",
+          status: editingListing.status === "sold" ? "active" as const : editingListing.status as "active" | "inactive",
         }
-      : { title: "", description: "", price: "", status: "available" as const },
+      : { title: "", description: "", price: "", status: "active" as const },
   );
 
   const [installment, setInstallment] = useState(() => ({
@@ -62,7 +62,7 @@ export function CreateListingModal({
       : null;
 
   const handleClose = () => {
-    setFormData({ title: "", description: "", price: "", status: "available" });
+    setFormData({ title: "", description: "", price: "", status: "active" });
     setInstallment({ enabled: false, count: 3, interval: "monthly" });
     previewFiles.forEach((p) => URL.revokeObjectURL(p.previewUrl));
     setPreviewFiles([]);
@@ -188,12 +188,12 @@ export function CreateListingModal({
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      status: e.target.value as "available" | "inactive",
+                      status: e.target.value as "active" | "inactive",
                     })
                   }
                   className={inputClass}
                 >
-                  <option value="available">Available</option>
+                  <option value="active">Available</option>
                   <option value="inactive">Hidden (draft)</option>
                 </select>
               </div>
@@ -360,13 +360,13 @@ export function CreateListingModal({
             </div>
 
             {/* Existing images (edit mode) */}
-            {editingListing && editingListing.images.length > 0 && previewFiles.length === 0 && (
+            {editingListing && (editingListing.images?.length ?? 0) > 0 && previewFiles.length === 0 && (
               <div>
                 <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wide mb-2">
                   Current images
                 </p>
                 <div className="grid grid-cols-3 gap-2">
-                  {editingListing.images.map((img, i) => (
+                  {(editingListing.images ?? []).map((img, i) => (
                     <div
                       key={i}
                       className="relative aspect-square rounded-lg overflow-hidden border border-gray-200"
