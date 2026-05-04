@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   Users,
   Package,
+  ShoppingBag,
   CreditCard,
   Send,
   FileDown,
@@ -95,6 +96,7 @@ export function OrganizationSidebar({
     },
     { name: "Members", href: "/organization/members", icon: Users },
     { name: "Plans", href: "/organization/plans", icon: Package },
+    { name: "Marketplace", href: "/organization/marketplace", icon: ShoppingBag },
     {
       name: "Transactions",
       href: "/organization/transactions",

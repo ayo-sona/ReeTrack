@@ -24,6 +24,69 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Image from "next/image";
 
+// ─── Retention Demo Data — hidden until rewards system is live ───────────────
+// const DEMO_PROGRESS = {
+//   tier: "Rise",
+//   streak: 12,
+//   rank: 3,
+//   checkIns: 12,
+//   checkInsGoal: 15,
+//   nextReward: "10% off next payment",
+// } as const;
+//
+// function RetentionBanner() {
+//   const pct = Math.round(
+//     (DEMO_PROGRESS.checkIns / DEMO_PROGRESS.checkInsGoal) * 100,
+//   );
+//   const left = DEMO_PROGRESS.checkInsGoal - DEMO_PROGRESS.checkIns;
+//   return (
+//     <Link href="/member/rewards">
+//       <div className="bg-gradient-to-r from-[#0D9488] to-[#0B7A70] rounded-2xl p-5 md:p-6 shadow-md cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden relative group">
+//         <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/5 rounded-full pointer-events-none" />
+//         <div className="absolute -bottom-6 right-24 w-20 h-20 bg-white/5 rounded-full pointer-events-none" />
+//         <div className="relative">
+//           <div className="flex items-start justify-between mb-4">
+//             <div>
+//               <div className="flex items-center gap-2 mb-1.5">
+//                 <span className="bg-white/20 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+//                   ⚡ {DEMO_PROGRESS.tier}
+//                 </span>
+//                 <span className="text-white/60 text-xs font-medium">Tier 2 of 4</span>
+//               </div>
+//               <p className="text-white font-bold text-lg leading-tight">Your Rewards Progress</p>
+//               <p className="text-white/70 text-sm mt-0.5">
+//                 {left} more check-in{left !== 1 ? "s" : ""} → {DEMO_PROGRESS.nextReward}
+//               </p>
+//             </div>
+//             <div className="flex items-center gap-4 shrink-0 ml-4">
+//               <div className="text-center">
+//                 <p className="text-white font-extrabold text-xl leading-none">🔥 {DEMO_PROGRESS.streak}</p>
+//                 <p className="text-white/60 text-xs mt-1">day streak</p>
+//               </div>
+//               <div className="text-center">
+//                 <p className="text-white font-extrabold text-xl leading-none">#{DEMO_PROGRESS.rank}</p>
+//                 <p className="text-white/60 text-xs mt-1">rank</p>
+//               </div>
+//             </div>
+//           </div>
+//           <div className="mb-1">
+//             <div className="flex items-center justify-between text-xs text-white/70 mb-1.5">
+//               <span>Monthly Check-ins</span>
+//               <span>{DEMO_PROGRESS.checkIns}/{DEMO_PROGRESS.checkInsGoal}</span>
+//             </div>
+//             <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+//               <div className="h-full bg-white rounded-full" style={{ width: `${pct}%` }} />
+//             </div>
+//           </div>
+//           <div className="flex items-center gap-1 text-white/80 text-sm font-semibold mt-3 group-hover:text-white transition-colors">
+//             View all rewards <ArrowRight className="w-4 h-4" />
+//           </div>
+//         </div>
+//       </div>
+//     </Link>
+//   );
+// }
+
 // ─── Cancel Confirmation Modal ──────────────────────────────────────────────
 
 interface CancelModalProps {
@@ -175,11 +238,15 @@ export default function MemberDashboard() {
 
   const activeSubscriptionsCount = subscriptions.length;
 
-  const rawInvoice = allInvoices as any;
-  const invoicesList: any[] = Array.isArray(rawInvoice?.data)
-    ? rawInvoice.data
-    : Array.isArray(rawInvoice?.data?.data)
-      ? rawInvoice.data.data
+  const rawInvoice = allInvoices as
+    | { data?: unknown[] | { data?: unknown[] } }
+    | undefined;
+  const invoicesList: unknown[] = Array.isArray(rawInvoice?.data)
+    ? (rawInvoice!.data as unknown[])
+    : Array.isArray(
+          (rawInvoice?.data as { data?: unknown[] } | undefined)?.data,
+        )
+      ? ((rawInvoice!.data as { data: unknown[] }).data)
       : [];
 
   const failedInvoiceCount = invoicesList.length;
@@ -279,6 +346,9 @@ export default function MemberDashboard() {
               </div>
             </div>
           </div>
+
+          {/* Retention Banner — hidden until rewards system is live */}
+          {/* <RetentionBanner /> */}
 
           {/* Active Subscriptions List */}
           <div className="bg-white rounded-xl p-5 md:p-8 shadow-sm border border-[#E5E7EB]">
