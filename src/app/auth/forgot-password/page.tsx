@@ -25,18 +25,22 @@ export default function ForgotPasswordPage() {
 
   // Use hooks
   const { sendResetEmail, sending, error: forgotError } = useForgotPassword();
-  const { resetPassword, resetting, error: resetError } = useResetPassword(email);
+  const {
+    resetPassword,
+    resetting,
+    error: resetError,
+  } = useResetPassword(email);
 
   const error = forgotError || resetError;
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!email) {
       return;
     }
 
     const success = await sendResetEmail(email);
-    
+
     if (success) {
       posthog.capture("password_reset_requested");
       setFormState("code");
@@ -46,7 +50,7 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  const handleCodeSubmit = async (e: React.FormEvent) => {
+  const handleCodeSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!code || !newPassword || !confirmPassword) {
       return;
@@ -59,7 +63,7 @@ export default function ForgotPasswordPage() {
     const success = await resetPassword({
       token: code,
       password: newPassword,
-      password_confirmation: confirmPassword,
+      // password_confirmation: confirmPassword,
     });
 
     if (success) {
@@ -256,7 +260,9 @@ export default function ForgotPasswordPage() {
                     pattern="[0-9]*"
                     placeholder="000000"
                     value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onChange={(e) =>
+                      setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    }
                     disabled={resetting}
                     className={`${inputClass} text-center text-xl tracking-widest`}
                   />
