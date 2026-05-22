@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   LogOut,
+  // Gift, // hidden until rewards system is live
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ const navigation = [
   { name: "Explore", href: "/member/explore", icon: Compass },
   { name: "Check In", href: "/member/check-ins", icon: QrCode },
   { name: "Leaderboards", href: "/member/leaderboards", icon: Trophy },
+  // { name: "Rewards", href: "/member/rewards", icon: Gift }, // hidden until rewards system is live
   { name: "Payments & Billing", href: "/member/payments", icon: Receipt },
 ];
 

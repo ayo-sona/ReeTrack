@@ -31,7 +31,7 @@ interface Plan {
   is_active: boolean;
   created_at: string;
   updated_at: string;
-  organization: Organization; // ✨ Add this line
+  organization: Organization;
 }
 
 interface Subscription {

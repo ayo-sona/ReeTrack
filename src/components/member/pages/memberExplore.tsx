@@ -20,83 +20,50 @@ import {
 import { useAllCommunities } from "@/hooks/useGetCommunities";
 import { useMemberOrgs } from "@/hooks/memberHook/useMember";
 
+interface OrgPlan {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  interval: string | null;
+  features: string[];
+  is_active: boolean;
+}
+
+interface OrgListing {
+  id: string;
+  title: string;
+  description: string | null;
+  price: string; // API returns numeric string e.g. "20000.00"
+  status: string;
+  image_url: string | null;
+}
+
 interface Organization {
   id: string;
   name: string;
   email: string;
-  address?: string;
-  website?: string;
-  phone?: string;
-  description?: string;
+  address?: string | null;
+  website?: string | null;
+  phone?: string | null;
+  description?: string | null;
   logo_url?: string | null;
   created_at: string;
+  member_plans?: OrgPlan[];
+  marketplace_listings?: OrgListing[];
 }
 
-// ── Demo plans per org — swap with usePublicPlans({ orgId }) when ready ──
-const EXPLORE_DEMO_PLANS = [
-  {
-    id: "dp-1",
-    name: "Starter",
-    price: 15000,
-    interval: "monthly",
-    description: "Perfect for individuals getting started.",
-    features: [
-      "Access to all resources",
-      "Monthly newsletter",
-      "Community forum",
-    ],
-  },
-  {
-    id: "dp-2",
-    name: "Growth",
-    price: 35000,
-    interval: "monthly",
-    description: "For serious members who want more.",
-    features: [
-      "Everything in Starter",
-      "1-on-1 mentorship (monthly)",
-      "Priority support",
-      "Event discounts",
-    ],
-    popular: true,
-  },
-  {
-    id: "dp-3",
-    name: "Pro",
-    price: 75000,
-    interval: "monthly",
-    description: "Full access, no limits.",
-    features: [
-      "Everything in Growth",
-      "Unlimited 1-on-1 sessions",
-      "Private mastermind group",
-      "Annual retreat access",
-    ],
-  },
-];
+function intervalLabel(interval: string | null): string {
+  const map: Record<string, string> = {
+    monthly: "mo",
+    daily: "day",
+    weekly: "wk",
+    quarterly: "qtr",
+    yearly: "yr",
+  };
+  return map[interval ?? ""] ?? interval ?? "";
+}
 
-// ── Demo marketplace listings per org — swap with usePublicListings({ orgId }) when ready ──
-const EXPLORE_DEMO_LISTINGS = [
-  {
-    id: "el-1",
-    title: "Annual Conference Ticket",
-    price: 75000,
-    description: "Full access to our 2-day annual summit.",
-  },
-  {
-    id: "el-2",
-    title: "Business Growth Bootcamp",
-    price: 120000,
-    description: "Intensive 4-week cohort for founders.",
-    installment: { count: 3, interval: "monthly" },
-  },
-  {
-    id: "el-3",
-    title: "Member Kit – Branded Pack",
-    price: 18500,
-    description: "Official community merch bundle.",
-  },
-];
 
 const PALETTE = [
   { accent: "#0D9488", light: "#E6F7F5" },
@@ -909,6 +876,10 @@ function CommunityModal({
 }) {
   const [activeTab, setActiveTab] = useState<ModalTab>("plans");
   const { accent, light } = getPalette(org.name);
+  const orgListings = (org.marketplace_listings ?? []).filter(
+    (l) => l.status === "active",
+  );
+  const orgPlans = (org.member_plans ?? []).filter((p) => p.is_active);
 
   const details = [
     org.address && { icon: <MapPin size={13} />, label: org.address },
@@ -1231,172 +1202,85 @@ function CommunityModal({
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2 }}
               >
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                      "repeat(auto-fill, minmax(180px, 1fr))",
-                    gap: 12,
-                  }}
-                >
-                  {EXPLORE_DEMO_PLANS.map((plan) => (
-                    <div
-                      key={plan.id}
-                      className="plan-card"
-                      style={{
-                        borderRadius: 16,
-                        border: `1.5px solid ${plan.popular ? accent : "#E5E7EB"}`,
-                        background: plan.popular ? light : "#fff",
-                        padding: "18px 16px",
-                        display: "flex",
-                        flexDirection: "column",
-                        position: "relative",
-                      }}
-                    >
-                      {plan.popular && (
-                        <span
-                          style={{
-                            position: "absolute",
-                            top: -1,
-                            right: 12,
-                            fontSize: 10,
-                            fontWeight: 700,
-                            color: "#fff",
-                            background: accent,
-                            padding: "3px 10px",
-                            borderRadius: "0 0 8px 8px",
-                            letterSpacing: "0.3px",
-                          }}
-                        >
-                          POPULAR
-                        </span>
-                      )}
-                      <p
-                        style={{
-                          fontWeight: 700,
-                          fontSize: 15,
-                          color: "#111827",
-                          margin: "0 0 4px",
-                        }}
-                      >
-                        {plan.name}
-                      </p>
-                      <p
-                        style={{
-                          fontSize: 12,
-                          color: "#6B7280",
-                          margin: "0 0 12px",
-                          lineHeight: 1.5,
-                        }}
-                      >
-                        {plan.description}
-                      </p>
-                      <div style={{ marginBottom: 14 }}>
-                        <span
-                          style={{
-                            fontWeight: 800,
-                            fontSize: 22,
-                            color: "#111827",
-                          }}
-                        >
-                          ₦{plan.price.toLocaleString()}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: 12,
-                            color: "#9CA3AF",
-                            marginLeft: 4,
-                          }}
-                        >
-                          /{plan.interval === "monthly" ? "mo" : "yr"}
-                        </span>
-                      </div>
+                {orgPlans.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "32px 16px" }}>
+                    <CreditCard size={28} color="#D1D5DB" style={{ margin: "0 auto 10px" }} />
+                    <p style={{ fontSize: 13, color: "#9CA3AF", margin: 0 }}>No plans available yet</p>
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                      gap: 12,
+                    }}
+                  >
+                    {orgPlans.map((plan) => (
                       <div
+                        key={plan.id}
+                        className="plan-card"
                         style={{
+                          borderRadius: 16,
+                          border: "1.5px solid #E5E7EB",
+                          background: "#fff",
+                          padding: "18px 16px",
                           display: "flex",
                           flexDirection: "column",
-                          gap: 6,
-                          marginBottom: 16,
                         }}
                       >
-                        {plan.features.map((f, i) => (
-                          <div
-                            key={i}
-                            style={{
-                              display: "flex",
-                              alignItems: "flex-start",
-                              gap: 7,
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: 14,
-                                height: 14,
-                                borderRadius: "50%",
-                                background: accent,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                flexShrink: 0,
-                                marginTop: 1,
-                              }}
-                            >
-                              <svg width="8" height="8" viewBox="0 0 8 8">
-                                <path
-                                  d="M1.5 4L3.5 6L6.5 2"
-                                  stroke="#fff"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  fill="none"
-                                />
-                              </svg>
-                            </div>
-                            <span
-                              style={{
-                                fontSize: 12,
-                                color: "#374151",
-                                lineHeight: 1.4,
-                              }}
-                            >
-                              {f}
-                            </span>
+                        <p style={{ fontWeight: 700, fontSize: 15, color: "#111827", margin: "0 0 4px" }}>
+                          {plan.name}
+                        </p>
+                        {plan.description && (
+                          <p style={{ fontSize: 12, color: "#6B7280", margin: "0 0 12px", lineHeight: 1.5 }}>
+                            {plan.description}
+                          </p>
+                        )}
+                        <div style={{ marginBottom: plan.features.length > 0 ? 14 : 0 }}>
+                          <span style={{ fontWeight: 800, fontSize: 22, color: "#111827" }}>
+                            ₦{plan.price.toLocaleString()}
+                          </span>
+                          <span style={{ fontSize: 12, color: "#9CA3AF", marginLeft: 4 }}>
+                            /{intervalLabel(plan.interval)}
+                          </span>
+                        </div>
+                        {plan.features.length > 0 && (
+                          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
+                            {plan.features.map((f, i) => (
+                              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
+                                <div style={{ width: 14, height: 14, borderRadius: "50%", background: accent, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                                  <svg width="8" height="8" viewBox="0 0 8 8">
+                                    <path d="M1.5 4L3.5 6L6.5 2" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                                  </svg>
+                                </div>
+                                <span style={{ fontSize: 12, color: "#374151", lineHeight: 1.4 }}>{f}</span>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )}
+                        <a
+                          href={`/member/communities/${org.id}`}
+                          style={{
+                            marginTop: "auto",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 6,
+                            padding: "10px",
+                            borderRadius: 10,
+                            background: "#F3F4F6",
+                            color: "#374151",
+                            fontSize: 13,
+                            fontWeight: 700,
+                            textDecoration: "none",
+                          }}
+                        >
+                          Get started <ChevronRight size={13} />
+                        </a>
                       </div>
-                      <a
-                        href={`/member/communities/${org.id}`}
-                        style={{
-                          marginTop: "auto",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 6,
-                          padding: "10px",
-                          borderRadius: 10,
-                          background: plan.popular ? accent : "#F3F4F6",
-                          color: plan.popular ? "#fff" : "#374151",
-                          fontSize: 13,
-                          fontWeight: 700,
-                          textDecoration: "none",
-                        }}
-                      >
-                        Get started <ChevronRight size={13} />
-                      </a>
-                    </div>
-                  ))}
-                </div>
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: "#9CA3AF",
-                    textAlign: "center",
-                    marginTop: 16,
-                  }}
-                >
-                  Placeholder plans — live data loads when you visit the
-                  community
-                </p>
+                    ))}
+                  </div>
+                )}
               </motion.div>
             ) : (
               <motion.div
@@ -1406,142 +1290,93 @@ function CommunityModal({
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2 }}
               >
-                <div
-                  style={{ display: "flex", flexDirection: "column", gap: 10 }}
-                >
-                  {EXPLORE_DEMO_LISTINGS.map((item) => {
-                    const { accent: itemAccent, light: itemLight } = getPalette(
-                      item.title,
-                    );
-                    const backHref = encodeURIComponent("/member/explore");
-                    const href = `/member/marketplace/checkout/${item.id}?title=${encodeURIComponent(item.title)}&price=${item.price}&desc=${encodeURIComponent(item.description)}&backHref=${backHref}&backLabel=${encodeURIComponent("Back to Explore")}`;
-                    return (
-                      <div
-                        key={item.id}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 14,
-                          padding: "14px 16px",
-                          borderRadius: 14,
-                          background: "#F9FAFB",
-                          border: "1px solid #F0F0F0",
-                        }}
-                      >
-                        {/* Placeholder cover */}
+                {orgListings.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "32px 16px" }}>
+                    <ShoppingBag size={28} color="#D1D5DB" style={{ margin: "0 auto 10px" }} />
+                    <p style={{ fontSize: 13, color: "#9CA3AF", margin: 0 }}>No marketplace items yet</p>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {orgListings.map((item) => {
+                      const { accent: itemAccent, light: itemLight } = getPalette(item.title);
+                      const price = parseFloat(item.price);
+                      const backHref = encodeURIComponent("/member/explore");
+                      const href = `/member/marketplace/checkout/${item.id}?title=${encodeURIComponent(item.title)}&price=${price}&desc=${encodeURIComponent(item.description ?? "")}&backHref=${backHref}&backLabel=${encodeURIComponent("Back to Explore")}`;
+                      const coverUrl = item.image_url ?? null;
+                      return (
                         <div
+                          key={item.id}
                           style={{
-                            width: 52,
-                            height: 52,
-                            borderRadius: 12,
-                            background: itemLight,
-                            flexShrink: 0,
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
-                            fontWeight: 800,
-                            fontSize: 20,
-                            color: itemAccent,
-                            position: "relative",
-                            overflow: "hidden",
+                            gap: 14,
+                            padding: "14px 16px",
+                            borderRadius: 14,
+                            background: "#F9FAFB",
+                            border: "1px solid #F0F0F0",
                           }}
                         >
                           <div
                             style={{
-                              position: "absolute",
-                              top: -8,
-                              right: -8,
-                              width: 28,
-                              height: 28,
-                              borderRadius: "50%",
-                              background: itemAccent,
-                              opacity: 0.2,
-                            }}
-                          />
-                          {item.title.charAt(0)}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <p
-                            style={{
-                              fontSize: 14,
-                              fontWeight: 700,
-                              color: "#111827",
-                              margin: 0,
+                              width: 52,
+                              height: 52,
+                              borderRadius: 12,
+                              background: coverUrl ? "transparent" : itemLight,
+                              flexShrink: 0,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontWeight: 800,
+                              fontSize: 20,
+                              color: itemAccent,
+                              position: "relative",
                               overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
                             }}
                           >
-                            {item.title}
-                          </p>
-                          <p
+                            {coverUrl ? (
+                              <Image src={coverUrl} alt={item.title} fill className="object-cover" />
+                            ) : (
+                              <>
+                                <div style={{ position: "absolute", top: -8, right: -8, width: 28, height: 28, borderRadius: "50%", background: itemAccent, opacity: 0.2 }} />
+                                {item.title.charAt(0)}
+                              </>
+                            )}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {item.title}
+                            </p>
+                            {item.description && (
+                              <p style={{ fontSize: 12, color: "#6B7280", margin: "3px 0 0", lineHeight: 1.4 }}>
+                                {item.description}
+                              </p>
+                            )}
+                            <p style={{ fontSize: 12, fontWeight: 700, color: "#111827", margin: "5px 0 0" }}>
+                              ₦{price.toLocaleString()}
+                            </p>
+                          </div>
+                          <a
+                            href={href}
                             style={{
-                              fontSize: 12,
-                              color: "#6B7280",
-                              margin: "3px 0 0",
-                              lineHeight: 1.4,
-                            }}
-                          >
-                            {item.description}
-                          </p>
-                          <p
-                            style={{
-                              fontSize: 12,
+                              padding: "8px 16px",
+                              borderRadius: 10,
+                              background: "#0D9488",
+                              color: "#fff",
+                              fontSize: 13,
                               fontWeight: 700,
-                              color: "#111827",
-                              margin: "5px 0 0",
+                              textDecoration: "none",
+                              flexShrink: 0,
+                              fontFamily: "'DM Sans', sans-serif",
+                              boxShadow: "0 4px 12px rgba(13,148,136,0.25)",
                             }}
                           >
-                            ₦{item.price.toLocaleString()}
-                            {"installment" in item && item.installment ? (
-                              <span
-                                style={{ fontWeight: 500, color: "#9CA3AF" }}
-                              >
-                                {" "}
-                                · or {item.installment.count}× ₦
-                                {Math.round(
-                                  item.price / item.installment.count,
-                                ).toLocaleString()}
-                                /
-                                {item.installment.interval === "monthly"
-                                  ? "mo"
-                                  : "wk"}
-                              </span>
-                            ) : null}
-                          </p>
+                            Buy Now
+                          </a>
                         </div>
-                        <a
-                          href={href}
-                          style={{
-                            padding: "8px 16px",
-                            borderRadius: 10,
-                            background: "#0D9488",
-                            color: "#fff",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            textDecoration: "none",
-                            flexShrink: 0,
-                            fontFamily: "'DM Sans', sans-serif",
-                            boxShadow: "0 4px 12px rgba(13,148,136,0.25)",
-                          }}
-                        >
-                          Buy Now
-                        </a>
-                      </div>
-                    );
-                  })}
-                </div>
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: "#9CA3AF",
-                    textAlign: "center",
-                    marginTop: 16,
-                  }}
-                >
-                  Placeholder listings — live data loads when the org publishes
-                  products
-                </p>
+                      );
+                    })}
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

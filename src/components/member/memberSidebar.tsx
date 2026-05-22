@@ -11,6 +11,7 @@ import {
   Receipt,
   Settings,
   LogOut,
+  // Gift, // hidden until rewards system is live
 } from "lucide-react";
 import { Sidebar } from "@/components/ui/SideBar";
 import { User } from "@/types/user";
@@ -55,6 +56,7 @@ export function MemberSidebar({
     { name: "Explore", href: "/member/explore", icon: Compass },
     { name: "Check In", href: "/member/check-ins", icon: QrCode },
     { name: "Leaderboard", href: "/member/leaderboards", icon: Trophy },
+    // { name: "Rewards", href: "/member/rewards", icon: Gift }, // hidden until rewards system is live
     { name: "Payments & Billing", href: "/member/payments", icon: Receipt },
   ];
 
