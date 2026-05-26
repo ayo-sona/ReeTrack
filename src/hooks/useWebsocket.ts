@@ -3,7 +3,9 @@
 import { io, Socket } from "socket.io-client";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import apiClient, { BASE_URL } from "@/lib/apiClient";
+import apiClient from "@/lib/apiClient";
+
+const BASE_URL = "https://api.reetrack.com"
 
 interface SubscriptionEvents {
   "plan:upgraded": (data: { newPlan: string; timestamp: string }) => void;
