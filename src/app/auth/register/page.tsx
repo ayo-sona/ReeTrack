@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input, Spinner } from "@heroui/react";
-import { Mail, Lock, User, Phone, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, User, Phone, Eye, EyeOff, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import Logo from "@/components/layout/Logo";
 import { useAuth } from "@/hooks/useAuth";
@@ -84,7 +84,7 @@ function RegisterForm() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-white">
+    <div className="h-screen relative overflow-hidden bg-white">
       {/* Diagonal Split Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div
@@ -166,20 +166,20 @@ function RegisterForm() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
+      <div className="relative z-10 h-screen flex items-center justify-center px-4 py-4 overflow-y-auto">
         <div className="w-full max-w-lg">
-          <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 backdrop-blur-sm bg-white/95">
+          <div className="bg-white rounded-3xl shadow-2xl p-5 sm:p-6 backdrop-blur-sm bg-white/95">
             {/* Header */}
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-4">
+            <div className="text-center mb-4">
+              <div className="flex justify-center mb-2">
                 <Link href="/">
-                  <Logo size={32} />
+                  <Logo size={28} />
                 </Link>
               </div>
-              <h1 className="text-3xl font-bold text-[#1F2937] mb-2">
+              <h1 className="text-2xl font-bold text-[#1F2937] mb-1">
                 Create Your Account
               </h1>
-              <p className="text-[#1F2937]/60">
+              <p className="text-sm text-[#1F2937]/60">
                 {redirectParam
                   ? "Create an account to finish joining the organization"
                   : "Join the community and start building"}
@@ -188,19 +188,19 @@ function RegisterForm() {
 
             {/* Error Message */}
             {registerError && (
-              <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+              <div className="mb-4 bg-red-50 border-l-4 border-red-500 p-3 rounded-lg">
                 <p className="text-sm text-red-700">{registerError}</p>
               </div>
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {/* First Name & Last Name */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label
                     htmlFor="firstName"
-                    className="block text-sm font-semibold text-[#1F2937] mb-2"
+                    className="block text-sm font-semibold text-[#1F2937] mb-1"
                   >
                     First Name
                   </label>
@@ -220,7 +220,7 @@ function RegisterForm() {
                 <div>
                   <label
                     htmlFor="lastName"
-                    className="block text-sm font-semibold text-[#1F2937] mb-2"
+                    className="block text-sm font-semibold text-[#1F2937] mb-1"
                   >
                     Last Name
                   </label>
@@ -243,7 +243,7 @@ function RegisterForm() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-semibold text-[#1F2937] mb-2"
+                  className="block text-sm font-semibold text-[#1F2937] mb-1"
                 >
                   Email Address
                 </label>
@@ -266,7 +266,7 @@ function RegisterForm() {
               <div>
                 <label
                   htmlFor="phone"
-                  className="block text-sm font-semibold text-[#1F2937] mb-2"
+                  className="block text-sm font-semibold text-[#1F2937] mb-1"
                 >
                   Phone Number
                 </label>
@@ -288,7 +288,7 @@ function RegisterForm() {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-semibold text-[#1F2937] mb-2"
+                  className="block text-sm font-semibold text-[#1F2937] mb-1"
                 >
                   Password
                 </label>
@@ -331,7 +331,7 @@ function RegisterForm() {
               <div>
                 <label
                   htmlFor="confirmPassword"
-                  className="block text-sm font-semibold text-[#1F2937] mb-2"
+                  className="block text-sm font-semibold text-[#1F2937] mb-1"
                 >
                   Confirm Password
                 </label>
@@ -362,52 +362,57 @@ function RegisterForm() {
               <Button
                 type="submit"
                 variant="default"
-                size="lg"
+                size="default"
                 disabled={registering}
-                className="w-full mt-6"
+                className="w-full mt-4"
               >
                 {registering ? "Creating account..." : "Create Account"}
               </Button>
             </form>
 
-            {/* Divider */}
-            <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-[#1F2937]/60">
-                  Already have an account?
-                </span>
-              </div>
-            </div>
+            {!redirectParam && (
+              <>
+                {/* Divider */}
+                <div className="relative my-3">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-white text-[#1F2937]/40 text-xs uppercase tracking-wide font-medium">
+                      or
+                    </span>
+                  </div>
+                </div>
 
-            <div className="text-center space-y-3">
+                {/* Org registration CTA */}
+                <Link href="/auth/org/register" className="block group">
+                  <div className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border-2 border-[#F06543]/30 bg-[#F06543]/5 hover:bg-[#F06543]/10 hover:border-[#F06543]/60 transition-all duration-200">
+                    <div className="w-9 h-9 rounded-xl bg-[#F06543]/15 flex items-center justify-center shrink-0">
+                      <Building2 className="w-4 h-4 text-[#F06543]" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="text-sm font-bold text-[#1F2937] leading-tight">Register as an Organization</p>
+                    </div>
+                    <span className="text-[#F06543] text-sm font-bold group-hover:translate-x-0.5 transition-transform">→</span>
+                  </div>
+                </Link>
+              </>
+            )}
+
+            {/* Sign in link */}
+            <p className="text-center text-sm text-[#1F2937]/50 mt-3">
+              Already have an account?{" "}
               <Link
                 href={
                   redirectParam
                     ? `/auth/login?redirect=${encodeURIComponent(redirectParam)}`
                     : "/auth/login"
                 }
-                className="text-sm font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors block"
+                className="font-semibold text-[#0D9488] hover:text-[#0B7A70] transition-colors"
               >
-                Sign in instead →
+                Sign in →
               </Link>
-
-              {!redirectParam && (
-                <div className="pt-2 border-t border-gray-100">
-                  <p className="text-xs text-[#1F2937]/50 mb-2">
-                    Building a community?
-                  </p>
-                  <Link
-                    href="/auth/org/register"
-                    className="text-xs font-semibold text-[#F06543] hover:text-[#D85436] transition-colors"
-                  >
-                    Register as an organization →
-                  </Link>
-                </div>
-              )}
-            </div>
+            </p>
           </div>
         </div>
       </div>
