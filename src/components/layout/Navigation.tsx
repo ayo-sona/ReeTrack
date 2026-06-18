@@ -10,11 +10,12 @@ import Logo from "./Logo";
 
 const navItems = [
   { label: "About", href: "/about" },
+  { label: "Calculator", href: "/churn-calculator" },
   { label: "FAQ", href: "/#faq" },
   { label: "Contact", href: "/contact" },
 ];
 
-const ClientOnlyNavigation = () => {
+const ClientOnlyNavigation = ({ dark = false }: { dark?: boolean }) => {
   const [scrolled, setScrolled] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("");
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
@@ -54,13 +55,17 @@ const ClientOnlyNavigation = () => {
   }, [isMobileMenuOpen]);
 
   const navStyle = (extra?: object) => ({
-    background: scrolled ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.40)",
+    background: dark
+      ? (scrolled ? "rgba(12,18,16,0.92)" : "rgba(7,9,10,0.65)")
+      : (scrolled ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.40)"),
     backdropFilter: "blur(12px)",
     WebkitBackdropFilter: "blur(12px)",
-    border: "1px solid rgba(255,255,255,0.6)",
-    boxShadow: scrolled
-      ? "0 4px 24px rgba(0,0,0,0.08), 0 0 40px 8px rgba(255,255,255,0.6)"
-      : "0 2px 16px rgba(0,0,0,0.06), 0 0 30px 6px rgba(255,255,255,0.5)",
+    border: dark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(255,255,255,0.6)",
+    boxShadow: dark
+      ? (scrolled ? "0 4px 24px rgba(0,0,0,0.5)" : "0 2px 16px rgba(0,0,0,0.25)")
+      : (scrolled
+          ? "0 4px 24px rgba(0,0,0,0.08), 0 0 40px 8px rgba(255,255,255,0.6)"
+          : "0 2px 16px rgba(0,0,0,0.06), 0 0 30px 6px rgba(255,255,255,0.5)"),
     ...extra,
   });
 
@@ -97,7 +102,7 @@ const ClientOnlyNavigation = () => {
                 className="relative flex items-center gap-1 px-3 py-2 rounded-full flex-1 justify-center"
               >
                 <motion.div
-                  className="absolute top-2 bottom-2 rounded-full bg-white shadow-lg shadow-[#0D9488]/10 border border-gray-100"
+                  className={`absolute top-2 bottom-2 rounded-full shadow-lg ${dark ? "bg-white/[0.06] border border-white/10" : "bg-white shadow-[#0D9488]/10 border border-gray-100"}`}
                   style={{ left: pillLeft, width: pillWidth }}
                 />
                 {navItems.map((item, idx) => (
@@ -115,8 +120,8 @@ const ClientOnlyNavigation = () => {
                     onMouseLeave={() => setHoveredTab(null)}
                     className={`relative z-10 px-3 py-2 text-[13px] font-semibold tracking-tight transition-colors duration-200 whitespace-nowrap ${
                       activeTab === item.label
-                        ? "text-[#1F2937]"
-                        : "text-[#9CA3AF] hover:text-[#1F2937]"
+                        ? dark ? "text-[#E8F0EC]" : "text-[#1F2937]"
+                        : dark ? "text-white/35 hover:text-[#E8F0EC]" : "text-[#9CA3AF] hover:text-[#1F2937]"
                     }`}
                   >
                     {item.label}
@@ -131,7 +136,7 @@ const ClientOnlyNavigation = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.5, duration: 0.5 }}
                 >
-                  <Button variant="ghost" size="default" asChild>
+                  <Button variant="ghost" size="default" asChild className={dark ? "text-[#E8F0EC] hover:text-[#E8F0EC] hover:bg-white/5" : ""}>
                     <Link href="/auth/login">Sign In</Link>
                   </Button>
                 </motion.div>
@@ -182,7 +187,7 @@ const ClientOnlyNavigation = () => {
             </Link>
             <motion.button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2.5 text-[#1F2937] hover:text-[#0D9488] transition-colors rounded-2xl hover:bg-gray-100"
+              className={`p-2.5 transition-colors rounded-2xl ${dark ? "text-[#E8F0EC] hover:text-[#00C896] hover:bg-white/5" : "text-[#1F2937] hover:text-[#0D9488] hover:bg-gray-100"}`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -217,6 +222,7 @@ const ClientOnlyNavigation = () => {
               style={{
                 backdropFilter: "blur(24px)",
                 WebkitBackdropFilter: "blur(24px)",
+                background: dark ? "rgba(7,9,10,0.97)" : "rgba(255,255,255,0.97)",
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -242,8 +248,8 @@ const ClientOnlyNavigation = () => {
                         }}
                         className={`block text-left py-3.5 px-6 text-2xl font-bold transition-all rounded-2xl ${
                           activeTab === item.label
-                            ? "text-[#0D9488] bg-[#0D9488]/8"
-                            : "text-[#1F2937]/70 hover:text-[#1F2937] hover:bg-gray-100"
+                            ? dark ? "text-[#00C896] bg-[rgba(0,200,150,0.08)]" : "text-[#0D9488] bg-[#0D9488]/8"
+                            : dark ? "text-white/50 hover:text-[#E8F0EC] hover:bg-white/5" : "text-[#1F2937]/70 hover:text-[#1F2937] hover:bg-gray-100"
                         }`}
                       >
                         {item.label}
@@ -262,7 +268,7 @@ const ClientOnlyNavigation = () => {
                     variant="outline"
                     size="lg"
                     asChild
-                    className="w-full"
+                    className={dark ? "w-full border-white/10 text-[#E8F0EC] hover:bg-white/5 hover:text-[#E8F0EC]" : "w-full"}
                   >
                     <Link
                       href="/auth/login"
@@ -292,19 +298,19 @@ const ClientOnlyNavigation = () => {
                   transition={{ delay: 0.7, duration: 0.5 }}
                   className="mt-auto pt-12 flex items-center justify-between"
                 >
-                  <p className="text-[#1F2937]/40 text-sm">
+                  <p className={`text-sm ${dark ? "text-white/25" : "text-[#1F2937]/40"}`}>
                     © {new Date().getFullYear()} ReeTrack.
                   </p>
                   <div className="flex items-center gap-4">
                     <a
                       href="/terms"
-                      className="text-xs text-[#1F2937]/40 hover:text-[#1F2937] transition-colors"
+                      className={`text-xs transition-colors ${dark ? "text-white/25 hover:text-white/60" : "text-[#1F2937]/40 hover:text-[#1F2937]"}`}
                     >
                       Terms
                     </a>
                     <a
                       href="/privacy"
-                      className="text-xs text-[#1F2937]/40 hover:text-[#1F2937] transition-colors"
+                      className={`text-xs transition-colors ${dark ? "text-white/25 hover:text-white/60" : "text-[#1F2937]/40 hover:text-[#1F2937]"}`}
                     >
                       Privacy
                     </a>
@@ -319,11 +325,14 @@ const ClientOnlyNavigation = () => {
   );
 };
 
-export const Navigation = dynamic(() => Promise.resolve(ClientOnlyNavigation), {
-  ssr: false,
-  loading: () => (
-    <div className="fixed top-6 left-0 right-0 z-50 px-6">
-      <div className="max-w-6xl mx-auto h-16" />
-    </div>
-  ),
-});
+export const Navigation = dynamic(
+  () => Promise.resolve(({ dark }: { dark?: boolean }) => <ClientOnlyNavigation dark={dark} />),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="fixed top-6 left-0 right-0 z-50 px-6">
+        <div className="max-w-6xl mx-auto h-16" />
+      </div>
+    ),
+  }
+);
