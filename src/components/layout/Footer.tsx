@@ -7,6 +7,7 @@ import Logo from "./Logo";
 const footerLinks = {
   product: [
     { label: "Home", href: "/#" },
+    { label: "Churn Calculator", href: "/churn-calculator" },
     { label: "FAQ", href: "/#faq" },
   ],
   company: [
