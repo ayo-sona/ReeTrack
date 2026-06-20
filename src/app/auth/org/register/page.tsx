@@ -7,7 +7,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@heroui/react";
-import { Mail, User, Building, Phone, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, User, Building, Lock, Eye, EyeOff } from "lucide-react";
 import apiClient from "@/lib/apiClient";
 import { toast } from "sonner";
 import Logo from "@/components/layout/Logo";
@@ -327,26 +327,26 @@ export default function AdminRegisterPage() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-6">
         <div className="w-full max-w-2xl">
-          <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 backdrop-blur-sm bg-white/95">
+          <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-7 backdrop-blur-sm bg-white/95">
             {/* Header */}
-            <div className="text-center mb-6">
-              <div className="flex justify-center mb-4">
+            <div className="text-center mb-4">
+              <div className="flex justify-center mb-2">
                 <Link href="/">
-                  <Logo size={32} />
+                  <Logo size={28} />
                 </Link>
               </div>
-              <h1 className="text-3xl font-bold text-[#1F2937] mb-2">
+              <h1 className="text-2xl font-bold text-[#1F2937] mb-1">
                 Create Your Organization
               </h1>
-              <p className="text-[#1F2937]/60">
+              <p className="text-sm text-[#1F2937]/60">
                 Set up your community and start managing memberships
               </p>
             </div>
 
             {/* Toggle */}
-            <div className="flex items-center justify-center mb-6">
+            <div className="flex items-center justify-center mb-4">
               <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1">
                 <button
                   type="button"
@@ -387,7 +387,7 @@ export default function AdminRegisterPage() {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="mb-6 overflow-hidden"
+                  className="mb-3 overflow-hidden"
                 >
                   <div className="bg-[#0D9488]/5 border border-[#0D9488]/15 rounded-xl px-4 py-3">
                     <p className="text-xs text-[#0D9488] leading-relaxed">
@@ -402,12 +402,12 @@ export default function AdminRegisterPage() {
 
             {/* Error */}
             {error && (
-              <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+              <div className="mb-3 bg-red-50 border-l-4 border-red-500 p-3 rounded-lg">
                 <p className="text-sm text-red-700">{error}</p>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* New user fields */}
               <AnimatePresence>
                 {!isExistingUser && (
@@ -416,20 +416,20 @@ export default function AdminRegisterPage() {
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.25 }}
-                    className="space-y-5 overflow-hidden"
+                    className="space-y-3 overflow-hidden"
                   >
-                    <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                      <User className="w-5 h-5 text-[#F06543]" />
-                      <h3 className="text-base font-bold text-[#1F2937]">
+                    <div className="flex items-center gap-2 pb-1.5 border-b border-gray-100">
+                      <User className="w-4 h-4 text-[#F06543]" />
+                      <h3 className="text-sm font-bold text-[#1F2937]">
                         Your Account
                       </h3>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-3">
                       <div>
                         <label
                           htmlFor="firstName"
-                          className="block text-sm font-semibold text-[#1F2937] mb-2"
+                          className="block text-sm font-semibold text-[#1F2937] mb-1"
                         >
                           First Name *
                         </label>
@@ -442,16 +442,13 @@ export default function AdminRegisterPage() {
                           value={formData.firstName}
                           onChange={handleChange}
                           disabled={isLoading}
-                          startContent={
-                            <User className="w-4 h-4 text-gray-400" />
-                          }
                           classNames={inputClassNames}
                         />
                       </div>
                       <div>
                         <label
                           htmlFor="lastName"
-                          className="block text-sm font-semibold text-[#1F2937] mb-2"
+                          className="block text-sm font-semibold text-[#1F2937] mb-1"
                         >
                           Last Name *
                         </label>
@@ -464,45 +461,38 @@ export default function AdminRegisterPage() {
                           value={formData.lastName}
                           onChange={handleChange}
                           disabled={isLoading}
-                          startContent={
-                            <User className="w-4 h-4 text-gray-400" />
-                          }
                           classNames={inputClassNames}
                         />
                       </div>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="phone"
-                        className="block text-sm font-semibold text-[#1F2937] mb-2"
-                      >
-                        Phone Number *
-                      </label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        required={!isExistingUser}
-                        placeholder="08012345678"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        disabled={isLoading}
-                        startContent={
-                          <Phone className="w-4 h-4 text-gray-400" />
-                        }
-                        classNames={inputClassNames}
-                      />
+                      <div>
+                        <label
+                          htmlFor="phone"
+                          className="block text-sm font-semibold text-[#1F2937] mb-1"
+                        >
+                          Phone *
+                        </label>
+                        <Input
+                          id="phone"
+                          name="phone"
+                          type="tel"
+                          required={!isExistingUser}
+                          placeholder="08012345678"
+                          value={formData.phone}
+                          onChange={handleChange}
+                          disabled={isLoading}
+                          classNames={inputClassNames}
+                        />
+                      </div>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
               {/* Email + Password — always shown */}
-              <div className="space-y-5">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Mail className="w-5 h-5 text-[#F06543]" />
-                  <h3 className="text-base font-bold text-[#1F2937]">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 pb-1.5 border-b border-gray-100">
+                  <Mail className="w-4 h-4 text-[#F06543]" />
+                  <h3 className="text-sm font-bold text-[#1F2937]">
                     {isExistingUser ? "Your Account" : "Login Details"}
                   </h3>
                 </div>
@@ -510,7 +500,7 @@ export default function AdminRegisterPage() {
                 <div>
                   <label
                     htmlFor="email"
-                    className="block text-sm font-semibold text-[#1F2937] mb-2"
+                    className="block text-sm font-semibold text-[#1F2937] mb-1"
                   >
                     Email Address *
                   </label>
@@ -532,7 +522,7 @@ export default function AdminRegisterPage() {
                 <div>
                   <label
                     htmlFor="password"
-                    className="block text-sm font-semibold text-[#1F2937] mb-2"
+                    className="block text-sm font-semibold text-[#1F2937] mb-1"
                   >
                     {isExistingUser ? "Your Password *" : "Password *"}
                   </label>
@@ -585,7 +575,7 @@ export default function AdminRegisterPage() {
                 <div>
                   <label
                     htmlFor="confirmPassword"
-                    className="block text-sm font-semibold text-[#1F2937] mb-2"
+                    className="block text-sm font-semibold text-[#1F2937] mb-1"
                   >
                     Confirm Password *
                   </label>
@@ -615,10 +605,10 @@ export default function AdminRegisterPage() {
               </div>
 
               {/* Organization Details */}
-              <div className="space-y-5 pt-2">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-                  <Building className="w-5 h-5 text-[#0D9488]" />
-                  <h3 className="text-base font-bold text-[#1F2937]">
+              <div className="space-y-3 pt-1">
+                <div className="flex items-center gap-2 pb-1.5 border-b border-gray-100">
+                  <Building className="w-4 h-4 text-[#0D9488]" />
+                  <h3 className="text-sm font-bold text-[#1F2937]">
                     Organization Details
                   </h3>
                 </div>
@@ -626,7 +616,7 @@ export default function AdminRegisterPage() {
                 <div>
                   <label
                     htmlFor="organizationName"
-                    className="block text-sm font-semibold text-[#1F2937] mb-2"
+                    className="block text-sm font-semibold text-[#1F2937] mb-1"
                   >
                     Organization Name *
                   </label>
@@ -649,7 +639,7 @@ export default function AdminRegisterPage() {
                 <div>
                   <label
                     htmlFor="organizationEmail"
-                    className="block text-sm font-semibold text-[#1F2937] mb-2"
+                    className="block text-sm font-semibold text-[#1F2937] mb-1"
                   >
                     Organization Email *
                   </label>
@@ -701,9 +691,9 @@ export default function AdminRegisterPage() {
               <Button
                 type="submit"
                 variant="secondary"
-                size="lg"
+                size="default"
                 disabled={isLoading}
-                className="w-full mt-6"
+                className="w-full mt-2"
               >
                 {isLoading
                   ? "Setting up your organization..."
@@ -712,7 +702,7 @@ export default function AdminRegisterPage() {
             </form>
 
             {/* Divider */}
-            <div className="relative my-8">
+            <div className="relative my-5">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200" />
               </div>
